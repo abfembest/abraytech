@@ -1,0 +1,399 @@
+{% extends 'management/base.html' %}
+{% block title %}Reviews - Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-full">
+
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Reviews</h1>
+    <p class="text-sm text-gray-500 mt-0.5">Manage course reviews and ratings</p>
+  </div>
+
+  <div class="flex flex-col lg:flex-row gap-6 items-start">
+
+    <div class="w-full min-w-0 lg:flex-1">
+
+      <form method="get" class="mb-4">
+        <div class="flex flex-wrap gap-2 max-w-xl">
+          <label for="search" class="sr-only">Search reviews</label>
+          <div class="flex gap-2 flex-1 min-w-0">
+            <input id="search" name="search" type="search"
+                   value="{{ request.GET.search|default:'' }}"
+                   placeholder="Search course or review text…"
+                   class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                          focus:ring-2 focus:ring-primary-500 focus:outline-none">
+            <button type="submit"
+                    class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 border border-gray-300
+                           rounded-lg text-sm font-medium transition-colors whitespace-nowrap">
+              Search
+            </button>
+          </div>
+          <label for="rating-filter" class="sr-only">Filter by rating</label>
+          <select id="rating-filter" name="rating"
+                  onchange="this.form.submit()"
+                  class="px-3 py-2.5 border border-gray-300 rounded-lg text-sm
+                         focus:ring-2 focus:ring-primary-500 focus:outline-none bg-white">
+            <option value="">All Ratings</option>
+            {% for r in "12345" %}
+              <option value="{{ r }}" {% if request.GET.rating == r %}selected{% endif %}>
+                {{ r }} Star{{ r|pluralize }}
+              </option>
+            {% endfor %}
+          </select>
+          {% if request.GET.search or request.GET.rating %}
+            <a href="{% url 'management:reviews_list' %}"
+               class="px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                      text-gray-500 hover:bg-gray-50 transition-colors whitespace-nowrap">
+              Clear
+            </a>
+          {% endif %}
+        </div>
+      </form>
+
+      <div class="bg-white rounded-xl shadow border border-gray-200 overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">Reviewer</th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">Course</th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide whitespace-nowrap">Rating</th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide hidden sm:table-cell">Status</th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide hidden lg:table-cell">Date</th>
+              <th scope="col" class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wide">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            {% for review in reviews %}
+            <tr class="hover:bg-gray-50 transition-colors">
+
+              <td class="px-4 py-3">
+                <p class="font-medium text-gray-900 whitespace-nowrap">
+                  {{ review.student.get_full_name|default:review.student.username }}
+                </p>
+                <p class="text-xs text-gray-400">@{{ review.student.username }}</p>
+              </td>
+
+              <td class="px-4 py-3 max-w-[180px]">
+                <p class="font-medium text-gray-800 truncate">{{ review.course.title }}</p>
+                <p class="text-xs text-gray-400 font-mono">{{ review.course.code }}</p>
+              </td>
+
+              <td class="px-4 py-3 whitespace-nowrap">
+                <div class="flex items-center gap-0.5" aria-label="{{ review.rating }} out of 5 stars">
+                  {% for i in "12345" %}
+                    {% if forloop.counter <= review.rating %}
+                      <i class="fas fa-star text-yellow-400 text-xs" aria-hidden="true"></i>
+                    {% else %}
+                      <i class="fas fa-star text-gray-200 text-xs" aria-hidden="true"></i>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+                <p class="text-xs text-gray-400 mt-0.5">{{ review.rating }}/5</p>
+              </td>
+
+              <td class="px-4 py-3 hidden sm:table-cell whitespace-nowrap">
+                {% if review.is_approved %}
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200 text-xs font-medium">
+                    <i class="fas fa-circle-check" aria-hidden="true"></i> Approved
+                  </span>
+                {% else %}
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-xs font-medium">
+                    <i class="fas fa-clock" aria-hidden="true"></i> Pending
+                  </span>
+                {% endif %}
+              </td>
+
+              <td class="px-4 py-3 text-xs text-gray-500 hidden lg:table-cell whitespace-nowrap">
+                {{ review.created_at|date:"M d, Y" }}
+              </td>
+
+              <td class="px-4 py-3 text-right whitespace-nowrap">
+                <button type="button"
+                        class="btn-edit inline-flex items-center gap-1 px-2.5 py-1.5 text-xs
+                               font-medium text-primary-600 hover:bg-primary-50 rounded-lg
+                               transition-colors focus:outline-none focus:ring-2 focus:ring-primary-400"
+                        data-pk="{{ review.pk }}"
+                        data-course-id="{{ review.course.pk }}"
+                        data-course-label="{{ review.course.title }} ({{ review.course.code }})"
+                        data-student-id="{{ review.student.pk }}"
+                        data-student-label="{{ review.student.get_full_name|default:review.student.username }} — @{{ review.student.username }}"
+                        data-rating="{{ review.rating }}"
+                        data-review-text="{{ review.review_text }}"
+                        data-approved="{{ review.is_approved|yesno:'true,false' }}"
+                        aria-label="Edit review by {{ review.student.get_full_name|default:review.student.username }}">
+                  <i class="fas fa-pen-to-square" aria-hidden="true"></i>
+                  <span class="hidden sm:inline">Edit</span>
+                </button>
+                <form method="post"
+                      action="{% url 'management:review_delete' review.pk %}"
+                      class="inline"
+                      onsubmit="return confirm('Delete this review? This cannot be undone.');">
+                  {% csrf_token %}
+                  <button type="submit"
+                          class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs
+                                 font-medium text-red-500 hover:bg-red-50 rounded-lg
+                                 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400"
+                          aria-label="Delete review by {{ review.student.get_full_name|default:review.student.username }}">
+                    <i class="fas fa-trash" aria-hidden="true"></i>
+                    <span class="hidden sm:inline">Delete</span>
+                  </button>
+                </form>
+              </td>
+
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="px-6 py-14 text-center text-gray-400">
+                <i class="fas fa-star text-4xl mb-3 block opacity-30" aria-hidden="true"></i>
+                {% if request.GET.search or request.GET.rating %}No reviews match your filters.
+                {% else %}No reviews found.{% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if reviews.has_other_pages %}
+      <nav aria-label="Pagination" class="mt-4 flex flex-wrap justify-center gap-1">
+        {% if reviews.has_previous %}
+          <a href="?page={{ reviews.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.rating %}&rating={{ request.GET.rating }}{% endif %}"
+             class="px-3 py-2 rounded-lg border border-gray-300 text-sm hover:bg-gray-50 transition-colors">
+            &laquo; Prev
+          </a>
+        {% endif %}
+        {% for num in reviews.paginator.page_range %}
+          {% if reviews.number == num %}
+            <span class="px-3 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium">{{ num }}</span>
+          {% elif num > reviews.number|add:"-3" and num < reviews.number|add:"3" %}
+            <a href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.rating %}&rating={{ request.GET.rating }}{% endif %}"
+               class="px-3 py-2 rounded-lg border border-gray-300 text-sm hover:bg-gray-50 transition-colors">
+              {{ num }}
+            </a>
+          {% endif %}
+        {% endfor %}
+        {% if reviews.has_next %}
+          <a href="?page={{ reviews.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.rating %}&rating={{ request.GET.rating }}{% endif %}"
+             class="px-3 py-2 rounded-lg border border-gray-300 text-sm hover:bg-gray-50 transition-colors">
+            Next &raquo;
+          </a>
+        {% endif %}
+      </nav>
+      {% endif %}
+
+    </div>
+
+    <div class="w-full lg:w-80 xl:w-96 shrink-0 lg:sticky lg:top-4">
+      <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
+
+        <div class="px-5 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+          <h2 id="form-heading" class="text-base font-semibold text-gray-800">New Review</h2>
+          <span id="form-mode-badge"
+                class="hidden text-xs font-medium px-2 py-0.5 rounded-full bg-primary-100 text-primary-700">
+            Editing
+          </span>
+        </div>
+
+        <form id="review-form"
+              method="post"
+              action="{% url 'management:review_create' %}"
+              class="p-5 space-y-4"
+              novalidate>
+          {% csrf_token %}
+          <input type="hidden" id="review-pk-field" name="_review_pk" value="">
+
+          {% if form.non_field_errors %}
+            <div role="alert" class="px-3 py-2.5 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs">
+              {{ form.non_field_errors }}
+            </div>
+          {% endif %}
+
+          <!-- Course datalist -->
+          <div>
+            <label for="course-input"
+                   class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+              Course <span class="text-red-500">*</span>
+            </label>
+            <input id="course-input"
+                   type="text"
+                   autocomplete="off"
+                   placeholder="Type to search courses…"
+                   list="course-datalist"
+                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                          focus:ring-2 focus:ring-primary-500 focus:outline-none">
+            <input type="hidden" id="course-id-field" name="course">
+            <datalist id="course-datalist">
+              {% for c in lms_courses %}
+                <option data-id="{{ c.pk }}" value="{{ c.title }} ({{ c.code }})"></option>
+              {% endfor %}
+            </datalist>
+            {% if form.course.errors %}
+              <p class="mt-1 text-xs text-red-600" role="alert">{{ form.course.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Student datalist (students only) -->
+          <div>
+            <label for="student-input"
+                   class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+              Student <span class="text-red-500">*</span>
+            </label>
+            <input id="student-input"
+                   type="text"
+                   autocomplete="off"
+                   placeholder="Type to search students…"
+                   list="student-datalist"
+                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                          focus:ring-2 focus:ring-primary-500 focus:outline-none">
+            <input type="hidden" id="student-id-field" name="student">
+            <datalist id="student-datalist">
+              {% for s in students %}
+                <option data-id="{{ s.pk }}" value="{{ s.get_full_name|default:s.username }} — @{{ s.username }}"></option>
+              {% endfor %}
+            </datalist>
+            {% if form.student.errors %}
+              <p class="mt-1 text-xs text-red-600" role="alert">{{ form.student.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Rating -->
+          <div>
+            <label for="{{ form.rating.id_for_label }}"
+                   class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+              Rating <span class="text-red-500">*</span>
+              <span class="text-gray-400 font-normal normal-case text-xs">(1–5)</span>
+            </label>
+            {{ form.rating }}
+            {% if form.rating.errors %}
+              <p class="mt-1 text-xs text-red-600" role="alert">{{ form.rating.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Review text -->
+          <div>
+            <label for="{{ form.review_text.id_for_label }}"
+                   class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+              Review Text <span class="text-gray-400 font-normal normal-case text-xs">(optional)</span>
+            </label>
+            {{ form.review_text }}
+            {% if form.review_text.errors %}
+              <p class="mt-1 text-xs text-red-600" role="alert">{{ form.review_text.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <div class="flex items-center gap-2.5 px-3 py-2.5 bg-gray-50 rounded-lg border border-gray-200">
+            {{ form.is_approved }}
+            <label for="{{ form.is_approved.id_for_label }}"
+                   class="text-sm text-gray-700 font-medium cursor-pointer select-none">
+              Approved
+            </label>
+          </div>
+
+          <div class="flex gap-2 pt-2 border-t border-gray-100">
+            <button type="submit"
+                    id="submit-btn"
+                    class="flex-1 px-4 py-2.5 bg-primary-600 hover:bg-primary-700
+                           text-white text-sm font-semibold rounded-lg transition-colors
+                           focus:outline-none focus:ring-2 focus:ring-primary-500">
+              Save Review
+            </button>
+            <button type="button"
+                    id="btn-reset"
+                    class="px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                           font-medium text-gray-600 hover:bg-gray-50 transition-colors
+                           focus:outline-none focus:ring-2 focus:ring-gray-400"
+                    title="Clear form">
+              <i class="fas fa-rotate-left" aria-hidden="true"></i>
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var CREATE_URL = '{% url "management:review_create" %}';
+  var EDIT_BASE  = '/management/reviews/';
+
+  var form       = document.getElementById('review-form');
+  var heading    = document.getElementById('form-heading');
+  var modeBadge  = document.getElementById('form-mode-badge');
+  var submitBtn  = document.getElementById('submit-btn');
+  var pkField    = document.getElementById('review-pk-field');
+
+  var courseInput = document.getElementById('course-input');
+  var courseId    = document.getElementById('course-id-field');
+  var studentInput = document.getElementById('student-input');
+  var studentId   = document.getElementById('student-id-field');
+
+  /* Resolve datalist text input → hidden id on change */
+  function wireDatalist(textInput, hiddenInput, datalistId) {
+    textInput.addEventListener('change', function () {
+      var list = document.getElementById(datalistId);
+      var val  = textInput.value.trim();
+      var found = false;
+      for (var i = 0; i < list.options.length; i++) {
+        if (list.options[i].value === val) {
+          hiddenInput.value = list.options[i].getAttribute('data-id');
+          found = true;
+          break;
+        }
+      }
+      if (!found) hiddenInput.value = '';
+    });
+  }
+
+  wireDatalist(courseInput,  courseId,  'course-datalist');
+  wireDatalist(studentInput, studentId, 'student-datalist');
+
+  function resetForm() {
+    form.action           = CREATE_URL;
+    form.reset();
+    pkField.value         = '';
+    courseInput.value     = '';
+    courseId.value        = '';
+    studentInput.value    = '';
+    studentId.value       = '';
+    heading.textContent   = 'New Review';
+    submitBtn.textContent = 'Save Review';
+    modeBadge.classList.add('hidden');
+  }
+
+  document.querySelectorAll('.btn-edit').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var d = this.dataset;
+
+      form.action           = EDIT_BASE + d.pk + '/edit/';
+      pkField.value         = d.pk;
+      heading.textContent   = 'Edit Review';
+      submitBtn.textContent = 'Update Review';
+      modeBadge.classList.remove('hidden');
+
+      courseInput.value  = d.courseLabel  || '';
+      courseId.value     = d.courseId     || '';
+      studentInput.value = d.studentLabel || '';
+      studentId.value    = d.studentId    || '';
+
+      var ratingEl   = form.querySelector('[name="rating"]');
+      var textEl     = form.querySelector('[name="review_text"]');
+      var approvedEl = form.querySelector('[name="is_approved"]');
+
+      if (ratingEl)   ratingEl.value       = d.rating     || '';
+      if (textEl)     textEl.value         = d.reviewText || '';
+      if (approvedEl) approvedEl.checked   = (d.approved === 'true');
+
+      form.closest('.bg-white').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  document.getElementById('btn-reset').addEventListener('click', resetForm);
+
+}());
+</script>
+{% endblock %}

@@ -1,0 +1,246 @@
+{% extends 'management/base.html' %}
+
+{% block title %}{% if enrollment %}Edit{% else %}New{% endif %} Enrollment - Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-12xl mx-auto">
+
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6" aria-label="Breadcrumb">
+    <a href="{% url 'management:enrollments_list' %}" class="hover:text-primary-600 transition-colors">Enrollments</a>
+    <i class="fas fa-chevron-right text-xs" aria-hidden="true"></i>
+    <span class="text-gray-800 font-medium">{% if enrollment %}Edit: {{ enrollment.student.get_full_name }} — {{ enrollment.course.title }}{% else %}New Enrollment{% endif %}</span>
+  </nav>
+
+  <form method="post" class="space-y-6" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700" role="alert">
+      {% for error in form.non_field_errors %}
+      <p>{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Enrollment Details -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gray-50 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800">
+          <i class="fas fa-info-circle text-primary-500 mr-2" aria-hidden="true"></i>Enrollment Details
+        </h2>
+      </div>
+
+      <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+        <!-- Student (datalist) -->
+        <div class="sm:col-span-2">
+          <label for="student-search" class="block text-sm font-medium text-gray-700 mb-1.5">
+            Student <span class="text-red-500" aria-hidden="true">*</span>
+          </label>
+          <!-- Hidden real input that holds the PK -->
+          <input type="hidden" name="student" id="id_student" value="{{ form.student.value|default:'' }}">
+          <!-- Visible search input -->
+          <input
+            type="text"
+            id="student-search"
+            list="student-datalist"
+            autocomplete="off"
+            placeholder="Type a student name or username…"
+            class="w-full px-4 py-2.5 border {% if form.student.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+            aria-describedby="{% if form.student.errors %}student-error{% endif %}"
+          >
+          <datalist id="student-datalist">
+            {% for student in students %}
+            <option data-pk="{{ student.pk }}" value="{{ student.get_full_name }} ({{ student.username }})">
+            {% endfor %}
+          </datalist>
+          {% if form.student.errors %}
+          <p id="student-error" class="text-xs text-red-500 mt-1">{{ form.student.errors.0 }}</p>
+          {% endif %}
+          <p class="text-xs text-gray-400 mt-1">Start typing to filter by name or username.</p>
+        </div>
+
+        <!-- Course (datalist) -->
+        <div class="sm:col-span-2">
+          <label for="course-search" class="block text-sm font-medium text-gray-700 mb-1.5">
+            Course <span class="text-red-500" aria-hidden="true">*</span>
+          </label>
+          <input type="hidden" name="course" id="id_course" value="{{ form.course.value|default:'' }}">
+          <input
+            type="text"
+            id="course-search"
+            list="course-datalist"
+            autocomplete="off"
+            placeholder="Type a course title or code…"
+            class="w-full px-4 py-2.5 border {% if form.course.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+            aria-describedby="{% if form.course.errors %}course-error{% endif %}"
+          >
+          <datalist id="course-datalist">
+            {% for course in courses %}
+            <option data-pk="{{ course.pk }}" value="{{ course.title }} ({{ course.code }})">
+            {% endfor %}
+          </datalist>
+          {% if form.course.errors %}
+          <p id="course-error" class="text-xs text-red-500 mt-1">{{ form.course.errors.0 }}</p>
+          {% endif %}
+          <p class="text-xs text-gray-400 mt-1">Start typing to filter by title or course code.</p>
+        </div>
+
+        <!-- Status -->
+        <div>
+          <label for="id_status" class="block text-sm font-medium text-gray-700 mb-1.5">
+            Status <span class="text-red-500" aria-hidden="true">*</span>
+          </label>
+          <select
+            name="status"
+            id="id_status"
+            class="w-full px-4 py-2.5 border {% if form.status.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm bg-white"
+          >
+            {% for value, label in form.status.field.choices %}
+            <option value="{{ value }}" {% if form.status.value == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          {% if form.status.errors %}
+          <p class="text-xs text-red-500 mt-1">{{ form.status.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Progress Percentage -->
+        <div>
+          <label for="id_progress_percentage" class="block text-sm font-medium text-gray-700 mb-1.5">
+            Progress <span class="text-gray-400 font-normal">(0–100)</span>
+            <span class="text-red-500" aria-hidden="true">*</span>
+          </label>
+          <div class="relative">
+            <input
+              type="number"
+              name="progress_percentage"
+              id="id_progress_percentage"
+              value="{{ form.progress_percentage.value|default:'0' }}"
+              min="0" max="100" step="0.01"
+              class="w-full px-4 py-2.5 pr-10 border {% if form.progress_percentage.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+            >
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">%</span>
+          </div>
+          {% if form.progress_percentage.errors %}
+          <p class="text-xs text-red-500 mt-1">{{ form.progress_percentage.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Current Grade -->
+        <div>
+          <label for="id_current_grade" class="block text-sm font-medium text-gray-700 mb-1.5">
+            Current Grade <span class="text-gray-400 font-normal">(optional)</span>
+          </label>
+          <input
+            type="number"
+            name="current_grade"
+            id="id_current_grade"
+            value="{{ form.current_grade.value|default:'' }}"
+            min="0" step="0.01"
+            placeholder="e.g. 75.50"
+            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+          >
+          {% if form.current_grade.errors %}
+          <p class="text-xs text-red-500 mt-1">{{ form.current_grade.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Completed At -->
+        <div>
+          <label for="id_completed_at" class="block text-sm font-medium text-gray-700 mb-1.5">
+            Completed At <span class="text-gray-400 font-normal">(optional)</span>
+          </label>
+          <input
+            type="datetime-local"
+            name="completed_at"
+            id="id_completed_at"
+            value="{{ form.completed_at.value|date:'Y-m-d\TH:i'|default:'' }}"
+            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+          >
+          {% if form.completed_at.errors %}
+          <p class="text-xs text-red-500 mt-1">{{ form.completed_at.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Additional Notes -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gray-50 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800">
+          <i class="fas fa-sticky-note text-yellow-500 mr-2" aria-hidden="true"></i>Additional Information
+        </h2>
+      </div>
+      <div class="p-6">
+        <label for="id_notes" class="block text-sm font-medium text-gray-700 mb-1.5">Notes</label>
+        <textarea
+          name="notes"
+          id="id_notes"
+          rows="3"
+          placeholder="Any additional notes about this enrollment…"
+          class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm resize-none"
+        >{{ form.notes.value|default:'' }}</textarea>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-col sm:flex-row gap-3 justify-end">
+      <a href="{% url 'management:enrollments_list' %}"
+         class="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-center text-sm transition-colors">
+        Cancel
+      </a>
+      <button type="submit"
+              class="px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-sm shadow-sm transition-colors">
+        <i class="fas fa-save mr-1.5" aria-hidden="true"></i>
+        {% if enrollment %}Save Changes{% else %}Create Enrollment{% endif %}
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  // ── Generic datalist-to-hidden-pk resolver ──────────────────────────────
+  // For each pair of (visibleInput, datalistId, hiddenInput):
+  //   - On page load, if the hidden already has a value, find matching option
+  //     and pre-fill the visible input with the display text.
+  //   - On input change, scan datalist options for an exact value match and
+  //     write the data-pk to the hidden input.
+
+  function initDatalistPk(visibleId, datalistId, hiddenId) {
+    const visible = document.getElementById(visibleId);
+    const hidden  = document.getElementById(hiddenId);
+    const dl      = document.getElementById(datalistId);
+    if (!visible || !hidden || !dl) return;
+
+    // Pre-fill visible text from existing PK (edit mode)
+    const existingPk = hidden.value;
+    if (existingPk) {
+      const opt = dl.querySelector(`option[data-pk="${existingPk}"]`);
+      if (opt) visible.value = opt.value;
+    }
+
+    visible.addEventListener('input', function () {
+      const typed = this.value.trim();
+      const opts  = dl.querySelectorAll('option');
+      let matched = false;
+      opts.forEach(function (opt) {
+        if (opt.value === typed) {
+          hidden.value = opt.getAttribute('data-pk');
+          matched = true;
+        }
+      });
+      if (!matched) hidden.value = '';
+    });
+  }
+
+  initDatalistPk('student-search', 'student-datalist', 'id_student');
+  initDatalistPk('course-search',  'course-datalist',  'id_course');
+})();
+</script>
+{% endblock %}

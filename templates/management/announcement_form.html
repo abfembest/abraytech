@@ -1,0 +1,155 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}{% if announcement %}Edit{% else %}New{% endif %} Announcement - MIU Admin Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-12xl mx-auto">
+
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6" aria-label="Breadcrumb">
+    <a href="{% url 'management:announcements_list' %}" class="hover:text-primary-600">Announcements</a>
+    <i class="fas fa-chevron-right text-xs" aria-hidden="true"></i>
+    <span class="text-gray-800 font-medium">{% if announcement %}Edit{% else %}New Announcement{% endif %}</span>
+  </nav>
+
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+      {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gray-50 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800"><i class="fas fa-bullhorn text-primary-500 mr-2" aria-hidden="true"></i>Announcement Content</h2>
+      </div>
+      <div class="p-6 space-y-5">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Title <span class="text-red-500">*</span></label>
+          <input type="text" name="{{ form.title.html_name }}" value="{{ form.title.value|default:'' }}"
+                 placeholder="Announcement title…"
+                 class="w-full px-4 py-2.5 border {% if form.title.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          {% if form.title.errors %}<p class="text-xs text-red-500 mt-1">{{ form.title.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Content <span class="text-red-500">*</span></label>
+          <textarea name="{{ form.content.html_name }}" rows="6"
+                    placeholder="Write the announcement content here…"
+                    class="w-full px-4 py-2.5 border {% if form.content.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm resize-none">{{ form.content.value|default:'' }}</textarea>
+          {% if form.content.errors %}<p class="text-xs text-red-500 mt-1">{{ form.content.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Type & Priority -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gray-50 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800"><i class="fas fa-cog text-gray-500 mr-2" aria-hidden="true"></i>Settings</h2>
+      </div>
+      <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Announcement Type</label>
+          <select name="{{ form.announcement_type.html_name }}" id="announcementType"
+                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+            {% for val, label in form.announcement_type.field.choices %}
+            <option value="{{ val }}" {% if form.announcement_type.value == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Priority</label>
+          <select name="{{ form.priority.html_name }}"
+                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+            {% for val, label in form.priority.field.choices %}
+            <option value="{{ val }}" {% if form.priority.value == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Course (visible when type=course) -->
+        <div id="courseField" class="sm:col-span-2 {% if form.announcement_type.value != 'course' %}hidden{% endif %}">
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Target Course</label>
+          <select name="{{ form.course.html_name }}"
+                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+            <option value="">Select course…</option>
+            {% for course in form.course.field.queryset %}
+            <option value="{{ course.pk }}" {% if form.course.value == course.pk|stringformat:"s" %}selected{% endif %}>{{ course.title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Category (visible when type=category) -->
+        <div id="categoryField" class="sm:col-span-2 {% if form.announcement_type.value != 'category' %}hidden{% endif %}">
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Target Category</label>
+          <select name="{{ form.category.html_name }}"
+                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+            <option value="">Select category…</option>
+            {% for cat in form.category.field.queryset %}
+            <option value="{{ cat.pk }}" {% if form.category.value == cat.pk|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Publishing -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gray-50 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800"><i class="fas fa-calendar-check text-green-500 mr-2" aria-hidden="true"></i>Publishing</h2>
+      </div>
+      <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Publish Date</label>
+          <input type="datetime-local" name="{{ form.publish_date.html_name }}"
+                 value="{{ form.publish_date.value|date:'Y-m-d\TH:i' }}"
+                 class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Expiry Date <span class="text-gray-400">(optional)</span></label>
+          <input type="datetime-local" name="{{ form.expiry_date.html_name }}"
+                 value="{{ form.expiry_date.value|date:'Y-m-d\TH:i'|default:'' }}"
+                 class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+        </div>
+        <div class="flex items-center">
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" name="{{ form.is_active.html_name }}" {% if form.is_active.value %}checked{% endif %}
+                   class="w-4 h-4 rounded text-primary-600 border-gray-300 focus:ring-primary-500">
+            <span class="text-sm font-medium text-gray-700">Active (visible to users)</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-col sm:flex-row justify-end gap-3">
+      <a href="{% url 'management:announcements_list' %}"
+         class="px-5 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-medium text-center">Cancel</a>
+      <button type="submit" class="px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium shadow-sm">
+        <i class="fas fa-save mr-1.5" aria-hidden="true"></i>
+        {% if announcement %}Save Changes{% else %}Publish Announcement{% endif %}
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const typeSelect = document.getElementById('announcementType');
+const courseField = document.getElementById('courseField');
+const categoryField = document.getElementById('categoryField');
+
+function toggleFields() {
+  const val = typeSelect.value;
+  courseField.classList.toggle('hidden', val !== 'course');
+  categoryField.classList.toggle('hidden', val !== 'category');
+}
+
+typeSelect.addEventListener('change', toggleFields);
+toggleFields();
+</script>
+{% endblock %}

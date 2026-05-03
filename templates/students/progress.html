@@ -1,0 +1,304 @@
+{% extends "management/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - MIU Student Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-12xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-900">
+            My Progress
+        </h1>
+        <p class="text-gray-600 mt-2 text-sm md:text-base">
+            Track your learning progress across all courses
+        </p>
+    </div>
+
+    <!-- Progress Overview -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-sm p-6 text-white">
+            <div class="flex items-center justify-between mb-4">
+                <i class="fas fa-book text-4xl md:text-5xl opacity-50"></i>
+                <div class="text-right">
+                    <p class="text-blue-100 text-xs md:text-sm">Total Courses</p>
+                    <p class="text-3xl md:text-4xl font-bold">
+                        {{ enrollments.count }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-sm p-6 text-white">
+            <div class="flex items-center justify-between mb-4">
+                <i class="fas fa-check-circle text-4xl md:text-5xl opacity-50"></i>
+                <div class="text-right">
+                    <p class="text-green-100 text-xs md:text-sm">Completed</p>
+                    <p class="text-3xl md:text-4xl font-bold">
+                        {{ completed_count }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-sm p-6 text-white">
+            <div class="flex items-center justify-between mb-4">
+                <i class="fas fa-chart-line text-4xl md:text-5xl opacity-50"></i>
+                <div class="text-right">
+                    <p class="text-orange-100 text-xs md:text-sm">In Progress</p>
+                    <p class="text-3xl md:text-4xl font-bold">
+                        {{ active_count }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Progress Cards -->
+    <div class="space-y-6">
+        {% for enrollment in enrollments %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-4 md:p-6">
+                <!-- Course Header -->
+                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-6 gap-4">
+                    <div class="flex-1">
+                        <div class="flex flex-wrap items-center gap-3 mb-2">
+                            <h3 class="text-xl md:text-2xl font-bold text-gray-900">
+                                <a href="{% url 'students:course_detail' enrollment.course.slug %}" 
+                                   class="hover:text-primary-600 transition-colors">
+                                    {{ enrollment.course.title }}
+                                </a>
+                            </h3>
+                            {% if enrollment.status == 'completed' %}
+                            <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium whitespace-nowrap">
+                                <i class="fas fa-check-circle mr-1"></i>Completed
+                            </span>
+                            {% elif enrollment.status == 'active' %}
+                            <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium whitespace-nowrap">
+                                In Progress
+                            </span>
+                            {% endif %}
+                        </div>
+                        <p class="text-gray-600 mb-2">
+                            {{ enrollment.course.instructor_name|default:"MIU Staff" }}
+                        </p>
+                        <div class="flex flex-wrap items-center gap-4 text-xs md:text-sm text-gray-500">
+                            <span>
+                                <i class="fas fa-calendar mr-1"></i>
+                                Enrolled: {{ enrollment.enrolled_at|date:"M d, Y" }}
+                            </span>
+                            {% if enrollment.last_accessed %}
+                            <span>
+                                <i class="fas fa-clock mr-1"></i>
+                                Last accessed: {{ enrollment.last_accessed|date:"M d, Y" }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if enrollment.course.lessons.first %}
+                    <a href="{% url 'students:lesson_view' enrollment.course.slug enrollment.course.lessons.first.slug %}" 
+                       class="px-4 md:px-6 py-2 md:py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm md:text-base whitespace-nowrap text-center">
+                        Continue Learning
+                    </a>
+                    {% else %}
+                    <a href="{% url 'students:course_detail' enrollment.course.slug %}" 
+                       class="px-4 md:px-6 py-2 md:py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm md:text-base whitespace-nowrap text-center">
+                        View Course
+                    </a>
+                    {% endif %}
+                </div>
+
+                <!-- Overall Progress -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-700">
+                            Overall Progress
+                        </span>
+                        <span class="text-xl md:text-2xl font-bold text-primary-600">
+                            {{ enrollment.progress_percentage|floatformat:0 }}%
+                        </span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 md:h-4">
+                        <div class="{% if enrollment.progress_percentage == 100 %}bg-green-500{% else %}bg-primary-600{% endif %} h-3 md:h-4 rounded-full transition-all duration-500" 
+                             style="width: {{ enrollment.progress_percentage }}%"></div>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 text-xs md:text-sm text-gray-600">
+                        <span>
+                            {{ enrollment.completed_lessons }} of {{ enrollment.course.lessons.count }} lessons completed
+                        </span>
+                        {% if enrollment.progress_percentage == 100 %}
+                        <span class="text-green-600 font-semibold">
+                            <i class="fas fa-trophy mr-1"></i>Course Complete!
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Sections Progress -->
+                {% if enrollment.course.sections.all %}
+                <div class="space-y-4">
+                    <h4 class="font-semibold text-gray-900 mb-3 text-sm md:text-base">
+                        Section Breakdown
+                    </h4>
+                    {% for section in enrollment.course.sections.all %}
+                    <div class="border border-gray-200 rounded-lg p-3 md:p-4 hover:border-primary-300 transition-colors">
+                        <div class="flex items-center justify-between mb-2">
+                            <h5 class="font-medium text-gray-900 text-sm md:text-base">
+                                {{ section.title }}
+                            </h5>
+                            <span class="text-xs md:text-sm text-gray-600 whitespace-nowrap ml-2">
+                                {{ section.total_lessons|default:0 }} lessons
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-primary-600 h-2 rounded-full transition-all duration-500" 
+                                 style="width: {{ section.progress_percentage|default:0 }}%"></div>
+                        </div>
+                        <p class="text-xs text-gray-600 mt-1">
+                            {{ section.progress_percentage|default:0|floatformat:0 }}% complete
+                        </p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mt-6 pt-6 border-t border-gray-200">
+                    <div class="text-center p-3 bg-gray-50 rounded-lg">
+                        <i class="fas fa-video text-blue-600 text-lg md:text-xl mb-2"></i>
+                        <p class="text-xs text-gray-600">Videos Watched</p>
+                        <p class="text-base md:text-lg font-bold text-gray-900">
+                            {{ enrollment.completed_lessons }}
+                        </p>
+                    </div>
+                    <div class="text-center p-3 bg-gray-50 rounded-lg">
+                        <i class="fas fa-file-alt text-orange-600 text-lg md:text-xl mb-2"></i>
+                        <p class="text-xs text-gray-600">Assignments</p>
+                        <p class="text-base md:text-lg font-bold text-gray-900">
+                            {{ enrollment.assignment_count|default:0 }}
+                        </p>
+                    </div>
+                    <div class="text-center p-3 bg-gray-50 rounded-lg">
+                        <i class="fas fa-question-circle text-purple-600 text-lg md:text-xl mb-2"></i>
+                        <p class="text-xs text-gray-600">Quizzes</p>
+                        <p class="text-base md:text-lg font-bold text-gray-900">
+                            {{ enrollment.quiz_count|default:0 }}
+                        </p>
+                    </div>
+                    <div class="text-center p-3 bg-gray-50 rounded-lg">
+                        <i class="fas fa-clock text-green-600 text-lg md:text-xl mb-2"></i>
+                        <p class="text-xs text-gray-600">Time Spent</p>
+                        <p class="text-base md:text-lg font-bold text-gray-900">
+                            {{ enrollment.course.duration_hours|default:0|floatformat:0 }}h
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 md:p-12">
+            <div class="text-center">
+                <i class="fas fa-chart-line text-5xl md:text-6xl text-gray-300 mb-4"></i>
+                <h3 class="text-lg md:text-xl font-semibold text-gray-900 mb-2">
+                    No progress to track yet
+                </h3>
+                <p class="text-sm md:text-base text-gray-600 mb-6">
+                    Start learning by enrolling in a course
+                </p>
+                <a href="{% url 'students:course_catalog' %}" 
+                   class="inline-block px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold text-sm md:text-base">
+                    Browse Courses
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Learning Streak -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 mt-8">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg md:text-xl font-bold text-gray-900">
+                Learning Activity
+            </h2>
+            <p class="text-xs text-gray-500">
+                Last 4 weeks
+            </p>
+        </div>
+        
+        <!-- Activity Grid - Constrained Height -->
+        <div class="space-y-1.5 md:space-y-2">
+            <!-- Week 4 (oldest) -->
+            <div class="grid grid-cols-7 gap-1.5 md:gap-2">
+                {% for day in activity_data|slice:":7" %}
+                <div class="w-full h-6 md:h-8 rounded-sm transition-colors cursor-pointer
+                            {% if day.level == 0 %}bg-gray-100
+                            {% elif day.level == 1 %}bg-primary-200
+                            {% elif day.level == 2 %}bg-primary-400
+                            {% else %}bg-primary-600{% endif %}" 
+                     title="{{ day.date|date:'M d' }}: {{ day.count }} activit{{ day.count|pluralize:'y,ies' }}"></div>
+                {% endfor %}
+            </div>
+            
+            <!-- Week 3 -->
+            <div class="grid grid-cols-7 gap-1.5 md:gap-2">
+                {% for day in activity_data|slice:"7:14" %}
+                <div class="w-full h-6 md:h-8 rounded-sm transition-colors cursor-pointer
+                            {% if day.level == 0 %}bg-gray-100
+                            {% elif day.level == 1 %}bg-primary-200
+                            {% elif day.level == 2 %}bg-primary-400
+                            {% else %}bg-primary-600{% endif %}" 
+                     title="{{ day.date|date:'M d' }}: {{ day.count }} activit{{ day.count|pluralize:'y,ies' }}"></div>
+                {% endfor %}
+            </div>
+            
+            <!-- Week 2 -->
+            <div class="grid grid-cols-7 gap-1.5 md:gap-2">
+                {% for day in activity_data|slice:"14:21" %}
+                <div class="w-full h-6 md:h-8 rounded-sm transition-colors cursor-pointer
+                            {% if day.level == 0 %}bg-gray-100
+                            {% elif day.level == 1 %}bg-primary-200
+                            {% elif day.level == 2 %}bg-primary-400
+                            {% else %}bg-primary-600{% endif %}" 
+                     title="{{ day.date|date:'M d' }}: {{ day.count }} activit{{ day.count|pluralize:'y,ies' }}"></div>
+                {% endfor %}
+            </div>
+            
+            <!-- Week 1 (current) -->
+            <div class="grid grid-cols-7 gap-1.5 md:gap-2">
+                {% for day in activity_data|slice:"21:28" %}
+                <div class="w-full h-6 md:h-8 rounded-sm transition-colors cursor-pointer
+                            {% if day.level == 0 %}bg-gray-100
+                            {% elif day.level == 1 %}bg-primary-200
+                            {% elif day.level == 2 %}bg-primary-400
+                            {% else %}bg-primary-600{% endif %}" 
+                     title="{{ day.date|date:'M d' }}: {{ day.count }} activit{{ day.count|pluralize:'y,ies' }}"></div>
+                {% endfor %}
+            </div>
+            
+            <!-- Day labels -->
+            <div class="grid grid-cols-7 gap-1.5 md:gap-2 mt-2">
+                <span class="text-center text-xs text-gray-400">M</span>
+                <span class="text-center text-xs text-gray-400">T</span>
+                <span class="text-center text-xs text-gray-400">W</span>
+                <span class="text-center text-xs text-gray-400">T</span>
+                <span class="text-center text-xs text-gray-400">F</span>
+                <span class="text-center text-xs text-gray-400">S</span>
+                <span class="text-center text-xs text-gray-400">S</span>
+            </div>
+        </div>
+        
+        <!-- Legend -->
+        <div class="flex items-center justify-between text-xs text-gray-600 mt-4 pt-3 border-t border-gray-100">
+            <span>Less</span>
+            <div class="flex items-center gap-1.5">
+                <div class="w-3 h-3 bg-gray-100 rounded-sm"></div>
+                <div class="w-3 h-3 bg-primary-200 rounded-sm"></div>
+                <div class="w-3 h-3 bg-primary-400 rounded-sm"></div>
+                <div class="w-3 h-3 bg-primary-600 rounded-sm"></div>
+            </div>
+            <span>More</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

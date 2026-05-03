@@ -1,0 +1,252 @@
+{% extends 'management/base.html' %}
+{% load static %}
+{% block title %}Course Catalog — MIU Admin{% endblock %}
+
+{% block extra_css %}<style>
+  :root{--p:#1d4ed8;--pl:#eff6ff;--pb:#bfdbfe;--r:.75rem}
+  .hero{background:linear-gradient(135deg,#1d4ed8,#4a6bff,#7c3aed);border-radius:var(--r);padding:1.75rem 2rem}
+  .sc{background:#fff;border:1px solid #e5e7eb;border-radius:var(--r);padding:.875rem 1.1rem;display:flex;align-items:center;gap:.75rem;transition:.2s}
+  .sc:hover{box-shadow:0 4px 16px rgba(74,107,255,.13);transform:translateY(-2px)}
+  .si{width:2.25rem;height:2.25rem;border-radius:.5rem;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+  .fb{background:#fff;border:1px solid #e5e7eb;border-radius:var(--r);padding:.875rem 1.1rem;display:flex;flex-wrap:wrap;gap:.625rem;align-items:center}
+  .chip{display:inline-flex;align-items:center;gap:.3rem;padding:.3rem .8rem;border-radius:9999px;font-size:.72rem;font-weight:600;cursor:pointer;border:1.5px solid #e5e7eb;background:#fff;color:#6b7280;transition:.15s;white-space:nowrap}
+  .chip:hover,.chip.on{border-color:var(--p);background:var(--pl);color:var(--p)}
+  .chip.all.on{background:var(--p);color:#fff;border-color:var(--p)}
+  .tw{background:#fff;border:1px solid #e5e7eb;border-radius:var(--r);overflow:hidden}
+  .tw table{width:100%;border-collapse:collapse;font-size:.85rem}
+  .tw thead{background:linear-gradient(to right,#f8fafc,#f1f5f9)}
+  .tw th{padding:.8rem 1rem;font-size:.68rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #e5e7eb;white-space:nowrap;cursor:pointer;user-select:none}
+  .tw th:hover{background:#e5e7eb;color:var(--p)}
+  .tw td{padding:.8rem 1rem;vertical-align:middle;border-bottom:1px solid #f3f4f6;color:#374151}
+  .tw tbody tr:last-child td{border-bottom:none}
+  .tw tbody tr:hover{background:#f8faff}
+  .cb{display:inline-flex;align-items:center;font-family:ui-monospace,monospace;font-size:.76rem;font-weight:700;padding:.2rem .55rem;border-radius:.35rem;background:linear-gradient(135deg,#eff6ff,#dbeafe);color:var(--p);border:1px solid var(--pb)}
+  .tb{display:inline-flex;align-items:center;gap:.2rem;padding:.18rem .55rem;border-radius:9999px;font-size:.68rem;font-weight:600}
+  .tc{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
+  .te{background:#fff7ed;color:#9a3412;border:1px solid #fed7aa}
+  .tg{background:#faf5ff;color:#6b21a8;border:1px solid #e9d5ff}
+  .tp{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+  .yp{display:inline-flex;align-items:center;justify-content:center;width:1.6rem;height:1.6rem;border-radius:50%;font-size:.68rem;font-weight:800;background:linear-gradient(135deg,#4a6bff,#7c3aed);color:#fff}
+  .sd{display:inline-flex;align-items:center;gap:.3rem;font-size:.7rem;font-weight:600}
+  .sd .d{width:.45rem;height:.45rem;border-radius:50%}
+  .sa .d{background:#10b981;box-shadow:0 0 0 3px #d1fae5}
+  .sx .d{background:#d1d5db;box-shadow:0 0 0 3px #f3f4f6}
+  .ab{display:inline-flex;align-items:center;justify-content:center;width:1.9rem;height:1.9rem;border-radius:.45rem;font-size:.78rem;cursor:pointer;border:none;transition:.15s}
+  .ae{background:#eff6ff;color:var(--p)}.ae:hover{background:#dbeafe;transform:scale(1.08)}
+  .ad{background:#fff1f2;color:#e11d48}.ad:hover{background:#ffe4e6;transform:scale(1.08)}
+  .pgb{display:flex;align-items:center;justify-content:space-between;padding:.875rem 1.1rem;border-top:1px solid #f3f4f6;flex-wrap:wrap;gap:.5rem;background:#f9fafb}
+  .pb{display:inline-flex;align-items:center;justify-content:center;width:1.9rem;height:1.9rem;border-radius:.4rem;border:1px solid #e5e7eb;background:#fff;font-size:.78rem;font-weight:600;cursor:pointer;transition:.15s;color:#374151}
+  .pb:hover{border-color:var(--p);color:var(--p);background:var(--pl)}
+  .pb.on{background:var(--p);border-color:var(--p);color:#fff}
+  .pb:disabled{opacity:.35;cursor:not-allowed}
+  .es{padding:3.5rem 1rem;text-align:center;color:#9ca3af}
+  .es i{font-size:2.5rem;color:#e5e7eb;display:block;margin-bottom:.75rem}
+  .sw{position:relative;flex:1;min-width:180px}
+  .sw i{position:absolute;left:.7rem;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:.75rem;pointer-events:none}
+  .sw input{width:100%;padding:.5rem .875rem .5rem 2.2rem;border:1.5px solid #e5e7eb;border-radius:.6rem;font-size:.85rem;outline:none;background:#f9fafb;color:#1f2937;transition:.18s}
+  .sw input:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(74,107,255,.1);background:#fff}
+  .mdl{display:none;position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:1rem}
+  .mdl.open{display:flex}
+  .mi{background:#fff;border-radius:1.1rem;box-shadow:0 20px 60px rgba(0,0,0,.2);width:100%;max-width:40rem;max-height:92vh;overflow-y:auto;animation:mIn .22s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes mIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:none}}
+  .mh{padding:1.35rem 1.6rem .9rem;border-bottom:1px solid #f3f4f6;display:flex;justify-content:space-between;align-items:flex-start;gap:.75rem}
+  .mb{padding:1.1rem 1.6rem}
+  .mf{padding:.9rem 1.6rem 1.35rem;border-top:1px solid #f3f4f6;background:#f9fafb;border-radius:0 0 1.1rem 1.1rem;display:flex;justify-content:flex-end;gap:.625rem}
+  .fl{display:block;font-size:.68rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.3rem}
+  .fc{width:100%;padding:.575rem .8rem;border:1.5px solid #e5e7eb;border-radius:.6rem;font-size:.85rem;color:#1f2937;outline:none;transition:.18s;background:#fff}
+  .fc:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(74,107,255,.1)}
+  select.fc{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .65rem center;background-size:1rem;padding-right:2.2rem}
+  @media(max-width:767px){
+    .tw thead{display:none}
+    .tw tbody tr{display:block;margin:.625rem;border:1px solid #e5e7eb;border-radius:.75rem;padding:.75rem .875rem;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+    .tw td{display:flex;align-items:center;justify-content:space-between;padding:.3rem 0;border-bottom:1px dashed #f3f4f6;font-size:.8rem}
+    .tw td:last-child{border-bottom:none;justify-content:flex-end;padding-top:.5rem}
+    .tw td::before{content:attr(data-label);font-size:.65rem;font-weight:700;color:#9ca3af;text-transform:uppercase;flex-shrink:0;margin-right:.5rem}
+    .td-a::before{content:''}
+  }
+  #toast{position:fixed;bottom:1.25rem;right:1.25rem;z-index:999;display:flex;align-items:center;gap:.625rem;padding:.75rem 1.1rem;border-radius:.75rem;box-shadow:0 8px 24px rgba(0,0,0,.14);font-size:.85rem;font-weight:600;transform:translateY(3rem);opacity:0;transition:.3s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
+  #toast.show{transform:none;opacity:1}
+  #toast.success{background:#065f46;color:#ecfdf5}
+  #toast.error{background:#991b1b;color:#fff1f2}
+</style>{% endblock %}
+
+{% block content %}
+{% if messages %}{% for m in messages %}
+<div class="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium mb-3 {% if m.tags == 'success' %}bg-emerald-50 text-emerald-800 border border-emerald-200{% else %}bg-red-50 text-red-800 border border-red-200{% endif %}">
+  <i class="fas {% if m.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>{{ m }}
+  <button onclick="this.parentElement.remove()" class="ml-auto opacity-50 hover:opacity-100"><i class="fas fa-times"></i></button>
+</div>{% endfor %}{% endif %}
+
+<!-- Hero -->
+<div class="hero mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+  <div>
+    <p class="text-blue-200 text-xs font-semibold uppercase tracking-widest mb-0.5">Academic › Courses</p>
+    <h1 class="text-2xl font-bold text-white">Course Catalog</h1>
+    <p class="text-blue-200 text-sm mt-0.5">Define and manage all academic course units</p>
+  </div>
+  <button onclick="openModal('create')" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-blue-700 rounded-xl font-semibold text-sm shadow-lg hover:bg-blue-50 transition flex-shrink-0">
+    <i class="fas fa-plus"></i>Add New Course
+  </button>
+</div>
+
+<!-- Stats -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+  <div class="sc"><div class="si bg-blue-100 text-blue-600"><i class="fas fa-book"></i></div><div><p class="text-xs text-gray-500">Total</p><p class="text-xl font-bold text-gray-800" id="sStat">{{ courses.count }}</p></div></div>
+  <div class="sc"><div class="si bg-emerald-100 text-emerald-600"><i class="fas fa-check-circle"></i></div><div><p class="text-xs text-gray-500">Active</p><p class="text-xl font-bold text-gray-800" id="asStat">—</p></div></div>
+  <div class="sc"><div class="si bg-violet-100 text-violet-600"><i class="fas fa-layer-group"></i></div><div><p class="text-xs text-gray-500">Programs</p><p class="text-xl font-bold text-gray-800" id="prStat">—</p></div></div>
+  <div class="sc"><div class="si bg-amber-100 text-amber-600"><i class="fas fa-star"></i></div><div><p class="text-xs text-gray-500">Avg Units</p><p class="text-xl font-bold text-gray-800" id="auStat">—</p></div></div>
+</div>
+
+<!-- Filters -->
+<div class="fb mb-4">
+  <div class="sw"><i class="fas fa-search"></i><input id="srch" type="text" placeholder="Search code, title, department…" autocomplete="off"></div>
+  <div class="flex flex-wrap gap-1.5">
+    <button class="chip all on" onclick="flt('type','',this)">All</button>
+    <button class="chip" onclick="flt('type','core',this)"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>Core</button>
+    <button class="chip" onclick="flt('type','elective',this)"><span class="w-1.5 h-1.5 rounded-full bg-orange-400 inline-block"></span>Elective</button>
+    <button class="chip" onclick="flt('type','general',this)"><span class="w-1.5 h-1.5 rounded-full bg-violet-400 inline-block"></span>General</button>
+    <button class="chip" onclick="flt('type','prerequisite',this)"><span class="w-1.5 h-1.5 rounded-full bg-red-400 inline-block"></span>Prereq</button>
+  </div>
+  <select id="yrF" onchange="go()" class="chip bg-white text-gray-600 outline-none"><option value="">All Years</option>{% for i in "12345678"|make_list %}<option value="{{ i }}">Year {{ i }}</option>{% endfor %}</select>
+  <select id="stF" onchange="go()" class="chip bg-white text-gray-600 outline-none"><option value="">All Status</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
+  <span class="text-xs text-gray-400 ml-auto hidden sm:inline" id="rCnt"></span>
+</div>
+
+<!-- Table -->
+<div class="tw">
+  <table>
+    <thead><tr>
+      <th data-c="0">Code ↕</th><th data-c="1">Course Title ↕</th><th>Program / Dept</th>
+      <th data-c="3">Year ↕</th><th>Semester</th><th data-c="5">Units ↕</th>
+      <th>Type</th><th>Status</th><th class="text-right">Actions</th>
+    </tr></thead>
+    <tbody id="tb">
+      {% for c in courses %}
+      <tr id="r{{ c.pk }}" data-code="{{ c.code|lower }}" data-title="{{ c.name|lower }}" data-dept="{{ c.program.department.name|lower }}" data-prg="{{ c.program.name|lower }}" data-type="{{ c.course_type }}" data-year="{{ c.year_of_study }}" data-units="{{ c.credit_units }}" data-active="{{ c.is_active|yesno:'active,inactive' }}">
+        <td data-label="Code"><span class="cb">{{ c.code }}</span></td>
+        <td data-label="Title"><p class="font-semibold text-gray-800 text-sm leading-tight">{{ c.name }}</p>{% if c.description %}<p class="text-gray-400 text-xs mt-0.5 line-clamp-1">{{ c.description|truncatechars:55 }}</p>{% endif %}</td>
+        <td data-label="Dept"><p class="text-xs font-medium text-gray-700">{{ c.program.name|default:"—" }}</p><p class="text-xs text-gray-400">{{ c.program.department.name|default:"General" }}</p></td>
+        <td data-label="Year"><div class="flex items-center gap-1.5"><span class="yp">{{ c.year_of_study }}</span><span class="text-gray-400 text-xs">({{ c.level }}L)</span></div></td>
+        <td data-label="Sem"><span class="text-xs bg-sky-50 text-sky-700 border border-sky-200 px-2 py-0.5 rounded font-semibold">{{ c.get_semester_display }}</span></td>
+        <td data-label="Units"><span class="text-sm font-bold text-gray-700">{{ c.credit_units }} <span class="text-gray-400 font-normal text-xs">CU</span></span></td>
+        <td data-label="Type">{% if c.course_type == 'core' %}<span class="tb tc">Core</span>{% elif c.course_type == 'elective' %}<span class="tb te">Elective</span>{% elif c.course_type == 'general' %}<span class="tb tg">General</span>{% else %}<span class="tb tp">Prereq</span>{% endif %}</td>
+        <td data-label="Status">{% if c.is_active %}<span class="sd sa"><span class="d"></span>Active</span>{% else %}<span class="sd sx"><span class="d"></span>Inactive</span>{% endif %}</td>
+        <td class="td-a text-right">
+          <div class="flex items-center justify-end gap-1">
+            <button class="ab ae" title="Edit" onclick="openModal('edit',{id:'{{ c.pk }}',code:'{{ c.code|escapejs }}',name:'{{ c.name|escapejs }}',program:'{{ c.program.pk }}',units:'{{ c.credit_units }}',year:'{{ c.year_of_study }}',semester:'{{ c.semester }}',course_type:'{{ c.course_type }}',description:`{{ c.description|escapejs }}`,is_active:'{{ c.is_active|yesno:"true,false" }}'})"><i class="fas fa-pencil-alt"></i></button>
+            <button class="ab ad" title="Delete" onclick="openDel('{{ c.pk }}','{{ c.code|escapejs }} — {{ c.name|escapejs }}')"><i class="fas fa-trash-alt"></i></button>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="9"><div class="es"><i class="fas fa-book-open"></i><p class="font-semibold">No courses yet</p><p class="text-sm">Click "Add New Course" to get started.</p></div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div id="noR" class="es hidden"><i class="fas fa-search"></i><p class="font-semibold">No matching courses</p><p class="text-sm">Adjust your search or filters.</p></div>
+  <div class="pgb"><span class="text-xs text-gray-500" id="pgI"></span><div class="flex gap-1" id="pgB"></div></div>
+</div>
+
+<!-- Create / Edit Modal -->
+<div id="cModal" class="mdl" onclick="if(event.target===this)closeModal()">
+  <div class="mi">
+    <form method="POST" action="{% url 'management:courses_list' %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" id="mAct"><input type="hidden" name="course_id" id="mId"><input type="hidden" name="program" id="mPrg">
+      <div class="mh">
+        <div><h3 id="mTitle" class="text-lg font-bold text-gray-900"></h3><p id="mSub" class="text-xs text-gray-500 mt-0.5"></p></div>
+        <button type="button" onclick="closeModal()" class="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 transition flex-shrink-0"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="mb space-y-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="fl">Code *</label><input type="text" name="code" id="mCode" required placeholder="e.g. CS101" class="fc" style="font-family:ui-monospace,monospace"></div>
+          <div><label class="fl">Credit Units *</label><input type="number" name="credit_units" id="mUnits" required min="1" max="12" placeholder="1–12" class="fc"></div>
+        </div>
+        <div><label class="fl">Course Title *</label><input type="text" name="name" id="mName" required placeholder="e.g. Introduction to Programming" class="fc"></div>
+        <div>
+          <label class="fl">Program *</label>
+          <input type="text" id="mPrgD" list="pDL" placeholder="Type to search programs…" autocomplete="off" class="fc" oninput="syncPrg(this.value)">
+          <datalist id="pDL">{% for p in form.program.field.queryset %}<option data-id="{{ p.pk }}" value="{{ p.name }} — {{ p.department.name }}"></option>{% endfor %}</datalist>
+          <p id="pFb" class="text-xs mt-0.5"></p>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="fl">Year *</label><select name="year_of_study" id="mYear" class="fc">{% for i in "12345678"|make_list %}<option value="{{ i }}">Year {{ i }}</option>{% endfor %}</select></div>
+          <div><label class="fl">Semester</label><select name="semester" id="mSem" class="fc"><option value="first">First</option><option value="second">Second</option><option value="annual">Annual</option></select></div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="fl">Type</label><select name="course_type" id="mType" class="fc"><option value="core">Core</option><option value="elective">Elective</option><option value="general">General Studies</option><option value="prerequisite">Prerequisite</option></select></div>
+          <div><label class="fl">Status</label><select name="is_active" id="mStat" class="fc"><option value="True">Active</option><option value="False">Inactive</option></select></div>
+        </div>
+        <div><label class="fl">Description <span class="font-normal normal-case text-gray-400">(optional)</span></label><textarea name="description" id="mDesc" rows="2" placeholder="Brief overview…" class="fc" style="resize:vertical;min-height:4rem"></textarea></div>
+      </div>
+      <div class="mf">
+        <button type="button" onclick="closeModal()" class="px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition">Cancel</button>
+        <button type="submit" class="inline-flex items-center gap-2 px-5 py-2 bg-primary-600 text-white rounded-lg font-semibold text-sm hover:bg-primary-700 transition shadow-sm"><i id="mIcon" class="fas fa-save"></i><span id="mLbl">Save Course</span></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div id="dModal" class="mdl" onclick="if(event.target===this)closeDel()">
+  <div class="mi" style="max-width:24rem;padding:2rem;text-align:center">
+    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3"><i class="fas fa-trash-alt text-red-500 text-lg"></i></div>
+    <h3 class="text-base font-bold text-gray-900 mb-1">Delete Course?</h3>
+    <p class="text-sm text-gray-500 mb-1">You are about to delete:</p>
+    <p class="text-sm font-semibold text-gray-800 mb-4" id="dName"></p>
+    <p class="text-xs text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2 mb-5"><i class="fas fa-exclamation-triangle mr-1"></i>This action cannot be undone.</p>
+    <form method="POST" action="{% url 'management:courses_list' %}">
+      {% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="course_id" id="dId">
+      <div class="flex gap-3 justify-center">
+        <button type="button" onclick="closeDel()" class="px-5 py-2 text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition">Cancel</button>
+        <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition"><i class="fas fa-trash-alt mr-1"></i>Delete</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="toast"><i id="tIco" class="fas fa-check-circle"></i><span id="tMsg"></span></div>
+{% endblock %}
+
+{% block extra_js %}<script>
+const $=id=>document.getElementById(id), rows=()=>[...document.querySelectorAll('#tb tr[id^="r"]')];
+const S={f:{type:'',year:'',status:'',q:''},sort:{c:null,d:'asc'},p:1,pp:15};
+
+function stats(){const r=rows();$('asStat').textContent=r.filter(x=>x.dataset.active==='active').length;$('prStat').textContent=new Set(r.map(x=>x.dataset.prg)).size;const u=r.map(x=>+x.dataset.units);$('auStat').textContent=u.length?(u.reduce((a,b)=>a+b,0)/u.length).toFixed(1):'—';}
+
+function flt(k,v,btn){S.f[k]=v;S.p=1;document.querySelectorAll(`[onclick*="flt('${k}"]`).forEach(b=>b.classList.remove('on'));btn.classList.add('on');render();}
+function go(){S.f.year=$('yrF').value;S.f.status=$('stF').value;S.p=1;render();}
+$('srch').addEventListener('input',function(){S.f.q=this.value.toLowerCase().trim();S.p=1;render();});
+
+function match(r){const{type,year,status,q}=S.f;if(type&&r.dataset.type!==type)return false;if(year&&r.dataset.year!==year)return false;if(status&&r.dataset.active!==status)return false;if(q&&![r.dataset.code,r.dataset.title,r.dataset.dept,r.dataset.prg].join(' ').includes(q))return false;return true;}
+
+document.querySelectorAll('th[data-c]').forEach(th=>th.addEventListener('click',()=>{
+  const c=+th.dataset.c;S.sort.d=S.sort.c===c&&S.sort.d==='asc'?'desc':'asc';S.sort.c=c;
+  document.querySelectorAll('th[data-c]').forEach(t=>{const b=t.textContent.replace(/ [↑↓↕]/,'');t.textContent=b+(t===th?(S.sort.d==='asc'?' ↑':' ↓'):' ↕');});
+  S.p=1;render();
+}));
+
+function sorted(arr){if(S.sort.c===null)return arr;return[...arr].sort((a,b)=>{const T=n=>[...n.querySelectorAll('td')];const av=T(a)[S.sort.c]?.textContent.trim()||'',bv=T(b)[S.sort.c]?.textContent.trim()||'';const n=v=>parseFloat(v.replace(/[^\d.-]/g,''));const cmp=isNaN(n(av))?av.localeCompare(bv):n(av)-n(bv);return S.sort.d==='asc'?cmp:-cmp;});}
+
+function render(){const all=rows(),fil=sorted(all.filter(match)),tot=fil.length,pgs=Math.ceil(tot/S.pp)||1;S.p=Math.min(S.p,pgs);const s=(S.p-1)*S.pp,e=Math.min(s+S.pp,tot);all.forEach(r=>r.style.display='none');fil.forEach((r,i)=>r.style.display=(i>=s&&i<e)?'':'none');$('noR').classList.toggle('hidden',tot>0);$('rCnt').textContent=`${tot} course${tot!==1?'s':''} found`;$('pgI').textContent=tot?`Showing ${s+1}–${e} of ${tot}`:'';buildPg(pgs);}
+
+function buildPg(pgs){const w=$('pgB');w.innerHTML='';const mk=(lbl,pg,dis=false)=>{const b=document.createElement('button');b.className='pb'+(pg===S.p?' on':'');b.innerHTML=lbl;dis?b.disabled=true:b.onclick=()=>{S.p=pg;render();};return b;};w.appendChild(mk('‹',S.p-1,S.p===1));let s=Math.max(1,S.p-3),e=Math.min(pgs,s+6);if(e-s<6)s=Math.max(1,e-6);if(s>1){w.appendChild(mk(1,1));if(s>2)w.insertAdjacentHTML('beforeend','<span class="text-gray-400 text-xs px-1">…</span>');}for(let p=s;p<=e;p++)w.appendChild(mk(p,p));if(e<pgs){if(e<pgs-1)w.insertAdjacentHTML('beforeend','<span class="text-gray-400 text-xs px-1">…</span>');w.appendChild(mk(pgs,pgs));}w.appendChild(mk('›',S.p+1,S.p===pgs));}
+
+function syncPrg(v){const o=[...document.querySelectorAll('#pDL option')].find(x=>x.value===v);const fb=$('pFb');if(o){$('mPrg').value=o.dataset.id;fb.textContent='✓ Program selected';fb.className='text-xs mt-0.5 text-emerald-600';}else{$('mPrg').value='';fb.textContent=v?'⚠ Select a valid program from the list':'';fb.className='text-xs mt-0.5 text-red-400';}}
+
+function openModal(mode,d=null){
+  $('cModal').classList.add('open');
+  if(mode==='create'){$('mTitle').textContent='Add New Course';$('mSub').textContent='Fill in the course details';$('mAct').value='create';$('mId').value='';['mCode','mName','mDesc','mPrgD'].forEach(x=>$(x).value='');$('mPrg').value='';$('pFb').textContent='';$('mUnits').value='';$('mYear').value='1';$('mSem').value='first';$('mType').value='core';$('mStat').value='True';$('mIcon').className='fas fa-save';$('mLbl').textContent='Save Course';}
+  else{$('mTitle').textContent='Edit Course';$('mSub').textContent=`${d.code} — ${d.name}`;$('mAct').value='edit';$('mId').value=d.id;$('mCode').value=d.code;$('mName').value=d.name;const o=document.querySelector(`#pDL option[data-id="${d.program}"]`);$('mPrgD').value=o?o.value:'';$('mPrg').value=d.program;$('mUnits').value=d.units;$('mYear').value=d.year;$('mSem').value=d.semester;$('mType').value=d.course_type;$('mStat').value=d.is_active==='true'?'True':'False';$('mDesc').value=d.description;$('mIcon').className='fas fa-check';$('mLbl').textContent='Update Course';}
+  setTimeout(()=>$('mCode').focus(),80);
+}
+function closeModal(){$('cModal').classList.remove('open');}
+function openDel(id,name){$('dId').value=id;$('dName').textContent=name;$('dModal').classList.add('open');}
+function closeDel(){$('dModal').classList.remove('open');}
+document.addEventListener('keydown',e=>e.key==='Escape'&&(closeModal(),closeDel()));
+
+function toast(msg,type='success'){const t=$('toast');t.className=`show ${type}`;$('tIco').className=`fas ${type==='success'?'fa-check-circle':'fa-exclamation-circle'}`;$('tMsg').textContent=msg;clearTimeout(t._t);t._t=setTimeout(()=>t.className='',3200);}
+{% if messages %}{% for m in messages %}toast('{{ m|escapejs }}','{{ m.tags }}'==='error'?'error':'success');{% endfor %}{% endif %}
+
+document.addEventListener('DOMContentLoaded',()=>{stats();render();});
+</script>{% endblock %}

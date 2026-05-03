@@ -1,0 +1,284 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}{% if program %}Edit{% else %}Add{% endif %} Program - MIU Admin Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-12xl mx-auto">
+
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6" aria-label="Breadcrumb">
+    <a href="{% url 'management:programs_list' %}" class="hover:text-primary-600">Programs</a>
+    <i class="fas fa-chevron-right text-xs" aria-hidden="true"></i>
+    <span class="text-gray-800 font-medium">{% if program %}Edit: {{ program.name }}{% else %}New Program{% endif %}</span>
+  </nav>
+
+  <form method="post" enctype="multipart/form-data" class="space-y-6">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+      {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Section: Basic Info -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gray-50 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800"><i class="fas fa-info-circle text-primary-500 mr-2" aria-hidden="true"></i>Basic Information</h2>
+      </div>
+      <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+        <!-- Department -->
+        <div class="sm:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Department <span class="text-red-500">*</span></label>
+          <input type="hidden" 
+                 name="{{ form.department.html_name }}"
+                 id="department-hidden"
+                 value="{{ form.department.value|default:'' }}">
+          <input type="text" 
+                 list="department-list"
+                 id="department-display"
+                 placeholder="Search and select department…"
+                 class="w-full px-4 py-2.5 border {% if form.department.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                 required>
+          <datalist id="department-list">
+            <option value="">Select department…</option>
+            {% for dept in form.department.field.queryset %}
+            <option value="{{ dept.pk }}" data-label="{{ dept.name }} — {{ dept.faculty.name }}">{{ dept.name }} — {{ dept.faculty.name }}</option>
+            {% endfor %}
+          </datalist>
+          {% if form.department.errors %}<p class="text-xs text-red-500 mt-1">{{ form.department.errors.0 }}</p>{% endif %}
+          
+          <script>
+            document.addEventListener('DOMContentLoaded', function() {
+              const hidden = document.getElementById('department-hidden');
+              const display = document.getElementById('department-display');
+              const datalist = document.getElementById('department-list');
+              
+              // Populate display field on load if value exists
+              if (hidden.value) {
+                const option = datalist.querySelector(`option[value="${hidden.value}"]`);
+                if (option) {
+                  display.value = option.getAttribute('data-label') || option.textContent;
+                }
+              }
+              
+              // Update hidden field when selection changes
+              display.addEventListener('change', function() {
+                const selectedText = this.value;
+                const option = Array.from(datalist.options).find(o => 
+                  o.getAttribute('data-label') === selectedText || o.textContent === selectedText
+                );
+                if (option) {
+                  hidden.value = option.value;
+                }
+              });
+            });
+          </script>
+        </div>
+
+        <!-- Name -->
+        <div class="sm:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Program Name <span class="text-red-500">*</span></label>
+          <input type="text" name="{{ form.name.html_name }}" value="{{ form.name.value|default:'' }}"
+                 placeholder="e.g., BSc Electrical Engineering"
+                 class="w-full px-4 py-2.5 border {% if form.name.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          {% if form.name.errors %}<p class="text-xs text-red-500 mt-1">{{ form.name.errors.0 }}</p>{% endif %}
+        </div>
+
+        <!-- Code + Degree Level -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Program Code <span class="text-red-500">*</span></label>
+          <input type="text" name="{{ form.code.html_name }}" value="{{ form.code.value|default:'' }}"
+                 placeholder="e.g., BSC-EEE"
+                 class="w-full px-4 py-2.5 border {% if form.code.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm uppercase">
+          {% if form.code.errors %}<p class="text-xs text-red-500 mt-1">{{ form.code.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Degree Level <span class="text-red-500">*</span></label>
+          <select name="{{ form.degree_level.html_name }}"
+                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+            {% for val, label in form.degree_level.field.choices %}
+            <option value="{{ val }}" {% if form.degree_level.value == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Tagline -->
+        <div class="sm:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Tagline</label>
+          <input type="text" name="{{ form.tagline.html_name }}" value="{{ form.tagline.value|default:'' }}"
+                 placeholder="Short marketing tagline…"
+                 class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Section: Academic Structure -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gray-50 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800"><i class="fas fa-calendar-alt text-blue-500 mr-2" aria-hidden="true"></i>Academic Structure</h2>
+      </div>
+      <div class="p-6 grid grid-cols-2 sm:grid-cols-4 gap-5">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Duration (Years) <span class="text-red-500">*</span></label>
+          <input type="number" name="{{ form.duration_years.html_name }}" value="{{ form.duration_years.value|default:'' }}"
+                 step="0.5" min="0.5" placeholder="4.0"
+                 class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Credits Required</label>
+          <input type="number" name="{{ form.credits_required.html_name }}" value="{{ form.credits_required.value|default:'120' }}"
+                 min="0"
+                 class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Max Students</label>
+          <input type="number" name="{{ form.max_students.html_name }}" value="{{ form.max_students.value|default:'' }}"
+                 min="1" placeholder="Unlimited"
+                 class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Placement Rate (%)</label>
+          <input type="number" name="{{ form.job_placement_rate.html_name }}" value="{{ form.job_placement_rate.value|default:'0' }}"
+                 min="0" max="100"
+                 class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: Financial -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gray-50 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800"><i class="fas fa-dollar-sign text-green-500 mr-2" aria-hidden="true"></i>Financial</h2>
+      </div>
+      <div class="p-6 grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Application Fee ($)</label>
+          <input type="number" name="{{ form.application_fee.html_name }}" value="{{ form.application_fee.value|default:'0.00' }}"
+                 step="0.01" min="0"
+                 class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Tuition Fee / Year ($)</label>
+          <input type="number" name="{{ form.tuition_fee.html_name }}" value="{{ form.tuition_fee.value|default:'0.00' }}"
+                 step="0.01" min="0"
+                 class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Avg Starting Salary</label>
+          <input type="text" name="{{ form.avg_starting_salary.html_name }}" value="{{ form.avg_starting_salary.value|default:'' }}"
+                 placeholder="e.g., $45,000 - $60,000"
+                 class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: Content -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gray-50 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800"><i class="fas fa-align-left text-purple-500 mr-2" aria-hidden="true"></i>Content</h2>
+      </div>
+      <div class="p-6 space-y-5">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Overview <span class="text-xs text-gray-400">(used on listing pages)</span></label>
+          <textarea name="{{ form.overview.html_name }}" rows="3"
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm resize-none">{{ form.overview.value|default:'' }}</textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Full Description</label>
+          <textarea name="{{ form.description.html_name }}" rows="5"
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm resize-none">{{ form.description.value|default:'' }}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: Media & SEO -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gray-50 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800"><i class="fas fa-image text-blue-500 mr-2" aria-hidden="true"></i>Media</h2>
+      </div>
+      <div class="p-6 space-y-5">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Hero Image</label>
+          {% if form.hero_image.value %}
+          <div class="mb-3">
+            <img src="{{ form.hero_image.value.url }}" alt="Hero image" class="h-40 w-full object-cover rounded-lg border border-gray-300">
+            <label class="mt-2 inline-flex items-center gap-2 text-sm text-gray-600">
+              <input type="checkbox" name="hero_image-clear" class="w-4 h-4">
+              Clear image
+            </label>
+          </div>
+          {% endif %}
+          {{ form.hero_image }}
+          <p class="text-xs text-gray-500 mt-1">Recommended size: 1200x400px</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: SEO -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gray-50 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800"><i class="fas fa-search text-orange-500 mr-2" aria-hidden="true"></i>SEO & Metadata</h2>
+      </div>
+      <div class="p-6 space-y-5">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Meta Description <span class="text-xs text-gray-400">(max 160 chars)</span></label>
+          <textarea name="{{ form.meta_description.html_name }}" rows="2"
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm resize-none"
+                    maxlength="160" placeholder="Brief description for search engines">{{ form.meta_description.value|default:'' }}</textarea>
+          <p class="text-xs text-gray-500 mt-1">Used in search results and social media previews</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Meta Keywords <span class="text-xs text-gray-400">(comma separated)</span></label>
+          <input type="text" name="{{ form.meta_keywords.html_name }}" value="{{ form.meta_keywords.value|default:'' }}"
+                 placeholder="e.g., engineering, computer science, degree"
+                 class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          <p class="text-xs text-gray-500 mt-1">Separate keywords with commas for better search visibility</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: Settings -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gray-50 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800"><i class="fas fa-cog text-gray-500 mr-2" aria-hidden="true"></i>Settings</h2>
+      </div>
+      <div class="p-6 flex flex-wrap gap-8">
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" name="{{ form.is_active.html_name }}" {% if form.is_active.value %}checked{% endif %}
+                 class="w-4 h-4 rounded text-primary-600 border-gray-300 focus:ring-primary-500">
+          <span class="text-sm font-medium text-gray-700">Active</span>
+        </label>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" name="{{ form.is_featured.html_name }}" {% if form.is_featured.value %}checked{% endif %}
+                 class="w-4 h-4 rounded text-primary-600 border-gray-300 focus:ring-primary-500">
+          <span class="text-sm font-medium text-gray-700">Featured</span>
+        </label>
+        <div class="flex items-center gap-3">
+          <label class="text-sm font-medium text-gray-700">Display Order</label>
+          <input type="number" name="{{ form.display_order.html_name }}" value="{{ form.display_order.value|default:'0' }}"
+                 min="0" class="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-col sm:flex-row justify-end gap-3">
+      <a href="{% url 'management:programs_list' %}"
+         class="px-5 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-medium text-center">
+        Cancel
+      </a>
+      <button type="submit"
+              class="px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium shadow-sm">
+        <i class="fas fa-save mr-1.5" aria-hidden="true"></i>
+        {% if program %}Save Changes{% else %}Create Program{% endif %}
+      </button>
+    </div>
+
+  </form>
+</div>
+{% endblock %}

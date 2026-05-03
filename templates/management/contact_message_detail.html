@@ -1,0 +1,110 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Message from {{ contact_message.name }} - MIU Admin Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-full mx-auto">
+
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6" aria-label="Breadcrumb">
+    <a href="{% url 'management:contact_messages_list' %}" class="hover:text-primary-600">Contact Messages</a>
+    <i class="fas fa-chevron-right text-xs" aria-hidden="true"></i>
+    <span class="text-gray-800 font-medium">Message from {{ contact_message.name }}</span>
+  </nav>
+
+  <!-- Message Card -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+    <div class="px-6 py-5 bg-gray-50 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <h1 class="font-bold text-gray-800 text-lg">{{ contact_message.get_subject_display }}</h1>
+        <p class="text-sm text-gray-500 mt-0.5">{{ contact_message.created_at|date:"F j, Y \a\t g:i A" }}</p>
+      </div>
+      <div class="flex gap-2">
+        {% if contact_message.responded %}
+        <span class="px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+          <i class="fas fa-check mr-1" aria-hidden="true"></i>Responded
+        </span>
+        {% else %}
+        <span class="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
+          Awaiting Response
+        </span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="p-6">
+      <!-- Sender Info -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+        <div>
+          <label class="text-xs text-gray-400 font-medium uppercase tracking-wide block mb-1">From</label>
+          <p class="font-semibold text-gray-800">{{ contact_message.name }}</p>
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 font-medium uppercase tracking-wide block mb-1">Email</label>
+          <a href="mailto:{{ contact_message.email }}" class="text-primary-600 hover:underline font-medium">{{ contact_message.email }}</a>
+        </div>
+        {% if contact_message.user %}
+        <div class="sm:col-span-2">
+          <label class="text-xs text-gray-400 font-medium uppercase tracking-wide block mb-1">Linked Account</label>
+          <a href="{% url 'management:user_detail' contact_message.user.pk %}" class="text-primary-600 hover:underline">
+            {{ contact_message.user.get_full_name|default:contact_message.user.username }} (@{{ contact_message.user.username }})
+          </a>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Message Body -->
+      <div>
+        <label class="text-xs text-gray-400 font-medium uppercase tracking-wide block mb-2">Message</label>
+        <div class="bg-gray-50 rounded-lg p-5 text-gray-700 leading-relaxed text-sm">
+          {{ contact_message.message|linebreaksbr }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Response Section -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 bg-gray-50 border-b border-gray-100">
+      <h2 class="font-semibold text-gray-800"><i class="fas fa-reply text-primary-500 mr-2" aria-hidden="true"></i>Reply via Email</h2>
+    </div>
+    <form method="post" action="{% url 'management:contact_message_respond' contact_message.pk %}" class="p-6 space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Reply to: <span class="text-primary-600">{{ contact_message.email }}</span></label>
+        <textarea name="response" rows="6" required
+                  placeholder="Type your reply here…"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm resize-none"></textarea>
+      </div>
+      <div class="flex flex-col sm:flex-row justify-between gap-3">
+        <div class="flex gap-2">
+          {% if not contact_message.is_read %}
+          <form method="post" action="{% url 'management:contact_message_mark_read' contact_message.pk %}" class="inline">
+            {% csrf_token %}
+            <button type="submit"
+                    class="px-4 py-2.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 text-sm font-medium">
+              <i class="fas fa-envelope-open mr-1.5" aria-hidden="true"></i>Mark as Read
+            </button>
+          </form>
+          {% endif %}
+        </div>
+        <button type="submit"
+                class="px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium shadow-sm">
+          <i class="fas fa-paper-plane mr-1.5" aria-hidden="true"></i>Send Response
+        </button>
+      </div>
+    </form>
+  </div>
+
+  {% if contact_message.responded and contact_message.responded_at %}
+  <div class="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
+    <i class="fas fa-check-circle mr-1.5" aria-hidden="true"></i>
+    Responded on {{ contact_message.responded_at|date:"M d, Y" }}
+    {% if contact_message.responded_by %}
+     by {{ contact_message.responded_by.get_full_name|default:contact_message.responded_by.username }}
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

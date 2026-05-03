@@ -1,0 +1,33 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment Successful</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-green-50 min-h-screen flex items-center justify-center">
+<div class="bg-white p-8 rounded shadow max-w-md mx-auto mt-10">
+    <h2 class="text-2xl font-bold text-green-600 mb-4">
+        Payment Successful
+    </h2>
+
+    <div class="border p-4 rounded bg-gray-50">
+        <p><strong>Application ID:</strong> {{ payment.application_id }}</p>
+        <p><strong>Vendor:</strong> {{ payment.vendor.name }}</p>
+        <p><strong>Amount:</strong> £{{ payment.amount }}</p>
+        <p><strong>Status:</strong> {{ payment.status }}</p>
+        <p><strong>Transaction ID:</strong> {{ payment.stripe_payment_intent }}</p>
+        <p><strong>Date:</strong> {{ payment.created_at }}</p>
+        {% if payment.refunded_at %}
+        <p><strong>Refunded At:</strong> {{ payment.refunded_at }}</p>
+        {% endif %}
+    </div>
+
+    <p class="mt-4 text-sm text-gray-600">
+        A receipt has been emailed to you.
+    </p>
+</div>
+
+
+
+</body>
+</html>

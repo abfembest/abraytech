@@ -1,0 +1,1337 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% comment %}
+=============================================================================
+  USER MANAGEMENT — Single-File Template  (v2 — corrected)
+  -----------------------------------------------------------------------------
+  FIXES IN THIS VERSION
+  ─────────────────────
+  1. DELETE: wired to user_edit (pk)/  POST with action=delete via AJAX.
+     The old code tried to construct a URL from toggle-active which was wrong.
+     user_edit already handles action=delete and returns JSON.
+
+  2. MODAL HEIGHT: every modal wrapper uses flex + max-h-[calc(100vh-2rem)]
+     so the dialog never exceeds the viewport.  The sticky header and footer
+     remain fixed; only the scrollable body region scrolls internally via
+     overflow-y-auto.
+
+  3. COMMENTING: all section comments use {% comment %}…{ endcomment %}
+     as required.  Inline {# … #} tags removed from structure comments.
+
+  DATA / MODEL ALIGNMENT
+  ─────────────────────
+  User model  →  UserEditForm     : username(readonly), first_name, last_name,
+                                    email, is_active
+  UserProfile →  UserProfileForm  : role, phone, date_of_birth, bio,
+                                    address, city, country, website, linkedin,
+                                    twitter, email_notifications, marketing_emails
+
+  ROLE RULE
+  ─────────
+  Only 'admin' role → is_staff=True  (enforced in view, not form or template)
+=============================================================================
+{% endcomment %}
+
+{% block title %}User Management — MIU Portal{% endblock %}
+
+{% block content %}
+
+{% comment %} CSRF token referenced by every AJAX call via csrf() helper {% endcomment %}
+<input type="hidden" id="csrfToken" value="{{ csrf_token }}">
+
+{% comment %}
+════════════════════════════════════════════════════════════════
+  PAGE WRAPPER
+════════════════════════════════════════════════════════════════
+{% endcomment %}
+<div class="max-w-full px-4 sm:px-6 lg:px-8 space-y-6">
+
+  {% comment %} ── Page Header ── {% endcomment %}
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">User Management</h1>
+      <p class="text-gray-500 mt-1 text-md">Manage all portal users, roles, and permissions</p>
+    </div>
+    <button onclick="openCreateModal()"
+            class="inline-flex items-center gap-2 px-5 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg shadow transition-all text-md whitespace-nowrap">
+      <i class="fas fa-user-plus"></i> Add New User
+    </button>
+  </div>
+
+  {% comment %} ── Django flash messages ── {% endcomment %}
+  {% if messages %}
+    <div class="space-y-2">
+      {% for message in messages %}
+        <div class="flex items-center gap-3 px-4 py-3 rounded-lg border
+          {% if message.tags == 'success' %}bg-green-50 border-green-200 text-green-800
+          {% elif message.tags == 'error'   %}bg-red-50   border-red-200   text-red-800
+          {% elif message.tags == 'warning' %}bg-yellow-50 border-yellow-200 text-yellow-800
+          {% else                           %}bg-blue-50  border-blue-200  text-blue-800
+          {% endif %}">
+          <i class="fas
+            {% if message.tags == 'success' %}fa-check-circle
+            {% elif message.tags == 'error' %}fa-exclamation-circle
+            {% else %}fa-info-circle
+            {% endif %}"></i>
+          <span class="text-md flex-1">{{ message }}</span>
+          <button onclick="this.closest('div[class*=border]').remove()" class="opacity-60 hover:opacity-100 ml-auto">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% comment %}
+  ════════════════════════════════════════════════════════════════
+    STATS CARDS
+  ════════════════════════════════════════════════════════════════
+  {% endcomment %}
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+
+    <div class="bg-white rounded-lg shadow p-4 border border-gray-100">
+      <p class="text-gray-500 text-md">Total Users</p>
+      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.total_users }}</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-4 border border-gray-100">
+      <p class="text-gray-500 text-md">Active</p>
+      <p class="text-2xl font-bold text-green-600 mt-1">{{ stats.active_users }}</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-4 border border-gray-100">
+      <p class="text-gray-500 text-md">Staff</p>
+      <p class="text-2xl font-bold text-primary-600 mt-1">{{ stats.staff_users }}</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-4 border border-gray-100">
+      <p class="text-gray-500 text-md">Students</p>
+      <p class="text-2xl font-bold text-blue-600 mt-1">{{ stats.students }}</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-4 border border-gray-100">
+      <p class="text-gray-500 text-md">Instructors</p>
+      <p class="text-2xl font-bold text-purple-600 mt-1">{{ stats.instructors }}</p>
+    </div>
+
+  </div>
+
+  {% comment %}
+  ════════════════════════════════════════════════════════════════
+    FILTER BAR  +  BULK ACTIONS
+  ════════════════════════════════════════════════════════════════
+  {% endcomment %}
+  <div class="bg-white rounded-lg shadow border border-gray-100 p-4">
+    <div class="flex flex-col lg:flex-row gap-3 flex-wrap">
+
+      {% comment %} Live search — client-side DOM filter {% endcomment %}
+      <div class="flex-1 relative min-w-[200px]">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+        <input type="text" id="liveSearch"
+               placeholder="Search name, username, email…"
+               class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+      </div>
+
+      {% comment %} Role dropdown filter {% endcomment %}
+      <select id="roleFilter"
+              class="px-4 py-2.5 border border-gray-300 rounded-lg text-md bg-white focus:ring-2 focus:ring-primary-500 min-w-[160px]">
+        <option value="">All Roles</option>
+        <option value="student">Student</option>
+        <option value="instructor">Instructor</option>
+        <option value="admin">Administrator</option>
+        <option value="content_manager">Content Manager</option>
+        <option value="support">Support Staff</option>
+        <option value="qa">QA Reviewer</option>
+        <option value="finance">Finance Manager</option>
+      </select>
+
+      {% comment %} Active / Inactive status filter {% endcomment %}
+      <select id="statusFilter"
+              class="px-4 py-2.5 border border-gray-300 rounded-lg text-md bg-white focus:ring-2 focus:ring-primary-500 min-w-[140px]">
+        <option value="">All Status</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+
+      {% comment %} Bulk action buttons — revealed only when rows are checked {% endcomment %}
+      <div id="bulkActionBar" class="hidden items-center gap-2">
+        <span id="selectedCount" class="text-md text-gray-600 whitespace-nowrap font-medium">0 selected</span>
+        <button onclick="bulkAction('activate')"
+                class="px-4 py-2.5 bg-green-600 text-white rounded-lg text-md hover:bg-green-700 transition whitespace-nowrap">
+          <i class="fas fa-check mr-1"></i> Activate
+        </button>
+        <button onclick="bulkAction('deactivate')"
+                class="px-4 py-2.5 bg-orange-500 text-white rounded-lg text-md hover:bg-orange-600 transition whitespace-nowrap">
+          <i class="fas fa-ban mr-1"></i> Deactivate
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  {% comment %}
+  ════════════════════════════════════════════════════════════════
+    USERS TABLE
+    — overflow-x-auto for horizontal scroll on small screens
+    — whitespace-nowrap + truncate keep every row single-line
+  ════════════════════════════════════════════════════════════════
+  {% endcomment %}
+  <div class="bg-white rounded-lg shadow border border-gray-100 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200" id="usersTable">
+
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-3 text-left w-10">
+              <input type="checkbox" id="selectAll"
+                     class="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                     onchange="toggleSelectAll(this)">
+            </th>
+            <th class="px-4 py-3 text-left text-md font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">User</th>
+            <th class="px-4 py-3 text-left text-md font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Email</th>
+            <th class="px-4 py-3 text-left text-md font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Role</th>
+            <th class="px-4 py-3 text-left text-md font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Status</th>
+            <th class="px-4 py-3 text-left text-md font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Joined</th>
+            <th class="px-4 py-3 text-left text-md font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Last Login</th>
+            <th class="px-4 py-3 text-right text-md font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-gray-100" id="tableBody">
+
+          {% comment %} Server-rendered rows; JS filters them in-place (no reload) {% endcomment %}
+          {% for u in users %}
+          <tr class="hover:bg-gray-50 transition-colors user-row"
+              data-search="{{ u.username|lower }} {{ u.get_full_name|lower }} {{ u.email|lower }}"
+              data-role="{{ u.profile.role }}"
+              data-status="{% if u.is_active %}active{% else %}inactive{% endif %}"
+              data-id="{{ u.id }}">
+
+            {% comment %} Checkbox {% endcomment %}
+            <td class="px-4 py-3">
+              <input type="checkbox" class="row-checkbox w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                     value="{{ u.id }}" onchange="updateBulkBar()">
+            </td>
+
+            {% comment %} Avatar + name + username {% endcomment %}
+            <td class="px-4 py-3 whitespace-nowrap">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 bg-primary-100 flex items-center justify-center">
+                  {% if u.profile.avatar %}
+                    <img src="{{ u.profile.avatar.url }}" alt="{{ u.get_full_name }}" class="w-full h-full object-cover">
+                  {% else %}
+                    <span class="text-primary-700 font-bold text-md leading-none">
+                      {{ u.first_name|first|upper }}{{ u.last_name|first|upper }}
+                    </span>
+                  {% endif %}
+                </div>
+                <div class="min-w-0">
+                  <p class="font-semibold text-gray-900 truncate max-w-[140px] text-md">{{ u.get_full_name|default:u.username }}</p>
+                  <p class="text-gray-400 text-md truncate max-w-[140px]">@{{ u.username }}</p>
+                </div>
+              </div>
+            </td>
+
+            {% comment %} Email {% endcomment %}
+            <td class="px-4 py-3 whitespace-nowrap text-md text-gray-600">
+              <span class="truncate block max-w-[200px]">{{ u.email }}</span>
+            </td>
+
+            {% comment %} Role badge — colour coded per role {% endcomment %}
+            <td class="px-4 py-3 whitespace-nowrap">
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-md font-medium
+                {% if u.profile.role == 'admin'           %}bg-red-100    text-red-700
+                {% elif u.profile.role == 'instructor'    %}bg-purple-100 text-purple-700
+                {% elif u.profile.role == 'student'       %}bg-blue-100   text-blue-700
+                {% elif u.profile.role == 'finance'       %}bg-yellow-100 text-yellow-700
+                {% elif u.profile.role == 'content_manager' %}bg-indigo-100 text-indigo-700
+                {% elif u.profile.role == 'support'       %}bg-teal-100   text-teal-700
+                {% elif u.profile.role == 'qa'            %}bg-orange-100 text-orange-700
+                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                {{ u.profile.get_role_display }}
+              </span>
+            </td>
+
+            {% comment %} Active / Inactive pill {% endcomment %}
+            <td class="px-4 py-3 whitespace-nowrap">
+              <span class="inline-flex items-center gap-1.5 text-md font-medium
+                {% if u.is_active %}text-green-700{% else %}text-red-600{% endif %}">
+                <span class="w-2 h-2 rounded-full {% if u.is_active %}bg-green-500{% else %}bg-red-400{% endif %}"></span>
+                {% if u.is_active %}Active{% else %}Inactive{% endif %}
+              </span>
+            </td>
+
+            <td class="px-4 py-3 whitespace-nowrap text-md text-gray-500">{{ u.date_joined|date:"M d, Y" }}</td>
+
+            <td class="px-4 py-3 whitespace-nowrap text-md text-gray-500">
+              {% if u.last_login %}{{ u.last_login|date:"M d, Y" }}{% else %}Never{% endif %}
+            </td>
+
+            {% comment %} Action buttons: View · Edit · Toggle active · Delete {% endcomment %}
+            <td class="px-4 py-3 whitespace-nowrap text-right">
+              <div class="inline-flex items-center gap-0.5">
+
+                <button onclick="openViewModal({{ u.id }})"
+                        class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="View details">
+                  <i class="fas fa-eye"></i>
+                </button>
+
+                <button onclick="openEditModal({{ u.id }})"
+                        class="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                        title="Edit user">
+                  <i class="fas fa-pen"></i>
+                </button>
+
+                {% comment %}
+                  Toggle-active button — icon/colour flips based on current state.
+                  NOTE: this only de/activates, it does NOT delete.
+                {% endcomment %}
+                <button onclick="toggleActive({{ u.id }})"
+                        class="p-2 rounded-lg transition-colors
+                          {% if u.is_active %}text-gray-400 hover:text-orange-600 hover:bg-orange-50
+                          {% else %}text-gray-400 hover:text-green-600 hover:bg-green-50{% endif %}"
+                        title="{% if u.is_active %}Deactivate{% else %}Activate{% endif %}">
+                  <i class="fas {% if u.is_active %}fa-ban{% else %}fa-check-circle{% endif %}"></i>
+                </button>
+
+              </div>
+            </td>
+
+          </tr>
+          {% empty %}
+          <tr id="emptyStateRow">
+            <td colspan="8" class="px-6 py-14 text-center text-gray-400 text-md">
+              <i class="fas fa-users text-4xl mb-3 block opacity-40"></i>
+              No users found.
+            </td>
+          </tr>
+          {% endfor %}
+
+        </tbody>
+      </table>
+    </div>
+
+    {% comment %} JS-driven "no results" shown when filter eliminates all rows {% endcomment %}
+    <div id="noResultsRow" class="hidden px-6 py-14 text-center text-gray-400 text-md">
+      <i class="fas fa-search text-4xl mb-3 block opacity-40"></i>
+      No users match your current filters.
+    </div>
+
+    {% comment %}
+    ── Pagination bar ──
+    Only shown when the queryset spans more than one page.
+    Filter query params are preserved in every page link.
+    {% endcomment %}
+    {% if users.has_other_pages %}
+    <div class="px-4 py-3 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <p class="text-md text-gray-500">
+        Showing {{ users.start_index }}–{{ users.end_index }} of {{ users.paginator.count }} users
+      </p>
+      <nav class="flex items-center gap-1 flex-wrap">
+        {% if users.has_previous %}
+          <a href="?page={{ users.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}"
+             class="px-3 py-1.5 rounded-lg border border-gray-300 text-md text-gray-600 hover:bg-gray-50 transition">
+            <i class="fas fa-chevron-left"></i>
+          </a>
+        {% endif %}
+        {% for num in users.paginator.page_range %}
+          {% if users.number == num %}
+            <span class="px-3 py-1.5 rounded-lg bg-primary-600 text-white text-md font-semibold">{{ num }}</span>
+          {% elif num > users.number|add:'-3' and num < users.number|add:'3' %}
+            <a href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}"
+               class="px-3 py-1.5 rounded-lg border border-gray-300 text-md text-gray-600 hover:bg-gray-50 transition">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+        {% if users.has_next %}
+          <a href="?page={{ users.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}"
+             class="px-3 py-1.5 rounded-lg border border-gray-300 text-md text-gray-600 hover:bg-gray-50 transition">
+            <i class="fas fa-chevron-right"></i>
+          </a>
+        {% endif %}
+      </nav>
+    </div>
+    {% endif %}
+
+  </div>{% comment %} /users table card {% endcomment %}
+</div>{% comment %} /page wrapper {% endcomment %}
+
+
+{% comment %}
+════════════════════════════════════════════════════════════════
+  MODAL: CREATE USER
+  ──────────────────
+  • Password fields are intentionally absent from the UI.
+    The view generates a secure password server-side and emails
+    credentials to the new user automatically.
+  • Fields: first_name, last_name, username, email, role, is_active
+  • Role 'admin' → is_staff=True enforced in view, not here.
+  • Modal layout: fixed header + scrollable body + fixed footer
+    so content never exceeds viewport height.
+════════════════════════════════════════════════════════════════
+{% endcomment %}
+<div id="createModal"
+     class="hidden fixed inset-0 z-50 flex items-center justify-center p-4"
+     role="dialog" aria-modal="true" aria-labelledby="createModalTitle">
+
+  {% comment %} Backdrop {% endcomment %}
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeModal('createModal')"></div>
+
+  {% comment %} Dialog panel — constrained to viewport with internal scroll {% endcomment %}
+  <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col"
+       style="max-height:100dvh;overflow:hidden;">
+
+    {% comment %} Sticky header {% endcomment %}
+    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
+      <div class="flex items-center gap-3">
+        <span class="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
+          <i class="fas fa-user-plus text-primary-600"></i>
+        </span>
+        <div>
+          <h2 id="createModalTitle" class="text-xl font-bold text-gray-900">Create New User</h2>
+          <p class="text-gray-500 text-md">Credentials will be emailed automatically</p>
+        </div>
+      </div>
+      <button onclick="closeModal('createModal')"
+              class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition flex-shrink-0"
+              aria-label="Close">
+        <i class="fas fa-times text-lg"></i>
+      </button>
+    </div>
+
+    {% comment %} Scrollable body {% endcomment %}
+    <div class="flex-1 overflow-y-auto">
+      <form id="createForm" novalidate class="p-6 space-y-5">
+        {% csrf_token %}
+
+        {% comment %} Validation error box — hidden until errors arrive {% endcomment %}
+        <div id="createErrors"
+             class="hidden bg-red-50 border border-red-200 rounded-lg p-4 text-md text-red-700"
+             role="alert"></div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+          <div>
+            <label class="block text-md font-medium text-gray-700 mb-1.5">
+              First Name <span class="text-red-500">*</span>
+            </label>
+            <input type="text" name="first_name" required autocomplete="given-name"
+                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                   placeholder="John">
+          </div>
+
+          <div>
+            <label class="block text-md font-medium text-gray-700 mb-1.5">
+              Last Name <span class="text-red-500">*</span>
+            </label>
+            <input type="text" name="last_name" required autocomplete="family-name"
+                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                   placeholder="Doe">
+          </div>
+
+          <div>
+            <label class="block text-md font-medium text-gray-700 mb-1.5">
+              Username <span class="text-red-500">*</span>
+            </label>
+            <input type="text" name="username" required autocomplete="username"
+                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                   placeholder="johndoe">
+            <p class="text-gray-400 text-md mt-1">Letters, digits and @/./+/-/_ only</p>
+          </div>
+
+          <div>
+            <label class="block text-md font-medium text-gray-700 mb-1.5">
+              Email Address <span class="text-red-500">*</span>
+            </label>
+            <input type="email" name="email" required autocomplete="email"
+                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                   placeholder="john@example.com">
+          </div>
+
+          <div>
+            <label class="block text-md font-medium text-gray-700 mb-1.5">
+              Role <span class="text-red-500">*</span>
+            </label>
+            <select name="role" required
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-md bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+              <option value="student">Student</option>
+              <option value="instructor">Instructor</option>
+              <option value="admin">Administrator</option>
+              <option value="content_manager">Content Manager</option>
+              <option value="support">Support Staff</option>
+              <option value="qa">QA Reviewer</option>
+              <option value="finance">Finance Manager</option>
+            </select>
+            <p class="text-gray-400 text-md mt-1">Administrator role grants staff privileges</p>
+          </div>
+
+          <div class="flex items-start gap-3 pt-1">
+            <input type="checkbox" name="is_active" id="createIsActive" checked
+                   class="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500 mt-0.5 flex-shrink-0">
+            <div>
+              <label for="createIsActive" class="text-md font-medium text-gray-700 cursor-pointer">Active on creation</label>
+              <p class="text-gray-400 text-md">User can log in immediately</p>
+            </div>
+          </div>
+
+        </div>
+
+        {% comment %} Info banner — verification-first flow {% endcomment %}
+        <div class="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 flex items-start gap-3">
+          <i class="fas fa-envelope text-amber-500 mt-0.5 flex-shrink-0"></i>
+          <div class="text-md text-amber-800">
+            <p class="font-semibold mb-0.5">Verification required before login</p>
+            <p>
+              A secure password will be auto-generated. The user will receive one email containing
+              their credentials <strong>and</strong> a verification link.
+              They must verify their email first — the account is inactive until then.
+            </p>
+          </div>
+        </div>
+
+      </form>
+    </div>
+
+    {% comment %} Sticky footer {% endcomment %}
+    <div class="flex justify-end gap-3 px-6 py-4 bg-gray-50 border-t border-gray-200 flex-shrink-0">
+      <button onclick="closeModal('createModal')"
+              class="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition text-md">
+        Cancel
+      </button>
+      <button id="createSubmitBtn" onclick="submitCreateForm()"
+              class="px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition shadow text-md font-semibold">
+        <i class="fas fa-user-plus mr-2"></i>Create User
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+{% comment %}
+════════════════════════════════════════════════════════════════
+  MODAL: EDIT USER
+  ─────────────────
+  Layout: fixed header + scrollable body (overflow-y-auto) + fixed footer.
+  Modal is capped at 90dvh so it never overflows the viewport on any screen.
+  Content is reorganised into a compact 3-column grid to eliminate wasted
+  whitespace — all sections stay in a single dense layout.
+════════════════════════════════════════════════════════════════
+{% endcomment %}
+<div id="editModal"
+     class="hidden fixed inset-0 z-50 flex items-center justify-center p-4"
+     role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeModal('editModal')"></div>
+
+  <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-3xl flex flex-col"
+       style="max-height:90dvh;overflow:hidden;">
+
+    {% comment %} ── Fixed header ── {% endcomment %}
+    <div class="flex items-center justify-between px-6 py-3 border-b border-gray-200 flex-shrink-0">
+      <div class="flex items-center gap-3">
+        <span class="w-9 h-9 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
+          <i class="fas fa-user-edit text-amber-600 text-sm"></i>
+        </span>
+        <div>
+          <h2 id="editModalTitle" class="text-lg font-bold text-gray-900 leading-tight">Edit User</h2>
+          <p id="editModalSubtitle" class="text-gray-400 text-xs">Update user information</p>
+        </div>
+      </div>
+      <button onclick="closeModal('editModal')"
+              class="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition flex-shrink-0"
+              aria-label="Close">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    {% comment %} ── Scrollable body ── {% endcomment %}
+    <div class="flex-1 overflow-y-auto">
+      <form id="editForm" method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        <input type="hidden" id="editUserId" name="user_id">
+
+        <div id="editErrors"
+             class="hidden mx-5 mt-4 bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700"
+             role="alert"></div>
+
+        <div class="p-5 space-y-4">
+
+          {% comment %} ── Row 1: Account (username · email · first · last) ── {% endcomment %}
+          <div>
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <i class="fas fa-user-circle"></i> Account
+            </p>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Username</label>
+                <input type="text" name="username" id="editUsername" readonly
+                       class="w-full px-3 py-2 border border-gray-200 bg-gray-50 rounded-lg text-sm text-gray-400 cursor-not-allowed">
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Email <span class="text-red-500">*</span></label>
+                <input type="email" name="email" id="editEmail" required autocomplete="email"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">First Name <span class="text-red-500">*</span></label>
+                <input type="text" name="first_name" id="editFirstName" required
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Last Name <span class="text-red-500">*</span></label>
+                <input type="text" name="last_name" id="editLastName" required
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+              </div>
+
+            </div>
+          </div>
+
+          {% comment %} ── Row 2: Role + Active (side by side) ── {% endcomment %}
+          <div class="border-t border-gray-100 pt-4">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <i class="fas fa-user-shield"></i> Role &amp; Permissions
+            </p>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 items-end">
+
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Role <span class="text-red-500">*</span></label>
+                <select name="role" id="editRole" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                  <option value="student">Student</option>
+                  <option value="instructor">Instructor</option>
+                  <option value="admin">Administrator</option>
+                  <option value="content_manager">Content Manager</option>
+                  <option value="support">Support Staff</option>
+                  <option value="qa">QA Reviewer</option>
+                  <option value="finance">Finance Manager</option>
+                </select>
+                <p class="text-gray-400 text-xs mt-0.5">Staff privileges: Administrator only</p>
+              </div>
+
+              <div class="flex items-center gap-2 pb-1">
+                <input type="checkbox" name="is_active" id="editIsActive"
+                       class="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 flex-shrink-0">
+                <div>
+                  <label for="editIsActive" class="text-sm font-medium text-gray-700 cursor-pointer">Active Account</label>
+                  <p class="text-gray-400 text-xs">Can log in when active</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          {% comment %} ── Row 3: Personal (phone · dob · bio) ── {% endcomment %}
+          <div class="border-t border-gray-100 pt-4">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <i class="fas fa-id-card"></i> Personal Information
+            </p>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Phone</label>
+                <input type="text" name="phone" id="editPhone" autocomplete="tel"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                       placeholder="+1234567890">
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Date of Birth</label>
+                <input type="date" name="date_of_birth" id="editDob"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+              </div>
+
+              <div class="col-span-2 sm:col-span-3">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Bio</label>
+                <textarea name="bio" id="editBio" rows="2" autocomplete="off"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
+                          placeholder="Tell us about yourself…"></textarea>
+              </div>
+
+            </div>
+          </div>
+
+          {% comment %} ── Row 4: Location (address · city · country) ── {% endcomment %}
+          <div class="border-t border-gray-100 pt-4">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <i class="fas fa-map-marker-alt"></i> Location
+            </p>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+
+              <div class="col-span-2 sm:col-span-3">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Address</label>
+                <input type="text" name="address" id="editAddress" autocomplete="street-address"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                       placeholder="Street address">
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">City</label>
+                <input type="text" name="city" id="editCity" autocomplete="address-level2"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                       placeholder="City">
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Country</label>
+                <input type="text" name="country" id="editCountry" autocomplete="country-name"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                       placeholder="Country">
+              </div>
+
+            </div>
+          </div>
+
+          {% comment %} ── Row 5: Social links + notifications (all in one row) ── {% endcomment %}
+          <div class="border-t border-gray-100 pt-4">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <i class="fas fa-link"></i> Social &amp; Notifications
+            </p>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 items-end">
+
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Website</label>
+                <input type="url" name="website" id="editWebsite" autocomplete="url"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                       placeholder="https://…">
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">LinkedIn</label>
+                <input type="url" name="linkedin" id="editLinkedin"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                       placeholder="https://linkedin.com/in/…">
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Twitter / X</label>
+                <input type="url" name="twitter" id="editTwitter"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                       placeholder="https://twitter.com/…">
+              </div>
+
+              <div class="flex items-center gap-2">
+                <input type="checkbox" name="email_notifications" id="editEmailNotif"
+                       class="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 flex-shrink-0">
+                <div>
+                  <label for="editEmailNotif" class="text-sm font-medium text-gray-700 cursor-pointer">Email Alerts</label>
+                  <p class="text-gray-400 text-xs">Activity notifications</p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <input type="checkbox" name="marketing_emails" id="editMarketingEmails"
+                       class="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 flex-shrink-0">
+                <div>
+                  <label for="editMarketingEmails" class="text-sm font-medium text-gray-700 cursor-pointer">Marketing Emails</label>
+                  <p class="text-gray-400 text-xs">Newsletters &amp; promos</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>{% comment %} /p-5 inner content {% endcomment %}
+      </form>
+    </div>{% comment %} /scrollable body {% endcomment %}
+
+    {% comment %} ── Fixed footer ── {% endcomment %}
+    <div class="flex justify-end gap-3 px-5 py-3 bg-gray-50 border-t border-gray-200 flex-shrink-0">
+      <button onclick="closeModal('editModal')"
+              class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition text-sm">
+        Cancel
+      </button>
+      <button id="editSubmitBtn" onclick="submitEditForm()"
+              class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition shadow text-sm font-semibold">
+        <i class="fas fa-save mr-2"></i>Save Changes
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+{% comment %}
+════════════════════════════════════════════════════════════════
+  MODAL: VIEW USER  (read-only summary)
+  ───────────────────────────────────────
+  Body is populated dynamically via AJAX call to user_quick_info.
+  Avatar, role badge, status pill, and key metadata are shown.
+  "Edit User" button switches seamlessly to the Edit modal.
+════════════════════════════════════════════════════════════════
+{% endcomment %}
+<div id="viewModal"
+     class="hidden fixed inset-0 z-50 flex items-center justify-center p-4"
+     role="dialog" aria-modal="true" aria-labelledby="viewModalTitle">
+
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeModal('viewModal')"></div>
+
+  <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-lg flex flex-col max-h-[calc(100vh-2rem)] overflow-hidden">
+
+    {% comment %} Sticky header {% endcomment %}
+    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
+      <h2 id="viewModalTitle" class="text-xl font-bold text-gray-900">User Details</h2>
+      <button onclick="closeModal('viewModal')"
+              class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition"
+              aria-label="Close">
+        <i class="fas fa-times text-lg"></i>
+      </button>
+    </div>
+
+    {% comment %} Scrollable body — content injected by JS {% endcomment %}
+    <div id="viewModalBody" class="flex-1 overflow-y-auto p-6">
+      <div class="flex items-center justify-center py-10 text-gray-400">
+        <i class="fas fa-spinner fa-spin text-3xl"></i>
+      </div>
+    </div>
+
+    {% comment %} Sticky footer {% endcomment %}
+    <div class="flex justify-end gap-3 px-6 py-4 bg-gray-50 border-t border-gray-200 flex-shrink-0">
+      <button id="viewEditBtn"
+              class="px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-md font-semibold">
+        <i class="fas fa-pen mr-2"></i>Edit User
+      </button>
+      <button onclick="closeModal('viewModal')"
+              class="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition text-md">
+        Close
+      </button>
+    </div>
+
+  </div>
+</div>
+
+{% comment %}
+════════════════════════════════════════════════════════════════
+  TOAST NOTIFICATION
+  Used for all AJAX operation feedback (success / error / info).
+════════════════════════════════════════════════════════════════
+{% endcomment %}
+<div id="toast"
+     class="hidden fixed bottom-6 right-6 z-[100] min-w-[260px] max-w-sm px-5 py-4 rounded-xl shadow-xl text-md font-medium flex items-center gap-3"
+     role="status" aria-live="polite">
+  <i id="toastIcon" class="text-lg flex-shrink-0"></i>
+  <span id="toastMsg"></span>
+</div>
+
+
+{% comment %}
+════════════════════════════════════════════════════════════════
+  JAVASCRIPT — All interactive behaviour
+  ────────────────────────────────────────
+  Sections:
+    1. Utilities     — csrf(), showToast(), openModal(), closeModal()
+    2. Live filters  — applyFilters(), event listeners
+    3. Bulk actions  — toggleSelectAll(), updateBulkBar(), bulkAction()
+    4. Toggle active — toggleActive()
+    5. Create modal  — openCreateModal(), submitCreateForm()
+    6. View modal    — openViewModal()
+    7. Edit modal    — openEditModal(), submitEditForm()
+    8. Delete modal  — openDeleteModal(), confirmDelete()  ← FIXED
+    9. Keyboard      — Escape closes any open modal
+════════════════════════════════════════════════════════════════
+{% endcomment %}
+<script>
+'use strict';
+
+{% comment %} ── 1. Utilities ──────────────────────────────────────────────── {% endcomment %}
+
+const csrf = () => document.getElementById('csrfToken').value;
+
+/**
+ * showToast — displays a brief notification at bottom-right.
+ * @param {string} msg   - Message text
+ * @param {string} type  - 'success' | 'error' | 'info'
+ * @param {number} ms    - Auto-dismiss after this many milliseconds
+ */
+function showToast(msg, type = 'success', ms = 3500) {
+  const t    = document.getElementById('toast');
+  const icon = document.getElementById('toastIcon');
+
+  /* Reset classes then apply type-specific ones */
+  t.className = 'fixed bottom-6 right-6 z-[100] min-w-[260px] max-w-sm px-5 py-4 rounded-xl shadow-xl text-md font-medium flex items-center gap-3';
+
+  const styles = {
+    success: { bg: 'bg-green-600',  ic: 'fas fa-check-circle'       },
+    error:   { bg: 'bg-red-600',    ic: 'fas fa-exclamation-circle' },
+    info:    { bg: 'bg-blue-600',   ic: 'fas fa-info-circle'        },
+    warning: { bg: 'bg-orange-500', ic: 'fas fa-exclamation-triangle' },
+  };
+  const s = styles[type] || styles.info;
+  t.classList.add(s.bg, 'text-white');
+  icon.className = s.ic + ' text-lg flex-shrink-0';
+
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.remove('hidden');
+
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.add('hidden'), ms);
+}
+
+/** Open a modal by its ID. Prevents body scroll while open. */
+function openModal(id) {
+  document.getElementById(id).classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+/** Close a modal by its ID. Restores body scroll if none are open. */
+function closeModal(id) {
+  document.getElementById(id).classList.add('hidden');
+  const anyOpen = ['createModal','editModal','viewModal','deleteModal']
+    .some(m => !document.getElementById(m).classList.contains('hidden'));
+  if (!anyOpen) document.body.style.overflow = '';
+}
+
+
+{% comment %} ── 2. Live Filters ───────────────────────────────────────────── {% endcomment %}
+
+/**
+ * applyFilters — runs on every keystroke / dropdown change.
+ * Hides rows that don't match; no page reload needed.
+ */
+function applyFilters() {
+  const q      = document.getElementById('liveSearch').value.toLowerCase().trim();
+  const role   = document.getElementById('roleFilter').value;
+  const status = document.getElementById('statusFilter').value;
+  const rows   = document.querySelectorAll('.user-row');
+  let   visible = 0;
+
+  rows.forEach(row => {
+    const ok =
+      (!q      || row.dataset.search.includes(q))   &&
+      (!role   || row.dataset.role   === role)        &&
+      (!status || row.dataset.status === status);
+    row.style.display = ok ? '' : 'none';
+    if (ok) visible++;
+  });
+
+  document.getElementById('noResultsRow').classList.toggle('hidden', visible > 0);
+}
+
+/* Bind filter inputs */
+['liveSearch', 'roleFilter', 'statusFilter'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) {
+    el.addEventListener('input',  applyFilters);
+    el.addEventListener('change', applyFilters);
+  }
+});
+
+
+{% comment %} ── 3. Bulk Actions ───────────────────────────────────────────── {% endcomment %}
+
+/** Select/deselect all visible row checkboxes */
+function toggleSelectAll(masterCb) {
+  document.querySelectorAll('.row-checkbox').forEach(cb => {
+    if (cb.closest('tr').style.display !== 'none') {
+      cb.checked = masterCb.checked;
+    }
+  });
+  updateBulkBar();
+}
+
+/** Show/hide the bulk action bar depending on selection count */
+function updateBulkBar() {
+  const checked = [...document.querySelectorAll('.row-checkbox:checked')];
+  const bar     = document.getElementById('bulkActionBar');
+  document.getElementById('selectedCount').textContent = checked.length + ' selected';
+  bar.classList.toggle('hidden', checked.length === 0);
+  bar.classList.toggle('flex',   checked.length > 0);
+}
+
+/** POST bulk activate / deactivate then reload */
+function bulkAction(action) {
+  const ids = [...document.querySelectorAll('.row-checkbox:checked')]
+                .map(c => c.value).join(',');
+  if (!ids) return;
+
+  const fd = new FormData();
+  fd.append('action',             action);
+  fd.append('user_ids',           ids);
+  fd.append('csrfmiddlewaretoken', csrf());
+
+  fetch('{% url "management:bulk_user_action" %}', { method: 'POST', body: fd })
+    .then(r => {
+      if (r.ok) {
+        showToast(action === 'activate' ? 'Users activated' : 'Users deactivated', 'success');
+        setTimeout(() => location.reload(), 800);
+      } else {
+        showToast('Bulk action failed', 'error');
+      }
+    })
+    .catch(() => showToast('Network error', 'error'));
+}
+
+
+{% comment %} ── 4. Toggle Active ──────────────────────────────────────────── {% endcomment %}
+
+/**
+ * toggleActive — flip is_active for a single user.
+ * Uses the dedicated toggle-active endpoint (require_POST + AJAX).
+ */
+function toggleActive(userId) {
+  fetch(
+    '{% url "management:user_toggle_active" pk=0 %}'.replace('/0/', '/' + userId + '/'),
+    {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken':      csrf(),
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+    }
+  )
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      showToast(data.is_active ? 'User activated' : 'User deactivated', 'success');
+      setTimeout(() => location.reload(), 800);
+    } else {
+      showToast(data.message || 'Could not update status', 'error');
+    }
+  })
+  .catch(() => showToast('Network error', 'error'));
+}
+
+
+{% comment %} ── 5. Create Modal ───────────────────────────────────────────── {% endcomment %}
+
+function openCreateModal() {
+  document.getElementById('createForm').reset();
+  document.getElementById('createErrors').classList.add('hidden');
+  openModal('createModal');
+}
+
+async function submitCreateForm() {
+  const form   = document.getElementById('createForm');
+  const btn    = document.getElementById('createSubmitBtn');
+  const errBox = document.getElementById('createErrors');
+  errBox.classList.add('hidden');
+
+  const fd = new FormData(form);
+  fd.set('csrfmiddlewaretoken', csrf());
+
+  btn.disabled    = true;
+  btn.innerHTML   = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating…';
+
+  try {
+    const res  = await fetch('{% url "management:user_create" %}', {
+      method:  'POST',
+      body:    fd,
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      showToast('User created — credentials sent via email.', 'success');
+      closeModal('createModal');
+      setTimeout(() => location.reload(), 900);
+    } else {
+      const msgs = Object.entries(data.errors || {})
+        .map(([f, e]) => `<strong>${f}:</strong> ${Array.isArray(e) ? e.join(', ') : e}`)
+        .join('<br>');
+      errBox.innerHTML = msgs || data.message || 'Please fix the errors above.';
+      errBox.classList.remove('hidden');
+    }
+  } catch {
+    errBox.textContent = 'Network error — please try again.';
+    errBox.classList.remove('hidden');
+  } finally {
+    btn.disabled  = false;
+    btn.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Create User';
+  }
+}
+
+
+{% comment %} ── 6. View Modal ─────────────────────────────────────────────── {% endcomment %}
+
+function openViewModal(userId) {
+  const body = document.getElementById('viewModalBody');
+  body.innerHTML = `
+    <div class="flex items-center justify-center py-10 text-gray-400">
+      <i class="fas fa-spinner fa-spin text-3xl"></i>
+    </div>`;
+
+  document.getElementById('viewEditBtn').onclick = () => {
+    closeModal('viewModal');
+    openEditModal(userId);
+  };
+  openModal('viewModal');
+
+  fetch(
+    '{% url "management:user_quick_info" pk=0 %}'.replace('/0/', '/' + userId + '/'),
+    { headers: { 'X-Requested-With': 'XMLHttpRequest' } }
+  )
+  .then(r => r.json())
+  .then(d => {
+    /* Avatar — image if available, else initials */
+    const avatarHtml = d.avatar_url
+      ? `<img src="${d.avatar_url}" alt="${d.full_name}"
+              class="w-20 h-20 rounded-full object-cover border-4 border-white shadow">`
+      : `<div class="w-20 h-20 rounded-full bg-primary-100 flex items-center justify-center
+                     border-4 border-white shadow">
+           <span class="text-2xl font-bold text-primary-700">
+             ${d.full_name ? d.full_name.charAt(0).toUpperCase() : '?'}
+           </span>
+         </div>`;
+
+    /* Role badge colour map */
+    const roleColours = {
+      admin: 'red', instructor: 'purple', student: 'blue',
+      finance: 'yellow', content_manager: 'indigo', support: 'teal', qa: 'orange',
+    };
+    const rc = roleColours[d.role_value] || 'gray';
+    const roleBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-md font-medium
+                              bg-${rc}-100 text-${rc}-700">${d.role}</span>`;
+
+    const statusBadge = `
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-md font-medium
+            ${d.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}">
+        <span class="w-2 h-2 rounded-full ${d.is_active ? 'bg-green-500' : 'bg-red-400'}"></span>
+        ${d.is_active ? 'Active' : 'Inactive'}
+      </span>`;
+
+    const staffBadge = d.is_staff
+      ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-md font-medium
+                      bg-gray-100 text-gray-700">
+           <i class="fas fa-shield-alt"></i> Staff
+         </span>`
+      : '';
+
+    body.innerHTML = `
+      <div class="flex flex-col items-center gap-3 pb-5 border-b border-gray-100">
+        ${avatarHtml}
+        <div class="text-center">
+          <p class="text-xl font-bold text-gray-900">${d.full_name}</p>
+          <p class="text-gray-400 text-md">@${d.username}</p>
+        </div>
+        <div class="flex flex-wrap justify-center gap-2">
+          ${roleBadge} ${statusBadge} ${staffBadge}
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-x-6 gap-y-4 mt-5">
+        <div>
+          <p class="text-gray-400 text-md">Email</p>
+          <p class="text-gray-800 text-md font-medium break-all">${d.email}</p>
+        </div>
+        <div>
+          <p class="text-gray-400 text-md">User ID</p>
+          <p class="text-gray-800 text-md font-medium">#${d.id}</p>
+        </div>
+        <div>
+          <p class="text-gray-400 text-md">Joined</p>
+          <p class="text-gray-800 text-md font-medium">${d.date_joined}</p>
+        </div>
+        <div>
+          <p class="text-gray-400 text-md">Last Login</p>
+          <p class="text-gray-800 text-md font-medium">${d.last_login}</p>
+        </div>
+        ${d.phone ? `<div><p class="text-gray-400 text-md">Phone</p>
+          <p class="text-gray-800 text-md font-medium">${d.phone}</p></div>` : ''}
+        ${d.city || d.country ? `<div><p class="text-gray-400 text-md">Location</p>
+          <p class="text-gray-800 text-md font-medium">${[d.city, d.country].filter(Boolean).join(', ')}</p></div>` : ''}
+      </div>`;
+  })
+  .catch(() => {
+    body.innerHTML = `<p class="text-center text-red-500 text-md py-10">
+      <i class="fas fa-exclamation-circle mr-2"></i>Failed to load user data.</p>`;
+  });
+}
+
+
+{% comment %} ── 7. Edit Modal ─────────────────────────────────────────────── {% endcomment %}
+
+function openEditModal(userId) {
+  const errBox = document.getElementById('editErrors');
+  errBox.classList.add('hidden');
+
+  /* Show loading state in subtitle */
+  document.getElementById('editModalSubtitle').textContent = 'Loading…';
+
+  fetch(
+    '{% url "management:user_quick_info" pk=0 %}'.replace('/0/', '/' + userId + '/'),
+    { headers: { 'X-Requested-With': 'XMLHttpRequest' } }
+  )
+  .then(r => r.json())
+  .then(d => {
+    /* ── User (auth) fields ── */
+    document.getElementById('editUserId').value    = userId;
+    document.getElementById('editUsername').value  = d.username;
+    document.getElementById('editEmail').value     = d.email;
+    document.getElementById('editFirstName').value = d.full_name.split(' ')[0] || '';
+    document.getElementById('editLastName').value  = d.full_name.split(' ').slice(1).join(' ') || '';
+    document.getElementById('editIsActive').checked = d.is_active;
+
+    /* ── Role — use the raw value key from the JSON ── */
+    document.getElementById('editRole').value = d.role_value || 'student';
+
+    /* ── UserProfile extended fields ── */
+    const profileFields = {
+      editPhone:   d.phone,
+      editDob:     d.date_of_birth,
+      editBio:     d.bio,
+      editAddress: d.address,
+      editCity:    d.city,
+      editCountry: d.country,
+      editWebsite: d.website,
+      editLinkedin: d.linkedin,
+      editTwitter: d.twitter,
+    };
+    Object.entries(profileFields).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el) el.value = val || '';
+    });
+    document.getElementById('editEmailNotif').checked      = !!d.email_notifications;
+    document.getElementById('editMarketingEmails').checked = !!d.marketing_emails;
+
+    /* ── Set form action to this user's edit URL ── */
+    document.getElementById('editForm').action =
+      '{% url "management:user_edit" pk=0 %}'.replace('/0/', '/' + userId + '/');
+
+    document.getElementById('editModalSubtitle').textContent =
+      'Editing: ' + d.full_name;
+
+    openModal('editModal');
+  })
+  .catch(() => showToast('Failed to load user data', 'error'));
+}
+
+async function submitEditForm() {
+  const form   = document.getElementById('editForm');
+  const btn    = document.getElementById('editSubmitBtn');
+  const errBox = document.getElementById('editErrors');
+  const userId = document.getElementById('editUserId').value;
+  errBox.classList.add('hidden');
+
+  const fd = new FormData(form);
+  fd.set('csrfmiddlewaretoken', csrf());
+
+  btn.disabled  = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving…';
+
+  try {
+    const url  = '{% url "management:user_edit" pk=0 %}'.replace('/0/', '/' + userId + '/');
+    const res  = await fetch(url, {
+      method:  'POST',
+      body:    fd,
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      showToast('User updated successfully', 'success');
+      closeModal('editModal');
+      setTimeout(() => location.reload(), 900);
+    } else {
+      const msgs = Object.entries(data.errors || {})
+        .map(([f, e]) => `<strong>${f}:</strong> ${Array.isArray(e) ? e.join(', ') : e}`)
+        .join('<br>');
+      errBox.innerHTML = msgs || data.message || 'Please correct the errors above.';
+      errBox.classList.remove('hidden');
+    }
+  } catch {
+    errBox.textContent = 'Network error — please try again.';
+    errBox.classList.remove('hidden');
+  } finally {
+    btn.disabled  = false;
+    btn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Changes';
+  }
+}
+
+
+{% comment %}
+── 8. Delete Modal ───────────────────────────────────────────────────────────
+  FIX EXPLANATION
+  ───────────────
+  The previous implementation constructed the delete URL by replacing
+  'toggle-active' in the toggle-active URL string, then assigned it to
+  a <form action>.  This was broken because:
+    (a) No 'user_delete' URL pattern exists in urls.py.
+    (b) String replacement of a live URL is fragile.
+
+  CORRECT APPROACH:
+    openDeleteModal()  — stores userId in a data attribute, shows names.
+    confirmDelete()    — sends AJAX POST to user_edit/<pk>/ with action=delete.
+                         user_edit already handles this and returns JSON.
+                         On success the table row is removed without a full
+                         page reload, and a toast confirms deletion.
+{% endcomment %}
+
+/** Pending delete state — stored here so confirmDelete() can access it */
+let _pendingDeleteId   = null;
+let _pendingDeleteName = null;
+
+function openDeleteModal(userId, displayName, username) {
+  _pendingDeleteId   = userId;
+  _pendingDeleteName = displayName;
+
+  document.getElementById('deleteUserName').textContent     = displayName;
+  document.getElementById('deleteUserUsername').textContent = '@' + username;
+  openModal('deleteModal');
+}
+
+async function confirmDelete() {
+  if (!_pendingDeleteId) return;
+
+  const btn = document.getElementById('deleteConfirmBtn');
+  btn.disabled  = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Deleting…';
+
+  try {
+    const url = '{% url "management:user_edit" pk=0 %}'.replace('/0/', '/' + _pendingDeleteId + '/');
+    const fd  = new FormData();
+    fd.append('action',             'delete');
+    fd.append('csrfmiddlewaretoken', csrf());
+
+    const res  = await fetch(url, {
+      method:  'POST',
+      body:    fd,
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      /* Remove the table row immediately — no reload needed */
+      const row = document.querySelector(`.user-row[data-id="${_pendingDeleteId}"]`);
+      if (row) {
+        row.style.transition = 'opacity 0.3s';
+        row.style.opacity    = '0';
+        setTimeout(() => row.remove(), 300);
+      }
+      showToast(_pendingDeleteName + ' has been deleted.', 'success');
+      closeModal('deleteModal');
+    } else {
+      showToast(data.message || 'Could not delete user.', 'error');
+      closeModal('deleteModal');
+    }
+  } catch {
+    showToast('Network error — please try again.', 'error');
+  } finally {
+    btn.disabled  = false;
+    btn.innerHTML = '<i class="fas fa-trash-alt mr-2"></i>Delete User';
+    _pendingDeleteId   = null;
+    _pendingDeleteName = null;
+  }
+}
+
+
+{% comment %} ── 9. Keyboard — Escape closes the topmost open modal ─────────── {% endcomment %}
+
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  /* Close in reverse order of z-index priority */
+  ['deleteModal', 'viewModal', 'editModal', 'createModal'].some(id => {
+    const el = document.getElementById(id);
+    if (!el.classList.contains('hidden')) {
+      closeModal(id);
+      return true; /* stop after closing the first visible one */
+    }
+    return false;
+  });
+});
+</script>
+
+{% endblock %}

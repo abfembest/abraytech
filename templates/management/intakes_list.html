@@ -1,0 +1,392 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Course Intakes - {{ site_config.school_short_name }} Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-full">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Course Intakes</h1>
+      <p class="text-gray-500 mt-1">Manage intake periods for academic programs</p>
+    </div>
+    <button onclick="openCreateModal()"
+       class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium shadow-sm">
+      <i class="fas fa-plus" aria-hidden="true"></i>New Intake
+    </button>
+  </div>
+
+  <!-- Django messages -->
+  {% if messages %}
+  <div class="mb-4 space-y-2">
+    {% for message in messages %}
+    <div class="px-4 py-3 rounded-lg text-sm font-medium
+      {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200
+      {% else %}bg-green-50 text-green-700 border border-green-200{% endif %}">
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Filters -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
+    <form method="get" class="flex flex-col sm:flex-row gap-3">
+      <div class="flex-1">
+        <select name="program" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          <option value="">All Programs</option>
+          {% for prog in programs %}
+          <option value="{{ prog.id }}" {% if request.GET.program == prog.id|stringformat:"s" %}selected{% endif %}>{{ prog.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="sm:w-40">
+        <select name="year" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          <option value="">All Years</option>
+          {% for yr in years %}
+          <option value="{{ yr }}" {% if request.GET.year == yr|stringformat:"s" %}selected{% endif %}>{{ yr }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="sm:w-40">
+        <select name="period" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          <option value="">All Periods</option>
+          <option value="january" {% if request.GET.period == 'january' %}selected{% endif %}>January</option>
+          <option value="may" {% if request.GET.period == 'may' %}selected{% endif %}>May</option>
+          <option value="september" {% if request.GET.period == 'september' %}selected{% endif %}>September</option>
+        </select>
+      </div>
+      <div class="sm:w-36">
+        <select name="status" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          <option value="">All Status</option>
+          <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+          <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
+        </select>
+      </div>
+      <button type="submit" class="px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium">
+        <i class="fas fa-search mr-1" aria-hidden="true"></i>Filter
+      </button>
+      <a href="{% url 'management:intakes_list' %}" class="px-3 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm">
+        <i class="fas fa-redo" aria-hidden="true"></i>
+      </a>
+    </form>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="p-5 border-b border-gray-100">
+      <h2 class="font-semibold text-gray-800">
+        All Intakes <span class="text-sm font-normal text-gray-400 ml-1">({{ intakes.paginator.count }} total)</span>
+      </h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wide">
+          <tr>
+            <th class="py-3 px-5 text-left font-semibold">Program</th>
+            <th class="py-3 px-5 text-left font-semibold">Period</th>
+            <th class="py-3 px-5 text-left font-semibold">Start Date</th>
+            <th class="py-3 px-5 text-left font-semibold">Deadline</th>
+            <th class="py-3 px-5 text-left font-semibold">Slots</th>
+            <th class="py-3 px-5 text-left font-semibold">Accepted / Apps</th>
+            <th class="py-3 px-5 text-left font-semibold">Status</th>
+            <th class="py-3 px-5 text-left font-semibold">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for intake in intakes %}
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="py-4 px-5">
+              <div class="font-medium text-gray-800">{{ intake.program.name }}</div>
+              <div class="text-xs text-gray-400">{{ intake.program.department.faculty.name }}</div>
+            </td>
+            <td class="py-4 px-5">
+              <span class="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium capitalize">
+                {{ intake.intake_period }}
+              </span>
+              <span class="text-gray-500 ml-1">{{ intake.year }}</span>
+            </td>
+            <td class="py-4 px-5 text-gray-600">{{ intake.start_date|date:"M d, Y" }}</td>
+            <td class="py-4 px-5">
+              {% if intake.application_deadline < today %}
+              <span class="text-red-500 font-medium">{{ intake.application_deadline|date:"M d, Y" }}</span>
+              <span class="text-xs text-red-400 block">Expired</span>
+              {% else %}
+              <span class="text-gray-600">{{ intake.application_deadline|date:"M d, Y" }}</span>
+              {% endif %}
+            </td>
+            <td class="py-4 px-5">
+              <span class="font-medium {% if intake.is_full %}text-red-600{% else %}text-gray-700{% endif %}">
+                {{ intake.available_slots }}
+              </span>
+              {% if intake.is_full %}
+              <span class="text-xs text-red-500 block">Full</span>
+              {% else %}
+              <span class="text-xs text-green-600 block">{{ intake.remaining_slots }} left</span>
+              {% endif %}
+            </td>
+            <td class="py-4 px-5">
+              <span class="font-medium text-primary-600">{{ intake.accepted_count }}</span>
+              <span class="text-gray-400"> / {{ intake.applications.count }}</span>
+            </td>
+            <td class="py-4 px-5">
+              {% if intake.is_active %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Active
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>Inactive
+              </span>
+              {% endif %}
+            </td>
+            <td class="py-4 px-5">
+              <div class="flex items-center gap-2">
+                <button type="button"
+                        onclick="openEditModal({{ intake.pk }}, '{% url 'management:intake_edit' intake.pk %}')"
+                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Edit">
+                  <i class="fas fa-edit text-sm" aria-hidden="true"></i>
+                </button>
+                <button type="button"
+                        onclick="openDeleteModal('{% url 'management:intake_delete' intake.pk %}', '{{ intake }}')"
+                        class="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors" title="Delete">
+                  <i class="fas fa-trash-alt text-sm" aria-hidden="true"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="py-16 text-center text-gray-400">
+              <i class="fas fa-door-open text-5xl mb-3 block" aria-hidden="true"></i>
+              <p class="font-medium text-gray-600">No intakes found</p>
+              <button onclick="openCreateModal()" class="text-primary-600 text-sm hover:underline mt-1 inline-block">Create the first intake</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if intakes.has_other_pages %}
+    <div class="p-5 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-3">
+      <p class="text-sm text-gray-500">Showing {{ intakes.start_index }}–{{ intakes.end_index }} of {{ intakes.paginator.count }}</p>
+      <nav class="flex gap-1" aria-label="Pagination">
+        {% if intakes.has_previous %}
+        <a href="?page={{ intakes.previous_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}"
+           class="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">
+          <i class="fas fa-chevron-left" aria-hidden="true"></i>
+        </a>
+        {% endif %}
+        {% for num in intakes.paginator.page_range %}
+          {% if intakes.number == num %}
+          <span class="px-3 py-1.5 bg-primary-600 text-white rounded-lg text-sm font-medium">{{ num }}</span>
+          {% elif num > intakes.number|add:"-3" and num < intakes.number|add:"3" %}
+          <a href="?page={{ num }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}"
+             class="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+        {% if intakes.has_next %}
+        <a href="?page={{ intakes.next_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}"
+           class="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">
+          <i class="fas fa-chevron-right" aria-hidden="true"></i>
+        </a>
+        {% endif %}
+      </nav>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ═══════════════════ CREATE / EDIT MODAL ═══════════════════ -->
+<div id="intakeModal" class="fixed inset-0 z-50 hidden" aria-modal="true" role="dialog">
+  <div class="fixed inset-0 flex items-center justify-center p-4">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-black/40" onclick="closeIntakeModal()"></div>
+    <!-- Panel -->
+    <div class="relative bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h2 id="modalTitle" class="font-semibold text-gray-800 text-lg">New Intake</h2>
+        <button onclick="closeIntakeModal()" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+      </div>
+
+      <form id="intakeForm" method="post" action="{% url 'management:intake_create' %}" class="p-6 space-y-4">
+        {% csrf_token %}
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Program <span class="text-red-500">*</span></label>
+          <input type="text" id="modal_program_display" name="program_display"
+                 list="programDatalist" placeholder="Type to search program…"
+                 autocomplete="off"
+                 class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" required>
+          <input type="hidden" id="modal_program" name="program">
+          <datalist id="programDatalist">
+            {% for prog in programs %}
+            <option data-pk="{{ prog.pk }}" value="{{ prog.name }} ({{ prog.code }})"></option>
+            {% endfor %}
+          </datalist>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Intake Period <span class="text-red-500">*</span></label>
+            <select id="modal_intake_period" name="intake_period"
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" required>
+              <option value="january">January</option>
+              <option value="may">May</option>
+              <option value="september">September</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Year <span class="text-red-500">*</span></label>
+            <input type="text" id="modal_year" name="year" list="yeardatalist"
+                   placeholder="e.g., 2025" pattern="\d{4}" autocomplete="off"
+                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" required>
+            <datalist id="yeardatalist">
+              {% for yr in years %}
+              <option value="{{ yr }}"></option>
+              {% endfor %}
+            </datalist>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Start Date <span class="text-red-500">*</span></label>
+            <input type="date" id="modal_start_date" name="start_date"
+                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Application Deadline <span class="text-red-500">*</span></label>
+            <input type="date" id="modal_deadline" name="application_deadline"
+                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" required>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Available Slots <span class="text-red-500">*</span></label>
+            <input type="number" id="modal_slots" name="available_slots" value="50" min="1"
+                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" required>
+          </div>
+          <div class="flex items-end pb-1">
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" id="modal_is_active" name="is_active" checked
+                     class="w-4 h-4 rounded text-primary-600 border-gray-300 focus:ring-primary-500">
+              <span class="text-sm font-medium text-gray-700">Active</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-2 border-t border-gray-100">
+          <button type="button" onclick="closeIntakeModal()"
+                  class="px-5 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-medium">Cancel</button>
+          <button type="submit"
+                  class="px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium shadow-sm">
+            <i class="fas fa-save mr-1.5" aria-hidden="true"></i>
+            <span id="modalSubmitLabel">Create Intake</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ DELETE CONFIRM MODAL ═══════════════════ -->
+<div id="deleteModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-modal="true" role="dialog">
+  <div class="flex min-h-full items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/40" onclick="closeDeleteModal()"></div>
+    <div class="relative bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+          <i class="fas fa-exclamation-triangle text-red-600"></i>
+        </div>
+        <div>
+          <h3 class="font-semibold text-gray-900 text-lg">Delete Intake?</h3>
+          <p class="text-sm text-gray-500 mt-1">
+            You are about to permanently delete <strong id="deleteIntakeName"></strong>. This will also remove all linked applications and enrollment records. This cannot be undone.
+          </p>
+        </div>
+      </div>
+      <form id="deleteForm" method="post" action="">
+        {% csrf_token %}
+        <div class="flex justify-end gap-3">
+          <button type="button" onclick="closeDeleteModal()"
+                  class="px-5 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-medium">Cancel</button>
+          <button type="submit"
+                  class="px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-semibold">
+            <i class="fas fa-trash mr-1.5"></i>Delete
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── Create modal ──────────────────────────────────────────────
+function openCreateModal() {
+  document.getElementById('modalTitle').textContent = 'New Intake';
+  document.getElementById('modalSubmitLabel').textContent = 'Create Intake';
+  document.getElementById('intakeForm').action = '{% url "management:intake_create" %}';
+  // Reset fields
+  document.getElementById('modal_program').value = '';
+  document.getElementById('modal_program_display').value = '';
+  document.getElementById('modal_intake_period').value = 'january';
+  document.getElementById('modal_year').value = '';
+  document.getElementById('modal_start_date').value = '';
+  document.getElementById('modal_deadline').value = '';
+  document.getElementById('modal_slots').value = '50';
+  document.getElementById('modal_is_active').checked = true;
+  document.getElementById('intakeModal').classList.remove('hidden');
+}
+
+// ── Edit modal — fetch data via AJAX then pre-fill ────────────
+function openEditModal(pk, url) {
+  fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('modalTitle').textContent = 'Edit Intake';
+      document.getElementById('modalSubmitLabel').textContent = 'Save Changes';
+      document.getElementById('intakeForm').action = url;
+      document.getElementById('modal_program').value = data.program;
+      // Find the matching datalist option text for display
+      const progOption = document.querySelector('#programDatalist option[data-pk="' + data.program + '"]');
+      document.getElementById('modal_program_display').value = progOption ? progOption.value : '';
+      document.getElementById('modal_intake_period').value = data.intake_period;
+      document.getElementById('modal_year').value = data.year;
+      document.getElementById('modal_start_date').value = data.start_date;
+      document.getElementById('modal_deadline').value = data.application_deadline;
+      document.getElementById('modal_slots').value = data.available_slots;
+      document.getElementById('modal_is_active').checked = data.is_active;
+      document.getElementById('intakeModal').classList.remove('hidden');
+    })
+    .catch(() => alert('Could not load intake data. Please try again.'));
+}
+
+function closeIntakeModal() {
+  document.getElementById('intakeModal').classList.add('hidden');
+}
+
+// ── Delete modal ──────────────────────────────────────────────
+function openDeleteModal(url, name) {
+  document.getElementById('deleteIntakeName').textContent = name;
+  document.getElementById('deleteForm').action = url;
+  document.getElementById('deleteModal').classList.remove('hidden');
+}
+
+function closeDeleteModal() {
+  document.getElementById('deleteModal').classList.add('hidden');
+}
+
+// Close modals on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeIntakeModal(); closeDeleteModal(); }
+});
+</script>
+{% endblock %}

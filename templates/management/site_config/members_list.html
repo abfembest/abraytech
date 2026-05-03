@@ -1,0 +1,150 @@
+{% extends 'management/base.html' %}
+{% load static %}
+{% block title %}Leadership &amp; Staff — MIU Admin{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto">
+
+  {# ── Breadcrumb ── #}
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+    <span class="text-gray-400">Site Content</span>
+    <i class="fas fa-chevron-right text-xs"></i>
+    <span class="text-gray-800 font-medium">Leadership &amp; Staff</span>
+  </nav>
+
+  {# ── Page header ── #}
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Leadership &amp; Staff</h1>
+      <p class="text-gray-500 mt-1 text-sm">Board members and staff shown in the Leadership section on the About page.</p>
+    </div>
+    <a href="{% url 'management:institution_member_create' %}"
+       class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium shadow-sm flex-shrink-0 transition-colors">
+      <i class="fas fa-plus"></i> Add Member
+    </a>
+  </div>
+
+  {# ── Stats bar ── #}
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+    {% for type_value, type_label in member_type_choices %}
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 text-center">
+      <div class="text-xl font-bold text-primary-600">
+        {{ members|length }}
+      </div>
+      <div class="text-xs text-gray-500 mt-0.5">{{ type_label }}</div>
+    </div>
+    {% empty %}
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 col-span-4 text-center">
+      <span class="text-2xl font-bold text-primary-600">{{ members|length }}</span>
+      <span class="text-sm text-gray-500 ml-2">Total Members</span>
+    </div>
+    {% endfor %}
+  </div>
+
+  {# ── Member groups ── #}
+  {# We use regroup correctly here — no {% empty %} inside regroup #}
+  {% regroup members by get_member_type_display as member_groups %}
+
+  {% if member_groups %}
+    {% for group in member_groups %}
+    <div class="mb-10">
+      {# Group heading #}
+      <div class="flex items-center gap-3 mb-4">
+        <span class="w-8 h-0.5 bg-primary-300 inline-block rounded-full"></span>
+        <h2 class="text-xs font-bold uppercase tracking-widest text-gray-400">{{ group.grouper }}</h2>
+        <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">
+          {{ group.list|length }}
+        </span>
+      </div>
+
+      <div class="space-y-3">
+        {% for m in group.list %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+          <div class="flex flex-col sm:flex-row sm:items-center gap-4 p-5">
+
+            {# Avatar #}
+            <div class="w-14 h-14 rounded-full flex-shrink-0 overflow-hidden bg-primary-50 border-2 border-primary-100 flex items-center justify-center">
+              {% if m.photo %}
+              <img src="{{ m.photo.url }}" class="w-full h-full object-cover object-top" alt="{{ m.name }}">
+              {% else %}
+              <span class="text-primary-500 font-bold text-sm">{{ m.name|slice:":2"|upper }}</span>
+              {% endif %}
+            </div>
+
+            {# Info #}
+            <div class="flex-1 min-w-0">
+              <div class="flex flex-wrap items-center gap-2 mb-0.5">
+                <h3 class="font-semibold text-gray-800">{{ m.name }}</h3>
+                {% if m.is_active %}
+                <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Active</span>
+                {% else %}
+                <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">Hidden</span>
+                {% endif %}
+                <span class="text-xs text-gray-400">Order: {{ m.display_order }}</span>
+              </div>
+              <p class="text-sm text-primary-600 font-medium">{{ m.role }}</p>
+              {% if m.bio %}
+              <p class="text-xs text-gray-400 mt-1 line-clamp-1">{{ m.bio|truncatechars:120 }}</p>
+              {% endif %}
+            </div>
+
+            {# Actions #}
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <a href="{% url 'management:institution_member_edit' m.pk %}"
+                 class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
+                <i class="fas fa-edit"></i>
+              </a>
+              <button type="button"
+                      onclick="confirmDelete('{% url 'management:institution_member_delete' m.pk %}', '{{ m.name|escapejs }}')"
+                      class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </div>
+
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+
+  {% else %}
+  {# Empty state — shown when members queryset is empty #}
+  <div class="bg-white rounded-xl p-16 text-center shadow-sm border border-gray-200">
+    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <i class="fas fa-user-tie text-3xl text-gray-300"></i>
+    </div>
+    <p class="font-semibold text-gray-600 mb-1">No members yet</p>
+    <p class="text-sm text-gray-400 mb-4">Add your first board member or staff to display them on the About page.</p>
+    <a href="{% url 'management:institution_member_create' %}"
+       class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium shadow-sm transition-colors">
+      <i class="fas fa-plus"></i> Add First Member
+    </a>
+  </div>
+  {% endif %}
+
+</div>
+
+<form id="deleteForm" method="post" action="" style="display:none;">{% csrf_token %}</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(url, name) {
+  Swal.fire({
+    title: 'Remove Member?',
+    html: `Remove <strong>${name}</strong> from the about page?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Yes, Remove',
+    cancelButtonText: 'Cancel',
+  }).then(r => {
+    if (r.isConfirmed) {
+      document.getElementById('deleteForm').action = url;
+      document.getElementById('deleteForm').submit();
+    }
+  });
+}
+</script>
+{% endblock %}

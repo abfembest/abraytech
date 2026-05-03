@@ -1,0 +1,102 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}{{ action }} Blog Category - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <div class="flex items-center gap-3 mb-2">
+        <a href="{% url 'management:blog_categories_list' %}"
+            class="text-gray-600 hover:text-gray-900 transition-colors">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <h1 class="text-3xl font-bold text-gray-900 font-display">{{ action }} Blog Category</h1>
+    </div>
+    <p class="text-gray-600">Fill in the details below to {{ action|lower }} a category</p>
+</div>
+
+<form method="POST" class="max-w-3xl">
+    {% csrf_token %}
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                Category Name <span class="text-red-500">*</span>
+            </label>
+            {{ form.name }}
+            {% if form.name.errors %}
+            <p class="text-red-500 text-sm mt-1">{{ form.name.errors.0 }}</p>
+            {% endif %}
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                Description
+            </label>
+            {{ form.description }}
+            {% if form.description.errors %}
+            <p class="text-red-500 text-sm mt-1">{{ form.description.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Icon <span class="text-red-500">*</span>
+                </label>
+                {{ form.icon }}
+                <p class="text-sm text-gray-500 mt-1">
+                    <a href="https://lucide.dev/icons" target="_blank" class="text-blue-600 hover:underline">
+                        Browse Lucide icons
+                    </a>
+                </p>
+                {% if form.icon.errors %}
+                <p class="text-red-500 text-sm mt-1">{{ form.icon.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Color Theme <span class="text-red-500">*</span>
+                </label>
+                {{ form.color }}
+                {% if form.color.errors %}
+                <p class="text-red-500 text-sm mt-1">{{ form.color.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                Display Order
+            </label>
+            {{ form.display_order }}
+            <p class="text-sm text-gray-500 mt-1">Lower numbers appear first</p>
+            {% if form.display_order.errors %}
+            <p class="text-red-500 text-sm mt-1">{{ form.display_order.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <div>
+            <label class="flex items-center gap-3">
+                {{ form.is_active }}
+                <span class="text-sm font-semibold text-gray-700">
+                    Active Category
+                </span>
+            </label>
+            <p class="text-sm text-gray-500 ml-8">Inactive categories won't be visible on the website</p>
+        </div>
+    </div>
+
+    <div class="flex gap-4 mt-6">
+        <button type="submit"
+            class="px-8 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold hover:shadow-xl transition-all duration-300">
+            <i class="fas fa-save mr-2"></i>
+            {{ action }} Category
+        </button>
+        <a href="{% url 'management:blog_categories_list' %}"
+            class="px-8 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
+            Cancel
+        </a>
+    </div>
+</form>
+{% endblock %}

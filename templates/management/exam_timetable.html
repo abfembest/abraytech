@@ -1,0 +1,540 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% comment %}
+  exam_timetable.html — Update Exam Schedule (Date + Time)
+  ─────────────────────────────────────────────────────────
+  Model:  Exam
+  View:   admin_exam_timetable_update(request, slug)
+
+  Context received from view:
+    exam  — Exam instance
+
+  POST fields expected by view:
+    exam_date   — "YYYY-MM-DD" (combined with times to make start_datetime / end_datetime)
+    start_time  — "HH:MM"
+    end_time    — "HH:MM"
+    (venue is NOT accepted — model has no venue field)
+
+  CORRECT FIELD MAPPINGS — Exam model (online/CBT system only):
+  ──────────────────────────────────────────────────────────────
+  ✅  exam.start_datetime          — DateTimeField — single combined date+time
+  ✅  exam.end_datetime            — DateTimeField
+  ✅  exam.duration_minutes        — @property: int((end-start).total_seconds()//60)
+  ✅  exam.instructions_open_at    — @property: start_datetime − 10 min (INSTRUCTION_WINDOW_MINUTES)
+  ✅  exam.has_clash               — @property: checks overlapping PUBLISHED exams
+  ✅  exam.clash_notes             — TextField: staff manual annotation
+  ✅  exam.title                   — CharField
+  ✅  exam.reference_code          — CharField (auto-generated)
+  ✅  exam.get_exam_type_display   — display value of exam_type
+  ✅  exam.course.title            — LMSCourse.title
+  ✅  exam.course.session          — LMSCourse → AcademicSession (nullable)
+  ✅  exam.course.session.name     — AcademicSession.name  e.g. "2024/2025"
+  ✅  exam.course.academic_course  — LMSCourse → Course (nullable)
+  ✅  exam.course.academic_course.code     — Course.code
+  ✅  exam.course.academic_course.program  — Course → Program
+  ✅  exam.course.academic_course.program.name       — Program.name
+  ✅  exam.course.academic_course.program.department — Department
+  ✅  exam.course.academic_course.program.department.name — Department.name
+  ✅  exam.status / exam.get_status_display
+  ✅  exam.instructor              — FK → User (nullable)
+  ✅  exam.active_question_count   — @property: active questions in pool
+  ✅  exam.computed_total_marks    — @property: Sum of active question marks
+  ✅  exam.pass_mark               — DecimalField (nullable)
+  ✅  exam.questions_per_student   — PositiveIntegerField (nullable)
+
+  REMOVED — do NOT reference these (AttributeError / does not exist):
+  ✗  exam.venue                   — DELETED from model (CBT/online only)
+  ✗  exam.academic_session        — NOT a field; derive via exam.course.session
+  ✗  exam.department              — NOT a field; derive via course chain
+  ✗  exam.instruction_window_minutes — CLASS CONSTANT (not instance field)
+                                      Use hardcoded "10" or pass via context
+
+  TYPOGRAPHY: text-base (text-md) minimum, scales up via lg:text-lg etc.
+  LAYOUT: max-w-full, px-4 sm:px-6 lg:px-8
+{% endcomment %}
+
+{% block title %}Timetable — {{ exam.reference_code }}{% endblock %}
+{% block breadcrumb %}Exam Management / {{ exam.reference_code }} / Timetable{% endblock %}
+{% block breadcrumb_title %}{{ exam.reference_code }} — Timetable{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-full space-y-6 px-4 sm:px-6 lg:px-8">
+
+    {% comment %} ── Breadcrumb ── {% endcomment %}
+    <nav class="flex items-center gap-2 text-base text-gray-400 flex-wrap">
+        <a href="{% url 'management:admin_exam_list' %}"
+           class="hover:text-primary-600 transition-colors flex items-center gap-1.5">
+            <i class="fas fa-file-alt text-sm"></i>
+            <span>Exam Management</span>
+        </a>
+        <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
+        <a href="{% url 'management:admin_exam_detail' exam.slug %}"
+           class="hover:text-primary-600 transition-colors font-medium text-gray-600">
+            {{ exam.reference_code }}
+        </a>
+        <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
+        <span class="text-gray-700 font-semibold">Update Timetable</span>
+    </nav>
+
+    {% comment %} ── Page Header ── {% endcomment %}
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 font-heading flex items-center gap-3">
+                <span class="inline-flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-xl
+                             bg-gradient-to-br from-primary-500 to-secondary-500 text-white shadow shrink-0">
+                    <i class="fas fa-calendar-alt text-lg"></i>
+                </span>
+                Update Timetable
+            </h1>
+            <p class="text-base text-gray-500 mt-1.5 ml-14 sm:ml-16 line-clamp-2 max-w-xl">
+                {{ exam.title }}
+                <span class="font-mono text-sm text-gray-400 ml-1.5">{{ exam.reference_code }}</span>
+            </p>
+        </div>
+        <a href="{% url 'management:admin_exam_detail' exam.slug %}"
+           class="inline-flex items-center gap-2 px-5 py-2.5 text-base font-medium
+                  border border-gray-300 bg-white text-gray-700 hover:bg-gray-50
+                  rounded-xl transition-colors self-start shrink-0">
+            <i class="fas fa-arrow-left text-sm text-gray-400"></i> Back to Exam
+        </a>
+    </div>
+
+    {% comment %} ── Flash Messages ── {% endcomment %}
+    {% if messages %}
+    <div class="space-y-2">
+        {% for msg in messages %}
+        <div class="flex items-start gap-3 p-4 rounded-2xl border
+                    {% if msg.tags == 'error' %}bg-red-50 border-red-200 text-red-700
+                    {% elif msg.tags == 'success' %}bg-green-50 border-green-200 text-green-700
+                    {% else %}bg-blue-50 border-blue-200 text-blue-700{% endif %}">
+            <i class="fas {% if msg.tags == 'error' %}fa-times-circle{% elif msg.tags == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %} mt-0.5 shrink-0 text-lg"></i>
+            <span class="text-base leading-relaxed">{{ msg }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% comment %}
+      has_clash: computed @property on Exam.
+      Checks for overlapping PUBLISHED exams in the same time window.
+      clash_notes: real TextField — staff manual annotation (may be blank).
+      Do NOT save has_clash via update_fields — it is not a DB column.
+    {% endcomment %}
+    {% if exam.has_clash %}
+    <div class="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-2xl">
+        <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
+            <i class="fas fa-exclamation-triangle text-red-600 text-base"></i>
+        </div>
+        <div>
+            <p class="text-base font-semibold text-red-800">Scheduling Clash Detected</p>
+            {% if exam.clash_notes %}
+            <p class="text-base text-red-600 mt-0.5">{{ exam.clash_notes }}</p>
+            {% endif %}
+            <p class="text-base text-red-500 mt-1">Update the date and time below to resolve this conflict.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    {% comment %} ── Status Banner ── {% endcomment %}
+    {% if exam.status == 'published' %}
+    <div class="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl">
+        <i class="fas fa-globe text-amber-500 mt-0.5 shrink-0 text-lg"></i>
+        <div>
+            <p class="text-base font-semibold text-amber-800">Published Exam — Reschedule With Caution</p>
+            <p class="text-base text-amber-700 mt-0.5">
+                This exam is already published and visible to enrolled students. Changing the time will update what they see on their dashboard.
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
+    {% comment %} ── Two-column layout: form left, info right ── {% endcomment %}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {% comment %} ── LEFT: Form ── {% endcomment %}
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+
+                <div class="px-6 py-5 border-b border-gray-100 flex items-center gap-2.5">
+                    <span class="w-9 h-9 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
+                        <i class="fas fa-edit text-primary-500 text-base"></i>
+                    </span>
+                    <h2 class="text-base font-bold text-gray-800">Schedule Details</h2>
+                </div>
+
+                {% comment %}
+                  POST fields → view parses:
+                    exam_date  → parse_date()  → combine with start_time/end_time
+                    start_time → parse_time()  → make_aware() → exam.start_datetime
+                    end_time   → parse_time()  → make_aware() → exam.end_datetime
+                  Timezone: Africa/Lagos (hardcoded in view via zoneinfo.ZoneInfo)
+                  Venue is NOT accepted — no venue field on Exam model.
+                {% endcomment %}
+                <form method="post" class="p-6 space-y-6" novalidate>
+                    {% csrf_token %}
+
+                    {% comment %} ── Exam Date ── {% endcomment %}
+                    <div>
+                        <label for="id_exam_date"
+                               class="block text-base font-semibold text-gray-700 mb-2">
+                            Exam Date <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date"
+                               id="id_exam_date"
+                               name="exam_date"
+                               value="{{ exam.start_datetime|date:'Y-m-d' }}"
+                               required
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl text-base
+                                      focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+                                      transition bg-white">
+                        <p class="text-base text-gray-400 mt-1.5">
+                            Current: <strong class="text-gray-600">{{ exam.start_datetime|date:"D, d M Y" }}</strong>
+                        </p>
+                    </div>
+
+                    {% comment %} ── Start + End Time ── {% endcomment %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                            <label for="id_start_time"
+                                   class="block text-base font-semibold text-gray-700 mb-2">
+                                Start Time <span class="text-red-500">*</span>
+                            </label>
+                            {% comment %}
+                              exam.start_datetime|time:'H:i' — correct.
+                              start_datetime is a DateTimeField, Django |time filter extracts time part.
+                            {% endcomment %}
+                            <input type="time"
+                                   id="id_start_time"
+                                   name="start_time"
+                                   value="{{ exam.start_datetime|time:'H:i' }}"
+                                   required
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-xl text-base
+                                          focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+                                          transition bg-white tabular-nums">
+                            <p class="text-base text-gray-400 mt-1.5">
+                                Current: <strong class="text-gray-600 tabular-nums">{{ exam.start_datetime|time:"H:i" }}</strong>
+                            </p>
+                        </div>
+                        <div>
+                            <label for="id_end_time"
+                                   class="block text-base font-semibold text-gray-700 mb-2">
+                                End Time <span class="text-red-500">*</span>
+                            </label>
+                            {% comment %}
+                              exam.end_datetime|time:'H:i' — correct.
+                            {% endcomment %}
+                            <input type="time"
+                                   id="id_end_time"
+                                   name="end_time"
+                                   value="{{ exam.end_datetime|time:'H:i' }}"
+                                   required
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-xl text-base
+                                          focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+                                          transition bg-white tabular-nums">
+                            <p class="text-base text-gray-400 mt-1.5">
+                                Current: <strong class="text-gray-600 tabular-nums">{{ exam.end_datetime|time:"H:i" }}</strong>
+                            </p>
+                        </div>
+                    </div>
+
+                    {% comment %}
+                      VENUE FIELD INTENTIONALLY OMITTED.
+                      Exam.venue was removed from the model — this is an online/CBT-only system.
+                      The view also reads venue but exam.save() no longer stores it.
+                      Showing a venue field here would confuse staff. Leave it out.
+                    {% endcomment %}
+
+                    {% comment %} ── Live Duration Preview (JS) ── {% endcomment %}
+                    <div class="flex items-center gap-3 p-4 bg-gray-50 border border-gray-200 rounded-xl" id="durationPreview">
+                        <i class="fas fa-stopwatch text-gray-400 text-base shrink-0"></i>
+                        <div class="text-base text-gray-600">
+                            Computed duration: <strong id="durationDisplay" class="text-gray-800 tabular-nums">{{ exam.duration_minutes }} min</strong>
+                            <span class="text-gray-400 ml-1">· Instruction page opens 10 min before start</span>
+                        </div>
+                    </div>
+
+                    {% comment %} ── Conflict Detection Notice ── {% endcomment %}
+                    <div class="flex items-start gap-3 p-4 bg-primary-50 border border-primary-100 rounded-xl">
+                        <i class="fas fa-shield-alt text-primary-400 mt-0.5 shrink-0 text-base"></i>
+                        <p class="text-base text-primary-700 leading-relaxed">
+                            <strong>Automatic conflict detection</strong> — the system checks for overlapping
+                            exams in the same course and time window before saving. The save will be blocked if
+                            a conflict is found.
+                        </p>
+                    </div>
+
+                    {% comment %} ── Action Buttons ── {% endcomment %}
+                    <div class="flex items-center justify-end gap-3 pt-2 border-t border-gray-100">
+                        <a href="{% url 'management:admin_exam_detail' exam.slug %}"
+                           class="px-5 py-3 text-base font-medium border border-gray-300 text-gray-700
+                                  rounded-xl hover:bg-gray-50 transition-colors">
+                            Cancel
+                        </a>
+                        <button type="submit"
+                                class="inline-flex items-center gap-2 px-6 py-3 text-base font-semibold
+                                       bg-primary-600 hover:bg-primary-700 text-white rounded-xl
+                                       transition-colors shadow-sm">
+                            <i class="fas fa-save text-sm"></i> Save Timetable
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% comment %} ── RIGHT: Current Info & Context Panels ── {% endcomment %}
+        <div class="space-y-5">
+
+            {% comment %} ── Current Schedule ── {% endcomment %}
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
+                        <i class="fas fa-clock text-gray-400 text-sm"></i>
+                    </span>
+                    <h2 class="text-base font-bold text-gray-800">Current Schedule</h2>
+                </div>
+                <div class="p-5 space-y-4">
+                    <div>
+                        <div class="text-base font-semibold text-gray-400 uppercase tracking-wider mb-1">Date</div>
+                        {% comment %} start_datetime|date:"D, d M Y" — e.g. Mon, 14 Jul 2025 {% endcomment %}
+                        <div class="text-base font-semibold text-gray-800">{{ exam.start_datetime|date:"D, d M Y" }}</div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <div class="text-base font-semibold text-gray-400 uppercase tracking-wider mb-1">Start</div>
+                            <div class="text-base font-semibold text-gray-800 tabular-nums">{{ exam.start_datetime|time:"H:i" }}</div>
+                        </div>
+                        <div>
+                            <div class="text-base font-semibold text-gray-400 uppercase tracking-wider mb-1">End</div>
+                            <div class="text-base font-semibold text-gray-800 tabular-nums">{{ exam.end_datetime|time:"H:i" }}</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-base font-semibold text-gray-400 uppercase tracking-wider mb-1">Duration</div>
+                        {% comment %}
+                          duration_minutes: @property → int((end_datetime - start_datetime).total_seconds() // 60)
+                          This is computed — not stored. Safe and always accurate.
+                        {% endcomment %}
+                        <div class="text-base text-gray-700">{{ exam.duration_minutes }} minutes</div>
+                    </div>
+                    <div>
+                        <div class="text-base font-semibold text-gray-400 uppercase tracking-wider mb-1">Instructions Open</div>
+                        {% comment %}
+                          instructions_open_at: @property = start_datetime − 10 min
+                          INSTRUCTION_WINDOW_MINUTES = 10 (class constant, not instance field)
+                          We use the @property value directly here.
+                        {% endcomment %}
+                        <div class="text-base text-gray-700 tabular-nums">{{ exam.instructions_open_at|time:"H:i" }}</div>
+                        <div class="text-base text-gray-400">(10 min before start)</div>
+                    </div>
+                    <div>
+                        <div class="text-base font-semibold text-gray-400 uppercase tracking-wider mb-1">Delivery Mode</div>
+                        <span class="inline-flex items-center gap-1.5 text-base px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-100 rounded-full font-semibold">
+                            <i class="fas fa-laptop text-xs"></i> Online / CBT
+                        </span>
+                    </div>
+                    {% comment %}
+                      Visibility window: computed @properties
+                      visible_from = start_datetime − VISIBILITY_HOURS_BEFORE (2h)
+                      visible_until = end_datetime + VISIBILITY_HOURS_AFTER (2h)
+                    {% endcomment %}
+                    <div>
+                        <div class="text-base font-semibold text-gray-400 uppercase tracking-wider mb-1">Student Visibility</div>
+                        <div class="text-base text-gray-700 tabular-nums">
+                            {{ exam.visible_from|date:"d M, H:i" }} – {{ exam.visible_until|date:"H:i" }}
+                        </div>
+                        <div class="text-base text-gray-400">(2h before start · 2h after end)</div>
+                    </div>
+                </div>
+            </div>
+
+            {% comment %} ── Exam Status ── {% endcomment %}
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
+                        <i class="fas fa-info-circle text-gray-400 text-sm"></i>
+                    </span>
+                    <h2 class="text-base font-bold text-gray-800">Exam Status</h2>
+                </div>
+                <div class="p-5 space-y-3.5">
+                    <div class="flex items-center justify-between gap-3">
+                        <span class="text-base text-gray-500">Approval Status</span>
+                        {% comment %} exam.status choices: draft submitted approved rejected published cancelled {% endcomment %}
+                        <span class="text-base font-semibold
+                                     {% if exam.status == 'published' %}text-green-600
+                                     {% elif exam.status == 'approved' %}text-blue-600
+                                     {% elif exam.status == 'submitted' %}text-amber-600
+                                     {% elif exam.status == 'rejected' %}text-red-600
+                                     {% elif exam.status == 'cancelled' %}text-gray-400
+                                     {% else %}text-gray-600{% endif %}">
+                            {{ exam.get_status_display }}
+                        </span>
+                    </div>
+                    {% comment %} active_question_count: @property → active questions in pool {% endcomment %}
+                    <div class="flex items-center justify-between gap-3">
+                        <span class="text-base text-gray-500">Questions in Pool</span>
+                        <span class="text-base font-semibold text-gray-700 tabular-nums">{{ exam.active_question_count }}</span>
+                    </div>
+                    {% if exam.questions_per_student %}
+                    <div class="flex items-center justify-between gap-3">
+                        <span class="text-base text-gray-500">Per Student</span>
+                        <span class="text-base font-semibold text-gray-700 tabular-nums">{{ exam.questions_per_student }}</span>
+                    </div>
+                    {% endif %}
+                    {% comment %} computed_total_marks: @property Sum of active question marks {% endcomment %}
+                    <div class="flex items-center justify-between gap-3">
+                        <span class="text-base text-gray-500">Total Marks</span>
+                        <span class="text-base font-semibold text-gray-700 tabular-nums">{{ exam.computed_total_marks }}</span>
+                    </div>
+                    {% if exam.pass_mark %}
+                    <div class="flex items-center justify-between gap-3">
+                        <span class="text-base text-gray-500">Pass Mark</span>
+                        <span class="text-base font-semibold text-gray-700 tabular-nums">{{ exam.pass_mark }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% comment %} ── Course Context ── {% endcomment %}
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
+                        <i class="fas fa-book text-gray-400 text-sm"></i>
+                    </span>
+                    <h2 class="text-base font-bold text-gray-800">Course Context</h2>
+                </div>
+                <div class="p-5 space-y-3.5">
+
+                    {% comment %}
+                      exam.course: FK → LMSCourse (always set — PROTECT on_delete)
+                      exam.course.title: LMSCourse.title
+                    {% endcomment %}
+                    <div>
+                        <div class="text-base font-semibold text-gray-400 uppercase tracking-wider mb-1">LMS Course</div>
+                        <div class="text-base font-medium text-gray-800">{{ exam.course.title }}</div>
+                    </div>
+
+                    {% comment %}
+                      exam.get_exam_type_display — choices: ca, mid_semester, end_of_semester,
+                      supplementary, resit, practical, oral
+                    {% endcomment %}
+                    <div>
+                        <div class="text-base font-semibold text-gray-400 uppercase tracking-wider mb-1">Exam Type</div>
+                        <div class="text-base text-gray-700">{{ exam.get_exam_type_display }}</div>
+                    </div>
+
+                    {% comment %}
+                      exam.course.academic_course: LMSCourse → Course (nullable FK)
+                      Guards are necessary since academic_course can be null.
+                    {% endcomment %}
+                    {% if exam.course.academic_course %}
+                    <div>
+                        <div class="text-base font-semibold text-gray-400 uppercase tracking-wider mb-1">Academic Course</div>
+                        <div class="text-base text-gray-700">
+                            <span class="font-mono text-sm bg-gray-100 px-2 py-0.5 rounded">{{ exam.course.academic_course.code }}</span>
+                            <span class="ml-2">{{ exam.course.academic_course.name }}</span>
+                        </div>
+                    </div>
+
+                    {% comment %}
+                      exam.course.academic_course.program: Course → Program
+                    {% endcomment %}
+                    {% if exam.course.academic_course.program %}
+                    <div>
+                        <div class="text-base font-semibold text-gray-400 uppercase tracking-wider mb-1">Program</div>
+                        <div class="text-base text-gray-700">{{ exam.course.academic_course.program.name }}</div>
+                    </div>
+
+                    {% comment %}
+                      exam.course.academic_course.program.department: Program → Department
+                    {% endcomment %}
+                    {% if exam.course.academic_course.program.department %}
+                    <div>
+                        <div class="text-base font-semibold text-gray-400 uppercase tracking-wider mb-1">Department</div>
+                        <div class="text-base text-gray-700">{{ exam.course.academic_course.program.department.name }}</div>
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                    {% endif %}
+
+                    {% comment %}
+                      exam.course.session: LMSCourse → AcademicSession (nullable)
+                      Represents the academic session this LMS course runs in.
+                      This is how you get the academic session for an exam —
+                      NOT via a direct exam.academic_session field (which doesn't exist).
+                    {% endcomment %}
+                    {% if exam.course.session %}
+                    <div>
+                        <div class="text-base font-semibold text-gray-400 uppercase tracking-wider mb-1">Academic Session</div>
+                        <div class="text-base text-gray-700">{{ exam.course.session.name }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% comment %} exam.course.term: CharField on LMSCourse {% endcomment %}
+                    {% if exam.course.term %}
+                    <div>
+                        <div class="text-base font-semibold text-gray-400 uppercase tracking-wider mb-1">Term</div>
+                        <div class="text-base text-gray-700 capitalize">{{ exam.course.term|title }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% comment %} exam.instructor: FK → User (nullable) {% endcomment %}
+                    {% if exam.instructor %}
+                    <div>
+                        <div class="text-base font-semibold text-gray-400 uppercase tracking-wider mb-1">Instructor</div>
+                        <div class="text-base text-gray-700">{{ exam.instructor.get_full_name|default:exam.instructor.username }}</div>
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            {% comment %} ── Clash notes (if any) ── {% endcomment %}
+            {% if exam.clash_notes %}
+            <div class="bg-amber-50 rounded-2xl border border-amber-200 shadow-sm p-5">
+                <div class="flex items-center gap-2 mb-2">
+                    <i class="fas fa-sticky-note text-amber-500 text-base"></i>
+                    <h3 class="text-base font-bold text-amber-800">Clash Notes</h3>
+                </div>
+                <p class="text-base text-amber-700 leading-relaxed">{{ exam.clash_notes }}</p>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+</div>
+
+{% comment %} ── Live Duration Calculation (JS) ── {% endcomment %}
+<script>
+(function () {
+    var startInput = document.getElementById('id_start_time');
+    var endInput   = document.getElementById('id_end_time');
+    var display    = document.getElementById('durationDisplay');
+
+    function updateDuration() {
+        if (!startInput.value || !endInput.value) {
+            display.textContent = '—';
+            return;
+        }
+        var startParts = startInput.value.split(':').map(Number);
+        var endParts   = endInput.value.split(':').map(Number);
+        var startMin   = startParts[0] * 60 + startParts[1];
+        var endMin     = endParts[0] * 60 + endParts[1];
+        var diff       = endMin - startMin;
+        if (diff <= 0) {
+            display.textContent = 'End must be after start';
+            display.className = 'text-red-600 tabular-nums';
+        } else {
+            display.textContent = diff + ' min';
+            display.className = 'text-gray-800 tabular-nums';
+        }
+    }
+
+    startInput.addEventListener('change', updateDuration);
+    endInput.addEventListener('change', updateDuration);
+    updateDuration();
+})();
+</script>
+
+{% endblock %}

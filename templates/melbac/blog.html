@@ -1,0 +1,251 @@
+{% extends 'melbac/base.html' %}
+{% load static %}
+
+{% block title %}Blog — Melchisedec Graduate Bible Academy (MELBAC){% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="Read teaching posts from Apostle John Daniel covering forgiveness, authority of a believer, Christian living, and deep biblical doctrine.">
+<meta name="keywords"    content="MELBAC blog, Bible teaching, Apostle John Daniel, Christian doctrine, forgiveness, authority of a believer">
+<meta name="robots"      content="index, follow">
+{% endblock %}
+
+{% block content %}
+
+<!-- ── PAGE HERO ──────────────────────────────────────────────── -->
+<section class="mb-page-hero" aria-label="Blog page header">
+  <div class="mb-page-hero-pattern" aria-hidden="true"></div>
+  <div class="mb-container mb-page-hero-inner">
+    <nav aria-label="Breadcrumb">
+      <ol class="mb-breadcrumb">
+        <li><a href="{% url 'melbac:index' %}">Home</a></li>
+        <li class="mb-breadcrumb-sep" aria-hidden="true">/</li>
+        <li aria-current="page">Blog</li>
+      </ol>
+    </nav>
+    <h1>Teaching the Word</h1>
+    <p>Deep biblical doctrine and practical teaching from Apostle John Daniel and the MELBAC faculty — grounded in the pure Word of God.</p>
+  </div>
+</section>
+
+
+<!-- ── BLOG BODY ──────────────────────────────────────────────── -->
+<section class="mb-section mb-bg-s3" aria-labelledby="blog-heading">
+  <div class="mb-container">
+
+    <div class="mb-blog-layout">
+
+      <!-- ── MAIN: post grid ── -->
+      <div>
+        <div class="mb-reveal">
+          <p class="mb-eyebrow">Latest Posts</p>
+          <h2 id="blog-heading">Recent Teaching</h2>
+          <div class="mb-divider"></div>
+        </div>
+
+        <div class="mb-blog-grid">
+
+          {% if posts %}
+            {% for post in posts %}
+            {# Use divisibleby to cycle through d1–d4 delay classes without the invalid mod filter #}
+            <article class="mb-card mb-blog-card mb-reveal {% if forloop.counter|divisibleby:4 %}d4{% elif forloop.counter|divisibleby:3 %}d3{% elif forloop.counter|divisibleby:2 %}d2{% else %}d1{% endif %}"
+                     aria-label="{{ post.title }}">
+              <div class="mb-blog-img-wrap">
+                {% if post.featured_image %}
+                <img src="{{ post.featured_image.url }}"
+                     alt="{{ post.featured_image_alt|default:post.title }}"
+                     class="mb-blog-img" loading="lazy">
+                {% else %}
+                <div class="mb-blog-img-fallback" aria-hidden="true">
+                  <i data-lucide="book-open" class="w-10 h-10 text-gospel-200"></i>
+                </div>
+                {% endif %}
+              </div>
+              <div class="mb-blog-body">
+                <div class="mb-blog-meta">
+                  <span class="mb-badge-gold">Teaching</span>
+                  <time class="mb-blog-date" datetime="{{ post.publish_date|date:'Y-m-d' }}">{{ post.publish_date|date:"M d, Y" }}</time>
+                </div>
+                <h3 class="mb-blog-title">
+                  <a href="{% url 'melbac:blog_detail' post.slug %}">{{ post.title }}</a>
+                </h3>
+                <p class="mb-blog-excerpt">{{ post.excerpt }}</p>
+                <div class="mb-blog-footer">
+                  <span class="mb-blog-author">{{ post.author_name|default:"Apostle John Daniel" }}</span>
+                  <a href="{% url 'melbac:blog_detail' post.slug %}" class="mb-blog-read-more">
+                    Read More
+                    <i data-lucide="arrow-right" class="w-3 h-3" aria-hidden="true"></i>
+                  </a>
+                </div>
+              </div>
+            </article>
+            {% endfor %}
+
+          {% else %}
+            <!-- Static fallback with all 10 known posts -->
+            {% for n in "1234567890"|make_list %}
+            <article class="mb-card mb-blog-card mb-reveal {% if forloop.counter|divisibleby:4 %}d4{% elif forloop.counter|divisibleby:3 %}d3{% elif forloop.counter|divisibleby:2 %}d2{% else %}d1{% endif %}"
+                     aria-label="Blog post {{ forloop.counter }}">
+              <div class="mb-blog-img-wrap">
+                <div class="mb-blog-img-fallback" aria-hidden="true">
+                  <i data-lucide="book-open" class="w-10 h-10 text-gospel-200"></i>
+                </div>
+              </div>
+              <div class="mb-blog-body">
+                <div class="mb-blog-meta">
+                  <span class="mb-badge-gold">Teaching</span>
+                  <time class="mb-blog-date">
+                    {% if forloop.counter == 1 %}Feb 28, 2026
+                    {% elif forloop.counter == 2 %}Feb 21, 2026
+                    {% elif forloop.counter == 3 %}Feb 14, 2026
+                    {% elif forloop.counter == 4 %}Feb 7, 2026
+                    {% elif forloop.counter == 5 %}Jan 31, 2026
+                    {% elif forloop.counter == 6 %}Jan 24, 2026
+                    {% elif forloop.counter == 7 %}Jan 17, 2026
+                    {% elif forloop.counter == 8 %}Jan 10, 2026
+                    {% elif forloop.counter == 9 %}Dec 21, 2025
+                    {% else %}Dec 14, 2025{% endif %}
+                  </time>
+                </div>
+                <h3 class="mb-blog-title">
+                  <a href="#">
+                    {% if forloop.counter == 1 %}61: Part 1 — Due Process in Christendom
+                    {% elif forloop.counter == 2 %}60: Part 5 — Forgiveness: Conclusion
+                    {% elif forloop.counter == 3 %}58: Part 4 — Understanding Blasphemy and the Sin Unto Death
+                    {% elif forloop.counter == 4 %}57: Part 3 — Conditions for God's Forgiveness Towards Men
+                    {% elif forloop.counter == 5 %}56: Part 2 — Steps to a Spirit of Genuine Repentance and of Faith Towards God
+                    {% elif forloop.counter == 6 %}55: Part 1 — The Mystery of Forgiveness
+                    {% elif forloop.counter == 7 %}54: Part 5 — The Authority of a Believer | Mystery of Divine Blessings and Prosperity
+                    {% elif forloop.counter == 8 %}53: Part 4 — The Authority of a Believer: How to be a God Pleaser
+                    {% elif forloop.counter == 9 %}52: Part 3 — The Authority of a Believer: Exercising Kingdom Authority
+                    {% else %}51: Part 2 — The Authority of a Believer: Exercising Kingdom Authority{% endif %}
+                  </a>
+                </h3>
+                <p class="mb-blog-excerpt">
+                  {% if forloop.counter == 1 %}There is a "Due Process" in the Kingdom of God that cannot be skipped, hacked, or hurried. We live in a microwave generation, but we serve a Crock-Pot God.
+                  {% elif forloop.counter == 2 %}In this conclusion of the series on God's Forgiveness, we touch on the spiritual necessity of the sacrifice of Jesus Christ and the specific steps required for genuine repentance.
+                  {% elif forloop.counter == 3 %}We address the serious and often misunderstood topic of blasphemy against the Holy Ghost, revealing specific boundaries to divine pardon that every believer must understand.
+                  {% elif forloop.counter == 4 %}We explore the biblical principles and requirements for receiving God's mercy, diving deep into the "if" found in God's promises.
+                  {% elif forloop.counter == 5 %}Part 2 explores the profound spiritual mechanics of God's Forgiveness and why humanity required a redeemer after the sin of Adam.
+                  {% elif forloop.counter == 6 %}A teaching on the spiritual mechanics of forgiveness — why forgiveness is an 11-letter word that signifies judgment.
+                  {% elif forloop.counter == 7 %}We dive deep into the Mystery of Divine Blessings and Prosperity, learning the divine principles that unlock true wealth through Wisdom, Knowledge, and Understanding.
+                  {% elif forloop.counter == 8 %}We continue our series on the "Authority of a Believer," focusing on the vital difference between being a "God Pleaser" versus a "Man Pleaser."
+                  {% elif forloop.counter == 9 %}We explore the spiritual mechanics of faith, confession, and the "last command" principle in exercising Kingdom Authority.
+                  {% else %}We dive deep into how we can exercise the dominion restored to us by Christ, tackling difficult challenges facing ministers of the Gospel today.{% endif %}
+                </p>
+                <div class="mb-blog-footer">
+                  <span class="mb-blog-author">Apostle John Daniel</span>
+                  <a href="{% url 'melbac:blog' %}" class="mb-blog-read-more">
+                    Read More <i data-lucide="arrow-right" class="w-3 h-3" aria-hidden="true"></i>
+                  </a>
+                </div>
+              </div>
+            </article>
+            {% endfor %}
+          {% endif %}
+
+        </div><!-- /blog-grid -->
+
+        <!-- Pagination -->
+        <nav class="mb-pagination" aria-label="Blog pagination">
+          <a href="#" class="mb-page-link mb-page-link-arrow" aria-label="Previous page">
+            <i data-lucide="chevron-left" class="w-4 h-4" aria-hidden="true"></i>
+          </a>
+          <a href="#" class="mb-page-link active" aria-current="page" aria-label="Page 1">1</a>
+          <a href="#" class="mb-page-link" aria-label="Page 2">2</a>
+          <a href="#" class="mb-page-link" aria-label="Page 3">3</a>
+          <span class="mb-page-link" aria-hidden="true">…</span>
+          <a href="#" class="mb-page-link" aria-label="Page 7">7</a>
+          <a href="#" class="mb-page-link mb-page-link-arrow" aria-label="Next page">
+            <i data-lucide="chevron-right" class="w-4 h-4" aria-hidden="true"></i>
+          </a>
+        </nav>
+      </div><!-- /main -->
+
+      <!-- ── SIDEBAR ── -->
+      <aside class="mb-blog-sidebar" aria-label="Blog sidebar">
+
+        <!-- Search -->
+        <div class="mb-sidebar-widget mb-card" style="padding:18px;">
+          <h3 class="mb-sidebar-title">Search</h3>
+          <form class="mb-blog-search" role="search" action="{% url 'melbac:blog' %}" method="get">
+            <label for="blog-search" class="sr-only">Search posts</label>
+            <input class="mb-input" type="search" id="blog-search" name="q"
+                   placeholder="Search teachings…"
+                   value="{{ request.GET.q|default:'' }}">
+            <button class="mb-blog-search-btn" type="submit" aria-label="Search">
+              <i data-lucide="search" class="w-4 h-4" aria-hidden="true"></i>
+            </button>
+          </form>
+        </div>
+
+        <!-- Recent Posts -->
+        <div class="mb-sidebar-widget mb-card" style="padding:18px;">
+          <h3 class="mb-sidebar-title">Recent Posts</h3>
+          {% if posts %}
+            {% for post in posts|slice:":5" %}
+            <div class="mb-sidebar-post-item">
+              <div>
+                <a href="{% url 'melbac:blog_detail' post.slug %}" class="mb-sidebar-post-title">{{ post.title }}</a>
+                <p class="mb-sidebar-post-date">{{ post.publish_date|date:"M d, Y" }}</p>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            {% for n in "12345"|make_list %}
+            <div class="mb-sidebar-post-item">
+              <div>
+                <a href="#" class="mb-sidebar-post-title">
+                  {% if forloop.counter == 1 %}61: Part 1 — Due Process in Christendom
+                  {% elif forloop.counter == 2 %}60: Part 5 — Forgiveness: Conclusion
+                  {% elif forloop.counter == 3 %}58: Part 4 — Understanding Blasphemy and the Sin Unto Death
+                  {% elif forloop.counter == 4 %}57: Part 3 — Conditions for God's Forgiveness Towards Men
+                  {% else %}56: Part 2 — Steps to a Spirit of Genuine Repentance{% endif %}
+                </a>
+                <p class="mb-sidebar-post-date">
+                  {% if forloop.counter == 1 %}Feb 28, 2026
+                  {% elif forloop.counter == 2 %}Feb 21, 2026
+                  {% elif forloop.counter == 3 %}Feb 14, 2026
+                  {% elif forloop.counter == 4 %}Feb 7, 2026
+                  {% else %}Jan 31, 2026{% endif %}
+                </p>
+              </div>
+            </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+
+        <!-- Archives -->
+        <div class="mb-sidebar-widget mb-card" style="padding:18px;">
+          <h3 class="mb-sidebar-title">Archives</h3>
+          <ul class="mb-archive-list" role="list">
+            <li class="mb-archive-item"><a href="#" class="mb-archive-link">February 2026</a><span class="mb-archive-count">4</span></li>
+            <li class="mb-archive-item"><a href="#" class="mb-archive-link">January 2026</a><span class="mb-archive-count">4</span></li>
+            <li class="mb-archive-item"><a href="#" class="mb-archive-link">December 2025</a><span class="mb-archive-count">3</span></li>
+            <li class="mb-archive-item"><a href="#" class="mb-archive-link">November 2025</a><span class="mb-archive-count">5</span></li>
+            <li class="mb-archive-item"><a href="#" class="mb-archive-link">October 2025</a><span class="mb-archive-count">7</span></li>
+            <li class="mb-archive-item"><a href="#" class="mb-archive-link">September 2025</a><span class="mb-archive-count">5</span></li>
+            <li class="mb-archive-item"><a href="#" class="mb-archive-link">August 2025</a><span class="mb-archive-count">7</span></li>
+            <li class="mb-archive-item"><a href="#" class="mb-archive-link">July 2025</a><span class="mb-archive-count">4</span></li>
+          </ul>
+        </div>
+
+        <!-- Apply CTA card -->
+        <div class="mb-card" style="padding:22px;background:var(--mb-primary-xlight);border-color:var(--mb-primary-light);text-align:center;">
+          <div class="mb-icon-wrap" style="width:44px;height:44px;margin:0 auto 14px;">
+            <i data-lucide="book-open" class="w-5 h-5 text-gospel-600" aria-hidden="true"></i>
+          </div>
+          <h3 style="font-family:var(--mb-font-heading);font-size:1rem;font-weight:700;color:var(--mb-text-heading);margin-bottom:8px;">Study With Us</h3>
+          <p style="font-family:var(--mb-font-body);font-size:0.875rem;color:var(--mb-text-muted);margin-bottom:16px;line-height:1.6;">Apply for admission — completely free — and go deeper in the Word.</p>
+          <a href="{% url 'melbac:contact' %}" class="mb-btn mb-btn-primary" style="width:100%;justify-content:center;">
+            <i data-lucide="send" class="w-4 h-4" aria-hidden="true"></i>
+            <span>Apply Now</span>
+          </a>
+        </div>
+
+      </aside><!-- /sidebar -->
+
+    </div><!-- /blog-layout -->
+  </div>
+</section>
+
+{% endblock %}

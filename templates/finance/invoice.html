@@ -1,0 +1,240 @@
+{% load static humanize %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice {{ invoice_number }}</title>
+    <style>
+        @page { margin: 2cm; }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .invoice-header {
+            border-bottom: 3px solid #4a6bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .company-info  { float: left;  width: 50%; }
+        .invoice-info  { float: right; width: 45%; text-align: right; }
+
+        .clearfix::after {
+            content: ""; display: table; clear: both;
+        }
+
+        .company-name {
+            font-size: 28px; font-weight: bold;
+            color: #4a6bff; margin-bottom: 5px;
+        }
+        .company-details { font-size: 12px; color: #666; }
+
+        .invoice-title { font-size: 32px; font-weight: bold; color: #333; margin-bottom: 10px; }
+        .invoice-meta  { font-size: 12px; color: #666; }
+
+        .billing-section { margin: 30px 0; }
+        .billing-to   { width: 48%; float: left; }
+        .billing-from { width: 48%; float: right; }
+
+        .section-title {
+            font-size: 14px; font-weight: bold;
+            color: #4a6bff; margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .billing-details { font-size: 13px; line-height: 1.8; }
+
+        .items-table {
+            width: 100%; border-collapse: collapse; margin: 30px 0;
+        }
+        .items-table thead { background-color: #4a6bff; color: white; }
+        .items-table th {
+            padding: 12px; text-align: left;
+            font-size: 13px; font-weight: 600;
+        }
+        .items-table td {
+            padding: 12px; border-bottom: 1px solid #e5e7eb; font-size: 13px;
+        }
+        .items-table tbody tr:hover { background-color: #f9fafb; }
+
+        .totals-section { float: right; width: 40%; margin-top: 20px; }
+        .total-row {
+            display: flex; justify-content: space-between;
+            padding: 10px 0; font-size: 14px;
+        }
+        .total-row.grand-total {
+            border-top: 2px solid #4a6bff;
+            margin-top: 10px; padding-top: 15px;
+            font-size: 18px; font-weight: bold; color: #4a6bff;
+        }
+
+        .payment-info {
+            margin: 40px 0; padding: 20px;
+            background-color: #f9fafb; border-left: 4px solid #4a6bff;
+        }
+        .payment-info-title { font-weight: bold; margin-bottom: 10px; color: #4a6bff; }
+        .payment-details { font-size: 12px; line-height: 1.8; }
+
+        .footer {
+            margin-top: 50px; padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center; font-size: 11px; color: #666;
+        }
+
+        .status-badge {
+            display: inline-block; padding: 5px 15px;
+            border-radius: 20px; font-size: 11px;
+            font-weight: bold; text-transform: uppercase;
+        }
+        .status-paid { background-color: #d1fae5; color: #065f46; }
+    </style>
+</head>
+<body>
+
+    <!-- ── Invoice Header ─────────────────────────────────────── -->
+    <div class="invoice-header clearfix">
+        <div class="company-info">
+            <div class="company-name">{{ company_name }}</div>
+            <div class="company-details">
+                {{ company_address }}<br>
+                {{ company_city }}<br>
+                Email: {{ company_email }}<br>
+                Phone: {{ company_phone }}
+            </div>
+        </div>
+        <div class="invoice-info">
+            <div class="invoice-title">INVOICE</div>
+            <div class="invoice-meta">
+                Invoice #: <strong>{{ invoice_number }}</strong><br>
+                Date: <strong>{{ invoice_date|date:"M d, Y" }}</strong><br>
+                Status: <span class="status-badge status-paid">PAID</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Billing Section ────────────────────────────────────── -->
+    <div class="billing-section clearfix">
+        <div class="billing-to">
+            <div class="section-title">Bill To:</div>
+            <div class="billing-details">
+                {#
+                  CourseApplication stores first_name / last_name directly.
+                  Fall back to the linked User's display name only if those
+                  fields are somehow blank.
+                #}
+                <strong>
+                    {{ payment.application.first_name }}
+                    {{ payment.application.last_name }}
+                </strong><br>
+                {{ payment.application.email }}<br>
+                {{ payment.application.address_line1 }}<br>
+                {% if payment.application.address_line2 %}
+                    {{ payment.application.address_line2 }}<br>
+                {% endif %}
+                {{ payment.application.city }},
+                {{ payment.application.state }}
+                {{ payment.application.postal_code }}<br>
+                {{ payment.application.country }}
+            </div>
+        </div>
+
+        <div class="billing-from">
+            <div class="section-title">Payment Details:</div>
+            <div class="billing-details">
+                Payment Method:
+                <strong>{{ payment.get_payment_method_display }}</strong><br>
+                Payment Reference:
+                <strong>{{ payment.payment_reference }}</strong><br>
+                Payment Date:
+                <strong>{{ payment.paid_at|date:"M d, Y H:i" }}</strong><br>
+                {% if payment.card_last4 %}
+                    Card:
+                    <strong>
+                        {{ payment.card_brand }} ending in {{ payment.card_last4 }}
+                    </strong><br>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Items Table ────────────────────────────────────────── -->
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th style="width:60%;">Description</th>
+                <th style="width:20%; text-align:center;">Quantity</th>
+                <th style="width:20%; text-align:right;">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    {#
+                      FK on CourseApplication is `program` (a Program instance),
+                      NOT `course`. Use payment.application.program.name.
+                    #}
+                    <strong>{{ payment.application.program.name }}</strong><br>
+                    <small style="color:#666;">
+                        Application Fee —
+                        Application ID: {{ payment.application.application_id }}
+                    </small>
+                </td>
+                <td style="text-align:center;">1</td>
+                <td style="text-align:right;">
+                    {{ payment.currency }}&nbsp;{{ payment.amount|floatformat:2|intcomma }}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- ── Totals ────────────────────────────────────────────── -->
+    <div class="totals-section">
+        <div class="total-row">
+            <span>Subtotal:</span>
+            <span>{{ payment.currency }}&nbsp;{{ payment.amount|floatformat:2|intcomma }}</span>
+        </div>
+        <div class="total-row">
+            <span>Tax (0%):</span>
+            <span>{{ payment.currency }}&nbsp;0.00</span>
+        </div>
+        <div class="total-row grand-total">
+            <span>Total Amount:</span>
+            <span>{{ payment.currency }}&nbsp;{{ payment.amount|floatformat:2|intcomma }}</span>
+        </div>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <!-- ── Payment Information ────────────────────────────────── -->
+    <div class="payment-info">
+        <div class="payment-info-title">Payment Information</div>
+        <div class="payment-details">
+            This invoice has been paid in full on
+            <strong>{{ payment.paid_at|date:"F d, Y" }}</strong>
+            using {{ payment.get_payment_method_display }}.<br>
+            Transaction ID:
+            <strong>
+                {{ payment.gateway_payment_id|default:payment.payment_reference }}
+            </strong><br>
+            <br>
+            Thank you for your payment. Your application is being processed.
+        </div>
+    </div>
+
+    <!-- ── Footer ────────────────────────────────────────────── -->
+    <div class="footer">
+        <p>
+            This is a computer-generated invoice and does not require a signature.<br>
+            For any queries regarding this invoice, please contact us at
+            {{ company_email }}
+        </p>
+        <p style="margin-top:10px;">
+            <strong>{{ company_name }}</strong> |
+            {{ company_address }}{% if company_city %}, {{ company_city }}{% endif %}
+        </p>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,198 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Notification Configuration - MIU Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-12xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex items-center gap-4">
+        <a href="{% url 'management:system_config_list' %}" 
+           class="p-2 hover:bg-gray-100 rounded-lg transition-all">
+            <i class="fas fa-arrow-left text-gray-600"></i>
+        </a>
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 font-display">
+                <i class="fas fa-bell text-primary-600 mr-3"></i>
+                Notification Configuration
+            </h1>
+            <p class="text-gray-600 mt-1">Configure notification channels and preferences</p>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <form method="post" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        {% csrf_token %}
+        
+        <div class="p-6 space-y-6">
+            <!-- Notification Channels -->
+            <div>
+                <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-toggle-on mr-3 text-primary-600"></i>
+                    Notification Channels
+                </h2>
+                <p class="text-sm text-gray-600 mb-6">
+                    Enable or disable different notification channels for system-wide notifications
+                </p>
+                
+                <div class="space-y-4">
+                    <!-- Email Notifications -->
+                    <div class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5 mt-1">
+                                {{ form.enable_email_notifications }}
+                            </div>
+                            <div class="ml-4 flex-1">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <label class="text-base font-medium text-gray-900 flex items-center">
+                                            <i class="fas fa-envelope text-blue-500 mr-2"></i>
+                                            Email Notifications
+                                        </label>
+                                        <p class="text-sm text-gray-600 mt-1">
+                                            Send notifications via email to users. Requires email configuration to be set up.
+                                        </p>
+                                    </div>
+                                    <span class="px-3 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                                        Recommended
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SMS Notifications -->
+                    <div class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5 mt-1">
+                                {{ form.enable_sms_notifications }}
+                            </div>
+                            <div class="ml-4 flex-1">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <label class="text-base font-medium text-gray-900 flex items-center">
+                                            <i class="fas fa-sms text-green-500 mr-2"></i>
+                                            SMS Notifications
+                                        </label>
+                                        <p class="text-sm text-gray-600 mt-1">
+                                            Send urgent notifications via SMS. Requires SMS gateway integration.
+                                        </p>
+                                    </div>
+                                    <span class="px-3 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
+                                        Premium
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Push Notifications -->
+                    <div class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5 mt-1">
+                                {{ form.enable_push_notifications }}
+                            </div>
+                            <div class="ml-4 flex-1">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <label class="text-base font-medium text-gray-900 flex items-center">
+                                            <i class="fas fa-mobile-alt text-purple-500 mr-2"></i>
+                                            Push Notifications
+                                        </label>
+                                        <p class="text-sm text-gray-600 mt-1">
+                                            Send real-time push notifications to mobile devices and browsers.
+                                        </p>
+                                    </div>
+                                    <span class="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                                        Coming Soon
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email Settings -->
+            <div class="pt-6 border-t border-gray-200">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-envelope-open-text mr-3 text-primary-600"></i>
+                    Email Notification Settings
+                </h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Notification Email Address <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.notification_from_email }}
+                        {% if form.notification_from_email.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.notification_from_email.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">
+                            Email address used for sending notifications (can be different from system emails)
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notification Types -->
+            <div class="pt-6 border-t border-gray-200">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-list-check mr-3 text-primary-600"></i>
+                    Notification Types (Preview)
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-user-plus text-blue-500 mr-2"></i>
+                            <span class="font-medium text-gray-900">New User Registration</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Welcome emails to new users</p>
+                    </div>
+                    
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-file-alt text-green-500 mr-2"></i>
+                            <span class="font-medium text-gray-900">Application Status</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Updates on application reviews</p>
+                    </div>
+                    
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-key text-purple-500 mr-2"></i>
+                            <span class="font-medium text-gray-900">Password Reset</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Password recovery emails</p>
+                    </div>
+                    
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-bell text-orange-500 mr-2"></i>
+                            <span class="font-medium text-gray-900">System Announcements</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Important system updates</p>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-600 mt-4">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Individual notification types can be configured in the user preferences section
+                </p>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
+            <a href="{% url 'management:system_config_list' %}" 
+               class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-all">
+                Cancel
+            </a>
+            <button type="submit" 
+                    class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all shadow-md hover:shadow-lg">
+                <i class="fas fa-save mr-2"></i>
+                Save Settings
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

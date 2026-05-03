@@ -1,0 +1,603 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Admission Letter — {{ application.application_id }}</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50:'#faf5ff', 100:'#f3e8ff', 200:'#e9d5ff', 300:'#d8b4fe',
+              400:'#c084fc', 500:'#a855f7', 600:'#9333ea', 700:'#7e22ce',
+              800:'#6b21a8', 900:'#581c87', 950:'#840384'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter','system-ui','sans-serif'],
+            display: ['Poppins','system-ui','sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* ── Disable text selection on letter content ── */
+    #letterContent * {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    /* ─────────────────────────────────────────────────
+       A4 LETTER — 794px = 210mm at 96dpi
+       This exact width ensures html2canvas captures
+       a 1:1 A4 page when we force 794px before capture.
+    ───────────────────────────────────────────────── */
+    #letterContent {
+      width: 794px;
+      min-height: 1123px;
+      margin: 0 auto;
+      background: #fff;
+      box-shadow: 0 4px 24px rgba(0,0,0,.12);
+      box-sizing: border-box;
+      padding: 48px 60px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      font-size: 12px;
+      line-height: 1.55;
+      color: #1f2937;
+      /* Prevent absolutely positioned stripes from clipping */
+      overflow: visible;
+    }
+
+    /* ── Responsive: shrink to viewport on small screens ── */
+    @media (max-width: 860px) {
+      #letterContent {
+        width: 100%;
+        min-height: auto;
+        padding: 32px 24px;
+      }
+    }
+
+    .body-text {
+      text-align: justify;
+      text-justify: inter-word;
+    }
+
+    .sig-line {
+      border-top: 2px solid #d1d5db;
+      padding-top: 6px;
+      display: inline-block;
+      min-width: 160px;
+    }
+
+    /* ── Print styles (Ctrl+P fallback) ── */
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; margin: 0; padding: 0; }
+      #letterContent {
+        box-shadow: none !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 12mm 18mm !important;
+        min-height: 0 !important;
+      }
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+      @page { size: A4; margin: 0; }
+    }
+
+    /* ── Download button spinner ── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { animation: spin .7s linear infinite; }
+  </style>
+</head>
+
+<body class="bg-gray-100 antialiased" style="font-family:'Inter',sans-serif;">
+<div class="min-h-screen py-6 sm:py-10">
+<div class="px-4 max-w-[860px] mx-auto">
+
+  <!-- ── Action Bar (hidden during auto_pdf) ── -->
+  <div id="actionBar" class="flex items-center justify-between mb-5 no-print gap-3 flex-wrap">
+    <a href="{% if user.is_staff %}{% url 'management:application_detail' application.application_id %}{% elif application.can_access_student_portal %}{% url 'students:dashboard' %}{% else %}{% url 'eduweb:application_status' %}{% endif %}"
+       class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-gray-200 hover:border-purple-400 text-gray-700 hover:text-purple-700 rounded-xl font-semibold text-sm transition-all">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i> Back
+    </a>
+
+    <button id="downloadBtn" onclick="downloadPDF()"
+      class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#840384] to-purple-700 text-white rounded-xl font-semibold text-sm hover:shadow-lg hover:opacity-95 transition-all">
+      <i data-lucide="download" class="w-4 h-4"></i>
+      Download PDF
+    </button>
+  </div>
+
+  <!-- ════════════════════════════════════════════
+       A4 LETTER CONTENT — captured for PDF export
+       Keep all content inline-styled so html2canvas
+       renders it correctly regardless of Tailwind CDN.
+  ════════════════════════════════════════════ -->
+  <div id="letterContent">
+
+    <!-- Top accent stripe -->
+    <div style="position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,#840384,#a855f7);border-radius:0;"></div>
+
+    <!-- HEADER -->
+    <div style="text-align:center;padding-bottom:14px;border-bottom:3px solid #840384;margin-bottom:18px;padding-top:6px;">
+      {% if site_config.logo %}
+      <img src="{{ site_config.logo.url }}"
+           alt="{{ site_config.school_short_name|default:'MIU' }} Logo"
+           crossorigin="anonymous"
+           style="height:60px;margin:0 auto 6px;display:block;object-fit:contain;">
+      {% else %}
+      <img src="{% static 'images/miulogo.png' %}"
+           alt="MIU Logo"
+           crossorigin="anonymous"
+           style="height:60px;margin:0 auto 6px;display:block;object-fit:contain;">
+      {% endif %}
+
+      <h1 style="font-family:'Poppins',sans-serif;font-size:16px;font-weight:800;color:#840384;margin:0 0 3px;letter-spacing:.04em;text-transform:uppercase;line-height:1.25;">
+        {{ site_config.school_name|default:"MELCHISEDEC INTERNATIONAL UNIVERSITY" }}
+      </h1>
+      <p style="font-size:10px;color:#6b7280;margin:0;line-height:1.6;">
+        {% if site_config.address_usa %}{{ site_config.address_usa }}{% else %}123 University Avenue, Knowledge City, KC 10101{% endif %}
+      </p>
+      <p style="font-size:10px;color:#6b7280;margin:0;line-height:1.6;">
+        Tel:&nbsp;{% if site_config.phone_admissions %}{{ site_config.phone_admissions }}{% elif site_config.phone_primary %}{{ site_config.phone_primary }}{% else %}+1 (555) 123-4567{% endif %}
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        Email:&nbsp;{% if site_config.email_admissions %}{{ site_config.email_admissions }}{% elif site_config.email %}{{ site_config.email }}{% else %}admissions@miu.edu{% endif %}
+      </p>
+    </div>
+
+    <!-- TITLE -->
+    <div style="text-align:center;margin-bottom:16px;">
+      <h2 style="font-family:'Poppins',sans-serif;font-size:14px;font-weight:700;color:#111827;margin:0 0 3px;letter-spacing:.08em;text-transform:uppercase;">
+        LETTER OF ADMISSION
+      </h2>
+      <p style="font-size:10.5px;color:#6b7280;margin:0;">
+        Academic Intake: {{ application.intake.get_intake_period_display }} {{ application.intake.year }}
+      </p>
+    </div>
+
+    <!-- DATE & REFERENCE -->
+    <div style="margin-bottom:14px;font-size:11px;line-height:1.7;">
+      <p style="margin:0;">
+        <strong>Date:</strong>&nbsp;
+        {% if application.reviewed_at %}{{ application.reviewed_at|date:"F d, Y" }}{% else %}{% now "F d, Y" %}{% endif %}
+      </p>
+      <p style="margin:0;">
+        <strong>Reference No.:</strong>&nbsp;{{ application.application_id }}
+      </p>
+      {% if application.admission_number %}
+      <p style="margin:0;">
+        <strong>Admission No.:</strong>&nbsp;{{ application.admission_number }}
+      </p>
+      {% endif %}
+    </div>
+
+    <!-- RECIPIENT -->
+    <div style="margin-bottom:16px;font-size:11px;line-height:1.7;">
+      <p style="font-weight:700;color:#111827;margin:0;">{{ application.get_full_name }}</p>
+      <p style="margin:0;color:#374151;">
+        {{ application.address_line1 }}{% if application.address_line2 %}, {{ application.address_line2 }}{% endif %},&nbsp;
+        {{ application.city }}{% if application.state %}, {{ application.state }}{% endif %}&nbsp;{{ application.postal_code }},&nbsp;
+        {{ application.country }}
+      </p>
+    </div>
+
+    <!-- BODY -->
+    <div style="font-size:11px;color:#374151;line-height:1.7;">
+
+      <p style="margin:0 0 11px;">Dear {{ application.first_name }},</p>
+
+      <p class="body-text" style="margin:0 0 12px;">
+        <strong style="color:#840384;">Congratulations!</strong>
+        On behalf of the Admissions Committee of
+        <strong>{{ site_config.school_name|default:"Melchisedec International University" }}</strong>,
+        I am delighted to inform you that you have been <strong>officially admitted</strong> to the
+        <strong>{{ application.program.name }}</strong> programme, leading to a
+        <strong>{{ application.program.get_degree_level_display }}</strong> degree.
+      </p>
+
+      <!-- Programme Details table -->
+      <div style="background:#f5f3ff;border-left:4px solid #840384;border-radius:4px;padding:11px 15px;margin-bottom:13px;">
+        <p style="font-weight:700;color:#840384;margin:0 0 6px;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;">
+          Programme Details
+        </p>
+        <table style="width:100%;border-collapse:collapse;font-size:10.5px;">
+          <tr>
+            <td style="padding:2.5px 0;color:#6b7280;width:40%;">Programme</td>
+            <td style="padding:2.5px 0;font-weight:600;color:#111827;">{{ application.program.name }}</td>
+          </tr>
+          <tr>
+            <td style="padding:2.5px 0;color:#6b7280;">Faculty</td>
+            <td style="padding:2.5px 0;font-weight:600;color:#111827;">{{ application.program.department.faculty.name }}</td>
+          </tr>
+          <tr>
+            <td style="padding:2.5px 0;color:#6b7280;">Department</td>
+            <td style="padding:2.5px 0;font-weight:600;color:#111827;">{{ application.program.department.name }}</td>
+          </tr>
+          <tr>
+            <td style="padding:2.5px 0;color:#6b7280;">Degree Level</td>
+            <td style="padding:2.5px 0;font-weight:600;color:#111827;">{{ application.program.get_degree_level_display }}</td>
+          </tr>
+          <tr>
+            <td style="padding:2.5px 0;color:#6b7280;">Study Mode</td>
+            <td style="padding:2.5px 0;font-weight:600;color:#111827;">{{ application.get_study_mode_display }}</td>
+          </tr>
+          <tr>
+            <td style="padding:2.5px 0;color:#6b7280;">Intake</td>
+            <td style="padding:2.5px 0;font-weight:600;color:#111827;">{{ application.intake.get_intake_period_display }} {{ application.intake.year }}</td>
+          </tr>
+          <tr>
+            <td style="padding:2.5px 0;color:#6b7280;">Commencement</td>
+            <td style="padding:2.5px 0;font-weight:600;color:#111827;">{{ application.intake.start_date|date:"F d, Y" }}</td>
+          </tr>
+          {% if application.scholarship %}
+          <tr>
+            <td style="padding:2.5px 0;color:#6b7280;">Scholarship</td>
+            <td style="padding:2.5px 0;font-weight:600;color:#059669;">Awarded — Details communicated separately</td>
+          </tr>
+          {% endif %}
+        </table>
+      </div>
+
+      <!-- Next Steps -->
+      <p style="font-weight:700;color:#111827;margin:0 0 4px;font-size:11px;">Next Steps:</p>
+      <ol style="margin:0 0 12px;padding-left:18px;font-size:10.5px;line-height:1.75;color:#374151;">
+        <li>Accept your admission offer within <strong>30 days</strong> of this letter's date</li>
+        <li>Complete enrolment registration through your student portal</li>
+        <li>Submit all required enrolment documents to the Admissions Office</li>
+        <li>Attend the mandatory orientation session before commencement</li>
+      </ol>
+
+      <p class="body-text" style="margin:0 0 11px;font-size:10.5px;">
+        Detailed enrolment instructions and portal access credentials will be sent to
+        <strong>{{ application.email }}</strong> within 3 business days.
+        For any enquiries, contact our Admissions Office at
+        <strong>{% if site_config.email_admissions %}{{ site_config.email_admissions }}{% else %}admissions@miu.edu{% endif %}</strong>
+        or call
+        <strong>{% if site_config.phone_admissions %}{{ site_config.phone_admissions }}{% elif site_config.phone_primary %}{{ site_config.phone_primary }}{% else %}+1 (555) 123-4567{% endif %}</strong>.
+      </p>
+
+      <p class="body-text" style="margin:0;font-size:10.5px;">
+        Once again, heartfelt congratulations on this outstanding achievement.
+        We look forward to welcoming you to the {{ site_config.school_short_name|default:"MIU" }} family!
+      </p>
+    </div>
+
+    <!-- SIGNATURE -->
+    <div style="margin-top:18px;margin-bottom:16px;">
+      <p style="font-size:11px;color:#374151;margin:0 0 14px;">Yours sincerely,</p>
+      <div class="sig-line">
+        <p style="font-size:11.5px;font-weight:700;color:#111827;margin:0 0 1px;">Dr. Sarah Johnson</p>
+        <p style="font-size:10px;color:#6b7280;margin:0;line-height:1.6;">Director of Admissions</p>
+        <p style="font-size:10px;color:#6b7280;margin:0;line-height:1.6;">
+          {{ site_config.school_name|default:"Melchisedec International University" }}
+        </p>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div style="margin-top:auto;border-top:1px solid #e5e7eb;padding-top:10px;text-align:center;font-size:9.5px;color:#9ca3af;line-height:1.7;">
+      <p style="margin:0;">
+        This is an official admission letter from
+        <strong style="color:#6b7280;">{{ site_config.school_name|default:"Melchisedec International University" }}</strong>.
+        Verify at:&nbsp;{% if site_config.email_admissions %}{{ site_config.email_admissions }}{% else %}admissions@miu.edu{% endif %}
+      </p>
+      <p style="margin:1px 0 0;">
+        Document ID: <strong>{{ application.application_id }}</strong>
+        &nbsp;|&nbsp;
+        Generated: {% now "F d, Y" %}
+        {% if application.admission_number %}&nbsp;|&nbsp;Admission No.: <strong>{{ application.admission_number }}</strong>{% endif %}
+      </p>
+    </div>
+
+    <!-- Bottom accent stripe -->
+    <div style="position:absolute;bottom:0;left:0;right:0;height:5px;background:linear-gradient(90deg,#840384,#a855f7);"></div>
+
+  </div><!-- /letterContent -->
+
+  <!-- Info card (screen only) -->
+  <div class="mt-6 bg-blue-50 border border-blue-200 rounded-2xl p-5 no-print">
+    <div class="flex items-start gap-3">
+      <div class="w-9 h-9 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+        <i data-lucide="info" class="w-4 h-4 text-white"></i>
+      </div>
+      <div>
+        <p class="font-bold text-gray-900 text-sm mb-1">Saving your letter</p>
+        <p class="text-xs text-gray-600 leading-relaxed">
+          Click <strong>Download PDF</strong> to save a high-quality A4 PDF to your device.
+          All colours, layout and content are preserved exactly as shown.
+        </p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /max-w-[860px] -->
+</div><!-- /min-h-screen -->
+
+<script>
+(function () {
+  'use strict';
+
+  // ── 1. Init Lucide icons ────────────────────────────────────────────────
+  function initIcons() {
+    if (window.lucide) lucide.createIcons();
+  }
+  document.addEventListener('DOMContentLoaded', initIcons);
+  window.addEventListener('load', initIcons);
+
+  // ── 2. Auto-PDF mode (?auto_pdf=1) ─────────────────────────────────────
+  // Mobile opens the letter page with this flag to skip the UI and go
+  // straight to download, then closes the tab automatically.
+  document.addEventListener('DOMContentLoaded', function () {
+    if (new URLSearchParams(window.location.search).get('auto_pdf') === '1') {
+      // Hide the entire action bar and info card
+      const actionBar = document.getElementById('actionBar');
+      if (actionBar) actionBar.style.display = 'none';
+      // Wait for fonts + images to load before capturing
+      setTimeout(function () {
+        downloadPDF().then(function () {
+          setTimeout(function () { window.close(); }, 1800);
+        });
+      }, 1000);
+    }
+  });
+
+  // ── 3. PDF Generation ───────────────────────────────────────────────────
+  window.downloadPDF = async function downloadPDF() {
+    // Flag: tells DevTools detector to skip checks during generation
+    window._pdfBusy = true;
+
+    const btn = document.getElementById('downloadBtn');
+
+    // Safe helpers — btn may be null in auto_pdf mode
+    function setBtnHTML(html) { if (btn) btn.innerHTML = html; }
+    function setBtnDisabled(v) { if (btn) btn.disabled = v; }
+
+    const origHTML = btn ? btn.innerHTML : '';
+    setBtnHTML('<svg class="spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg><span>Generating…</span>');
+    setBtnDisabled(true);
+
+    try {
+      if (!window.jspdf) throw new Error('jsPDF not loaded');
+      if (!window.html2canvas) throw new Error('html2canvas not loaded');
+
+      const { jsPDF } = window.jspdf;
+      const el = document.getElementById('letterContent');
+      if (!el) throw new Error('Letter element not found');
+
+      // ── a) Force A4 pixel width and remove constraints so we
+      //       capture the full content height without clipping ──
+      const prev = {
+        width:      el.style.width,
+        minHeight:  el.style.minHeight,
+        padding:    el.style.padding,
+        boxSizing:  el.style.boxSizing,
+        boxShadow:  el.style.boxShadow,
+      };
+      el.style.width      = '794px';
+      el.style.minHeight  = 'none';
+      el.style.padding    = '48px 60px';
+      el.style.boxSizing  = 'border-box';
+      el.style.boxShadow  = 'none';    // shadow adds phantom pixels
+
+      // Let browser reflow at 794px
+      await new Promise(r => setTimeout(r, 150));
+
+      // ── b) Measure real rendered height (never fixed/clipped) ──
+      const W = 794;
+      const H = el.scrollHeight;
+
+      // ── c) Capture ──
+      const canvas = await html2canvas(el, {
+        scale:           2.5,
+        useCORS:         true,
+        allowTaint:      true,
+        logging:         false,
+        backgroundColor: '#ffffff',
+        width:           W,
+        height:          H,
+        scrollX:         0,
+        scrollY:         0,
+        windowWidth:     W,
+        windowHeight:    H,
+        imageTimeout:    12000,
+        onclone: function (doc) {
+          var c = doc.getElementById('letterContent');
+          if (c) {
+            c.style.overflow  = 'visible';
+            c.style.width     = W + 'px';
+            c.style.minHeight = H + 'px';
+            c.style.boxShadow = 'none';
+          }
+        }
+      });
+
+      // ── d) Restore element styles exactly ──
+      Object.keys(prev).forEach(function (k) {
+        el.style[k] = prev[k];
+      });
+
+      // ── e) Build PDF — proportional height so nothing is cropped ──
+      var pdfW = 210;                                    // mm
+      var pdfH = Math.max(297, Math.ceil(pdfW * H / W)); // mm — at least A4
+
+      var pdf = new jsPDF({
+        orientation: 'portrait',
+        unit:        'mm',
+        format:      [pdfW, pdfH],
+        compress:    true
+      });
+
+      pdf.addImage(
+        canvas.toDataURL('image/jpeg', 0.93),
+        'JPEG',
+        0, 0, pdfW, pdfH,
+        undefined, 'FAST'
+      );
+
+      var safeName = '{{ application.get_full_name|escapejs }}'.replace(/\s+/g, '_');
+      var appId    = '{{ application.application_id }}';
+      pdf.save('Admission_Letter_' + safeName + '_' + appId + '.pdf');
+
+      // Success feedback
+      setBtnHTML('<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>Downloaded!</span>');
+      if (btn) {
+        btn.classList.replace('from-\\[\\#840384\\]', 'from-green-600');
+        btn.classList.replace('to-purple-700', 'to-green-700');
+      }
+      setTimeout(function () {
+        setBtnHTML(origHTML);
+        if (btn) {
+          btn.classList.replace('from-green-600', 'from-\\[\\#840384\\]');
+          btn.classList.replace('to-green-700', 'to-purple-700');
+        }
+        setBtnDisabled(false);
+        initIcons();
+      }, 2500);
+
+    } catch (err) {
+      console.error('[PDF] Generation failed:', err);
+
+      setBtnHTML('<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>Failed — try again</span>');
+      if (btn) {
+        btn.classList.replace('from-\\[\\#840384\\]', 'from-red-600');
+        btn.classList.replace('to-purple-700', 'to-red-700');
+      }
+      setTimeout(function () {
+        setBtnHTML(origHTML);
+        if (btn) {
+          btn.classList.replace('from-red-600', 'from-\\[\\#840384\\]');
+          btn.classList.replace('to-red-700', 'to-purple-700');
+        }
+        setBtnDisabled(false);
+        initIcons();
+      }, 3500);
+
+    } finally {
+      window._pdfBusy = false;
+    }
+  };
+
+  // ── 4. Security ─────────────────────────────────────────────────────────
+
+  // a) Block right-click
+  document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+  // b) Block DevTools keyboard shortcuts
+  document.addEventListener('keydown', function (e) {
+    var key = e.key ? e.key.toUpperCase() : '';
+    if (
+      e.key === 'F12' ||
+      (e.ctrlKey  && e.shiftKey && ['I','J','C','K'].includes(key)) ||
+      (e.ctrlKey  && ['U','S'].includes(key)) ||
+      (e.metaKey  && e.altKey   && ['I','J','C'].includes(key))
+    ) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      return false;
+    }
+  }, true);
+
+  // c) DevTools size-detection (no debugger — safe during PDF generation)
+  var _dtOpen      = false;
+  var _dtInterval  = null;
+  var _BACK        = '{% url "eduweb:application_status" %}';
+
+  function _dtCheck() {
+    return (window.outerWidth  - window.innerWidth  > 160) ||
+           (window.outerHeight - window.innerHeight > 160);
+  }
+
+  function _dtEnforce() {
+    // Skip entirely while PDF is generating — avoids flickering/interference
+    if (window._pdfBusy) return;
+
+    var open = _dtCheck();
+
+    if (open && !_dtOpen) {
+      _dtOpen = true;
+      var letter = document.getElementById('letterContent');
+      if (letter) {
+        letter.style.filter       = 'blur(14px)';
+        letter.style.opacity      = '0.04';
+        letter.style.pointerEvents = 'none';
+        letter.style.userSelect   = 'none';
+      }
+      if (!document.getElementById('_dt_ov')) {
+        var ov = document.createElement('div');
+        ov.id  = '_dt_ov';
+        ov.setAttribute('style', [
+          'position:fixed','inset:0','z-index:99999',
+          'background:rgba(0,0,0,0.94)',
+          'display:flex','flex-direction:column',
+          'align-items:center','justify-content:center','gap:14px'
+        ].join(';'));
+        ov.innerHTML =
+          '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="#ef4444" stroke-width="2">'
+          + '<circle cx="12" cy="12" r="10"/>'
+          + '<line x1="12" y1="8" x2="12" y2="12"/>'
+          + '<line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+          + '<p style="color:#fff;font-size:18px;font-weight:700;font-family:Poppins,sans-serif;margin:0;">Access Restricted</p>'
+          + '<p style="color:#9ca3af;font-size:12.5px;font-family:Inter,sans-serif;margin:0;text-align:center;max-width:290px;line-height:1.65;">'
+          + 'Developer tools are not permitted on this official document page.<br>'
+          + 'Please close DevTools to continue.</p>'
+          + '<button onclick="window.location=\'' + _BACK + '\'" '
+          + 'style="margin-top:8px;padding:10px 26px;background:#840384;color:#fff;border:none;'
+          + 'border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;">'
+          + 'Go Back</button>';
+        document.body.appendChild(ov);
+      }
+
+    } else if (!open && _dtOpen) {
+      _dtOpen = false;
+      var letter = document.getElementById('letterContent');
+      if (letter) {
+        letter.style.filter       = '';
+        letter.style.opacity      = '';
+        letter.style.pointerEvents = '';
+        letter.style.userSelect   = '';
+      }
+      var ov = document.getElementById('_dt_ov');
+      if (ov) ov.remove();
+    }
+  }
+
+  // Start polling after a short delay so page renders first
+  setTimeout(function () {
+    _dtEnforce();
+    _dtInterval = setInterval(_dtEnforce, 1000);
+  }, 500);
+
+  // d) Prevent drag on letter (stops drag-to-screenshot)
+  document.addEventListener('DOMContentLoaded', function () {
+    var el = document.getElementById('letterContent');
+    if (el) el.addEventListener('dragstart', function (e) { e.preventDefault(); });
+  });
+
+})();
+</script>
+</body>
+</html>

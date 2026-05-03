@@ -1,0 +1,325 @@
+{% extends 'melbac/base.html' %}
+{% load static %}
+
+{% block title %}About Us — Melchisedec Graduate Bible Academy (MELBAC){% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="Learn about MELBAC's history, mission, core values, vision, and governing boards. Founded in 2000, approved by the Federal Government of Nigeria in 2007.">
+<meta name="keywords"    content="MELBAC about, history, mission statement, core values, Dr John Daniel, Bible academy Nigeria">
+<meta name="robots"      content="index, follow">
+{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org","@type":"AboutPage",
+  "name":"About MELBAC","url":"{{ request.build_absolute_uri }}",
+  "description":"History, mission, values and leadership of Melchisedec Graduate Bible Academy."
+}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── PAGE HERO ──────────────────────────────────────────────── -->
+<section class="mb-page-hero" aria-label="About page header">
+  <div class="mb-page-hero-pattern" aria-hidden="true"></div>
+  <div class="mb-container mb-page-hero-inner">
+    <nav aria-label="Breadcrumb">
+      <ol class="mb-breadcrumb">
+        <li><a href="{% url 'melbac:index' %}">Home</a></li>
+        <li class="mb-breadcrumb-sep" aria-hidden="true">/</li>
+        <li aria-current="page">About</li>
+      </ol>
+    </nav>
+    <h1>About MELBAC</h1>
+    <p>Melchisedec Graduate Bible Academy is a non-denominational, non-profit Christian education and seminary institution established by the Lord Jesus through His anointed servant Dr. John A. Daniel.</p>
+  </div>
+</section>
+
+
+<!-- ── OVERVIEW ──────────────────────────────────────────────── -->
+<section class="mb-section mb-bg-s3 mb-section-divider" aria-labelledby="overview-heading">
+  <div class="mb-container">
+    <div class="mb-reveal">
+      <p class="mb-eyebrow">Who We Are</p>
+      <h2 id="overview-heading">Our Institution</h2>
+      <div class="mb-divider"></div>
+    </div>
+    <p class="mb-about-intro mb-reveal d1">
+      The institution was physically founded by Dr. John A. Daniel on 15th January 2000 and approved by the Federal Government of Nigeria as Help and Reconciliation Ministry and Bible Training College with vested authority to award diploma certificates to its students.
+    </p>
+    <p class="mb-about-intro mb-reveal d2">
+      Due to popular demand from both students and graduates who could not afford admission and tuition fees for their degree programs from other theological institutions, the Lord granted the request to upgrade the institution to a degree awarding university. This was approved and registered by the Federal Government in November 2007, hence the final birth of Melchisedec Graduate Bible Academy.
+    </p>
+  </div>
+</section>
+
+
+<!-- ── HISTORY TIMELINE ──────────────────────────────────────── -->
+<section class="mb-section mb-bg-s2 mb-section-divider" aria-labelledby="history-heading">
+  <div class="mb-container">
+    <div class="mb-reveal">
+      <p class="mb-eyebrow">Faith in Action</p>
+      <h2 id="history-heading">Our History</h2>
+      <div class="mb-divider"></div>
+    </div>
+
+    <div class="mb-timeline" role="list">
+
+      <div class="mb-timeline-item mb-reveal d1" role="listitem">
+        <div class="mb-timeline-dot" aria-hidden="true"></div>
+        <span class="mb-timeline-year">1995 — Beginning</span>
+        <p class="mb-timeline-label">Foundation of the Ministry</p>
+        <p class="mb-timeline-text">Melchisedec Graduate Bible Academy is a subsidiary of Help and Reconciliation Ministry AKA Harmabitrac World Outreach, which was physically founded in Lagos Nigeria on October 15, 1995 by Apostle John Daniel.</p>
+      </div>
+
+      <div class="mb-timeline-item mb-reveal d2" role="listitem">
+        <div class="mb-timeline-dot" aria-hidden="true"></div>
+        <span class="mb-timeline-year">2000 — From Bible Study to College</span>
+        <p class="mb-timeline-label">Birth of the Bible Training College</p>
+        <p class="mb-timeline-text">The Bible study portion of the Ministry was upgraded to an Institution and founded by Dr John A. Daniel on 15th January 2000. It was registered and approved by the Federal Government of Nigeria as Help and Reconciliation Ministry and Bible Training College with vested authority to award basic, advanced and diploma certificates to its students.</p>
+      </div>
+
+      <div class="mb-timeline-item mb-reveal d3" role="listitem">
+        <div class="mb-timeline-dot" aria-hidden="true"></div>
+        <span class="mb-timeline-year">2004 — Expansion</span>
+        <p class="mb-timeline-label">USA Campus Founded</p>
+        <p class="mb-timeline-text">In January 2004, Apostle John Daniel physically founded Help and Reconciliation Ministry and Bible Training College Newark NJ USA as a non-profit organization, with the aim of providing the same services as the Lagos office but with particular attention to social and charitable services. See <a href="http://www.harmabitrac.org" target="_blank" rel="noopener noreferrer">www.harmabitrac.org</a> for details.</p>
+      </div>
+
+      <div class="mb-timeline-item mb-reveal d4" role="listitem">
+        <div class="mb-timeline-dot" aria-hidden="true"></div>
+        <span class="mb-timeline-year">2007 — Government Approval</span>
+        <p class="mb-timeline-label">Registered as a Degree-Awarding University</p>
+        <p class="mb-timeline-text">We applied to the Federal Ministry of Education Nigeria, and after 2 years of inspecting our core requirements, we were finally approved and registered by the Federal Government of Nigeria in November 2007 as Melchisedec Graduate Bible Academy Lagos Nigeria.</p>
+      </div>
+
+      <div class="mb-timeline-item mb-reveal d4" role="listitem">
+        <div class="mb-timeline-dot" aria-hidden="true"></div>
+        <span class="mb-timeline-year">2024 — From College to University</span>
+        <p class="mb-timeline-label">Full University Status</p>
+        <p class="mb-timeline-text">Due to further demand from both students and graduates who could not afford tuition fees for degree programs at other theological institutions, the Lord granted the request to further upgrade the institution to a degree awarding university, offering Bachelors, Masters and Doctorate programs.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ── MISSION / VALUES / VISION ─────────────────────────────── -->
+<section class="mb-section mb-bg-s3 mb-section-divider" aria-labelledby="mvv-heading">
+  <div class="mb-container">
+
+    <div class="mb-reveal">
+      <p class="mb-eyebrow">Our Foundation</p>
+      <h2 id="mvv-heading">Mission, Values &amp; Vision</h2>
+      <div class="mb-divider"></div>
+    </div>
+
+    <div class="mb-mvv-grid">
+
+      <article class="mb-card mb-mvv-card mb-reveal d1" aria-label="Mission statement">
+        <div class="mb-icon-wrap mb-mvv-icon">
+          <i data-lucide="target" class="w-5 h-5 text-gospel-600" aria-hidden="true"></i>
+        </div>
+        <h3 class="mb-mvv-title">Mission Statement</h3>
+        <p class="mb-mvv-text">Our mission according to the Lord's command is to train end-time ministers of God on a free-of-charge basis in preparation for their ministerial duties. Our curriculum exceeds both national and international standards for Christian universities. Our lecturers are world-class dedicated ministers of God whose qualifications meet the necessary requirements for their courses of instruction.</p>
+      </article>
+
+      <article class="mb-card mb-mvv-card mb-reveal d2" aria-label="Core values">
+        <div class="mb-icon-wrap mb-mvv-icon">
+          <i data-lucide="heart" class="w-5 h-5 text-gospel-600" aria-hidden="true"></i>
+        </div>
+        <h3 class="mb-mvv-title">Our Core Values</h3>
+        <p class="mb-mvv-text">The University does not seek to manipulate or force its students to change their allegiance to their churches or denominations. Rather we help each student to have a personal and more solid relationship with the Lord Jesus through His Holy Spirit, giving them a firm and sound biblical foundation from which to understand their calling, vision of the kingdom, and the end-time moves of the Holy Spirit.</p>
+      </article>
+
+      <article class="mb-card mb-mvv-card mb-reveal d3" aria-label="Vision">
+        <div class="mb-icon-wrap mb-mvv-icon">
+          <i data-lucide="eye" class="w-5 h-5 text-gospel-600" aria-hidden="true"></i>
+        </div>
+        <h3 class="mb-mvv-title">Our Vision</h3>
+        <p class="mb-mvv-text">Our vision is to teach the pure word of God — which many in Christendom today call "old school" — which will help to impart true Christian discipline and help the faith of prospective ministers build on a solid foundation of true Christianity and not the wisdom of men. Students must be born again, baptized in water and the Holy Ghost, and resolved to be trained ministers of the Gospel, irrespective of nationality, gender, race, age, disability, ethnicity, or colour.</p>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ── BOARDS ─────────────────────────────────────────────────── -->
+<section class="mb-section mb-bg-s5 mb-section-divider" aria-labelledby="boards-heading">
+  <div class="mb-container">
+
+    <div class="mb-reveal">
+      <p class="mb-eyebrow">Leadership</p>
+      <h2 id="boards-heading">Our Governing Boards</h2>
+      <div class="mb-divider"></div>
+    </div>
+
+    <!-- Administrative Board -->
+    <div class="mb-board-section mb-reveal d1">
+      <h3 class="mb-board-title">
+        <div class="mb-icon-wrap w-8 h-8"><i data-lucide="briefcase" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i></div>
+        Administrative / Management Board
+      </h3>
+      <div class="mb-board-grid">
+        {% for m in admin_board|default:"" %}{% empty %}
+        {% for person in "12345"|make_list %}
+        <div class="mb-card mb-board-member mb-reveal">
+          <img src="{% static 'images/board-admin-'|add:forloop.counter|add:'.jpg' %}"
+               alt=""
+               class="mb-member-img"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <div class="mb-member-fallback" aria-hidden="true"><i data-lucide="user" class="w-6 h-6 text-gospel-300"></i></div>
+          <p class="mb-member-name">
+            {% if forloop.counter == 1 %}Dr. John Amarachukwu Daniel
+            {% elif forloop.counter == 2 %}Mrs. Blessings J. Daniel
+            {% elif forloop.counter == 3 %}Sunday Ehichioya
+            {% elif forloop.counter == 4 %}Ruth Phillips
+            {% else %}Julian C. Obiora{% endif %}
+          </p>
+          <p class="mb-member-role">
+            {% if forloop.counter == 1 %}Founder / President
+            {% elif forloop.counter == 2 %}Vice President Administration
+            {% elif forloop.counter == 3 %}Registrar
+            {% elif forloop.counter == 4 %}Coordinator MELBAC Satellite Campuses / Special Asst. to the President on Foreign Affairs
+            {% else %}Admin Officer / Board Secretary{% endif %}
+          </p>
+        </div>
+        {% endfor %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Academic Board -->
+    <div class="mb-board-section mb-reveal d2">
+      <h3 class="mb-board-title">
+        <div class="mb-icon-wrap w-8 h-8"><i data-lucide="graduation-cap" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i></div>
+        Academic Board
+      </h3>
+      <div class="mb-board-grid">
+        {% for person in "1234567"|make_list %}
+        <div class="mb-card mb-board-member mb-reveal">
+          <img src="{% static 'images/board-academic-'|add:forloop.counter|add:'.jpg' %}"
+               alt="" class="mb-member-img"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <div class="mb-member-fallback" aria-hidden="true"><i data-lucide="user" class="w-6 h-6 text-gospel-300"></i></div>
+          <p class="mb-member-name">
+            {% if forloop.counter == 1 %}Sunday Ehichioya
+            {% elif forloop.counter == 2 %}Titus Ehizode
+            {% elif forloop.counter == 3 %}Chidi Akoma
+            {% elif forloop.counter == 4 %}Boniface Uzoigwe
+            {% elif forloop.counter == 5 %}Goodluck Olatunji
+            {% elif forloop.counter == 6 %}George Odjeni
+            {% else %}Dr. John Amarachukwu Daniel{% endif %}
+          </p>
+          <p class="mb-member-role">
+            {% if forloop.counter == 1 %}Registrar
+            {% elif forloop.counter == 2 %}Dean, Faculty of Arts
+            {% elif forloop.counter == 3 %}Dean of Student Affairs
+            {% elif forloop.counter == 4 %}Dean, Faculty of Christian Education
+            {% elif forloop.counter == 5 %}Dean of Post Graduate Studies
+            {% elif forloop.counter == 6 %}Vice President, Academic Matters
+            {% else %}Founder / President{% endif %}
+          </p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Advisorate Board -->
+    <div class="mb-board-section mb-reveal d3">
+      <h3 class="mb-board-title">
+        <div class="mb-icon-wrap w-8 h-8"><i data-lucide="users" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i></div>
+        Advisorate Board
+      </h3>
+      <div class="mb-board-grid">
+        {% for person in "12345"|make_list %}
+        <div class="mb-card mb-board-member mb-reveal">
+          <img src="{% static 'images/board-advisorate-'|add:forloop.counter|add:'.jpg' %}"
+               alt="" class="mb-member-img"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <div class="mb-member-fallback" aria-hidden="true"><i data-lucide="user" class="w-6 h-6 text-gospel-300"></i></div>
+          <p class="mb-member-name">
+            {% if forloop.counter == 1 %}Theophilus O. Ihekoronye
+            {% elif forloop.counter == 2 %}Dr. John Amarachukwu Daniel
+            {% elif forloop.counter == 3 %}Cyril Azobu
+            {% elif forloop.counter == 4 %}Ezenwa Anumnu
+            {% else %}Sunny Faith Ugbah{% endif %}
+          </p>
+          <p class="mb-member-role">
+            {% if forloop.counter == 1 %}Pro-Chancellor / Chairman Board of Advisorate
+            {% elif forloop.counter == 2 %}Founder / President
+            {% elif forloop.counter == 3 %}Adviser on Financial Matters
+            {% elif forloop.counter == 4 %}Adviser on Legal Affairs
+            {% else %}Vice Chairman / Adviser Administrative Matters{% endif %}
+          </p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ── ACCREDITATION ──────────────────────────────────────────── -->
+<section class="mb-section mb-bg-s4 mb-section-divider" aria-labelledby="accred-heading">
+  <div class="mb-container">
+    <div class="mb-reveal">
+      <p class="mb-eyebrow">Recognition</p>
+      <h2 id="accred-heading">Accreditation, Affiliates &amp; Partners</h2>
+      <div class="mb-divider"></div>
+    </div>
+
+    <div class="mb-mvv-grid">
+
+      <article class="mb-card mb-mvv-card mb-reveal d1">
+        <div class="mb-icon-wrap mb-mvv-icon">
+          <i data-lucide="shield-check" class="w-5 h-5 text-gospel-600" aria-hidden="true"></i>
+        </div>
+        <h3 class="mb-mvv-title">Accreditation</h3>
+        <div class="mb-accred-list">
+          <span class="mb-accred-pill">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i>
+            Federal Government of Nigeria, Abuja
+          </span>
+          <span class="mb-accred-pill">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i>
+            International Professional Managers Association (IPMA) — UK
+          </span>
+        </div>
+      </article>
+
+      <article class="mb-card mb-mvv-card mb-reveal d2">
+        <div class="mb-icon-wrap mb-mvv-icon">
+          <i data-lucide="link-2" class="w-5 h-5 text-gospel-600" aria-hidden="true"></i>
+        </div>
+        <h3 class="mb-mvv-title">Affiliations</h3>
+        <p class="mb-mvv-text">MELBAC maintains affiliations with parent ministry Harmabitrac World Outreach and partners in ministry training globally. Contact us for partnership inquiries.</p>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ── CTA ───────────────────────────────────────────────────── -->
+<section class="mb-section mb-bg-cta mb-final-cta" aria-label="Get in touch">
+  <div class="mb-container mb-final-cta-inner">
+    <h2 class="mb-reveal">Ready to Join Our Community?</h2>
+    <p class="mb-reveal d1">Apply for admission today — completely free of charge — and begin your journey as a trained minister of the Gospel.</p>
+    <div class="mb-final-cta-btns mb-reveal d2">
+      <a href="{% url 'melbac:contact' %}" class="mb-btn mb-btn-gold">
+        <i data-lucide="send" class="w-4 h-4" aria-hidden="true"></i><span>Contact Us</span>
+      </a>
+      <a href="{% url 'melbac:academics' %}" class="mb-btn mb-btn-white-outline">
+        <i data-lucide="graduation-cap" class="w-4 h-4" aria-hidden="true"></i><span>View Academics</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

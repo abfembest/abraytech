@@ -1,0 +1,600 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Subscription Management - Finance Portal{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <!-- Page Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+        <div class="max-w-10xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex flex-col sm:flex-row sm:items-center 
+                        sm:justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 
+                               font-display flex items-center">
+                        <i class="fas fa-crown text-primary-600 mr-3" 
+                           aria-hidden="true"></i>
+                        Subscription Management
+                    </h1>
+                    <p class="mt-1 text-sm text-gray-600">
+                        Monitor and manage user subscriptions
+                    </p>
+                </div>
+                <div class="flex gap-3">
+                    <a href="{% url 'finance:dashboard' %}" 
+                       class="px-4 py-2 bg-white border border-gray-300 
+                              text-gray-700 rounded-lg hover:bg-gray-50 
+                              transition-colors focus:ring-2 
+                              focus:ring-primary-500 focus:ring-offset-2
+                              inline-flex items-center font-medium">
+                        <i class="fas fa-arrow-left mr-2" 
+                           aria-hidden="true"></i>
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-10xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        
+        <!-- Statistics Cards -->
+        <section aria-labelledby="subscription-stats-heading">
+            <h2 id="subscription-stats-heading" class="sr-only">
+                Subscription Statistics
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                
+                <!-- Total Subscriptions -->
+                <article class="bg-white rounded-xl shadow-lg p-6 
+                               border-l-4 border-blue-500 
+                               hover:shadow-xl transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <p class="text-gray-600 text-xs font-medium 
+                                      uppercase tracking-wide mb-1">
+                                Total Subscriptions
+                            </p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">
+                                {{ total_subscriptions|default:0 }}
+                            </p>
+                            <p class="text-xs text-gray-500 mt-1">
+                                All subscriptions
+                            </p>
+                        </div>
+                        <div class="bg-blue-100 rounded-lg p-3">
+                            <i class="fas fa-users text-blue-600 text-xl" 
+                               aria-hidden="true"></i>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Active -->
+                <article class="bg-white rounded-xl shadow-lg p-6 
+                               border-l-4 border-green-500 
+                               hover:shadow-xl transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <p class="text-gray-600 text-xs font-medium 
+                                      uppercase tracking-wide mb-1">
+                                Active
+                            </p>
+                            <p class="text-2xl font-bold text-green-600 mt-1">
+                                {{ active_subscriptions|default:0 }}
+                            </p>
+                            <p class="text-xs text-gray-500 mt-1">
+                                Currently active
+                            </p>
+                        </div>
+                        <div class="bg-green-100 rounded-lg p-3">
+                            <i class="fas fa-check-circle text-green-600 text-xl" 
+                               aria-hidden="true"></i>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Cancelled -->
+                <article class="bg-white rounded-xl shadow-lg p-6 
+                               border-l-4 border-orange-500 
+                               hover:shadow-xl transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <p class="text-gray-600 text-xs font-medium 
+                                      uppercase tracking-wide mb-1">
+                                Cancelled
+                            </p>
+                            <p class="text-2xl font-bold text-orange-600 mt-1">
+                                {{ cancelled_subscriptions|default:0 }}
+                            </p>
+                            <p class="text-xs text-gray-500 mt-1">
+                                User cancelled
+                            </p>
+                        </div>
+                        <div class="bg-orange-100 rounded-lg p-3">
+                            <i class="fas fa-times-circle text-orange-600 text-xl" 
+                               aria-hidden="true"></i>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Expired -->
+                <article class="bg-white rounded-xl shadow-lg p-6 
+                               border-l-4 border-red-500 
+                               hover:shadow-xl transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <p class="text-gray-600 text-xs font-medium 
+                                      uppercase tracking-wide mb-1">
+                                Expired
+                            </p>
+                            <p class="text-2xl font-bold text-red-600 mt-1">
+                                {{ expired_subscriptions|default:0 }}
+                            </p>
+                            <p class="text-xs text-gray-500 mt-1">
+                                Past end date
+                            </p>
+                        </div>
+                        <div class="bg-red-100 rounded-lg p-3">
+                            <i class="fas fa-ban text-red-600 text-xl" 
+                               aria-hidden="true"></i>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- MRR -->
+                <article class="bg-gradient-to-br from-purple-500 
+                               to-purple-600 rounded-xl shadow-lg p-6 
+                               text-white hover:shadow-xl transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <p class="text-purple-100 text-xs font-medium 
+                                      uppercase tracking-wide mb-1">
+                                MRR
+                            </p>
+                            <p class="text-2xl font-bold mt-1">
+                                ${{ mrr|floatformat:2|default:"0.00" }}
+                            </p>
+                            <p class="text-xs text-purple-100 mt-1">
+                                Monthly recurring
+                            </p>
+                        </div>
+                        <div class="bg-white/20 rounded-lg p-3">
+                            <i class="fas fa-dollar-sign text-xl" 
+                               aria-hidden="true"></i>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- Filters Section -->
+        <section aria-labelledby="filters-heading" 
+                 class="bg-white rounded-xl shadow-sm 
+                        border border-gray-100 p-6">
+            <h2 id="filters-heading" 
+                class="text-lg font-semibold text-gray-900 mb-4 
+                       flex items-center">
+                <i class="fas fa-filter mr-2 text-primary-600" 
+                   aria-hidden="true"></i>
+                Filter Subscriptions
+            </h2>
+            
+            <form method="get" 
+                  action="{% url 'finance:subscription_list' %}" 
+                  class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    
+                    <!-- Status Filter -->
+                    <div>
+                        <label for="{{ filter_form.status.id_for_label }}" 
+                               class="block text-sm font-medium 
+                                      text-gray-700 mb-2">
+                            Status
+                        </label>
+                        {{ filter_form.status }}
+                    </div>
+                    
+                    <!-- Plan Filter -->
+                    <div>
+                        <label for="{{ filter_form.plan.id_for_label }}" 
+                               class="block text-sm font-medium 
+                                      text-gray-700 mb-2">
+                            Plan
+                        </label>
+                        {{ filter_form.plan }}
+                    </div>
+                    
+                    <!-- Search -->
+                    <div>
+                        <label for="{{ filter_form.search.id_for_label }}" 
+                               class="block text-sm font-medium 
+                                      text-gray-700 mb-2">
+                            Search User
+                        </label>
+                        {{ filter_form.search }}
+                    </div>
+                    
+                </div>
+                
+                <div class="flex gap-3 pt-2">
+                    <button type="submit" 
+                            class="px-6 py-2.5 bg-primary-600 text-white 
+                                   rounded-lg hover:bg-primary-700 
+                                   transition-colors focus:ring-2 
+                                   focus:ring-primary-500 focus:ring-offset-2
+                                   inline-flex items-center font-medium">
+                        <i class="fas fa-search mr-2" 
+                           aria-hidden="true"></i>
+                        Apply Filters
+                    </button>
+                    <a href="{% url 'finance:subscription_list' %}" 
+                       class="px-6 py-2.5 bg-white border border-gray-300 
+                              text-gray-700 rounded-lg hover:bg-gray-50 
+                              transition-colors focus:ring-2 
+                              focus:ring-gray-400 focus:ring-offset-2
+                              inline-flex items-center font-medium">
+                        <i class="fas fa-undo mr-2" 
+                           aria-hidden="true"></i>
+                        Reset
+                    </a>
+                </div>
+            </form>
+        </section>
+
+        <!-- Subscriptions Table -->
+        <section aria-labelledby="subscriptions-table-heading" 
+                 class="bg-white rounded-xl shadow-sm 
+                        border border-gray-100 overflow-hidden">
+            <div class="p-6 border-b border-gray-200">
+                <h2 id="subscriptions-table-heading" 
+                    class="text-lg font-semibold text-gray-900 
+                           flex items-center">
+                    <i class="fas fa-list mr-2 text-primary-600" 
+                       aria-hidden="true"></i>
+                    Subscriptions List
+                </h2>
+            </div>
+            
+            <div class="overflow-x-auto p-5">
+                <table id="subscriptionsTable" 
+                       class="w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" 
+                                class="px-6 py-4 text-left text-xs 
+                                       font-medium text-gray-500 
+                                       uppercase tracking-wider">
+                                User
+                            </th>
+                            <th scope="col" 
+                                class="px-6 py-4 text-left text-xs 
+                                       font-medium text-gray-500 
+                                       uppercase tracking-wider">
+                                Plan
+                            </th>
+                            <th scope="col" 
+                                class="px-6 py-4 text-left text-xs 
+                                       font-medium text-gray-500 
+                                       uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th scope="col" 
+                                class="px-6 py-4 text-left text-xs 
+                                       font-medium text-gray-500 
+                                       uppercase tracking-wider">
+                                Start Date
+                            </th>
+                            <th scope="col" 
+                                class="px-6 py-4 text-left text-xs 
+                                       font-medium text-gray-500 
+                                       uppercase tracking-wider">
+                                End Date
+                            </th>
+                            <th scope="col" 
+                                class="px-6 py-4 text-left text-xs 
+                                       font-medium text-gray-500 
+                                       uppercase tracking-wider">
+                                Amount
+                            </th>
+                            <th scope="col" 
+                                class="px-6 py-4 text-left text-xs 
+                                       font-medium text-gray-500 
+                                       uppercase tracking-wider">
+                                Auto Renew
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for subscription in subscriptions %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <div class="h-10 w-10 rounded-full 
+                                                    bg-primary-100 flex 
+                                                    items-center 
+                                                    justify-center">
+                                            <span class="text-primary-600 
+                                                         font-semibold text-sm">
+                                                {% if subscription.user.first_name %}
+                                                    {{ subscription.user.first_name.0 }}{{ subscription.user.last_name.0|default:'' }}
+                                                {% else %}
+                                                    {{ subscription.user.username.0 }}
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium 
+                                                    text-gray-900">
+                                            {{ subscription.user.get_full_name|default:subscription.user.username }}
+                                        </div>
+                                        <div class="text-sm text-gray-500">
+                                            {{ subscription.user.email }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">
+                                    {{ subscription.plan.name }}
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    {{ subscription.plan.get_billing_cycle_display }}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if subscription.status == 'active' %}
+                                <span class="px-3 py-1 inline-flex text-xs 
+                                             leading-5 font-semibold 
+                                             rounded-full bg-green-100 
+                                             text-green-800">
+                                    <i class="fas fa-check-circle mr-1" 
+                                       aria-hidden="true"></i>
+                                    Active
+                                </span>
+                                {% elif subscription.status == 'cancelled' %}
+                                <span class="px-3 py-1 inline-flex text-xs 
+                                             leading-5 font-semibold 
+                                             rounded-full bg-orange-100 
+                                             text-orange-800">
+                                    <i class="fas fa-times-circle mr-1" 
+                                       aria-hidden="true"></i>
+                                    Cancelled
+                                </span>
+                                {% elif subscription.status == 'expired' %}
+                                <span class="px-3 py-1 inline-flex text-xs 
+                                             leading-5 font-semibold 
+                                             rounded-full bg-red-100 
+                                             text-red-800">
+                                    <i class="fas fa-ban mr-1" 
+                                       aria-hidden="true"></i>
+                                    Expired
+                                </span>
+                                {% else %}
+                                <span class="px-3 py-1 inline-flex text-xs 
+                                             leading-5 font-semibold 
+                                             rounded-full bg-gray-100 
+                                             text-gray-800">
+                                    {{ subscription.get_status_display }}
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">
+                                    {{ subscription.start_date|date:"M d, Y" }}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">
+                                    {{ subscription.end_date|date:"M d, Y" }}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-semibold text-gray-900">
+                                    ${{ subscription.plan.price|floatformat:2 }}
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    {{ subscription.plan.currency }}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                {% if subscription.auto_renew %}
+                                <span class="text-green-600 inline-flex 
+                                             items-center">
+                                    <i class="fas fa-check-circle mr-1" 
+                                       aria-hidden="true"></i>
+                                    Yes
+                                </span>
+                                {% else %}
+                                <span class="text-gray-500 inline-flex 
+                                             items-center">
+                                    <i class="fas fa-times-circle mr-1" 
+                                       aria-hidden="true"></i>
+                                    No
+                                </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="px-6 py-12 text-center">
+                                <div class="text-gray-400">
+                                    <i class="fas fa-inbox text-4xl mb-3 block" 
+                                       aria-hidden="true"></i>
+                                    <p class="text-lg font-medium">
+                                        No subscriptions found
+                                    </p>
+                                    <p class="text-sm mt-1">
+                                        Try adjusting your filters or 
+                                        search criteria
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Check if table has data
+    var hasData = $('#subscriptionsTable tbody tr').length > 0 && 
+                  !$('#subscriptionsTable tbody tr td[colspan]').length;
+    
+    // Initialize DataTable
+    var table = $('#subscriptionsTable').DataTable({
+        dom: 'Bfrtip',
+        buttons: hasData ? [
+            {
+                extend: 'excel',
+                text: '<i class="fas fa-file-excel mr-2"></i>Excel',
+                className: 'dt-button-excel',
+                exportOptions: {
+                    columns: ':visible'
+                },
+                title: 'Subscriptions - ' + 
+                       new Date().toLocaleDateString()
+            },
+            {
+                extend: 'csv',
+                text: '<i class="fas fa-file-csv mr-2"></i>CSV',
+                className: 'dt-button-csv',
+                exportOptions: {
+                    columns: ':visible'
+                },
+                title: 'Subscriptions - ' + 
+                       new Date().toLocaleDateString()
+            },
+            {
+                extend: 'pdf',
+                text: '<i class="fas fa-file-pdf mr-2"></i>PDF',
+                className: 'dt-button-pdf',
+                exportOptions: {
+                    columns: ':visible'
+                },
+                title: 'Subscriptions',
+                orientation: 'landscape',
+                pageSize: 'A4'
+            },
+            {
+                extend: 'print',
+                text: '<i class="fas fa-print mr-2"></i>Print',
+                className: 'dt-button-print',
+                exportOptions: {
+                    columns: ':visible'
+                },
+                title: 'Subscriptions'
+            }
+        ] : [],
+        responsive: true,
+        pageLength: 25,
+        order: [[3, 'desc']],
+        language: {
+            search: "_INPUT_",
+            searchPlaceholder: "Search subscriptions...",
+            lengthMenu: "Show _MENU_ entries per page",
+            info: "Showing _START_ to _END_ of _TOTAL_ subscriptions",
+            infoEmpty: "No subscriptions to display",
+            infoFiltered: "(filtered from _MAX_ total subscriptions)",
+            emptyTable: "No subscription data available",
+            zeroRecords: "No matching subscriptions found",
+            paginate: {
+                first: "First",
+                last: "Last",
+                next: "Next",
+                previous: "Previous"
+            }
+        },
+        columnDefs: [
+            { orderable: true, targets: '_all' }
+        ]
+    });
+
+    // Style DataTable buttons
+    $('.dt-buttons').addClass('flex flex-wrap gap-2 mb-4');
+    $('.dt-button').addClass(
+        'px-4 py-2 bg-white border border-gray-300 text-gray-700 ' +
+        'rounded-lg hover:bg-gray-50 transition-colors text-sm ' +
+        'font-medium focus:ring-2 focus:ring-primary-500 ' +
+        'focus:ring-offset-1'
+    );
+});
+</script>
+
+<style>
+/* DataTables Styling */
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter,
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_paginate {
+    padding: 0.5rem 0;
+}
+
+.dataTables_wrapper .dataTables_length select {
+    @apply rounded-lg border-gray-300 
+           focus:ring-2 focus:ring-primary-500 
+           focus:border-primary-500 text-sm px-3 py-2;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    @apply rounded-lg border-gray-300 
+           focus:ring-2 focus:ring-primary-500 
+           focus:border-primary-500 ml-2 text-sm px-3 py-2;
+}
+
+.dataTables_wrapper .dataTables_info {
+    @apply text-sm text-gray-700;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+    @apply flex items-center gap-1;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    @apply px-3 py-2 border border-gray-300 bg-white 
+           text-gray-700 hover:bg-gray-50 rounded-md 
+           transition-colors text-sm font-medium;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    @apply bg-primary-600 text-white border-primary-600 
+           hover:bg-primary-700;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+    @apply opacity-50 cursor-not-allowed hover:bg-white;
+}
+
+.dt-buttons {
+    margin-bottom: 1rem !important;
+}
+
+@media (max-width: 640px) {
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter {
+        padding: 0.5rem 0;
+    }
+    
+    .dt-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .dt-button {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}

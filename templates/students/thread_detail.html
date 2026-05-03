@@ -1,0 +1,160 @@
+{% extends "management/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - MIU Student Portal{% endblock %}
+
+{% block extra_meta %}
+<meta name="description" content="{{ thread.title }} - Community discussion thread">
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
+{% block content %}
+<div class="max-w-12xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Back Button -->
+    <div class="mb-6">
+        <a href="{% url 'students:community' %}" 
+           class="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to Community
+        </a>
+    </div>
+
+    <!-- Thread Header -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <div class="flex items-start gap-4">
+            <!-- Avatar -->
+            <div class="flex-shrink-0">
+                <div class="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center">
+                    <i class="fas fa-user text-primary-600 text-2xl"></i>
+                </div>
+            </div>
+
+            <!-- Thread Info -->
+            <div class="flex-1 min-w-0">
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">
+                        {% if thread.is_pinned %}
+                        <i class="fas fa-thumbtack text-primary-600 mr-2"></i>
+                        {% endif %}
+                        {{ thread.title }}
+                    </h1>
+                    {% if thread.course %}
+                    <span class="inline-flex px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium whitespace-nowrap">
+                        {{ thread.course.title|truncatewords:3 }}
+                    </span>
+                    {% endif %}
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3 sm:gap-4 text-sm text-gray-600 mb-4">
+                    <span class="flex items-center gap-1">
+                        <i class="fas fa-user" aria-hidden="true"></i>
+                        {{ thread.author.get_full_name|default:thread.author.username }}
+                    </span>
+                    <span class="flex items-center gap-1">
+                        <i class="fas fa-clock" aria-hidden="true"></i>
+                        <time datetime="{{ thread.created_at|date:'c' }}">
+                            {{ thread.created_at|timesince }} ago
+                        </time>
+                    </span>
+                    <span class="flex items-center gap-1">
+                        <i class="fas fa-comment" aria-hidden="true"></i>
+                        {{ replies.count }} replies
+                    </span>
+                    <span class="flex items-center gap-1">
+                        <i class="fas fa-eye" aria-hidden="true"></i>
+                        {{ thread.views_count }} views
+                    </span>
+                </div>
+
+                <div class="prose max-w-none text-gray-700">
+                    {{ thread.content|linebreaks }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Replies -->
+    <div class="space-y-4 mb-6">
+        <h2 class="text-xl font-bold text-gray-900">
+            Replies ({{ replies.count }})
+        </h2>
+
+        {% if replies %}
+        {% for reply in replies %}
+        <article class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-start gap-4">
+                <!-- Avatar -->
+                <div class="flex-shrink-0">
+                    <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                        <i class="fas fa-user text-gray-600 text-xl"></i>
+                    </div>
+                </div>
+
+                <!-- Reply Content -->
+                <div class="flex-1 min-w-0">
+                    <div class="flex flex-wrap items-center gap-3 mb-2">
+                        <span class="font-semibold text-gray-900">
+                            {{ reply.author.get_full_name|default:reply.author.username }}
+                        </span>
+                        <span class="text-sm text-gray-500">
+                            <time datetime="{{ reply.created_at|date:'c' }}">
+                                {{ reply.created_at|timesince }} ago
+                            </time>
+                        </span>
+                        {% if reply.is_solution %}
+                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
+                            <i class="fas fa-check mr-1"></i>Solution
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="prose max-w-none text-gray-700">
+                        {{ reply.content|linebreaks }}
+                    </div>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+        {% else %}
+        <div class="bg-gray-50 rounded-xl p-8 text-center">
+            <p class="text-gray-600">No replies yet. Be the first to reply!</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Reply Form -->
+    {% if not thread.is_locked %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-bold text-gray-900 mb-4">Post a Reply</h3>
+
+        {% if messages %}
+        <div class="mb-4 space-y-2">
+            {% for message in messages %}
+            <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200{% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}" role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            {{ reply_form.as_p }}
+            
+            <div class="flex justify-end">
+                <button type="submit" 
+                        class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                    <i class="fas fa-paper-plane mr-2"></i>
+                    Post Reply
+                </button>
+            </div>
+        </form>
+    </div>
+    {% else %}
+    <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center">
+        <i class="fas fa-lock text-yellow-600 text-3xl mb-2"></i>
+        <p class="text-yellow-800 font-medium">This discussion has been locked and no longer accepts new replies.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,549 @@
+{% extends 'management/base.html' %}
+{% block title %}Required Payments · Admin{% endblock %}
+
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8 py-6 max-w-full mx-auto">
+
+  {# ── Page header ── #}
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold font-heading text-gray-900">Required Payments</h1>
+      <p class="text-sm text-gray-500 mt-0.5">Define mandatory fees per program and session</p>
+    </div>
+    <button type="button" onclick="RP.open()"
+            class="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600
+                   hover:bg-primary-700 active:bg-primary-800 text-white text-sm
+                   font-semibold rounded-lg transition focus:outline-none
+                   focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+      <i class="fas fa-plus fa-xs" aria-hidden="true"></i>
+      Add Payment
+    </button>
+  </div>
+
+  {# ── Filters ── #}
+  <form method="get"
+        class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-5">
+    <div class="flex flex-col sm:flex-row gap-3">
+      <div class="relative flex-1">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2
+                  text-gray-400 text-sm pointer-events-none" aria-hidden="true"></i>
+        <input type="search" name="search"
+               value="{{ request.GET.search|default:'' }}"
+               placeholder="Purpose or program name…"
+               aria-label="Search required payments"
+               class="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg
+                      text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none">
+      </div>
+      <select name="active" aria-label="Filter by status"
+              class="sm:w-36 px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                     bg-white focus:ring-2 focus:ring-primary-500 focus:outline-none">
+        <option value="">All</option>
+        <option value="1" {% if request.GET.active == '1' %}selected{% endif %}>Active</option>
+        <option value="0" {% if request.GET.active == '0' %}selected{% endif %}>Inactive</option>
+      </select>
+      <button type="submit"
+              class="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white
+                     text-sm font-semibold rounded-lg transition focus:outline-none
+                     focus:ring-2 focus:ring-primary-500 whitespace-nowrap">
+        Filter
+      </button>
+      {% if request.GET.search or request.GET.active %}
+        <a href="{% url 'management:required_payments_list' %}"
+           class="px-5 py-2.5 border border-gray-300 text-gray-600 rounded-lg
+                  text-sm hover:bg-gray-50 transition whitespace-nowrap flex items-center">
+          Clear
+        </a>
+      {% endif %}
+    </div>
+  </form>
+
+  {# ── Full-width table ── #}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[640px] text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200">
+          <tr>
+            <th scope="col"
+                class="px-5 py-3 text-left text-xs font-semibold text-gray-600
+                       uppercase tracking-wide">
+              Program
+            </th>
+            <th scope="col"
+                class="px-5 py-3 text-left text-xs font-semibold text-gray-600
+                       uppercase tracking-wide">
+              Purpose
+            </th>
+            <th scope="col"
+                class="px-5 py-3 text-left text-xs font-semibold text-gray-600
+                       uppercase tracking-wide hidden sm:table-cell">
+              Session / Semester
+            </th>
+            <th scope="col"
+                class="px-5 py-3 text-right text-xs font-semibold text-gray-600
+                       uppercase tracking-wide">
+              Amount
+            </th>
+            <th scope="col"
+                class="px-5 py-3 text-left text-xs font-semibold text-gray-600
+                       uppercase tracking-wide hidden md:table-cell">
+              Due Date
+            </th>
+            <th scope="col"
+                class="px-5 py-3 text-left text-xs font-semibold text-gray-600
+                       uppercase tracking-wide hidden sm:table-cell">
+              Status
+            </th>
+            <th scope="col"
+                class="px-5 py-3 text-right text-xs font-semibold text-gray-600
+                       uppercase tracking-wide w-24">
+              <span class="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for pay in payments %}
+          <tr class="hover:bg-gray-50/60 transition-colors">
+
+            <td class="px-5 py-3">
+              <p class="font-medium text-gray-900">{{ pay.program.name }}</p>
+              <p class="text-xs text-gray-400 font-mono">{{ pay.program.code }}</p>
+            </td>
+
+            <td class="px-5 py-3">
+              <p class="text-gray-800">{{ pay.purpose }}</p>
+              <p class="text-xs text-gray-400">{{ pay.get_who_to_pay_display }}</p>
+            </td>
+
+            <td class="px-5 py-3 hidden sm:table-cell text-sm text-gray-600">
+              {% if pay.academic_session %}
+                {{ pay.academic_session.name }}
+              {% else %}
+                <span class="text-gray-300">—</span>
+              {% endif %}
+              {% if pay.semester %}
+                <span class="text-xs text-gray-400 ml-1">
+                  · {{ pay.get_semester_display }}
+                </span>
+              {% endif %}
+            </td>
+
+            <td class="px-5 py-3 text-right whitespace-nowrap">
+              <span class="font-semibold text-gray-800">
+                {{ pay.currency|default:"USD" }} {{ pay.amount|floatformat:2 }}
+              </span>
+            </td>
+
+            <td class="px-5 py-3 text-sm text-gray-600 hidden md:table-cell whitespace-nowrap">
+              {{ pay.due_date|date:"M d, Y" }}
+            </td>
+
+            <td class="px-5 py-3 hidden sm:table-cell whitespace-nowrap">
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium border
+                {% if pay.is_active %}
+                  bg-green-50 text-green-700 border-green-200
+                {% else %}
+                  bg-gray-100 text-gray-500 border-gray-200
+                {% endif %}">
+                {% if pay.is_active %}Active{% else %}Inactive{% endif %}
+              </span>
+            </td>
+
+            <td class="px-5 py-3 text-right whitespace-nowrap">
+              <button type="button"
+                      onclick="RP.open('{{ pay.pk }}')"
+                      class="px-2.5 py-1.5 text-xs font-medium text-primary-600
+                             hover:bg-primary-50 rounded-lg transition
+                             focus:outline-none focus:ring-2 focus:ring-primary-400"
+                      aria-label="Edit payment {{ pay.pk }}">
+                <i class="fas fa-pen-to-square" aria-hidden="true"></i>
+                <span class="hidden sm:inline ml-1">Edit</span>
+              </button>
+              <form method="post"
+                    action="{% url 'management:required_payment_delete' pay.pk %}"
+                    class="inline"
+                    onsubmit="return RP.confirmDelete(event,
+                      '{{ pay.purpose|escapejs }}')">
+                {% csrf_token %}
+                <button type="submit"
+                        class="px-2.5 py-1.5 text-xs font-medium text-red-500
+                               hover:bg-red-50 rounded-lg transition
+                               focus:outline-none focus:ring-2 focus:ring-red-400"
+                        aria-label="Delete payment {{ pay.pk }}">
+                  <i class="fas fa-trash" aria-hidden="true"></i>
+                  <span class="hidden sm:inline ml-1">Delete</span>
+                </button>
+              </form>
+            </td>
+
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="px-6 py-16 text-center text-gray-400">
+              <i class="fas fa-money-bill-wave text-4xl opacity-25 block mb-3"
+                 aria-hidden="true"></i>
+              {% if request.GET.search or request.GET.active %}
+                No payments match your filters.
+              {% else %}
+                No required payments defined yet.
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# Pagination #}
+    {% if payments.has_other_pages %}
+    <div class="px-5 py-3 border-t border-gray-100 flex flex-wrap items-center
+                justify-between gap-2 text-sm text-gray-600">
+      <span>
+        Page {{ payments.number }} of {{ payments.paginator.num_pages }}
+      </span>
+      <nav aria-label="Payments pagination" class="flex gap-1">
+        {% if payments.has_previous %}
+          <a href="?page={{ payments.previous_page_number }}&search={{ request.GET.search|default:'' }}&active={{ request.GET.active|default:'' }}"
+             class="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50">
+            &laquo;
+          </a>
+        {% endif %}
+        {% for n in payments.paginator.page_range %}
+          {% if payments.number == n %}
+            <span class="px-3 py-1.5 bg-primary-600 text-white rounded-lg font-medium">
+              {{ n }}
+            </span>
+          {% elif n > payments.number|add:"-3" and n < payments.number|add:"3" %}
+            <a href="?page={{ n }}&search={{ request.GET.search|default:'' }}&active={{ request.GET.active|default:'' }}"
+               class="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50">
+              {{ n }}
+            </a>
+          {% endif %}
+        {% endfor %}
+        {% if payments.has_next %}
+          <a href="?page={{ payments.next_page_number }}&search={{ request.GET.search|default:'' }}&active={{ request.GET.active|default:'' }}"
+             class="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50">
+            &raquo;
+          </a>
+        {% endif %}
+      </nav>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+{# ══════════════════════════════ MODAL ══════════════════════════════ #}
+<div id="rp-modal"
+     role="dialog" aria-modal="true" aria-labelledby="rp-modal-title"
+     class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"
+       onclick="RP.close()" aria-hidden="true"></div>
+
+  <div class="absolute inset-0 flex items-start sm:items-center justify-center
+              p-4 sm:p-6 pointer-events-none overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl my-4
+                pointer-events-auto">
+
+      <div class="flex items-center justify-between px-6 py-4 border-b
+                  border-gray-100 sticky top-0 bg-white rounded-t-2xl z-10">
+        <h2 id="rp-modal-title"
+            class="text-lg font-bold font-heading text-gray-800">
+          Add Required Payment
+        </h2>
+        <button type="button" onclick="RP.close()"
+                class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition
+                       focus:outline-none focus:ring-2 focus:ring-gray-400"
+                aria-label="Close modal">
+          <i class="fas fa-xmark text-lg" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <form id="rp-form" method="post"
+            action="{% url 'management:required_payment_create' %}"
+            class="p-6 space-y-5" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div role="alert"
+               class="px-3 py-2.5 bg-red-50 border border-red-200
+                      rounded-lg text-red-700 text-sm">
+            {{ form.non_field_errors }}
+          </div>
+        {% endif %}
+
+        {# Program datalist #}
+        <div>
+          <label for="rp-prog-input"
+                 class="block text-xs font-semibold text-gray-600
+                        uppercase tracking-wide mb-1.5">
+            Program <span class="text-red-500" aria-hidden="true">*</span>
+          </label>
+          <input id="rp-prog-input"
+                 type="text" autocomplete="off"
+                 placeholder="Type program name or code…"
+                 list="rp-prog-list"
+                 class="w-full px-4 py-2.5 border border-gray-300 rounded-lg
+                        text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none">
+          <input type="hidden" id="rp-prog-id" name="program">
+          <datalist id="rp-prog-list">
+            {% for prog in programs %}
+              <option data-id="{{ prog.pk }}"
+                      value="{{ prog.name }} ({{ prog.code }})">
+              </option>
+            {% endfor %}
+          </datalist>
+          {% if form.program.errors %}
+            <p class="mt-1 text-xs text-red-600" role="alert">
+              {{ form.program.errors.0 }}
+            </p>
+          {% endif %}
+        </div>
+
+        {# Session / Semester #}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="{{ form.academic_session.id_for_label }}"
+                   class="block text-xs font-semibold text-gray-600
+                          uppercase tracking-wide mb-1.5">
+              Academic Session
+            </label>
+            {{ form.academic_session }}
+          </div>
+          <div>
+            <label for="{{ form.semester.id_for_label }}"
+                   class="block text-xs font-semibold text-gray-600
+                          uppercase tracking-wide mb-1.5">
+              Semester
+            </label>
+            {{ form.semester }}
+          </div>
+        </div>
+
+        {# Course datalist (optional) #}
+        <div>
+          <label for="rp-course-input"
+                 class="block text-xs font-semibold text-gray-600
+                        uppercase tracking-wide mb-1.5">
+            Course
+            <span class="text-gray-400 font-normal normal-case text-xs">
+              (optional)
+            </span>
+          </label>
+          <input id="rp-course-input"
+                 type="text" autocomplete="off"
+                 placeholder="Type course code or name…"
+                 list="rp-course-list"
+                 class="w-full px-4 py-2.5 border border-gray-300 rounded-lg
+                        text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none">
+          <input type="hidden" id="rp-course-id" name="course">
+          <datalist id="rp-course-list">
+            {% for c in courses %}
+              <option data-id="{{ c.pk }}"
+                      value="{{ c.code }} — {{ c.name }}">
+              </option>
+            {% endfor %}
+          </datalist>
+        </div>
+
+        {# Purpose / Who to Pay #}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="{{ form.purpose.id_for_label }}"
+                   class="block text-xs font-semibold text-gray-600
+                          uppercase tracking-wide mb-1.5">
+              Purpose <span class="text-red-500" aria-hidden="true">*</span>
+            </label>
+            {{ form.purpose }}
+            {% if form.purpose.errors %}
+              <p class="mt-1 text-xs text-red-600" role="alert">
+                {{ form.purpose.errors.0 }}
+              </p>
+            {% endif %}
+          </div>
+          <div>
+            <label for="{{ form.who_to_pay.id_for_label }}"
+                   class="block text-xs font-semibold text-gray-600
+                          uppercase tracking-wide mb-1.5">
+              Who to Pay <span class="text-red-500" aria-hidden="true">*</span>
+            </label>
+            {{ form.who_to_pay }}
+          </div>
+        </div>
+
+        {# Amount / Currency / Due Date #}
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label for="{{ form.amount.id_for_label }}"
+                   class="block text-xs font-semibold text-gray-600
+                          uppercase tracking-wide mb-1.5">
+              Amount <span class="text-red-500" aria-hidden="true">*</span>
+            </label>
+            {{ form.amount }}
+          </div>
+          <div>
+            <label for="{{ form.currency.id_for_label }}"
+                   class="block text-xs font-semibold text-gray-600
+                          uppercase tracking-wide mb-1.5">
+              Currency
+            </label>
+            {{ form.currency }}
+          </div>
+          <div>
+            <label for="{{ form.due_date.id_for_label }}"
+                   class="block text-xs font-semibold text-gray-600
+                          uppercase tracking-wide mb-1.5">
+              Due Date <span class="text-red-500" aria-hidden="true">*</span>
+            </label>
+            {{ form.due_date }}
+          </div>
+        </div>
+
+        {# Active toggle #}
+        <div class="flex items-center gap-2.5 px-3 py-2.5 bg-gray-50 rounded-lg
+                    border border-gray-200">
+          {{ form.is_active }}
+          <label for="{{ form.is_active.id_for_label }}"
+                 class="text-sm text-gray-700 font-medium cursor-pointer select-none">
+            Active
+          </label>
+        </div>
+
+        {# Actions #}
+        <div class="flex gap-3 pt-1 border-t border-gray-100">
+          <button type="submit" id="rp-submit"
+                  class="flex-1 px-4 py-2.5 bg-primary-600 hover:bg-primary-700
+                         text-white text-sm font-semibold rounded-lg transition
+                         focus:outline-none focus:ring-2 focus:ring-offset-2
+                         focus:ring-primary-500">
+            Save Payment
+          </button>
+          <button type="button" onclick="RP.close()"
+                  class="px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                         font-medium text-gray-600 hover:bg-gray-50 transition
+                         focus:outline-none focus:ring-2 focus:ring-gray-400">
+            Cancel
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+{# Edit data stores #}
+{% for pay in payments %}
+<template id="rpd-{{ pay.pk }}"
+  data-action="{% url 'management:required_payment_edit' pay.pk %}"
+  data-prog-label="{{ pay.program.name|escapejs }} ({{ pay.program.code|escapejs }})"
+  data-prog-id="{{ pay.program.pk }}"
+  data-session="{{ pay.academic_session.pk|default:'' }}"
+  data-semester="{{ pay.semester }}"
+  data-course-label="{% if pay.course %}{{ pay.course.code|escapejs }} — {{ pay.course.name|escapejs }}{% endif %}"
+  data-course-id="{{ pay.course.pk|default:'' }}"
+  data-purpose="{{ pay.purpose|escapejs }}"
+  data-who="{{ pay.who_to_pay }}"
+  data-amount="{{ pay.amount }}"
+  data-currency="{{ pay.currency|default:'USD' }}"
+  data-due="{{ pay.due_date|date:'Y-m-d' }}"
+  data-active="{{ pay.is_active|yesno:'true,false' }}">
+</template>
+{% endfor %}
+
+<script>
+var RP = (function () {
+  'use strict';
+  var CREATE     = '{% url "management:required_payment_create" %}';
+  var modal      = document.getElementById('rp-modal');
+  var form       = document.getElementById('rp-form');
+  var title      = document.getElementById('rp-modal-title');
+  var submit     = document.getElementById('rp-submit');
+  var progInput  = document.getElementById('rp-prog-input');
+  var progId     = document.getElementById('rp-prog-id');
+  var crsInput   = document.getElementById('rp-course-input');
+  var crsId      = document.getElementById('rp-course-id');
+
+  function wire(textEl, hiddenEl, listId) {
+    textEl.addEventListener('change', function () {
+      var list = document.getElementById(listId);
+      var val  = textEl.value.trim();
+      hiddenEl.value = '';
+      for (var i = 0; i < list.options.length; i++) {
+        if (list.options[i].value === val) {
+          hiddenEl.value = list.options[i].getAttribute('data-id');
+          break;
+        }
+      }
+    });
+  }
+  wire(progInput, progId, 'rp-prog-list');
+  wire(crsInput,  crsId,  'rp-course-list');
+
+  function f(n) { return form.querySelector('[name="' + n + '"]'); }
+
+  function open(pk) {
+    if (pk) {
+      var t = document.getElementById('rpd-' + pk);
+      if (!t) return;
+      var d = t.dataset;
+      title.textContent  = 'Edit Required Payment';
+      submit.textContent = 'Update Payment';
+      form.action        = d.action;
+      progInput.value    = d.progLabel;
+      progId.value       = d.progId;
+      crsInput.value     = d.courseLabel;
+      crsId.value        = d.courseId;
+      f('academic_session').value = d.session;
+      f('semester').value         = d.semester;
+      f('purpose').value          = d.purpose;
+      f('who_to_pay').value       = d.who;
+      f('amount').value           = d.amount;
+      f('currency').value         = d.currency;
+      f('due_date').value         = d.due;
+      f('is_active').checked      = d.active === 'true';
+    } else {
+      title.textContent  = 'Add Required Payment';
+      submit.textContent = 'Save Payment';
+      form.action        = CREATE;
+      form.reset();
+      progInput.value = '';
+      progId.value    = '';
+      crsInput.value  = '';
+      crsId.value     = '';
+    }
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    progInput.focus();
+  }
+
+  function close() {
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+    form.reset();
+    progInput.value = '';
+    progId.value    = '';
+    crsInput.value  = '';
+    crsId.value     = '';
+  }
+
+  function confirmDelete(e, name) {
+    e.preventDefault();
+    var frm = e.currentTarget;
+    Swal.fire({
+      title: 'Delete payment?',
+      html: '"<strong>' + name + '</strong>" will be removed.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Yes, delete',
+    }).then(function (r) { if (r.isConfirmed) frm.submit(); });
+    return false;
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') close();
+  });
+
+  return { open: open, close: close, confirmDelete: confirmDelete };
+}());
+</script>
+{% endblock %}

@@ -1,0 +1,189 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Grade Response — {{ exam.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-3 sm:px-5">
+
+    <!-- Breadcrumb -->
+    <nav class="flex mb-5 overflow-x-auto" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center gap-1.5 text-xs whitespace-nowrap text-gray-500">
+            <li><a href="{% url 'instructor:dashboard' %}" class="hover:text-primary-600">Dashboard</a></li>
+            <li class="flex items-center gap-1.5"><i class="fas fa-chevron-right text-gray-300 text-[10px]"></i>
+                <a href="{% url 'instructor:exam_list' %}" class="hover:text-primary-600">My Exams</a></li>
+            <li class="flex items-center gap-1.5"><i class="fas fa-chevron-right text-gray-300 text-[10px]"></i>
+                <a href="{% url 'instructor:exam_detail' slug=exam.slug %}?tab=results" class="hover:text-primary-600">{{ exam.title }}</a></li>
+            <li class="flex items-center gap-1.5"><i class="fas fa-chevron-right text-gray-300 text-[10px]"></i>
+                <span class="text-gray-700 font-medium">Grade Response</span></li>
+        </ol>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mb-5 space-y-2">
+        {% for message in messages %}
+        <div class="flex items-start gap-3 px-4 py-3 rounded-lg border
+            {% if message.tags == 'error' %}bg-red-50 border-red-200 text-red-800
+            {% elif message.tags == 'success' %}bg-green-50 border-green-200 text-green-800
+            {% else %}bg-blue-50 border-blue-200 text-blue-800{% endif %}">
+            <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle text-red-500{% elif message.tags == 'success' %}fa-check-circle text-green-500{% else %}fa-info-circle text-blue-500{% endif %} mt-0.5 flex-shrink-0"></i>
+            <p class="text-sm">{{ message }}</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Student + score header card -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-4 mb-6 flex flex-wrap gap-4 items-center justify-between">
+        <div>
+            <p class="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Student</p>
+            <p class="font-semibold text-gray-900">{{ response.student.get_full_name|default:response.student.username }}</p>
+            <p class="text-xs text-gray-400">{{ response.student.username }}</p>
+        </div>
+        <div class="text-center">
+            <p class="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Status</p>
+            <span class="px-3 py-1 rounded-full text-xs font-semibold
+                {% if response.status == 'graded' %}bg-green-100 text-green-800
+                {% elif response.status == 'submitted' %}bg-blue-100 text-blue-800
+                {% else %}bg-gray-100 text-gray-600{% endif %}">
+                {{ response.get_status_display }}
+            </span>
+        </div>
+        <div class="text-center">
+            <p class="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Score So Far</p>
+            <p class="text-lg font-bold text-gray-800">
+                {{ response.total_score|default:"—" }} / {{ exam.total_marks }}
+            </p>
+            {% if response.score_percentage is not None %}
+            <p class="text-xs {% if response.passed %}text-green-600{% else %}text-red-500{% endif %}">
+                {{ response.score_percentage|floatformat:1 }}%
+                ({% if response.passed %}Pass{% elif response.passed == False %}Fail{% else %}Pending{% endif %})
+            </p>
+            {% endif %}
+        </div>
+        {% if response.pending_manual_count %}
+        <div class="text-center">
+            <p class="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Pending</p>
+            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">
+                {{ response.pending_manual_count }} question{{ response.pending_manual_count|pluralize }}
+            </span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Grade form -->
+    <form method="post">
+        {% csrf_token %}
+        <div class="space-y-4">
+
+        {% for row in rows %}
+        <div class="bg-white rounded-xl border shadow-sm overflow-hidden
+            {% if row.is_pending %}border-orange-300{% else %}border-gray-200{% endif %}">
+
+            <!-- Question header -->
+            <div class="px-5 py-3 border-b flex items-center justify-between gap-3
+                {% if row.is_pending %}bg-orange-50 border-orange-200{% else %}bg-gray-50 border-gray-100{% endif %}">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full
+                        {% if row.is_pending %}bg-orange-200 text-orange-800{% else %}bg-gray-200 text-gray-700{% endif %}">
+                        {{ row.question.get_question_type_display }}
+                    </span>
+                    <span class="text-xs text-gray-500">{{ row.max_marks }} mark{{ row.max_marks|pluralize }}</span>
+                </div>
+                {% if not row.is_pending %}
+                <span class="text-xs font-semibold {% if row.entry.is_correct %}text-green-700{% else %}text-red-600{% endif %}">
+                    {% if row.entry.is_correct %}✓ Correct{% else %}✗ Incorrect{% endif %}
+                    · {{ row.marks_awarded }}/{{ row.max_marks }}
+                </span>
+                {% else %}
+                <span class="text-xs text-orange-600 font-semibold">⚠ Needs grading</span>
+                {% endif %}
+            </div>
+
+            <!-- Body -->
+            <div class="px-5 py-4 space-y-3">
+
+                <!-- Question text -->
+                <p class="text-sm font-medium text-gray-800">{{ row.question.question_text }}</p>
+
+                <!-- Options (for MCQ/T-F/multi) -->
+                {% if row.question.options %}
+                <div class="space-y-1 pl-2">
+                    {% for opt in row.question.options %}
+                    <div class="flex items-center gap-2 text-sm
+                        {% if opt.is_correct %}text-green-700 font-medium{% else %}text-gray-600{% endif %}">
+                        <i class="fas {% if opt.is_correct %}fa-check-circle text-green-500{% else %}fa-circle text-gray-300{% endif %} text-xs flex-shrink-0"></i>
+                        <span>{{ opt.text }}</span>
+                        {% if row.student_answer == opt.id or opt.id in row.student_answer|default:'' %}
+                        <span class="ml-1 text-xs px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">Student's answer</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Student's text answer (short_answer / essay) -->
+                {% if row.student_answer and not row.question.options %}
+                <div class="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+                    <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Student's Answer</p>
+                    <p class="text-sm text-gray-800 whitespace-pre-wrap">{{ row.student_answer }}</p>
+                </div>
+                {% elif not row.student_answer and not row.question.options %}
+                <p class="text-xs text-gray-400 italic">No answer provided.</p>
+                {% endif %}
+
+                <!-- Explanation (if set) -->
+                {% if row.question.explanation %}
+                <div class="bg-blue-50 border border-blue-100 rounded-lg px-4 py-2">
+                    <p class="text-xs text-blue-600 font-medium mb-0.5">Model Answer / Explanation</p>
+                    <p class="text-sm text-blue-800">{{ row.question.explanation }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Manual grade input — only for pending questions -->
+                {% if row.is_pending %}
+                <div class="mt-3 flex items-center gap-3 flex-wrap">
+                    <label class="text-sm font-medium text-gray-700" for="marks_{{ row.question.id }}">
+                        Marks awarded:
+                    </label>
+                    <input type="number"
+                           id="marks_{{ row.question.id }}"
+                           name="marks_{{ row.question.id }}"
+                           min="0" max="{{ row.max_marks }}" step="0.5"
+                           placeholder="0 – {{ row.max_marks }}"
+                           class="w-28 px-3 py-1.5 border border-orange-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
+                    <span class="text-sm text-gray-500">out of {{ row.max_marks }}</span>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+        {% endfor %}
+
+        </div><!-- /space-y-4 -->
+
+        <!-- Save button — only shown when there are pending questions -->
+        {% if response.pending_manual_count %}
+        <div class="mt-6 flex items-center justify-between gap-4 flex-wrap">
+            <a href="{% url 'instructor:exam_detail' slug=exam.slug %}?tab=results"
+               class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium">
+                <i class="fas fa-arrow-left"></i> Back to Results
+            </a>
+            <button type="submit"
+                    class="inline-flex items-center gap-2 px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-semibold shadow-sm">
+                <i class="fas fa-save"></i> Save Marks &amp; Recompute Score
+            </button>
+        </div>
+        {% else %}
+        <div class="mt-6">
+            <a href="{% url 'instructor:exam_detail' slug=exam.slug %}?tab=results"
+               class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium">
+                <i class="fas fa-arrow-left"></i> Back to Results
+            </a>
+        </div>
+        {% endif %}
+    </form>
+
+</div>
+{% endblock %}

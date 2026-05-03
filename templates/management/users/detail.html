@@ -1,0 +1,438 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}{{ user.get_full_name|default:user.username }} - User Details{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header with Actions -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div class="flex items-center gap-4">
+            <a href="{% url 'management:users_list' %}" 
+               class="p-2 hover:bg-gray-100 rounded-lg transition-all">
+                <i class="fas fa-arrow-left text-gray-600"></i>
+            </a>
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 font-display">User Details</h1>
+                <p class="text-gray-600 mt-1">View and manage user information</p>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'management:user_edit' user.id %}" 
+               class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all flex items-center">
+                <i class="fas fa-edit mr-2"></i>
+                Edit User
+            </a>
+            {% if user.id != request.user.id %}
+            <button type="button"
+                    onclick="toggleUserStatus({{ user.id }}, {{ user.is_active|lower }})"
+                    class="px-4 py-2 {% if user.is_active %}bg-orange-600 hover:bg-orange-700{% else %}bg-green-600 hover:bg-green-700{% endif %} text-white rounded-lg transition-all flex items-center">
+                <i class="fas fa-{% if user.is_active %}pause{% else %}play{% endif %}-circle mr-2"></i>
+                {% if user.is_active %}Deactivate{% else %}Activate{% endif %}
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- User Profile Card -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-primary-500 to-secondary-500 h-32"></div>
+        <div class="px-6 pb-6">
+            <div class="flex flex-col md:flex-row items-start md:items-end gap-6 -mt-16">
+                <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-white">
+                    {% if user.profile.avatar %}
+                        <img src="{{ user.profile.avatar.url }}" 
+                             alt="{{ user.get_full_name }}" 
+                             class="w-full h-full object-cover">
+                    {% else %}
+                        <img src="https://ui-avatars.com/api/?name={{ user.get_full_name|urlencode }}&background=4a6bff&color=fff&size=128" 
+                             alt="{{ user.get_full_name }}" 
+                             class="w-full h-full object-cover">
+                    {% endif %}
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-2">
+                        <h2 class="text-2xl font-bold text-gray-900">
+                            {{ user.get_full_name|default:user.username }}
+                        </h2>
+                        {% if user.is_active %}
+                            <span class="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700">
+                                <i class="fas fa-check-circle mr-1"></i> Active
+                            </span>
+                        {% else %}
+                            <span class="px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-700">
+                                <i class="fas fa-times-circle mr-1"></i> Inactive
+                            </span>
+                        {% endif %}
+                        {% if user.is_staff %}
+                            <span class="px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-700">
+                                <i class="fas fa-shield-alt mr-1"></i> Staff
+                            </span>
+                        {% endif %}
+                    </div>
+                    <p class="text-gray-600">@{{ user.username }}</p>
+                    <div class="flex flex-wrap gap-4 mt-3 text-sm text-gray-600">
+                        <span><i class="fas fa-envelope mr-2"></i>{{ user.email }}</span>
+                        <span><i class="fas fa-calendar mr-2"></i>Joined {{ user.date_joined|date:"F d, Y" }}</span>
+                        {% if user.profile.phone %}
+                        <span><i class="fas fa-phone mr-2"></i>{{ user.profile.phone }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- User Information -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Basic Information -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-user mr-3 text-primary-600"></i>
+                    Basic Information
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Username</p>
+                        <p class="text-gray-900 mt-1">{{ user.username }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Email</p>
+                        <p class="text-gray-900 mt-1">{{ user.email }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">First Name</p>
+                        <p class="text-gray-900 mt-1">{{ user.first_name|default:"Not provided" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Last Name</p>
+                        <p class="text-gray-900 mt-1">{{ user.last_name|default:"Not provided" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Date of Birth</p>
+                        <p class="text-gray-900 mt-1">{{ user.profile.date_of_birth|date:"F d, Y"|default:"Not provided" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Phone</p>
+                        <p class="text-gray-900 mt-1">{{ user.profile.phone|default:"Not provided" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Role & Permissions -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-gray-900 flex items-center">
+                        <i class="fas fa-user-shield mr-3 text-primary-600"></i>
+                        Role & Permissions
+                    </h3>
+                    <button type="button" 
+                            onclick="openRoleModal({{ user.id }}, '{{ user.profile.role }}')"
+                            class="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                        <i class="fas fa-edit mr-1"></i> Change Role
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Current Role</p>
+                        <p class="text-gray-900 mt-1">
+                            <span class="px-3 py-1 rounded-full text-sm font-medium
+                                {% if user.profile.role == 'admin' %}bg-purple-100 text-purple-700
+                                {% elif user.profile.role == 'instructor' %}bg-blue-100 text-blue-700
+                                {% elif user.profile.role == 'student' %}bg-green-100 text-green-700
+                                {% elif user.profile.role == 'content_manager' %}bg-yellow-100 text-yellow-700
+                                {% elif user.profile.role == 'support' %}bg-teal-100 text-teal-700
+                                {% elif user.profile.role == 'qa' %}bg-indigo-100 text-indigo-700
+                                {% elif user.profile.role == 'finance' %}bg-pink-100 text-pink-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                {{ user.profile.get_role_display }}
+                            </span>
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Staff Status</p>
+                        <p class="text-gray-900 mt-1">
+                            {% if user.is_staff %}
+                                <span class="text-green-600"><i class="fas fa-check mr-1"></i>Staff member</span>
+                            {% else %}
+                                <span class="text-gray-600"><i class="fas fa-times mr-1"></i>Not staff</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Superuser</p>
+                        <p class="text-gray-900 mt-1">
+                            {% if user.is_superuser %}
+                                <span class="text-green-600"><i class="fas fa-check mr-1"></i>Superuser</span>
+                            {% else %}
+                                <span class="text-gray-600"><i class="fas fa-times mr-1"></i>Not a superuser</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Email Verified</p>
+                        <p class="text-gray-900 mt-1">
+                            {% if user.profile.email_verified %}
+                                <span class="text-green-600"><i class="fas fa-check mr-1"></i>Verified</span>
+                            {% else %}
+                                <span class="text-orange-600"><i class="fas fa-times mr-1"></i>Not verified</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bio & Description -->
+            {% if user.profile.bio %}
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-info-circle mr-3 text-primary-600"></i>
+                    About
+                </h3>
+                <p class="text-gray-700">{{ user.profile.bio }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Location Information -->
+            {% if user.profile.address or user.profile.city or user.profile.country %}
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-map-marker-alt mr-3 text-primary-600"></i>
+                    Location
+                </h3>
+                <div class="space-y-2">
+                    {% if user.profile.address %}
+                    <p class="text-gray-700"><strong>Address:</strong> {{ user.profile.address }}</p>
+                    {% endif %}
+                    {% if user.profile.city %}
+                    <p class="text-gray-700"><strong>City:</strong> {{ user.profile.city }}</p>
+                    {% endif %}
+                    {% if user.profile.country %}
+                    <p class="text-gray-700"><strong>Country:</strong> {{ user.profile.country }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Statistics -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">Statistics</h3>
+                <div class="space-y-4">
+                    {% if user.profile.role == 'student' %}
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Enrollments</span>
+                        <span class="font-bold text-gray-900">{{ stats.enrollments|default:0 }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Completed</span>
+                        <span class="font-bold text-gray-900">{{ stats.completed_courses|default:0 }}</span>
+                    </div>
+                    {% elif user.profile.role == 'instructor' %}
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Courses</span>
+                        <span class="font-bold text-gray-900">{{ stats.courses_taught|default:0 }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Students</span>
+                        <span class="font-bold text-gray-900">{{ stats.total_students|default:0 }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="flex justify-between items-center pt-3 border-t border-gray-200">
+                        <span class="text-gray-600">Last Login</span>
+                        <span class="font-medium text-gray-900">
+                            {% if user.last_login %}
+                                {{ user.last_login|date:"M d, Y" }}
+                            {% else %}
+                                Never
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Status -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">Account Status</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Status</span>
+                        {% if user.is_active %}
+                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Active</span>
+                        {% else %}
+                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Inactive</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Email</span>
+                        {% if user.profile.email_verified %}
+                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Verified</span>
+                        {% else %}
+                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">Unverified</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Notifications</span>
+                        {% if user.profile.email_notifications %}
+                            <span class="text-green-600"><i class="fas fa-check"></i></span>
+                        {% else %}
+                            <span class="text-gray-400"><i class="fas fa-times"></i></span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Actions -->
+            <div class="bg-blue-50 p-6 rounded-xl border-2 border-blue-200">
+                <h3 class="text-lg font-bold text-blue-900 mb-2 flex items-center">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    Account Actions
+                </h3>
+                <p class="text-sm text-blue-700 mb-4">
+                    User accounts cannot be deleted. If you need to revoke access, please deactivate the account instead.
+                </p>
+                {% if user.id != request.user.id %}
+                <button type="button"
+                        onclick="toggleUserStatus({{ user.id }}, {{ user.is_active|lower }})"
+                        class="block w-full px-4 py-2 {% if user.is_active %}bg-orange-600 hover:bg-orange-700{% else %}bg-green-600 hover:bg-green-700{% endif %} text-white text-center rounded-lg transition-all">
+                    <i class="fas fa-{% if user.is_active %}pause{% else %}play{% endif %}-circle mr-2"></i>
+                    {% if user.is_active %}Deactivate Account{% else %}Activate Account{% endif %}
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Role Change Modal -->
+<div id="roleModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full">
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-bold text-gray-900">Change User Role</h3>
+                <button onclick="closeRoleModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <form id="roleChangeForm" class="p-6">
+            {% csrf_token %}
+            <input type="hidden" id="roleUserId" name="user_id">
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Select New Role
+                </label>
+                <select id="roleSelect" name="role" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white">
+                    <option value="student">Student</option>
+                    <option value="instructor">Instructor</option>
+                    <option value="admin">Administrator</option>
+                    <option value="content_manager">Content Manager</option>
+                    <option value="support">Support Staff</option>
+                    <option value="qa">QA Reviewer</option>
+                    <option value="finance">Finance Manager</option>
+                </select>
+            </div>
+            
+            <div class="flex gap-3">
+                <button type="button" 
+                        onclick="closeRoleModal()"
+                        class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all">
+                    Update Role
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Role Modal Functions
+function openRoleModal(userId, currentRole) {
+    document.getElementById('roleUserId').value = userId;
+    document.getElementById('roleSelect').value = currentRole;
+    document.getElementById('roleModal').classList.remove('hidden');
+}
+
+function closeRoleModal() {
+    document.getElementById('roleModal').classList.add('hidden');
+}
+
+// Handle role change
+document.getElementById('roleChangeForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const userId = document.getElementById('roleUserId').value;
+    const role = document.getElementById('roleSelect').value;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch(`/management/users/${userId}/change-role/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: `role=${role}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            closeRoleModal();
+            location.reload();
+        } else {
+            alert('Error updating role. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating role. Please try again.');
+    });
+});
+
+// Toggle user status
+function toggleUserStatus(userId, isActive) {
+    const action = isActive ? 'deactivate' : 'activate';
+    if (!confirm(`Are you sure you want to ${action} this user?`)) {
+        return;
+    }
+    
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch(`/management/users/${userId}/toggle-active/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error updating user status. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating user status. Please try again.');
+    });
+}
+
+// Close modal on outside click
+document.getElementById('roleModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeRoleModal();
+    }
+});
+</script>
+{% endblock %}

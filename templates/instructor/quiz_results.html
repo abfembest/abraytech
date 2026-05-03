@@ -1,0 +1,193 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Quiz Results — {{ quiz.title }}{% endblock %}
+{% block breadcrumb %}Quiz Results{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
+    <div>
+        <nav class="flex items-center flex-wrap gap-1 text-xs sm:text-sm text-gray-500 mb-2">
+            <a href="{% url 'instructor:course_list' %}" class="hover:text-primary-600 transition-colors">Courses</a>
+            <i class="fas fa-chevron-right text-xs text-gray-400"></i>
+            <a href="{% url 'instructor:lesson_list' course.slug %}" class="hover:text-primary-600 transition-colors truncate max-w-[100px] sm:max-w-none">{{ course.title }}</a>
+            <i class="fas fa-chevron-right text-xs text-gray-400"></i>
+            <a href="{% url 'instructor:quiz_questions' course.slug lesson.slug quiz.slug %}" class="hover:text-primary-600 transition-colors truncate max-w-[100px] sm:max-w-none">{{ quiz.title }}</a>
+            <i class="fas fa-chevron-right text-xs text-gray-400"></i>
+            <span class="text-gray-800 font-medium">Results</span>
+        </nav>
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Quiz Results</h1>
+        <p class="text-gray-500 mt-1 text-xs sm:text-sm">{{ quiz.title }} — student attempt overview</p>
+    </div>
+    <a href="{% url 'instructor:quiz_questions' course.slug lesson.slug quiz.slug %}"
+       class="inline-flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors w-full sm:w-auto flex-shrink-0">
+        <i class="fas fa-arrow-left mr-2"></i>Back to Quiz
+    </a>
+</div>
+
+<!-- Stats Row -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-5">
+        <div class="flex items-center justify-between mb-2 sm:mb-3">
+            <p class="text-xs sm:text-sm text-gray-500 font-medium">Total Attempts</p>
+            <div class="w-8 h-8 sm:w-9 sm:h-9 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-users text-blue-600 text-xs sm:text-sm"></i>
+            </div>
+        </div>
+        <p class="text-2xl sm:text-3xl font-bold text-gray-900">{{ total_attempts }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-5">
+        <div class="flex items-center justify-between mb-2 sm:mb-3">
+            <p class="text-xs sm:text-sm text-gray-500 font-medium">Pass Rate</p>
+            <div class="w-8 h-8 sm:w-9 sm:h-9 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-check-circle text-green-600 text-xs sm:text-sm"></i>
+            </div>
+        </div>
+        <p class="text-2xl sm:text-3xl font-bold text-gray-900">{{ pass_rate|floatformat:0 }}%</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-5">
+        <div class="flex items-center justify-between mb-2 sm:mb-3">
+            <p class="text-xs sm:text-sm text-gray-500 font-medium">Avg. Score</p>
+            <div class="w-8 h-8 sm:w-9 sm:h-9 bg-yellow-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-star text-yellow-500 text-xs sm:text-sm"></i>
+            </div>
+        </div>
+        <p class="text-2xl sm:text-3xl font-bold text-gray-900">{{ avg_score|floatformat:1 }}%</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-5">
+        <div class="flex items-center justify-between mb-2 sm:mb-3">
+            <p class="text-xs sm:text-sm text-gray-500 font-medium">Passing Score</p>
+            <div class="w-8 h-8 sm:w-9 sm:h-9 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-flag text-primary-600 text-xs sm:text-sm"></i>
+            </div>
+        </div>
+        <p class="text-2xl sm:text-3xl font-bold text-gray-900">{{ quiz.passing_score|floatformat:0 }}%</p>
+    </div>
+</div>
+
+{% if attempts %}
+
+<!-- Attempts Table -->
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <h2 class="font-semibold text-gray-900 text-sm sm:text-base">
+            All Attempts
+            <span class="ml-1 text-xs sm:text-sm font-normal text-gray-400">({{ attempts|length }})</span>
+        </h2>
+        <div class="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm">
+            <span class="flex items-center gap-1.5 text-green-600 font-medium">
+                <span class="w-2 h-2 rounded-full bg-green-500 inline-block"></span>Passed: {{ passed_count }}
+            </span>
+            <span class="flex items-center gap-1.5 text-red-500 font-medium">
+                <span class="w-2 h-2 rounded-full bg-red-400 inline-block"></span>Failed: {{ failed_count }}
+            </span>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-100 min-w-[640px]">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Student</th>
+                    <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Score</th>
+                    <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-32 sm:w-40 hidden md:table-cell">Progress</th>
+                    <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Time</th>
+                    <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Date</th>
+                    <th class="px-4 sm:px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Detail</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-100">
+                {% for attempt in attempts %}
+                <tr class="hover:bg-gray-50 transition-colors">
+
+                    <!-- Student -->
+                    <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <div class="flex items-center gap-2 sm:gap-3">
+                            <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                                <span class="text-primary-700 font-semibold text-xs">
+                                    {{ attempt.student.first_name|slice:":1"|upper }}{{ attempt.student.last_name|slice:":1"|upper }}
+                                </span>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs sm:text-sm font-semibold text-gray-900 truncate max-w-[100px] sm:max-w-[150px] lg:max-w-none">{{ attempt.student.get_full_name }}</p>
+                                <p class="text-xs text-gray-400 truncate max-w-[100px] sm:max-w-[150px] lg:max-w-none hidden sm:block">{{ attempt.student.email }}</p>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Score -->
+                    <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <p class="text-xs sm:text-sm font-bold text-gray-900">{{ attempt.percentage|floatformat:1 }}%</p>
+                        <p class="text-xs text-gray-400 hidden sm:block">{{ attempt.score|floatformat:1 }} / {{ attempt.max_score|floatformat:1 }} pts</p>
+                    </td>
+
+                    <!-- Progress bar (hidden on mobile) -->
+                    <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap hidden md:table-cell">
+                        <div class="w-full bg-gray-200 rounded-full h-1.5 sm:h-2">
+                            <div class="h-1.5 sm:h-2 rounded-full {% if attempt.passed %}bg-green-500{% else %}bg-red-400{% endif %}"
+                                 style="width: {{ attempt.percentage|floatformat:0 }}%"></div>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-0.5">Pass: {{ quiz.passing_score|floatformat:0 }}%</p>
+                    </td>
+
+                    <!-- Status -->
+                    <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        {% if not attempt.is_completed %}
+                        <span class="px-2 py-0.5 sm:py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700 inline-flex items-center">
+                            <i class="fas fa-spinner mr-1 text-xs"></i><span class="hidden sm:inline">In Progress</span><span class="sm:hidden">…</span>
+                        </span>
+                        {% elif attempt.passed %}
+                        <span class="px-2 py-0.5 sm:py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 inline-flex items-center">
+                            <i class="fas fa-check-circle mr-1 text-xs"></i>Passed
+                        </span>
+                        {% else %}
+                        <span class="px-2 py-0.5 sm:py-1 rounded-full text-xs font-semibold bg-red-100 text-red-600 inline-flex items-center">
+                            <i class="fas fa-times-circle mr-1 text-xs"></i>Failed
+                        </span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Time (hidden on mobile) -->
+                    <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600 hidden sm:table-cell">
+                        {% if attempt.time_taken_minutes %}{{ attempt.time_taken_minutes }} min{% else %}—{% endif %}
+                    </td>
+
+                    <!-- Date (hidden on mobile) -->
+                    <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap hidden sm:table-cell">
+                        <p class="text-xs sm:text-sm text-gray-700">{{ attempt.started_at|date:"M d, Y" }}</p>
+                        <p class="text-xs text-gray-400">{{ attempt.started_at|time:"H:i" }}</p>
+                    </td>
+
+                    <!-- Detail link -->
+                    <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-right">
+                        <a href="{% url 'instructor:quiz_attempt_detail' course.slug lesson.slug quiz.slug attempt.id %}"
+                           class="text-xs sm:text-sm font-medium text-primary-600 hover:text-primary-800 transition-colors">
+                            <i class="fas fa-eye mr-1 text-xs"></i>View
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% else %}
+
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm p-10 sm:p-16 text-center">
+    <div class="w-16 h-16 sm:w-20 sm:h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-5">
+        <i class="fas fa-chart-bar text-3xl sm:text-4xl text-yellow-500"></i>
+    </div>
+    <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-2">No Attempts Yet</h3>
+    <p class="text-gray-500 text-xs sm:text-sm mb-5 sm:mb-6 max-w-sm mx-auto">Students haven't attempted this quiz yet. Make sure it's published and share it with enrolled students.</p>
+    <a href="{% url 'instructor:quiz_questions' course.slug lesson.slug quiz.slug %}"
+       class="inline-flex items-center px-4 sm:px-5 py-2 sm:py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 shadow-sm transition-all">
+        <i class="fas fa-arrow-left mr-2"></i>Back to Quiz
+    </a>
+</div>
+
+{% endif %}
+{% endblock %}

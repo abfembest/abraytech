@@ -1,0 +1,249 @@
+{% extends "management/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - MIU Student Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-12xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Help & Support</h1>
+        <p class="text-gray-600 mt-2">Get assistance and find answers to common questions</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Contact Support -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900">Submit Support Ticket</h2>
+                        <p class="text-gray-600 text-sm mt-1">
+                            Can't find what you're looking for? Contact our support team
+                        </p>
+                    </div>
+                    <i class="fas fa-headset text-3xl text-primary-300"></i>
+                </div>
+                
+                <form method="post" enctype="multipart/form-data" class="space-y-4">
+                    {% csrf_token %}
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.category.id_for_label }}" 
+                                   class="block text-sm font-medium text-gray-700 mb-2">
+                                Category <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.category }}
+                            {% if form.category.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.category.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.priority.id_for_label }}" 
+                                   class="block text-sm font-medium text-gray-700 mb-2">
+                                Priority <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.priority }}
+                            {% if form.priority.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.priority.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.subject.id_for_label }}" 
+                               class="block text-sm font-medium text-gray-700 mb-2">
+                            Subject <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.subject }}
+                        {% if form.subject.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.subject.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.message.id_for_label }}" 
+                               class="block text-sm font-medium text-gray-700 mb-2">
+                            Message <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.message }}
+                        {% if form.message.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.message.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.attachment.id_for_label }}" 
+                               class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.attachment.label }}
+                        </label>
+                        {{ form.attachment }}
+                        {% if form.attachment.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.attachment.errors.0 }}</p>
+                        {% else %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.attachment.help_text }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="pt-2">
+                        <button type="submit" 
+                                class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                            <i class="fas fa-paper-plane mr-2"></i>Submit Ticket
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- FAQs -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
+                
+                <div class="space-y-4">
+                    {% for faq in faqs %}
+                    <div class="border border-gray-200 rounded-lg">
+                        <button type="button" 
+                                class="faq-toggle w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-all"
+                                onclick="toggleFAQ(this)">
+                            <span class="font-semibold text-gray-900">{{ faq.question }}</span>
+                            <i class="fas fa-chevron-down text-gray-400 transition-transform"></i>
+                        </button>
+                        <div class="faq-answer hidden p-4 pt-0 text-gray-600 text-sm">
+                            {{ faq.answer }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Quick Links -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="font-bold text-gray-900 mb-4">Quick Links</h3>
+                <div class="space-y-3">
+                    {% for link in quick_links %}
+                    <a href="{{ link.url }}" 
+                       class="flex items-start p-3 rounded-lg hover:bg-gray-50 transition-all group">
+                        <div class="flex-shrink-0 w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center group-hover:bg-primary-200 transition-all">
+                            <i class="fas {{ link.icon }} text-primary-600"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h4 class="font-semibold text-gray-900 text-sm">{{ link.title }}</h4>
+                            <p class="text-xs text-gray-600 mt-1">{{ link.description }}</p>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="font-bold text-gray-900 mb-4">Contact Information</h3>
+                <div class="space-y-4">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-envelope text-green-600"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-gray-600">Email Support</p>
+                            <a href="mailto:support@miu.edu" 
+                               class="text-sm font-semibold text-primary-600 hover:text-primary-700">
+                                support@miu.edu
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-phone text-blue-600"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-gray-600">Phone Support</p>
+                            <a href="tel:+2341234567890" 
+                               class="text-sm font-semibold text-primary-600 hover:text-primary-700">
+                                +234 123 456 7890
+                            </a>
+                            <p class="text-xs text-gray-500 mt-1">Mon-Fri, 9AM-5PM</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-comments text-purple-600"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-gray-600">Live Chat</p>
+                            <button class="text-sm font-semibold text-primary-600 hover:text-primary-700">
+                                Start Chat
+                            </button>
+                            <p class="text-xs text-gray-500 mt-1">Available 24/7</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Response Time -->
+            <div class="bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-sm p-6 text-white">
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-clock text-2xl mr-3"></i>
+                    <h3 class="font-bold text-lg">Response Time</h3>
+                </div>
+                <p class="text-sm opacity-90 mb-4">
+                    We aim to respond to all support tickets within 24-48 hours
+                </p>
+                <div class="flex items-center text-sm">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <span>95% satisfaction rate</span>
+                </div>
+            </div>
+
+            <!-- Common Issues -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="font-bold text-gray-900 mb-4">Common Issues</h3>
+                <div class="space-y-3">
+                    <a href="#" class="flex items-center text-sm text-gray-700 hover:text-primary-600 transition-colors">
+                        <i class="fas fa-circle text-xs text-gray-300 mr-2"></i>
+                        Can't access my course
+                    </a>
+                    <a href="#" class="flex items-center text-sm text-gray-700 hover:text-primary-600 transition-colors">
+                        <i class="fas fa-circle text-xs text-gray-300 mr-2"></i>
+                        Video not playing
+                    </a>
+                    <a href="#" class="flex items-center text-sm text-gray-700 hover:text-primary-600 transition-colors">
+                        <i class="fas fa-circle text-xs text-gray-300 mr-2"></i>
+                        Assignment submission failed
+                    </a>
+                    <a href="#" class="flex items-center text-sm text-gray-700 hover:text-primary-600 transition-colors">
+                        <i class="fas fa-circle text-xs text-gray-300 mr-2"></i>
+                        Payment not reflecting
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleFAQ(button) {
+    const answer = button.nextElementSibling;
+    const icon = button.querySelector('i');
+    
+    answer.classList.toggle('hidden');
+    icon.classList.toggle('rotate-180');
+}
+</script>
+
+<style>
+.faq-toggle i {
+    transition: transform 0.3s ease;
+}
+
+.rotate-180 {
+    transform: rotate(180deg);
+}
+</style>
+{% endblock %}

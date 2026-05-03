@@ -1,0 +1,114 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}{% if section %}Edit Section{% else %}Create Section{% endif %} - {{ course.title }}{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<nav class="flex mb-4 sm:mb-6 overflow-x-auto" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 text-sm whitespace-nowrap">
+        <li>
+            <a href="{% url 'instructor:course_list' %}" class="text-gray-500 hover:text-primary-600 transition-colors">Courses</a>
+        </li>
+        <li class="flex items-center">
+            <i class="fas fa-chevron-right text-gray-400 mx-1.5 text-xs"></i>
+            <a href="{% url 'instructor:lesson_list' course.slug %}" class="text-gray-500 hover:text-primary-600 transition-colors truncate max-w-[120px] sm:max-w-[220px]">{{ course.title }}</a>
+        </li>
+        <li class="flex items-center">
+            <i class="fas fa-chevron-right text-gray-400 mx-1.5 text-xs"></i>
+            <span class="text-gray-800 font-medium">{% if section %}Edit Section{% else %}New Section{% endif %}</span>
+        </li>
+    </ol>
+</nav>
+
+<!-- Page Header -->
+<div class="mb-6 sm:mb-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">
+                {% if section %}Edit Section{% else %}Create New Section{% endif %}
+            </h1>
+            <p class="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">Organize your lessons into sections for better course structure</p>
+        </div>
+        <a href="{% url 'instructor:course_manage' course.slug %}"
+           class="inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-white border-2 border-primary-600 text-primary-600 text-sm font-medium rounded-lg hover:bg-primary-50 transition-all whitespace-nowrap">
+            <i class="fas fa-th-large mr-2"></i>Manage Course
+        </a>
+    </div>
+</div>
+
+<div class="w-full max-w-3xl">
+    <form method="post" class="bg-white rounded-xl shadow-sm border border-gray-200">
+        {% csrf_token %}
+
+        <div class="p-4 sm:p-6 space-y-5 sm:space-y-6">
+
+            <!-- Section Title -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Section Title *</label>
+                <div class="w-full">{{ form.title }}</div>
+                {% if form.title.errors %}
+                <p class="mt-1 text-xs sm:text-sm text-red-600">{{ form.title.errors }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Description (Optional)</label>
+                <div class="w-full">{{ form.description }}</div>
+                <p class="mt-1 text-xs sm:text-sm text-gray-500">Brief description of what this section covers</p>
+            </div>
+
+            <!-- Display Order -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Display Order</label>
+                <div class="w-full sm:w-40">{{ form.display_order }}</div>
+                <p class="mt-1 text-xs sm:text-sm text-gray-500">Lower numbers appear first</p>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-t border-gray-200 rounded-b-xl">
+            <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                <a href="{% url 'instructor:lesson_list' course.slug %}"
+                   class="inline-flex items-center justify-center px-4 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium w-full sm:w-auto">
+                    Cancel
+                </a>
+                <button type="submit"
+                        class="inline-flex items-center justify-center px-5 sm:px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 shadow-sm hover:shadow-md transition-all text-sm font-medium w-full sm:w-auto">
+                    <i class="fas fa-save mr-2"></i>Save Section
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select {
+        width: 100%;
+        padding: 0.5rem 0.875rem;
+        border: 1px solid #D1D5DB;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        outline: none;
+        background: white;
+    }
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    textarea:focus,
+    select:focus {
+        border-color: #4a6bff;
+        box-shadow: 0 0 0 3px rgba(74,107,255,0.1);
+    }
+    textarea { min-height: 100px; resize: vertical; }
+    @media (min-width: 640px) {
+        input[type="text"], input[type="number"], textarea, select { padding: 0.625rem 1rem; font-size: 0.9375rem; }
+        textarea { min-height: 120px; }
+    }
+</style>
+{% endblock %}

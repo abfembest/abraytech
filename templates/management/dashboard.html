@@ -1,0 +1,245 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - MIU Admin Portal{% endblock %}
+
+{% block meta_description %}Admin dashboard overview with statistics and recent activities{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2 font-display">Welcome back, {{ request.user.get_full_name|default:request.user.username }}!</h1>
+    <p class="text-gray-600">Here's what's happening with your portal today.</p>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        <div class="flex justify-between items-start">
+            <div>
+                <h3 class="text-3xl font-bold text-gray-800">{{ total_applications }}</h3>
+                <p class="text-gray-600">Total Applications</p>
+            </div>
+            <div class="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+                <i class="fas fa-file-alt text-2xl" aria-hidden="true"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        <div class="flex justify-between items-start">
+            <div>
+                <h3 class="text-3xl font-bold text-gray-800">{{ pending_applications }}</h3>
+                <p class="text-gray-600">Pending Review</p>
+            </div>
+            <div class="w-14 h-14 rounded-xl bg-yellow-50 flex items-center justify-center text-yellow-600">
+                <i class="fas fa-clock text-2xl" aria-hidden="true"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        <div class="flex justify-between items-start">
+            <div>
+                <h3 class="text-3xl font-bold text-gray-800">{{ approved_applications }}</h3>
+                <p class="text-gray-600">Approved</p>
+            </div>
+            <div class="w-14 h-14 rounded-xl bg-green-50 flex items-center justify-center text-green-600">
+                <i class="fas fa-check-circle text-2xl" aria-hidden="true"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        <div class="flex justify-between items-start">
+            <div>
+                <h3 class="text-3xl font-bold text-gray-800">{{ total_students }}</h3>
+                <p class="text-gray-600">Active Students</p>
+            </div>
+            <div class="w-14 h-14 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
+                <i class="fas fa-users text-2xl" aria-hidden="true"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
+    <!-- Applications Chart -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-2 sm:mb-0 font-display">Applications Overview</h3>
+            <div class="flex space-x-2">
+                <button class="chart-period-btn px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white transition-colors" data-period="week">This Week</button>
+                <button class="chart-period-btn px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors" data-period="month">This Month</button>
+                <button class="chart-period-btn px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors" data-period="year">This Year</button>
+            </div>
+        </div>
+        <div class="min-h-[300px] lg:min-h-[350px]">
+            <canvas id="applicationsChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Program Distribution Chart -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-2 sm:mb-0 font-display">Program Distribution</h3>
+        </div>
+        <div class="min-h-[300px] lg:min-h-[350px]">
+            <canvas id="programChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Applications Table -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="p-6 border-b border-gray-200">
+        <div class="flex flex-col md:flex-row md:items-center justify-between">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 md:mb-0 font-display">Recent Applications</h3>
+            <a href="{% url 'management:applications_list' %}" class="text-primary-600 hover:text-primary-800 font-medium flex items-center transition-colors">
+                View All <i class="fas fa-arrow-right ml-2" aria-hidden="true"></i>
+            </a>
+        </div>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50 sticky top-0 z-10">
+                <tr>
+                    <th scope="col" class="py-4 px-6 text-left font-semibold text-gray-700">Applicant</th>
+                    <th scope="col" class="py-4 px-6 text-left font-semibold text-gray-700">Program</th>
+                    <th scope="col" class="py-4 px-6 text-left font-semibold text-gray-700">Date</th>
+                    <th scope="col" class="py-4 px-6 text-left font-semibold text-gray-700">Status</th>
+                    <th scope="col" class="py-4 px-6 text-left font-semibold text-gray-700">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for application in recent_applications %}
+                <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td class="py-4 px-6">
+                        <div class="font-medium text-gray-800">{{ application.get_full_name }}</div>
+                        <div class="text-sm text-gray-500">{{ application.email }}</div>
+                    </td>
+                    <td class="py-4 px-6">
+                        <div class="font-medium text-gray-800">{{ application.program.name }}</div>
+                        <div class="text-sm text-gray-500">{{ application.program.get_degree_level_display }}</div>
+                        <div class="text-sm text-gray-500">{{ application.get_degree_level_display_name }}</div>
+                    </td>
+                    <td class="py-4 px-6 font-medium">{{ application.created_at|date:"M d, Y" }}</td>
+                    <td class="py-4 px-6">
+                        {% if application.is_reviewed %}
+                        <span class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Reviewed</span>
+                        {% else %}
+                        <span class="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-4 px-6">
+                        <a href="{% url 'management:application_detail' application.id %}" class="text-primary-600 hover:text-primary-800 font-medium transition-colors">View</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="py-8 px-6 text-center text-gray-500">No recent applications</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const applicationsData = {{ applications_chart_data|safe }};
+    const programData = {{ program_chart_data|safe }};
+    
+    const applicationsCtx = document.getElementById('applicationsChart').getContext('2d');
+    const applicationsChart = new Chart(applicationsCtx, {
+        type: 'line',
+        data: {
+            labels: applicationsData.labels,
+            datasets: [{
+                label: 'Applications',
+                data: applicationsData.data,
+                borderColor: '#4a6bff',
+                backgroundColor: 'rgba(74, 107, 255, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#4a6bff',
+                pointRadius: 5,
+                pointHoverRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                    ticks: { precision: 0 }
+                },
+                x: { grid: { color: 'rgba(0, 0, 0, 0.05)' } }
+            }
+        }
+    });
+    
+    const programCtx = document.getElementById('programChart').getContext('2d');
+    const programChart = new Chart(programCtx, {
+        type: 'doughnut',
+        data: {
+            labels: programData.labels,
+            datasets: [{
+                data: programData.data,
+                backgroundColor: [
+                    '#4a6bff', '#ff6584', '#6c63ff', '#28a745',
+                    '#ffc107', '#17a2b8', '#6f42c1', '#fd7e14', '#20c997'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { padding: 15, font: { size: 12 } }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    const chartPeriodBtns = document.querySelectorAll('.chart-period-btn');
+    chartPeriodBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            chartPeriodBtns.forEach(b => {
+                b.classList.remove('bg-primary-600', 'text-white');
+                b.classList.add('border', 'border-gray-300', 'text-gray-700', 'hover:bg-gray-50');
+            });
+            this.classList.remove('border', 'border-gray-300', 'text-gray-700', 'hover:bg-gray-50');
+            this.classList.add('bg-primary-600', 'text-white');
+        });
+    });
+});
+</script>
+{% endblock %}

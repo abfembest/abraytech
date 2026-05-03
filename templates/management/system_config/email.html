@@ -1,0 +1,184 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Email Configuration - MIU Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-12xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex items-center gap-4">
+        <a href="{% url 'management:system_config_list' %}" 
+           class="p-2 hover:bg-gray-100 rounded-lg transition-all">
+            <i class="fas fa-arrow-left text-gray-600"></i>
+        </a>
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 font-display">
+                <i class="fas fa-envelope text-primary-600 mr-3"></i>
+                Email Configuration
+            </h1>
+            <p class="text-gray-600 mt-1">Configure SMTP settings for sending emails</p>
+        </div>
+    </div>
+
+    <!-- Info Alert -->
+    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
+        <div class="flex items-start">
+            <i class="fas fa-info-circle text-blue-500 text-xl mr-3 mt-1"></i>
+            <div>
+                <h4 class="font-medium text-blue-900 mb-1">SMTP Configuration</h4>
+                <p class="text-sm text-blue-800">
+                    Configure your email server settings to enable the system to send emails for notifications, password resets, and other automated messages.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <form method="post" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        {% csrf_token %}
+        
+        <div class="p-6 space-y-6">
+            <!-- SMTP Server Settings -->
+            <div>
+                <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-server mr-3 text-primary-600"></i>
+                    SMTP Server Settings
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            SMTP Host <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.smtp_host }}
+                        {% if form.smtp_host.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.smtp_host.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">
+                            e.g., smtp.gmail.com, smtp.office365.com
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            SMTP Port <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.smtp_port }}
+                        {% if form.smtp_port.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.smtp_port.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">
+                            Common: 587 (TLS), 465 (SSL), 25 (unsecured)
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Authentication -->
+            <div class="pt-6 border-t border-gray-200">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-key mr-3 text-primary-600"></i>
+                    Authentication
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            SMTP Username <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.smtp_username }}
+                        {% if form.smtp_username.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.smtp_username.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            SMTP Password <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.smtp_password }}
+                        {% if form.smtp_password.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.smtp_password.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">
+                            Use app-specific password for Gmail/Office365
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sender Information -->
+            <div class="pt-6 border-t border-gray-200">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-paper-plane mr-3 text-primary-600"></i>
+                    Sender Information
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            From Email <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.from_email }}
+                        {% if form.from_email.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.from_email.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">
+                            Email address that appears in "From" field
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            From Name <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.from_name }}
+                        {% if form.from_name.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.from_name.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">
+                            Display name for outgoing emails
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Common SMTP Providers Guide -->
+            <div class="pt-6 border-t border-gray-200">
+                <h3 class="font-bold text-gray-900 mb-3">Common Provider Settings</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <h4 class="font-semibold text-gray-900 mb-2">Gmail</h4>
+                        <p class="text-sm text-gray-600">Host: smtp.gmail.com<br>Port: 587<br>Use app password</p>
+                    </div>
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <h4 class="font-semibold text-gray-900 mb-2">Office 365</h4>
+                        <p class="text-sm text-gray-600">Host: smtp.office365.com<br>Port: 587<br>TLS enabled</p>
+                    </div>
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <h4 class="font-semibold text-gray-900 mb-2">SendGrid</h4>
+                        <p class="text-sm text-gray-600">Host: smtp.sendgrid.net<br>Port: 587<br>API key as password</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
+            <a href="{% url 'management:system_config_list' %}" 
+               class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-all">
+                Cancel
+            </a>
+            <div class="flex gap-3">
+                <button type="button" 
+                        class="px-6 py-3 border border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 transition-all">
+                    <i class="fas fa-paper-plane mr-2"></i>
+                    Test Email
+                </button>
+                <button type="submit" 
+                        class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all shadow-md hover:shadow-lg">
+                    <i class="fas fa-save mr-2"></i>
+                    Save Settings
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

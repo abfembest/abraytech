@@ -1,0 +1,206 @@
+{% extends "management/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - {{site_config.school_short_name}} Student Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-screen-2xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+
+    <!-- Page Header -->
+    <header class="mb-4 sm:mb-6 lg:mb-8">
+        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">
+            My Assignments
+        </h1>
+        <p class="text-xs sm:text-sm lg:text-base text-gray-600 mt-1 sm:mt-2">
+            Track and submit your assignments
+        </p>
+    </header>
+
+    <!-- Filter Tabs -->
+    <nav class="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 mb-4 sm:mb-6"
+         aria-label="Assignment status filter">
+        <div class="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-0.5 sm:pb-0">
+            <a href="?status=pending"
+               class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg
+                      text-xs sm:text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0
+                      {% if status_filter == 'pending' %}bg-orange-500 text-white shadow-sm
+                      {% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}
+                      focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2">
+                <i class="fas fa-clock text-xs" aria-hidden="true"></i>
+                Pending
+            </a>
+            <a href="?status=submitted"
+               class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg
+                      text-xs sm:text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0
+                      {% if status_filter == 'submitted' %}bg-blue-600 text-white shadow-sm
+                      {% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                <i class="fas fa-paper-plane text-xs" aria-hidden="true"></i>
+                Submitted
+            </a>
+            <a href="?status=graded"
+               class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg
+                      text-xs sm:text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0
+                      {% if status_filter == 'graded' %}bg-green-600 text-white shadow-sm
+                      {% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}
+                      focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                <i class="fas fa-check-circle text-xs" aria-hidden="true"></i>
+                Graded
+            </a>
+            <a href="?status=all"
+               class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg
+                      text-xs sm:text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0
+                      {% if status_filter == 'all' %}bg-primary-600 text-white shadow-sm
+                      {% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}
+                      focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+                <i class="fas fa-list text-xs" aria-hidden="true"></i>
+                All
+            </a>
+        </div>
+    </nav>
+
+    <!-- Assignments List -->
+    {% if assignments %}
+    <div class="space-y-3 sm:space-y-4">
+        {% for assignment in assignments %}
+        <article class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 lg:p-6
+                        hover:shadow-md transition-shadow duration-200">
+            <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3 sm:gap-4">
+
+                <!-- Main Content -->
+                <div class="flex-1 min-w-0">
+
+                    <!-- Title + Status badge -->
+                    <div class="flex flex-wrap items-start gap-2 sm:gap-3 mb-2 sm:mb-3">
+                        <h2 class="text-sm sm:text-base lg:text-lg font-bold text-gray-900 leading-snug flex-1 min-w-0">
+                            <a href="{% url 'students:assignment_detail' assignment.lesson.course.slug assignment.slug %}"
+                               class="hover:text-primary-600 transition-colors break-words
+                                      focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 rounded">
+                                {{ assignment.title }}
+                            </a>
+                        </h2>
+
+                        {% if assignment.submission %}
+                            {% if assignment.submission.status == 'graded' %}
+                            <span class="flex-shrink-0 inline-flex items-center gap-1 px-2 sm:px-3 py-0.5 sm:py-1
+                                         bg-green-100 text-green-700 rounded-full text-xs font-semibold whitespace-nowrap">
+                                <i class="fas fa-check-circle" aria-hidden="true"></i>Graded
+                            </span>
+                            {% elif assignment.submission.status == 'submitted' %}
+                            <span class="flex-shrink-0 inline-flex items-center gap-1 px-2 sm:px-3 py-0.5 sm:py-1
+                                         bg-blue-100 text-blue-700 rounded-full text-xs font-semibold whitespace-nowrap">
+                                <i class="fas fa-paper-plane" aria-hidden="true"></i>Submitted
+                            </span>
+                            {% endif %}
+                        {% else %}
+                            {% if assignment.is_overdue %}
+                            <span class="flex-shrink-0 inline-flex items-center gap-1 px-2 sm:px-3 py-0.5 sm:py-1
+                                         bg-red-100 text-red-700 rounded-full text-xs font-semibold whitespace-nowrap">
+                                <i class="fas fa-exclamation-circle" aria-hidden="true"></i>Overdue
+                            </span>
+                            {% else %}
+                            <span class="flex-shrink-0 inline-flex items-center gap-1 px-2 sm:px-3 py-0.5 sm:py-1
+                                         bg-orange-100 text-orange-700 rounded-full text-xs font-semibold whitespace-nowrap">
+                                <i class="fas fa-clock" aria-hidden="true"></i>Pending
+                            </span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Description -->
+                    <p class="text-xs sm:text-sm text-gray-500 mb-3 line-clamp-2 leading-relaxed">
+                        {{ assignment.description|truncatewords:30 }}
+                    </p>
+
+                    <!-- Course + Lesson meta -->
+                    <div class="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500 mb-3">
+                        <span class="flex items-center gap-1.5 min-w-0">
+                            <i class="fas fa-book text-primary-500 flex-shrink-0" aria-hidden="true"></i>
+                            <span class="truncate max-w-[140px] sm:max-w-[220px] lg:max-w-none">
+                                {{ assignment.lesson.course.title }}
+                            </span>
+                        </span>
+                        <span class="flex items-center gap-1.5 min-w-0">
+                            <i class="fas fa-layer-group text-primary-500 flex-shrink-0" aria-hidden="true"></i>
+                            <span class="truncate max-w-[140px] sm:max-w-[220px] lg:max-w-none">
+                                {{ assignment.lesson.title }}
+                            </span>
+                        </span>
+                    </div>
+
+                    <!-- Due date + score meta -->
+                    <div class="flex flex-wrap items-center gap-3 sm:gap-5 text-xs sm:text-sm">
+                        <span class="flex items-center gap-1.5 {% if assignment.is_overdue %}text-red-600 font-medium{% else %}text-gray-500{% endif %}">
+                            <i class="fas fa-calendar-alt flex-shrink-0" aria-hidden="true"></i>
+                            Due: {{ assignment.due_date|date:"M d, Y" }}
+                        </span>
+                        <span class="flex items-center gap-1.5 text-gray-500">
+                            <i class="fas fa-star flex-shrink-0" aria-hidden="true"></i>
+                            Max: {{ assignment.max_score }}
+                        </span>
+                        {% if assignment.submission.score %}
+                        <span class="flex items-center gap-1.5 text-green-600 font-semibold">
+                            <i class="fas fa-trophy flex-shrink-0" aria-hidden="true"></i>
+                            Score: {{ assignment.submission.score }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- CTA button -->
+                <div class="lg:ml-4 flex-shrink-0">
+                    <a href="{% url 'students:assignment_detail' assignment.lesson.course.slug assignment.slug %}"
+                       class="flex items-center justify-center gap-2 w-full lg:w-auto
+                              px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold
+                              transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2
+                              {% if assignment.submission.status == 'graded' %}
+                              bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-400
+                              {% else %}
+                              bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500
+                              {% endif %}">
+                        {% if assignment.submission %}
+                            {% if assignment.submission.status == 'graded' %}
+                                <i class="fas fa-eye text-xs" aria-hidden="true"></i> View Results
+                            {% else %}
+                                <i class="fas fa-eye text-xs" aria-hidden="true"></i> View Submission
+                            {% endif %}
+                        {% else %}
+                            <i class="fas fa-paper-plane text-xs" aria-hidden="true"></i> Submit Now
+                        {% endif %}
+                    </a>
+                </div>
+
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-10 sm:p-16">
+        <div class="text-center max-w-sm mx-auto">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-5">
+                <i class="fas fa-clipboard-list text-2xl sm:text-3xl text-gray-300" aria-hidden="true"></i>
+            </div>
+            <h3 class="text-base sm:text-xl font-semibold text-gray-900 mb-2">No assignments found</h3>
+            <p class="text-xs sm:text-sm text-gray-500 mb-6">
+                {% if status_filter == 'pending' %}You have no pending assignments
+                {% elif status_filter == 'submitted' %}You haven't submitted any assignments yet
+                {% elif status_filter == 'graded' %}No graded assignments yet
+                {% else %}You don't have any assignments
+                {% endif %}
+            </p>
+            <a href="{% url 'students:my_courses' %}"
+               class="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3
+                      bg-primary-600 text-white rounded-lg hover:bg-primary-700
+                      focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
+                      transition-colors font-semibold text-sm">
+                <i class="fas fa-book-open" aria-hidden="true"></i>
+                View My Courses
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

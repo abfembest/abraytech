@@ -1,0 +1,744 @@
+﻿{% load static %}
+{% comment %}
+============================================================
+chatbot.html — Student Life Chatbot Widget
+Included in:
+  • Public site base  → guest users, shows name/email form
+  • Portal base       → authenticated users, session tied to user ID
+
+Parent base must load:
+  • Tailwind CSS (compiled styles.css)
+  • Font Awesome 6
+  • Lucide icons:
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+MOBILE LAYOUT NOTE:
+  #cbWindow is a sibling of #cb (FAB), NOT a child.
+  On mobile it is fixed inset-0 (true fullscreen).
+  On sm+ it is absolute, anchored to the FAB via JS positioning.
+============================================================
+{% endcomment %}
+
+{# ── FAB — always bottom-right ─────────────────────────────────── #}
+<div id="cb" class="fixed bottom-6 right-6 z-[9999]"
+     role="complementary"
+     aria-label="{{ site_config.school_short_name|default:'Student' }} Life Chatbot">
+    <button id="cbToggle"
+            type="button"
+            class="relative w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-primary-950 to-primary-700
+                   rounded-full flex items-center justify-center
+                   shadow-2xl transition-all duration-300
+                   hover:scale-110 hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)]
+                   focus:outline-none focus:ring-4 focus:ring-primary-400 focus:ring-offset-2"
+            aria-label="Open chat assistant"
+            aria-expanded="false"
+            aria-controls="cbWindow">
+        <i data-lucide="message-circle" class="w-5 h-5 sm:w-8 sm:h-8 text-white pointer-events-none" aria-hidden="true"></i>
+        <span id="cbBadge"
+              class="absolute -top-1 -right-1 w-5 h-5 bg-accent-400 rounded-full
+                     flex items-center justify-center text-[10px] font-bold text-white
+                     opacity-0 scale-0 transition-all duration-300 pointer-events-none"
+              aria-live="polite">1</span>
+    </button>
+</div>
+
+{# ── Chat Window — SIBLING of FAB, not child ───────────────────── #}
+{# Mobile: fixed inset-0 (true full screen, stays inside viewport)  #}
+{# Desktop sm+: fixed, JS positions it above the FAB                #}
+<div id="cbWindow"
+     class="fixed
+            inset-0 sm:inset-auto
+            sm:bottom-[5.5rem] sm:right-6
+            w-full sm:w-[22rem] md:w-96
+            h-full sm:h-[36rem] md:h-[40rem]
+            bg-white sm:rounded-2xl
+            shadow-2xl
+            border-0 sm:border sm:border-gray-200
+            z-[9998]
+            opacity-0 scale-95 pointer-events-none invisible
+            transition-all duration-300 ease-out
+            flex flex-col overflow-hidden"
+     role="dialog"
+     aria-labelledby="cbTitle"
+     aria-modal="true"
+     aria-hidden="true">
+
+    {# Header #}
+    <header class="bg-gradient-to-br from-primary-950 to-primary-700
+                   text-white px-4 flex items-center justify-between
+                   shrink-0 select-none"
+            style="padding-top: max(0.75rem, env(safe-area-inset-top));
+                   padding-bottom: 0.75rem;">
+        <div class="flex items-center gap-3 min-w-0">
+            <div class="w-9 h-9 rounded-full flex items-center justify-center shrink-0
+                        ring-2 ring-white/30 overflow-hidden bg-white/20">
+                {% if site_config.logo and site_config.logo.name %}
+                    <img src="{{ site_config.logo.url }}"
+                         class="w-full h-full object-cover"
+                         alt="{{ site_config.school_short_name|default:'Logo' }}"
+                         loading="lazy"
+                         onerror="this.parentElement.innerHTML='<i class=\'fas fa-graduation-cap text-white text-sm\'></i>'">
+                {% else %}
+                    <i class="fas fa-graduation-cap text-white text-sm" aria-hidden="true"></i>
+                {% endif %}
+            </div>
+            <div class="min-w-0">
+                <h2 id="cbTitle" class="font-semibold text-sm leading-tight truncate">
+                    {{ site_config.school_short_name|default:"Student" }} Assistant
+                </h2>
+                <div class="flex items-center gap-1.5 mt-0.5">
+                    <span id="cbStatusDot" class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shrink-0" aria-hidden="true"></span>
+                    <span id="cbStatus" class="text-[11px] text-white/80">Online</span>
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center gap-1 shrink-0 ml-2">
+            <button id="cbEnd"
+                    type="button"
+                    class="hidden items-center gap-1.5 px-2.5 py-1.5 rounded-lg
+                           text-[11px] font-semibold text-red-200
+                           border border-red-400/40
+                           hover:bg-red-500/25 hover:text-white hover:border-red-300/60
+                           transition-all duration-200
+                           focus:outline-none focus:ring-2 focus:ring-red-300/60"
+                    aria-label="End chat session">
+                <i data-lucide="square" class="w-3 h-3 shrink-0" aria-hidden="true"></i>
+                End chat
+            </button>
+            <button id="cbClose"
+                    type="button"
+                    class="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/20
+                           transition-all duration-200
+                           focus:outline-none focus:ring-2 focus:ring-white/40"
+                    aria-label="Close chat window">
+                <i data-lucide="x" class="w-5 h-5" aria-hidden="true"></i>
+            </button>
+        </div>
+    </header>
+
+    {# Pre-chat form (guests / unauthenticated) #}
+    <section id="cbPrechat"
+             class="hidden flex-1 flex flex-col items-center justify-center p-6 bg-gray-50 overflow-y-auto"
+             aria-label="Start a new chat">
+        <div class="w-14 h-14 bg-gradient-to-br from-primary-100 to-primary-200
+                    rounded-2xl flex items-center justify-center mb-4 shadow-sm shrink-0">
+            <i class="fas fa-comments text-primary-700 text-xl" aria-hidden="true"></i>
+        </div>
+        <h3 class="font-semibold text-gray-800 text-base mb-1 shrink-0">Start a conversation</h3>
+        <p class="text-xs text-gray-500 text-center mb-5 leading-relaxed max-w-[220px] shrink-0">
+            Tell us a bit about yourself so we can personalise your experience.
+        </p>
+        <form id="cbPrechatForm" class="w-full space-y-3 shrink-0" novalidate>
+            <div>
+                <label for="cbFirstName" class="block text-xs font-medium text-gray-600 mb-1">First name</label>
+                <input id="cbFirstName" type="text" name="first_name"
+                       placeholder="e.g. Amara" required maxlength="100" autocomplete="given-name"
+                       class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-xl bg-white
+                              text-gray-800 placeholder-gray-400
+                              focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                              transition-all duration-200">
+                <p id="cbFnErr" class="hidden text-[11px] text-red-500 mt-1 px-1" role="alert"></p>
+            </div>
+            <div>
+                <label for="cbEmail" class="block text-xs font-medium text-gray-600 mb-1">Email address</label>
+                <input id="cbEmail" type="email" name="email"
+                       placeholder="you@example.com" required maxlength="254" autocomplete="email"
+                       class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-xl bg-white
+                              text-gray-800 placeholder-gray-400
+                              focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                              transition-all duration-200">
+                <p id="cbEmErr" class="hidden text-[11px] text-red-500 mt-1 px-1" role="alert"></p>
+            </div>
+            <button type="submit" id="cbStartBtn"
+                    class="w-full py-2.5 px-4 bg-gradient-to-r from-primary-700 to-primary-900
+                           text-white text-sm font-semibold rounded-xl
+                           hover:shadow-lg hover:opacity-95 active:scale-[0.98]
+                           transition-all duration-200
+                           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
+                           disabled:opacity-60 disabled:cursor-not-allowed
+                           flex items-center justify-center gap-2">
+                <i data-lucide="message-circle" class="w-4 h-4" aria-hidden="true"></i>
+                Start Chat
+            </button>
+        </form>
+    </section>
+
+    {# Messages — flex-1 so it fills remaining height, scrolls internally #}
+    <div id="cbMessages"
+         class="hidden flex-1 overflow-y-auto px-4 py-3 space-y-3
+                bg-gradient-to-b from-gray-50/80 to-white
+                overscroll-contain"
+         role="log"
+         aria-live="polite"
+         aria-atomic="false"
+         aria-label="Chat messages"
+         tabindex="0">
+    </div>
+
+    {# Typing dots #}
+    <div id="cbTyping" class="hidden px-4 pb-2 shrink-0" aria-live="polite" aria-label="Assistant is typing">
+        <div class="flex items-end gap-2">
+            <div class="w-7 h-7 bg-gradient-to-br from-primary-700 to-primary-900
+                        rounded-full flex items-center justify-center
+                        text-white text-[10px] font-bold shrink-0">AI</div>
+            <div class="bg-white rounded-2xl rounded-bl-sm px-3 py-2.5
+                        shadow-sm border border-gray-100 inline-flex items-center gap-1">
+                <span class="cb-dot w-1.5 h-1.5 bg-gray-400 rounded-full"></span>
+                <span class="cb-dot w-1.5 h-1.5 bg-gray-400 rounded-full" style="animation-delay:.15s"></span>
+                <span class="cb-dot w-1.5 h-1.5 bg-gray-400 rounded-full" style="animation-delay:.3s"></span>
+            </div>
+        </div>
+    </div>
+
+    {# Inline end-chat confirm — inside chatbot, not a page-level modal #}
+    <div id="cbEndConfirm"
+         class="hidden shrink-0 mx-3 mb-2"
+         role="alertdialog"
+         aria-labelledby="cbEndTitle"
+         aria-live="assertive">
+        <div class="rounded-2xl border border-red-100 bg-red-50 p-4">
+            <div class="flex items-start gap-3 mb-3">
+                <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                    <i data-lucide="alert-triangle" class="w-4 h-4 text-red-500" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <p id="cbEndTitle" class="text-xs font-semibold text-red-700 leading-tight">End this chat?</p>
+                    <p class="text-xs text-red-600/80 mt-0.5 leading-relaxed">
+                        Your conversation will be cleared and the session closed.
+                    </p>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button id="cbEndNo" type="button"
+                        class="flex-1 py-2 rounded-xl border border-gray-200 bg-white
+                               text-xs font-medium text-gray-600
+                               hover:bg-gray-50 transition-colors
+                               focus:outline-none focus:ring-2 focus:ring-gray-300">
+                    Keep chatting
+                </button>
+                <button id="cbEndYes" type="button"
+                        class="flex-1 py-2 rounded-xl bg-red-500 text-white
+                               text-xs font-semibold
+                               hover:bg-red-600 active:scale-95 transition-all
+                               focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1">
+                    Yes, end chat
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {# Quick topics #}
+    <div id="cbQuickActions"
+         class="hidden px-3 py-2 bg-white border-t border-gray-100 shrink-0"
+         aria-label="Quick topics">
+        <p class="text-[10px] text-gray-400 uppercase tracking-wider font-medium mb-1.5">Quick topics</p>
+        <div class="flex flex-wrap gap-1.5">
+            <button type="button" class="cb-topic px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs font-medium text-gray-600 hover:border-primary-400 hover:bg-primary-50 hover:text-primary-700 active:scale-95 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary-400">Programs</button>
+            <button type="button" class="cb-topic px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs font-medium text-gray-600 hover:border-primary-400 hover:bg-primary-50 hover:text-primary-700 active:scale-95 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary-400">Admissions</button>
+            <button type="button" class="cb-topic px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs font-medium text-gray-600 hover:border-primary-400 hover:bg-primary-50 hover:text-primary-700 active:scale-95 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary-400">Campus Life</button>
+            <button type="button" class="cb-topic px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs font-medium text-gray-600 hover:border-primary-400 hover:bg-primary-50 hover:text-primary-700 active:scale-95 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary-400">Fees</button>
+            <button type="button" class="cb-topic px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs font-medium text-gray-600 hover:border-primary-400 hover:bg-primary-50 hover:text-primary-700 active:scale-95 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary-400">Support</button>
+        </div>
+    </div>
+
+    {# Input area — shrink-0 so it never gets squished #}
+    <div id="cbInputArea"
+         class="hidden px-3 pt-2 bg-white border-t border-gray-100 shrink-0"
+         style="padding-bottom: max(0.75rem, env(safe-area-inset-bottom));">
+        <form id="cbForm" class="flex items-end gap-2" novalidate>
+            {% csrf_token %}
+            <div class="flex-1 min-w-0">
+                <label for="cbInput" class="sr-only">Type your message</label>
+                <textarea id="cbInput"
+                          rows="1"
+                          placeholder="Ask anything…"
+                          maxlength="500"
+                          autocomplete="off"
+                          spellcheck="true"
+                          class="w-full bg-gray-50 border border-gray-200 rounded-xl
+                                 px-3 py-2.5 text-sm text-gray-800 placeholder-gray-400
+                                 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                                 transition-all duration-200 resize-none leading-snug max-h-28 overflow-y-auto"
+                          aria-label="Message input"></textarea>
+                <div class="flex justify-between items-center mt-0.5 px-0.5 pb-0.5">
+                    <span class="text-[10px] text-gray-300">Shift+Enter for new line</span>
+                    <span id="cbCharCount" class="text-[10px] text-gray-300" aria-live="polite">0/500</span>
+                </div>
+            </div>
+            <button type="submit" id="cbSend" disabled
+                    class="w-10 h-10 shrink-0 bg-gradient-to-br from-primary-700 to-primary-900
+                           text-white rounded-xl flex items-center justify-center
+                           hover:shadow-md hover:scale-105 active:scale-95
+                           transition-all duration-200
+                           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
+                           disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none"
+                    aria-label="Send message">
+                <i data-lucide="send" class="w-4 h-4" aria-hidden="true"></i>
+            </button>
+        </form>
+    </div>
+
+</div>{# /cbWindow #}
+
+
+<style>
+    /* Typing bounce */
+    @keyframes cbBounce {
+        0%, 80%, 100% { transform: translateY(0); opacity: .5; }
+        40%            { transform: translateY(-5px); opacity: 1; }
+    }
+    .cb-dot { animation: cbBounce 1.2s ease-in-out infinite; }
+
+    /* Message + confirm entrance */
+    @keyframes cbIn {
+        from { opacity: 0; transform: translateY(6px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .cb-msg { animation: cbIn 0.22s ease-out both; }
+    #cbEndConfirm:not(.hidden) { animation: cbIn 0.2s ease-out both; }
+
+    /* Slim scrollbar */
+    #cbMessages::-webkit-scrollbar { width: 3px; }
+    #cbMessages::-webkit-scrollbar-track { background: transparent; }
+    #cbMessages::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 99px; }
+
+    /* Textarea smooth grow */
+    #cbInput { transition: height 0.1s ease; }
+
+    /* On mobile ensure nothing overflows viewport */
+    @media (max-width: 639px) {
+        #cbWindow {
+            /* Explicit pixel fallback for browsers without dvh support */
+            height: 100vh;
+            height: 100dvh;
+            /* Never exceed viewport */
+            max-height: 100dvh;
+            max-width: 100vw;
+        }
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+        .cb-msg, .cb-dot, #cbEndConfirm { animation: none !important; }
+        #cbWindow { transition: none !important; }
+    }
+</style>
+
+
+<script>
+    window._cbUser = {
+        authed:    {{ user.is_authenticated|yesno:"true,false" }},
+        firstName: "{{ user.first_name|escapejs }}",
+        email:     "{{ user.email|escapejs }}",
+        uid:       "{{ user.pk|default:'' }}"
+    };
+</script>
+
+<script>
+(function () {
+    'use strict';
+
+    const $         = id => document.getElementById(id);
+    const toggle    = $('cbToggle');
+    const win       = $('cbWindow');
+    const closeBtn  = $('cbClose');
+    const endBtn    = $('cbEnd');
+    const endNo     = $('cbEndNo');
+    const endYes    = $('cbEndYes');
+    const endBox    = $('cbEndConfirm');
+    const prechat   = $('cbPrechat');
+    const pcForm    = $('cbPrechatForm');
+    const msgs      = $('cbMessages');
+    const typing    = $('cbTyping');
+    const quick     = $('cbQuickActions');
+    const inArea    = $('cbInputArea');
+    const form      = $('cbForm');
+    const input     = $('cbInput');
+    const sendBtn   = $('cbSend');
+    const counter   = $('cbCharCount');
+    const badge     = $('cbBadge');
+    const statusTxt = $('cbStatus');
+    const statusDot = $('cbStatusDot');
+
+    let sessionId   = null;
+    let isOpen      = false;
+    let confirmOpen = false;
+
+    /* Per-user key — no session bleed between accounts */
+    const SESSION_KEY = (_cbUser.authed && _cbUser.uid)
+        ? 'cb_u' + _cbUser.uid
+        : 'cb_guest';
+
+    const URL_START  = "{% url 'chatbot:start_session' %}";
+    const URL_MSG    = "{% url 'chatbot:send_message' %}";
+    const URL_CLOSE  = "{% url 'chatbot:close_session' %}";
+    const URL_STATUS = "{% url 'chatbot:session_status' %}";
+
+    /* ── Helpers ───────────────────────────────────────────── */
+    const csrf = () => (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '';
+
+    function esc(s) {
+        const d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
+    }
+
+    function fmtBot(t) { return esc(t).replace(/\n/g, '<br>'); }
+
+    function lucide() {
+        if (typeof window.lucide !== 'undefined')
+            window.lucide.createIcons({ attrs: { 'aria-hidden': 'true' } });
+    }
+
+    function setStatus(txt, active = true) {
+        statusTxt.textContent = txt;
+        statusDot.className = 'w-2 h-2 rounded-full shrink-0 '
+            + (active ? 'bg-emerald-400 animate-pulse' : 'bg-gray-400');
+    }
+
+    /* ── Window ────────────────────────────────────────────── */
+    function openWin() {
+        win.classList.remove('opacity-0', 'scale-95', 'pointer-events-none', 'invisible');
+        win.classList.add('opacity-100', 'scale-100');
+        win.setAttribute('aria-hidden', 'false');
+        toggle.setAttribute('aria-expanded', 'true');
+        toggle.setAttribute('aria-label', 'Close chat assistant');
+        badge.classList.remove('opacity-100', 'scale-100');
+        badge.classList.add('opacity-0', 'scale-0');
+        isOpen = true;
+        /* Prevent body scroll on mobile when chat is open */
+        if (window.innerWidth < 640) {
+            document.body.style.overflow = 'hidden';
+            document.getElementById('cb').style.display = 'none';
+        }
+    }
+
+    function hideWin() {
+        win.classList.remove('opacity-100', 'scale-100');
+        win.classList.add('opacity-0', 'scale-95', 'pointer-events-none', 'invisible');
+        win.setAttribute('aria-hidden', 'true');
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.setAttribute('aria-label', 'Open chat assistant');
+        dismissConfirm();
+        document.body.style.overflow = '';
+        document.getElementById('cb').style.display = '';
+        isOpen = false;
+    }
+
+    /* ── Panels ────────────────────────────────────────────── */
+    function showChat() {
+        prechat.classList.add('hidden');
+        msgs.classList.remove('hidden');
+        quick.classList.remove('hidden');
+        inArea.classList.remove('hidden');
+        endBtn.classList.remove('hidden');
+        endBtn.style.display = 'flex';
+        setStatus('Online');
+        lucide();
+        setTimeout(() => input.focus(), 80);
+    }
+
+    function showPrechat() {
+        prechat.classList.remove('hidden');
+        msgs.classList.add('hidden');
+        quick.classList.add('hidden');
+        inArea.classList.add('hidden');
+        endBtn.classList.add('hidden');
+        endBtn.style.display = 'none';
+        dismissConfirm();
+        msgs.innerHTML = '';
+        sessionId = null;
+        sessionStorage.removeItem(SESSION_KEY);
+        setStatus('Online');
+        lucide();
+        setTimeout(() => $('cbFirstName')?.focus(), 80);
+    }
+
+    /* ── Inline end-chat confirm ───────────────────────────── */
+    function showConfirm() {
+        confirmOpen = true;
+        endBox.classList.remove('hidden');
+        inArea.classList.add('hidden');
+        quick.classList.add('hidden');
+        lucide();
+        msgs.scrollTo({ top: msgs.scrollHeight, behavior: 'smooth' });
+        setTimeout(() => endYes.focus(), 50);
+    }
+
+    function dismissConfirm() {
+        if (!confirmOpen) return;
+        confirmOpen = false;
+        endBox.classList.add('hidden');
+        if (sessionId) {
+            inArea.classList.remove('hidden');
+            quick.classList.remove('hidden');
+        }
+    }
+
+    /* ── Messages ──────────────────────────────────────────── */
+    function addMsg(text, sender) {
+        const row = document.createElement('div');
+        row.className = 'flex items-end gap-2 cb-msg'
+            + (sender === 'user' ? ' justify-end' : '');
+
+        const initial = esc((_cbUser.firstName || 'You').charAt(0).toUpperCase());
+
+        if (sender === 'user') {
+            row.innerHTML = `
+                <div class="max-w-[82%]">
+                  <div class="bg-gradient-to-br from-primary-700 to-primary-900
+                              text-white rounded-2xl rounded-br-none px-4 py-2.5 shadow-sm">
+                    <p class="text-sm leading-relaxed whitespace-pre-wrap break-words">${esc(text)}</p>
+                  </div>
+                </div>
+                <div class="w-7 h-7 bg-gradient-to-br from-primary-500 to-primary-700
+                            rounded-full flex items-center justify-center
+                            text-white text-[10px] font-bold shrink-0 mb-0.5"
+                     aria-hidden="true">${initial}</div>`;
+        } else {
+            row.innerHTML = `
+                <div class="w-7 h-7 bg-gradient-to-br from-primary-700 to-primary-900
+                            rounded-full flex items-center justify-center
+                            text-white text-[10px] font-bold shrink-0 mb-0.5"
+                     aria-hidden="true">AI</div>
+                <div class="max-w-[82%]">
+                  <div class="bg-white rounded-2xl rounded-bl-none px-4 py-2.5
+                              shadow-sm border border-gray-100">
+                    <p class="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap break-words">${fmtBot(text)}</p>
+                  </div>
+                </div>`;
+        }
+
+        msgs.appendChild(row);
+        requestAnimationFrame(() => msgs.scrollTo({ top: msgs.scrollHeight, behavior: 'smooth' }));
+    }
+
+    function loadHistory(list) {
+        msgs.innerHTML = '';
+        list.forEach(m => addMsg(m.content, m.sender));
+    }
+
+    /* ── Typing ────────────────────────────────────────────── */
+    function showTyping(on) {
+        typing.classList.toggle('hidden', !on);
+        if (on) msgs.scrollTo({ top: msgs.scrollHeight, behavior: 'smooth' });
+    }
+
+    /* ── API ───────────────────────────────────────────────── */
+    async function apiVerify(sid) {
+        try {
+            const r = await fetch(`${URL_STATUS}?session_id=${sid}`);
+            const d = await r.json();
+            if (r.ok && d.active) {
+                sessionId = sid;
+                loadHistory(d.messages);
+                showChat();
+            } else {
+                sessionStorage.removeItem(SESSION_KEY);
+                _cbUser.authed ? apiStart(_cbUser.firstName, _cbUser.email) : showPrechat();
+            }
+        } catch {
+            sessionStorage.removeItem(SESSION_KEY);
+            _cbUser.authed ? apiStart(_cbUser.firstName, _cbUser.email) : showPrechat();
+        }
+    }
+
+    async function apiStart(firstName, email) {
+        const btn = $('cbStartBtn');
+        if (btn) { btn.disabled = true; btn.textContent = 'Starting…'; }
+        setStatus('Connecting…', false);
+        try {
+            const r = await fetch(URL_START, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf() },
+                body: JSON.stringify({ first_name: firstName, email })
+            });
+            const d = await r.json();
+            if (r.ok) {
+                sessionId = d.session_id;
+                sessionStorage.setItem(SESSION_KEY, sessionId);
+                loadHistory(d.messages);
+                showChat();
+            } else {
+                setStatus('Error', false);
+                setErr('cbFnErr', d.error || 'Could not start. Please try again.');
+            }
+        } catch {
+            setStatus('Offline', false);
+            setErr('cbFnErr', 'Network error. Please check your connection.');
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="message-circle" class="w-4 h-4"></i> Start Chat';
+                lucide();
+            }
+        }
+    }
+
+    async function apiClose() {
+        if (!sessionId) return;
+        try {
+            await fetch(URL_CLOSE, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf() },
+                body: JSON.stringify({ session_id: sessionId })
+            });
+        } catch { /* best effort */ }
+        finally { showPrechat(); }
+    }
+
+    async function apiSend(text) {
+        showTyping(true);
+        sendBtn.disabled = true;
+        try {
+            const r = await fetch(URL_MSG, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf() },
+                body: JSON.stringify({ session_id: sessionId, message: text })
+            });
+            const d = await r.json();
+            if (r.ok) {
+                addMsg(d.response, 'bot');
+            } else if (r.status === 401) {
+                sessionStorage.removeItem(SESSION_KEY);
+                showPrechat();
+            } else {
+                addMsg('Sorry, something went wrong. Please try again.', 'bot');
+            }
+        } catch {
+            addMsg('Network error. Please check your connection.', 'bot');
+        } finally {
+            showTyping(false);
+            sendBtn.disabled = input.value.trim().length === 0;
+        }
+    }
+
+    /* ── Validation ────────────────────────────────────────── */
+    function setErr(id, msg) {
+        const el = $(id);
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.remove('hidden');
+    }
+
+    function clearErrs() {
+        ['cbFnErr', 'cbEmErr'].forEach(id => {
+            const el = $(id);
+            if (el) { el.textContent = ''; el.classList.add('hidden'); }
+        });
+    }
+
+    function validatePrechat(fn, email) {
+        clearErrs();
+        let ok = true;
+        if (!fn) {
+            setErr('cbFnErr', 'Please enter your first name.');
+            $('cbFirstName')?.focus();
+            ok = false;
+        }
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            setErr('cbEmErr', 'Please enter a valid email address.');
+            if (ok) $('cbEmail')?.focus();
+            ok = false;
+        }
+        return ok;
+    }
+
+    /* ── Events ────────────────────────────────────────────── */
+    toggle.addEventListener('click', () => {
+        if (!isOpen) {
+            openWin();
+            const stored = sessionStorage.getItem(SESSION_KEY);
+            if (stored)              apiVerify(stored);
+            else if (_cbUser.authed) apiStart(_cbUser.firstName, _cbUser.email);
+            else                     showPrechat();
+        } else {
+            hideWin();
+        }
+    });
+
+    closeBtn.addEventListener('click', hideWin);
+
+    endBtn.addEventListener('click', () => {
+        confirmOpen ? dismissConfirm() : showConfirm();
+    });
+
+    endNo.addEventListener('click', () => { dismissConfirm(); input.focus(); });
+
+    endYes.addEventListener('click', async () => {
+        dismissConfirm();
+        await apiClose();
+        hideWin();
+    });
+
+    pcForm?.addEventListener('submit', async e => {
+        e.preventDefault();
+        const fn    = $('cbFirstName')?.value.trim() || '';
+        const email = $('cbEmail')?.value.trim() || '';
+        if (validatePrechat(fn, email)) await apiStart(fn, email);
+    });
+
+    input.addEventListener('input', function () {
+        const len = this.value.length;
+        counter.textContent = `${len}/500`;
+        counter.style.color = len > 450 ? '#f97316' : '';
+        sendBtn.disabled = len === 0;
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 112) + 'px';
+    });
+
+    input.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            form.dispatchEvent(new Event('submit', { bubbles: true }));
+        }
+    });
+
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+        const text = input.value.trim();
+        if (!text || !sessionId) return;
+        addMsg(text, 'user');
+        input.value = '';
+        input.style.height = 'auto';
+        counter.textContent = '0/500';
+        sendBtn.disabled = true;
+        apiSend(text);
+    });
+
+    document.querySelectorAll('.cb-topic').forEach(btn => {
+        btn.addEventListener('click', function () {
+            if (!sessionId) return;
+            const msg = `Tell me about ${this.textContent.trim()}`;
+            addMsg(msg, 'user');
+            apiSend(msg);
+        });
+    });
+
+    document.addEventListener('keydown', e => {
+        if (e.key !== 'Escape') return;
+        if (confirmOpen) { dismissConfirm(); input.focus(); return; }
+        if (isOpen) hideWin();
+    });
+
+    /* Restore body scroll if window resizes past mobile breakpoint */
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 640) {
+            document.body.style.overflow = '';
+            document.getElementById('cb').style.display = '';
+        }
+        document.getElementById('cb').style.display = '';
+    });
+
+    /* Badge pulse after 6s if window still closed */
+    setTimeout(() => {
+        if (!isOpen) {
+            badge.classList.remove('opacity-0', 'scale-0');
+            badge.classList.add('opacity-100', 'scale-100');
+        }
+    }, 6000);
+
+    lucide();
+
+})();
+</script>

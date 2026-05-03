@@ -1,0 +1,332 @@
+{% extends 'management/base.html' %}
+
+{% block title %}
+    {% if is_edit %}Edit Broadcast{% else %}Create Broadcast{% endif %} - MIU Portal
+{% endblock %}
+
+{% block breadcrumb %}
+    {% if is_edit %}Edit Broadcast{% else %}Create Broadcast{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="p-6">
+    <!-- Page Header -->
+    <div class="mb-6">
+        <div class="flex items-center space-x-3 mb-2">
+            <a href="{% url 'management:broadcast_center' %}" 
+               class="text-gray-600 hover:text-primary-600 transition-colors">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1 class="text-3xl font-bold text-gray-900 font-display">
+                {% if is_edit %}Edit Broadcast{% else %}Create Broadcast{% endif %}
+            </h1>
+        </div>
+        <p class="text-gray-600">
+            {% if is_edit %}
+                Update your broadcast message and recipients
+            {% else %}
+                Compose and send bulk emails to filtered recipients
+            {% endif %}
+        </p>
+        
+        {% if is_edit %}
+        <div class="mt-3 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
+            <div class="flex items-start">
+                <i class="fas fa-info-circle text-blue-500 mt-1 mr-3"></i>
+                <div>
+                    <p class="text-sm font-medium text-blue-900">
+                        Editing Draft Broadcast
+                    </p>
+                    <p class="text-sm text-blue-700 mt-1">
+                        Recipients will be recalculated based on your filter selections when you save.
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Form -->
+    <div class="max-w-12xl">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Two Cards Flex Container -->
+            <div class="flex flex-col lg:flex-row gap-6">
+                <!-- Message Details Card -->
+                <div class="flex-1 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-primary-500 to-secondary-500 p-6">
+                        <h2 class="text-xl font-bold text-white flex items-center">
+                            <i class="fas fa-envelope mr-3"></i>
+                            Message Details
+                        </h2>
+                    </div>
+                    
+                    <div class="p-6 space-y-6">
+                        <!-- Subject -->
+                        <div>
+                            <label for="{{ form.subject.id_for_label }}" 
+                                   class="block text-sm font-semibold text-gray-700 mb-2">
+                                Email Subject *
+                            </label>
+                            {{ form.subject }}
+                            {% if form.subject.errors %}
+                            <p class="mt-1 text-sm text-red-600">
+                                {{ form.subject.errors.0 }}
+                            </p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Message -->
+                        <div>
+                            <label for="{{ form.message.id_for_label }}" 
+                                   class="block text-sm font-semibold text-gray-700 mb-2">
+                                Message Content *
+                            </label>
+                            {{ form.message }}
+                            {% if form.message.errors %}
+                            <p class="mt-1 text-sm text-red-600">
+                                {{ form.message.errors.0 }}
+                            </p>
+                            {% endif %}
+                            <p class="mt-2 text-sm text-gray-500">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Write your email message. Plain text only.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recipient Filters Card -->
+                <div class="flex-1 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-blue-500 to-cyan-500 p-6">
+                        <h2 class="text-xl font-bold text-white flex items-center">
+                            <i class="fas fa-filter mr-3"></i>
+                            Recipient Filters
+                        </h2>
+                    </div>
+                    
+                    <div class="p-6 space-y-6">
+                        <!-- Filter Type -->
+                        <div>
+                            <label for="{{ form.filter_type.id_for_label }}" 
+                                   class="block text-sm font-semibold text-gray-700 mb-2">
+                                Filter Type *
+                            </label>
+                            {{ form.filter_type }}
+                            {% if form.filter_type.errors %}
+                            <p class="mt-1 text-sm text-red-600">
+                                {{ form.filter_type.errors.0 }}
+                            </p>
+                            {% endif %}
+                            <p class="mt-2 text-sm text-gray-500">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Choose how to filter recipients
+                            </p>
+                        </div>
+
+                        <!-- Faculties Filter -->
+                        <div id="faculties_filter" class="filter-section hidden">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                Select Faculties
+                            </label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-64 overflow-y-auto p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                {% for checkbox in form.faculties %}
+                                <label class="flex items-center space-x-3 p-2 hover:bg-white rounded-lg transition-colors cursor-pointer">
+                                    {{ checkbox.tag }}
+                                    <span class="text-sm text-gray-700">
+                                        {{ checkbox.choice_label }}
+                                    </span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Courses Filter -->
+                        <div id="courses_filter" class="filter-section hidden">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                Select Courses (Admission Programs)
+                            </label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-64 overflow-y-auto p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                {% for checkbox in form.courses %}
+                                <label class="flex items-center space-x-3 p-2 hover:bg-white rounded-lg transition-colors cursor-pointer">
+                                    {{ checkbox.tag }}
+                                    <span class="text-sm text-gray-700">
+                                        {{ checkbox.choice_label }}
+                                    </span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- LMS Courses Filter -->
+                        <div id="lms_courses_filter" class="filter-section hidden">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                Select LMS Courses
+                            </label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-64 overflow-y-auto p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                {% for checkbox in form.lms_courses %}
+                                <label class="flex items-center space-x-3 p-2 hover:bg-white rounded-lg transition-colors cursor-pointer">
+                                    {{ checkbox.tag }}
+                                    <span class="text-sm text-gray-700">
+                                        {{ checkbox.choice_label }}
+                                    </span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Roles Filter -->
+                        <div id="roles_filter" class="filter-section hidden">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                Select User Roles
+                            </label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                {% for checkbox in form.roles %}
+                                <label class="flex items-center space-x-3 p-2 hover:bg-white rounded-lg transition-colors cursor-pointer">
+                                    {{ checkbox.tag }}
+                                    <span class="text-sm text-gray-700">
+                                        {{ checkbox.choice_label }}
+                                    </span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Application Status Filter -->
+                        <div id="application_status_filter" class="filter-section hidden">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                Select Application Statuses
+                            </label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                {% for checkbox in form.application_statuses %}
+                                <label class="flex items-center space-x-3 p-2 hover:bg-white rounded-lg transition-colors cursor-pointer">
+                                    {{ checkbox.tag }}
+                                    <span class="text-sm text-gray-700">
+                                        {{ checkbox.choice_label }}
+                                    </span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Enrollment Status Filter -->
+                        <div id="enrollment_status_filter" class="filter-section hidden">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                Select Enrollment Statuses
+                            </label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                {% for checkbox in form.enrollment_statuses %}
+                                <label class="flex items-center space-x-3 p-2 hover:bg-white rounded-lg transition-colors cursor-pointer">
+                                    {{ checkbox.tag }}
+                                    <span class="text-sm text-gray-700">
+                                        {{ checkbox.choice_label }}
+                                    </span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- All Users Notice -->
+                        <div id="all_users_notice" class="filter-section hidden">
+                            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
+                                <div class="flex items-start">
+                                    <i class="fas fa-info-circle text-blue-500 mt-1 mr-3"></i>
+                                    <div>
+                                        <p class="text-sm font-medium text-blue-900">
+                                            All Users Selected
+                                        </p>
+                                        <p class="text-sm text-blue-700 mt-1">
+                                            This broadcast will be sent to all active users in the system.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End Two Cards Flex Container -->
+
+            <!-- Form Errors -->
+            {% if form.non_field_errors %}
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                <div class="flex items-start">
+                    <i class="fas fa-exclamation-circle text-red-500 mt-1 mr-3"></i>
+                    <div>
+                        <p class="text-sm font-medium text-red-900">Error</p>
+                        {% for error in form.non_field_errors %}
+                        <p class="text-sm text-red-700 mt-1">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-between bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <a href="{% url 'management:broadcast_center' %}" 
+                   class="inline-flex items-center px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all font-medium">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancel
+                </a>
+                <button type="submit" 
+                        class="inline-flex items-center px-8 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all shadow-lg hover:shadow-xl font-medium">
+                    <i class="fas fa-save mr-2"></i>
+                    {% if is_edit %}Update Broadcast{% else %}Save Broadcast{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    initializeFilterDisplay();
+});
+
+function initializeFilterDisplay() {
+    const filterTypeSelect = document.getElementById('id_filter_type');
+    const filterSections = document.querySelectorAll('.filter-section');
+    
+    if (!filterTypeSelect) return;
+    
+    filterTypeSelect.addEventListener('change', updateFilterDisplay);
+    updateFilterDisplay();
+    
+    function updateFilterDisplay() {
+        const selectedFilter = filterTypeSelect.value;
+        hideAllFilters();
+        showSelectedFilter(selectedFilter);
+    }
+    
+    function hideAllFilters() {
+        filterSections.forEach(section => {
+            section.classList.add('hidden');
+        });
+    }
+    
+    function showSelectedFilter(filterType) {
+        const filterMap = {
+            'faculty': 'faculties_filter',
+            'course': 'courses_filter',
+            'lms_course': 'lms_courses_filter',
+            'role': 'roles_filter',
+            'application_status': 'application_status_filter',
+            'enrollment_status': 'enrollment_status_filter',
+            'all_users': 'all_users_notice'
+        };
+        
+        const targetId = filterMap[filterType];
+        if (targetId) {
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+                targetElement.classList.remove('hidden');
+            }
+        }
+    }
+}
+</script>
+{% endblock %}

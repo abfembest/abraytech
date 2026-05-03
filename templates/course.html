@@ -1,0 +1,787 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block style %}
+    <link rel="stylesheet" href="{% static 'css/course.css' %}">
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'js/course.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<!-- ================= ADMISSION HERO ================= -->
+<section class="pt-24 pb-16 admission-hero text-white">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="mb-6">
+      <a href="test2.html#programs" class="text-miu-accent hover:text-yellow-300 transition-colors inline-flex items-center">
+        ← Back to All Programs
+      </a>
+    </div>
+    
+    <div class="grid md:grid-cols-3 gap-8 items-center">
+      <div class="md:col-span-2">
+        <div class="flex items-center mb-4">
+          <span class="bg-miu-accent text-miu-primary px-3 py-1 rounded-full text-sm font-semibold mr-3">Undergraduate</span>
+          <span class="bg-white/20 px-3 py-1 rounded-full text-sm">Bachelor of Science</span>
+        </div>
+        
+        <h1 class="text-4xl md:text-5xl font-bold mb-4 font-serif">Computer Science Admission</h1>
+        
+        <p class="text-xl text-gray-200 mb-6">
+          Start your journey to becoming a technology leader. Our Computer Science program combines rigorous academics with hands-on experience in AI, cybersecurity, and software engineering.
+        </p>
+        
+        <div class="flex flex-wrap items-center gap-6">
+          <div class="flex items-center">
+            <span class="mr-2">🎓</span>
+            <span>Program: B.Sc. Computer Science</span>
+          </div>
+          <div class="flex items-center">
+            <span class="mr-2">⏱️</span>
+            <span>Duration: 4 years (8 semesters)</span>
+          </div>
+          <div class="flex items-center">
+            <span class="mr-2">📍</span>
+            <span>Format: On-campus & Hybrid options</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+        <h3 class="text-xl font-bold mb-4">Key Admission Details</h3>
+        <div class="space-y-4">
+          <div class="flex justify-between">
+            <span>Application Deadline</span>
+            <span class="font-semibold">June 15, 2025</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Program Start</span>
+            <span class="font-semibold">August 25, 2025</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Tuition (Annual)</span>
+            <span class="font-semibold">$32,500</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Scholarship Deadline</span>
+            <span class="font-semibold">March 31, 2025</span>
+          </div>
+          
+          <div class="pt-4 border-t border-white/20">
+            <div class="text-sm mb-2">Spots Available: 150 of 200</div>
+            <div class="w-full bg-gray-700 rounded-full h-2">
+              <div class="bg-green-500 h-2 rounded-full" style="width: 75%"></div>
+            </div>
+          </div>
+          
+          <a href="{% url 'eduweb:apply'%}" class="block w-full bg-miu-accent text-miu-primary py-3 rounded-lg font-bold hover:bg-yellow-400 transition-colors mt-4 shadow-lg text-center">
+            Start Application
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ADMISSION TIMELINE ================= -->
+<section class="py-16 bg-gradient-light">
+  <div class="max-w-7xl mx-auto px-4">
+    <h2 class="text-3xl font-bold mb-12 text-center text-miu-primary font-serif">Admission Timeline & Process</h2>
+    
+    <!-- Progress Steps -->
+    <div class="flex items-center justify-between mb-16 max-w-4xl mx-auto">
+      <div class="flex flex-col items-center">
+        <div class="progress-step completed">1</div>
+        <div class="mt-2 text-center">
+          <div class="font-semibold">Inquiry</div>
+          <div class="text-sm text-gray-600">Submit interest</div>
+        </div>
+      </div>
+      <div class="progress-connector completed"></div>
+      <div class="flex flex-col items-center">
+        <div class="progress-step completed">2</div>
+        <div class="mt-2 text-center">
+          <div class="font-semibold">Application</div>
+          <div class="text-sm text-gray-600">Complete form</div>
+        </div>
+      </div>
+      <div class="progress-connector active"></div>
+      <div class="flex flex-col items-center">
+        <div class="progress-step active">3</div>
+        <div class="mt-2 text-center">
+          <div class="font-semibold">Documents</div>
+          <div class="text-sm text-gray-600">Upload materials</div>
+        </div>
+      </div>
+      <div class="progress-connector"></div>
+      <div class="flex flex-col items-center">
+        <div class="progress-step">4</div>
+        <div class="mt-2 text-center">
+          <div class="font-semibold">Review</div>
+          <div class="text-sm text-gray-600">Evaluation period</div>
+        </div>
+      </div>
+      <div class="progress-connector"></div>
+      <div class="flex flex-col items-center">
+        <div class="progress-step">5</div>
+        <div class="mt-2 text-center">
+          <div class="font-semibold">Decision</div>
+          <div class="text-sm text-gray-600">Admission result</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Timeline Details -->
+    <div class="grid md:grid-cols-2 gap-8">
+      <div>
+        <h3 class="text-2xl font-bold mb-6 text-miu-primary">Application Timeline</h3>
+        <div class="space-y-8">
+          <div class="timeline-item">
+            <div class="bg-white p-6 rounded-2xl shadow-lg">
+              <div class="text-sm text-miu-secondary font-semibold mb-2">March 31, 2025</div>
+              <h4 class="font-bold text-lg mb-2">Priority Scholarship Deadline</h4>
+              <p class="text-gray-600">Submit your application by this date to be considered for merit-based scholarships and financial aid.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="bg-white p-6 rounded-2xl shadow-lg">
+              <div class="text-sm text-miu-secondary font-semibold mb-2">June 15, 2025</div>
+              <h4 class="font-bold text-lg mb-2">Final Application Deadline</h4>
+              <p class="text-gray-600">Last date to submit complete applications for Fall 2025 intake.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="bg-white p-6 rounded-2xl shadow-lg">
+              <div class="text-sm text-miu-secondary font-semibold mb-2">July 15, 2025</div>
+              <h4 class="font-bold text-lg mb-2">Admission Decisions Released</h4>
+              <p class="text-gray-600">All applicants will receive admission decisions via email and portal.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div>
+        <h3 class="text-2xl font-bold mb-6 text-miu-primary">Decision Notification</h3>
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+          <div class="flex items-start mb-4">
+            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
+              <span class="text-green-600 text-xl">✓</span>
+            </div>
+            <div>
+              <h4 class="font-bold text-lg mb-1">Acceptance</h4>
+              <p class="text-gray-600">Congratulations! You'll receive an acceptance package with enrollment instructions.</p>
+            </div>
+          </div>
+          <div class="flex items-start mb-4">
+            <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mr-4">
+              <span class="text-yellow-600 text-xl">⏱️</span>
+            </div>
+            <div>
+              <h4 class="font-bold text-lg mb-1">Waitlist</h4>
+              <p class="text-gray-600">Your application is strong but space is limited. We'll notify you if a spot becomes available.</p>
+            </div>
+          </div>
+          <div class="flex items-start">
+            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+              <span class="text-blue-600 text-xl">🔄</span>
+            </div>
+            <div>
+              <h4 class="font-bold text-lg mb-1">Deferral</h4>
+              <p class="text-gray-600">You may request to defer your admission to a future term under certain circumstances.</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-gradient-miu text-white rounded-2xl p-6">
+          <h4 class="font-bold text-lg mb-2">Need More Time?</h4>
+          <p class="mb-4 text-blue-100">Contact our admissions office if you need an extension or have special circumstances.</p>
+          <button class="border-2 border-white text-white px-4 py-2 rounded-lg hover:bg-white hover:text-miu-primary transition-all">
+            Request Extension
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ADMISSION REQUIREMENTS ================= -->
+<section class="py-16">
+  <div class="max-w-7xl mx-auto px-4">
+    <h2 class="text-3xl font-bold mb-12 text-center text-miu-primary font-serif">Admission Requirements</h2>
+    
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+      <!-- Academic Requirements -->
+      <div class="requirement-card p-6 rounded-2xl">
+        <div class="w-14 h-14 bg-gradient-to-r from-blue-100 to-blue-200 rounded-xl flex items-center justify-center mb-4">
+          <span class="text-2xl">📚</span>
+        </div>
+        <h3 class="font-bold text-xl mb-4 text-miu-primary">Academic Requirements</h3>
+        <ul class="space-y-3">
+          <li class="flex items-start">
+            <span class="text-miu-accent mr-2">•</span>
+            <span>High school diploma or equivalent</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-miu-accent mr-2">•</span>
+            <span>Minimum GPA: 3.0/4.0</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-miu-accent mr-2">•</span>
+            <span>SAT: 1200+ or ACT: 25+</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-miu-accent mr-2">•</span>
+            <span>Prerequisites: Mathematics, Physics, Computer Science</span>
+          </li>
+        </ul>
+      </div>
+      
+      <!-- Language Proficiency -->
+      <div class="requirement-card p-6 rounded-2xl">
+        <div class="w-14 h-14 bg-gradient-to-r from-green-100 to-green-200 rounded-xl flex items-center justify-center mb-4">
+          <span class="text-2xl">🌐</span>
+        </div>
+        <h3 class="font-bold text-xl mb-4 text-miu-primary">Language Requirements</h3>
+        <div class="space-y-4">
+          <div class="bg-blue-50 p-3 rounded-lg">
+            <div class="font-semibold text-blue-800">TOEFL iBT</div>
+            <div class="text-sm">Minimum Score: 90</div>
+          </div>
+          <div class="bg-green-50 p-3 rounded-lg">
+            <div class="font-semibold text-green-800">IELTS Academic</div>
+            <div class="text-sm">Minimum Score: 6.5</div>
+          </div>
+          <div class="bg-purple-50 p-3 rounded-lg">
+            <div class="font-semibold text-purple-800">Duolingo English Test</div>
+            <div class="text-sm">Minimum Score: 115</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Documents Checklist -->
+      <div class="requirement-card p-6 rounded-2xl">
+        <div class="w-14 h-14 bg-gradient-to-r from-purple-100 to-purple-200 rounded-xl flex items-center justify-center mb-4">
+          <span class="text-2xl">📄</span>
+        </div>
+        <h3 class="font-bold text-xl mb-4 text-miu-primary">Required Documents</h3>
+        <div class="application-checklist space-y-3">
+          <label class="flex items-center cursor-pointer">
+            <input type="checkbox" class="hidden">
+            <span class="w-5 h-5 border-2 border-gray-300 rounded mr-3 flex items-center justify-center">
+              <span class="checkmark hidden">✓</span>
+            </span>
+            <span>Completed application form</span>
+          </label>
+          <label class="flex items-center cursor-pointer">
+            <input type="checkbox" class="hidden">
+            <span class="w-5 h-5 border-2 border-gray-300 rounded mr-3 flex items-center justify-center">
+              <span class="checkmark hidden">✓</span>
+            </span>
+            <span>Official transcripts</span>
+          </label>
+          <label class="flex items-center cursor-pointer">
+            <input type="checkbox" class="hidden">
+            <span class="w-5 h-5 border-2 border-gray-300 rounded mr-3 flex items-center justify-center">
+              <span class="checkmark hidden">✓</span>
+            </span>
+            <span>Standardized test scores</span>
+          </label>
+          <label class="flex items-center cursor-pointer">
+            <input type="checkbox" class="hidden">
+            <span class="w-5 h-5 border-2 border-gray-300 rounded mr-3 flex items-center justify-center">
+              <span class="checkmark hidden">✓</span>
+            </span>
+            <span>Personal statement (500 words)</span>
+          </label>
+          <label class="flex items-center cursor-pointer">
+            <input type="checkbox" class="hidden">
+            <span class="w-5 h-5 border-2 border-gray-300 rounded mr-3 flex items-center justify-center">
+              <span class="checkmark hidden">✓</span>
+            </span>
+            <span>Two letters of recommendation</span>
+          </label>
+          <label class="flex items-center cursor-pointer">
+            <input type="checkbox" class="hidden">
+            <span class="w-5 h-5 border-2 border-gray-300 rounded mr-3 flex items-center justify-center">
+              <span class="checkmark hidden">✓</span>
+            </span>
+            <span>Resume/CV (for transfer students)</span>
+          </label>
+        </div>
+      </div>
+    </div>
+    
+    <!-- International Students Section -->
+    <div class="bg-gradient-to-r from-miu-primary to-blue-900 rounded-2xl p-8 text-white mb-12">
+      <div class="grid md:grid-cols-2 gap-8 items-center">
+        <div>
+          <h3 class="font-bold text-2xl mb-4">International Students</h3>
+          <p class="mb-6 text-blue-100">Additional requirements for students applying from outside the country.</p>
+          <ul class="space-y-3">
+            <li class="flex items-center">
+              <span class="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center mr-3">
+                <span class="text-white text-sm">✓</span>
+              </span>
+              <span>Valid passport (6+ months validity)</span>
+            </li>
+            <li class="flex items-center">
+              <span class="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center mr-3">
+                <span class="text-white text-sm">✓</span>
+              </span>
+              <span>Proof of financial support</span>
+            </li>
+            <li class="flex items-center">
+              <span class="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center mr-3">
+                <span class="text-white text-sm">✓</span>
+              </span>
+              <span>Visa documentation (I-20 form for US)</span>
+            </li>
+            <li class="flex items-center">
+              <span class="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center mr-3">
+                <span class="text-white text-sm">✓</span>
+              </span>
+              <span>Transcript evaluation (if applicable)</span>
+            </li>
+          </ul>
+        </div>
+        <div class="text-center">
+          <div class="text-6xl mb-4">🌍</div>
+          <p class="text-xl font-semibold mb-4">Students from 120+ Countries</p>
+          <p class="text-blue-100 mb-6">Our international student office provides dedicated support for visa processing, cultural adaptation, and arrival services.</p>
+          <button class="bg-white text-miu-primary px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all">
+            International Guide
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= TUITION & FINANCIAL AID ================= -->
+<section class="py-16 bg-gradient-light">
+  <div class="max-w-7xl mx-auto px-4">
+    <h2 class="text-3xl font-bold mb-12 text-center text-miu-primary font-serif">Tuition & Financial Aid</h2>
+    
+    <div class="grid md:grid-cols-2 gap-8 mb-12">
+      <!-- Tuition Breakdown -->
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+        <h3 class="text-2xl font-bold mb-6 text-miu-primary border-b pb-4">Tuition Breakdown (Annual)</h3>
+        <div class="space-y-6">
+          <div class="cost-breakdown-item bg-blue-50 p-4 rounded-lg">
+            <div class="flex justify-between items-center">
+              <div>
+                <h4 class="font-bold text-blue-800">Tuition & Fees</h4>
+                <p class="text-sm text-gray-600">Full-time (12-18 credits)</p>
+              </div>
+              <div class="text-lg font-bold">$32,500</div>
+            </div>
+          </div>
+          <div class="cost-breakdown-item bg-green-50 p-4 rounded-lg">
+            <div class="flex justify-between items-center">
+              <div>
+                <h4 class="font-bold text-green-800">Room & Board</h4>
+                <p class="text-sm text-gray-600">On-campus housing & meal plan</p>
+              </div>
+              <div class="text-lg font-bold">$14,200</div>
+            </div>
+          </div>
+          <div class="cost-breakdown-item bg-purple-50 p-4 rounded-lg">
+            <div class="flex justify-between items-center">
+              <div>
+                <h4 class="font-bold text-purple-800">Books & Supplies</h4>
+                <p class="text-sm text-gray-600">Estimated annual cost</p>
+              </div>
+              <div class="text-lg font-bold">$1,500</div>
+            </div>
+          </div>
+          <div class="cost-breakdown-item bg-yellow-50 p-4 rounded-lg">
+            <div class="flex justify-between items-center">
+              <div>
+                <h4 class="font-bold text-yellow-800">Personal Expenses</h4>
+                <p class="text-sm text-gray-600">Health insurance, transportation</p>
+              </div>
+              <div class="text-lg font-bold">$3,800</div>
+            </div>
+          </div>
+          
+          <div class="border-t pt-6">
+            <div class="flex justify-between items-center text-xl font-bold">
+              <span>Estimated Total Annual Cost</span>
+              <span class="text-miu-primary">$52,000</span>
+            </div>
+            <p class="text-sm text-gray-600 mt-2">*Costs may vary based on housing choices and personal spending</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Financial Aid Options -->
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+        <h3 class="text-2xl font-bold mb-6 text-miu-primary border-b pb-4">Financial Aid Options</h3>
+        <div class="space-y-6">
+          <div class="border-l-4 border-blue-500 pl-4">
+            <h4 class="font-bold text-lg mb-2">Merit Scholarships</h4>
+            <p class="text-gray-600 mb-3">Awarded based on academic achievement, test scores, and extracurricular activities.</p>
+            <div class="flex items-center text-sm">
+              <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded mr-2">Up to $15,000/year</span>
+              <span class="text-gray-500">Deadline: March 31</span>
+            </div>
+          </div>
+          
+          <div class="border-l-4 border-green-500 pl-4">
+            <h4 class="font-bold text-lg mb-2">Need-Based Grants</h4>
+            <p class="text-gray-600 mb-3">Financial assistance based on demonstrated financial need. Does not require repayment.</p>
+            <div class="flex items-center text-sm">
+              <span class="bg-green-100 text-green-800 px-2 py-1 rounded mr-2">Up to full tuition</span>
+              <span class="text-gray-500">FAFSA required</span>
+            </div>
+          </div>
+          
+          <div class="border-l-4 border-purple-500 pl-4">
+            <h4 class="font-bold text-lg mb-2">Work-Study Programs</h4>
+            <p class="text-gray-600 mb-3">Part-time employment on campus to help cover educational expenses.</p>
+            <div class="flex items-center text-sm">
+              <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded mr-2">$2,500-$5,000/year</span>
+              <span class="text-gray-500">10-15 hours/week</span>
+            </div>
+          </div>
+          
+          <div class="border-l-4 border-yellow-500 pl-4">
+            <h4 class="font-bold text-lg mb-2">Departmental Awards</h4>
+            <p class="text-gray-600 mb-3">Special scholarships for Computer Science students with exceptional talent.</p>
+            <div class="flex items-center text-sm">
+              <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded mr-2">$2,000-$10,000</span>
+              <span class="text-gray-500">By nomination</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mt-8 pt-6 border-t">
+          <div class="flex items-center justify-between">
+            <div>
+              <h4 class="font-bold text-lg">Net Price Calculator</h4>
+              <p class="text-sm text-gray-600">Estimate your actual cost after financial aid</p>
+            </div>
+            <button class="bg-miu-secondary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+              Calculate Now
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Financial Aid Statistics -->
+    <div class="bg-white rounded-2xl shadow-xl p-8">
+      <h3 class="text-2xl font-bold mb-8 text-center text-miu-primary">Financial Aid Statistics</h3>
+      <div class="grid md:grid-cols-4 gap-6 text-center">
+        <div class="p-4">
+          <div class="text-3xl font-bold text-blue-600 mb-2">85%</div>
+          <div class="font-medium">Receive Financial Aid</div>
+          <div class="text-sm text-gray-600 mt-1">of undergraduate students</div>
+        </div>
+        <div class="p-4">
+          <div class="text-3xl font-bold text-green-600 mb-2">$28M</div>
+          <div class="font-medium">Total Aid Awarded</div>
+          <div class="text-sm text-gray-600 mt-1">annually to students</div>
+        </div>
+        <div class="p-4">
+          <div class="text-3xl font-bold text-purple-600 mb-2">$24K</div>
+          <div class="font-medium">Average Aid Package</div>
+          <div class="text-sm text-gray-600 mt-1">per student per year</div>
+        </div>
+        <div class="p-4">
+          <div class="text-3xl font-bold text-yellow-600 mb-2">95%</div>
+          <div class="font-medium">Satisfaction Rate</div>
+          <div class="text-sm text-gray-600 mt-1">with financial aid process</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= APPLICATION FORM ================= -->
+<section id="application-form" class="py-16">
+  <div class="max-w-4xl mx-auto px-4">
+    <h2 class="text-3xl font-bold mb-12 text-center text-miu-primary font-serif">Start Your Application</h2>
+    
+    <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <!-- Form Tabs -->
+      <div class="border-b">
+        <div class="flex">
+          <button class="tab-button active flex-1 py-4 font-semibold" data-tab="personal">Personal Info</button>
+          <button class="tab-button flex-1 py-4 font-semibold" data-tab="academic">Academic Info</button>
+          <button class="tab-button flex-1 py-4 font-semibold" data-tab="documents">Documents</button>
+          <button class="tab-button flex-1 py-4 font-semibold" data-tab="review">Review</button>
+        </div>
+      </div>
+      
+      <!-- Form Content -->
+      <div class="p-8">
+        <!-- Personal Info Tab -->
+        <div id="personalTab" class="tab-content space-y-6">
+          <h3 class="text-2xl font-bold mb-6 text-miu-primary">Personal Information</h3>
+          
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-gray-700 mb-2 font-medium">First Name *</label>
+              <input type="text" class="w-full p-3 border border-gray-300 rounded-lg focus:border-miu-secondary focus:ring-2 focus:ring-blue-100 transition" required>
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-2 font-medium">Last Name *</label>
+              <input type="text" class="w-full p-3 border border-gray-300 rounded-lg focus:border-miu-secondary focus:ring-2 focus:ring-blue-100 transition" required>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-gray-700 mb-2 font-medium">Email Address *</label>
+            <input type="email" class="w-full p-3 border border-gray-300 rounded-lg focus:border-miu-secondary focus:ring-2 focus:ring-blue-100 transition" required>
+          </div>
+          
+          <div>
+            <label class="block text-gray-700 mb-2 font-medium">Phone Number *</label>
+            <input type="tel" class="w-full p-3 border border-gray-300 rounded-lg focus:border-miu-secondary focus:ring-2 focus:ring-blue-100 transition" required>
+          </div>
+          
+          <div>
+            <label class="block text-gray-700 mb-2 font-medium">Country of Citizenship *</label>
+            <select class="w-full p-3 border border-gray-300 rounded-lg focus:border-miu-secondary focus:ring-2 focus:ring-blue-100 transition bg-white">
+              <option value="">Select Country</option>
+              <option value="us">United States</option>
+              <option value="ca">Canada</option>
+              <option value="uk">United Kingdom</option>
+              <!-- More options -->
+            </select>
+          </div>
+        </div>
+        
+        <!-- Academic Info Tab -->
+        <div id="academicTab" class="tab-content hidden space-y-6">
+          <h3 class="text-2xl font-bold mb-6 text-miu-primary">Academic Information</h3>
+          
+          <div>
+            <label class="block text-gray-700 mb-2 font-medium">High School Name *</label>
+            <input type="text" class="w-full p-3 border border-gray-300 rounded-lg focus:border-miu-secondary focus:ring-2 focus:ring-blue-100 transition" required>
+          </div>
+          
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-gray-700 mb-2 font-medium">Graduation Year *</label>
+              <select class="w-full p-3 border border-gray-300 rounded-lg focus:border-miu-secondary focus:ring-2 focus:ring-blue-100 transition bg-white">
+                <option value="">Select Year</option>
+                <option value="2024">2024</option>
+                <option value="2025">2025</option>
+                <option value="2026">2026</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-2 font-medium">GPA (4.0 scale) *</label>
+              <input type="number" step="0.01" min="0" max="4.0" class="w-full p-3 border border-gray-300 rounded-lg focus:border-miu-secondary focus:ring-2 focus:ring-blue-100 transition" required>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-gray-700 mb-2 font-medium">Standardized Tests Taken</label>
+            <div class="space-y-3">
+              <label class="flex items-center">
+                <input type="checkbox" class="mr-2">
+                <span>SAT</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" class="mr-2">
+                <span>ACT</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" class="mr-2">
+                <span>AP Exams</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Documents Tab -->
+        <div id="documentsTab" class="tab-content hidden space-y-6">
+          <h3 class="text-2xl font-bold mb-6 text-miu-primary">Upload Documents</h3>
+          
+          <div class="document-upload-area rounded-lg p-8 text-center cursor-pointer" id="uploadArea">
+            <div class="text-4xl mb-4">📄</div>
+            <p class="font-semibold mb-2">Drag & drop your documents here</p>
+            <p class="text-gray-600 mb-4">or click to browse files</p>
+            <p class="text-sm text-gray-500">PDF, DOC, DOCX up to 10MB each</p>
+            <input type="file" class="hidden" id="fileInput" multiple>
+          </div>
+          
+          <div id="uploadedFiles" class="space-y-3 hidden">
+            <h4 class="font-semibold">Uploaded Files:</h4>
+            <div class="space-y-2"></div>
+          </div>
+          
+          <div class="bg-blue-50 p-4 rounded-lg">
+            <h4 class="font-bold text-blue-800 mb-2">Document Requirements</h4>
+            <ul class="text-sm space-y-1">
+              <li>• Transcripts must be official or certified copies</li>
+              <li>• Personal statement should be 500-700 words</li>
+              <li>• Letters of recommendation should be on letterhead</li>
+              <li>• Test scores can be unofficial for initial review</li>
+            </ul>
+          </div>
+        </div>
+        
+        <!-- Review Tab -->
+        <div id="reviewTab" class="tab-content hidden space-y-6">
+          <h3 class="text-2xl font-bold mb-6 text-miu-primary">Review & Submit</h3>
+          
+          <div class="bg-gray-50 p-6 rounded-lg">
+            <h4 class="font-bold mb-4">Application Summary</h4>
+            <div class="space-y-3">
+              <div class="flex justify-between">
+                <span>Program:</span>
+                <span class="font-semibold">B.Sc. Computer Science</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Intake:</span>
+                <span class="font-semibold">Fall 2025</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Application Fee:</span>
+                <span class="font-semibold">$75 (waived for early applicants)</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-yellow-50 p-4 rounded-lg">
+            <div class="flex items-start">
+              <span class="text-yellow-600 mr-2">⚠️</span>
+              <div>
+                <p class="font-semibold">Before you submit:</p>
+                <p class="text-sm">Review all information for accuracy. You won't be able to make changes after submission.</p>
+              </div>
+            </div>
+          </div>
+          
+          <label class="flex items-start">
+            <input type="checkbox" class="mt-1 mr-2" required>
+            <span class="text-sm">I certify that all information provided is accurate and complete. I agree to the terms and conditions.</span>
+          </label>
+        </div>
+        
+        <!-- Navigation Buttons -->
+        <div class="flex justify-between pt-8 border-t mt-8">
+          <button id="prevBtn" class="text-miu-secondary font-semibold hover:text-miu-primary transition-colors hidden">
+            ← Previous
+          </button>
+          <button id="nextBtn" class="bg-miu-secondary text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors ml-auto">
+            Continue →
+          </button>
+          <button id="submitBtn" class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors hidden">
+            Submit Application
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FAQ ================= -->
+<section class="py-16 bg-gradient-light">
+  <div class="max-w-4xl mx-auto px-4">
+    <h2 class="text-3xl font-bold mb-12 text-center text-miu-primary font-serif">Admission FAQs</h2>
+    
+    <div class="space-y-4">
+      <div class="faq-item bg-white rounded-2xl shadow-lg overflow-hidden">
+        <button class="faq-question w-full text-left p-6 hover:bg-blue-50 transition-colors flex justify-between items-center">
+          <span class="font-semibold text-lg">What is the application fee and can it be waived?</span>
+          <span class="text-2xl">+</span>
+        </button>
+        <div class="faq-answer px-6">
+          <div class="pb-6 text-gray-700">
+            The application fee is $75. It is automatically waived for early applicants (before March 31), students with demonstrated financial need, and MIU alumni children.
+          </div>
+        </div>
+      </div>
+      
+      <div class="faq-item bg-white rounded-2xl shadow-lg overflow-hidden">
+        <button class="faq-question w-full text-left p-6 hover:bg-blue-50 transition-colors flex justify-between items-center">
+          <span class="font-semibold text-lg">Can I apply for multiple programs?</span>
+          <span class="text-2xl">+</span>
+        </button>
+        <div class="faq-answer px-6">
+          <div class="pb-6 text-gray-700">
+            Yes, you can apply to up to 3 programs with a single application fee. You'll need to submit separate personal statements for each program if they require different essays.
+          </div>
+        </div>
+      </div>
+      
+      <div class="faq-item bg-white rounded-2xl shadow-lg overflow-hidden">
+        <button class="faq-question w-full text-left p-6 hover:bg-blue-50 transition-colors flex justify-between items-center">
+          <span class="font-semibold text-lg">What if I miss the application deadline?</span>
+          <span class="text-2xl">+</span>
+        </button>
+        <div class="faq-answer px-6">
+          <div class="pb-6 text-gray-700">
+            Late applications may be considered on a space-available basis. Contact the admissions office immediately if you need an extension. Some programs have rolling admissions.
+          </div>
+        </div>
+      </div>
+      
+      <div class="faq-item bg-white rounded-2xl shadow-lg overflow-hidden">
+        <button class="faq-question w-full text-left p-6 hover:bg-blue-50 transition-colors flex justify-between items-center">
+          <span class="font-semibold text-lg">How are transfer credits evaluated?</span>
+          <span class="text-2xl">+</span>
+        </button>
+        <div class="faq-answer px-6">
+          <div class="pb-6 text-gray-700">
+            Transfer credits are evaluated after admission. Courses must be from accredited institutions with a grade of C or better. You'll need to submit official transcripts for evaluation.
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="text-center mt-12">
+      <p class="text-gray-600 mb-4">Still have questions?</p>
+      <button class="bg-gradient-miu text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-all shadow-lg">
+        Contact Admissions Office
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CONTACT ================= -->
+<section id="contact" class="py-16">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold mb-4 text-miu-primary font-serif">Contact Admissions</h2>
+      <p class="text-gray-600 max-w-3xl mx-auto">Our admissions team is here to help you through every step of the application process</p>
+    </div>
+    
+    <div class="grid md:grid-cols-3 gap-8">
+      <div class="bg-white p-6 rounded-2xl shadow-lg text-center">
+        <div class="w-16 h-16 bg-gradient-to-r from-blue-100 to-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span class="text-2xl text-blue-600">📞</span>
+        </div>
+        <h3 class="font-bold text-lg mb-2">Phone Support</h3>
+        <p class="text-gray-600 mb-2">+1 (555) 123-4567</p>
+        <p class="text-sm text-gray-500">Mon-Fri: 9AM-6PM EST</p>
+      </div>
+      
+      <div class="bg-white p-6 rounded-2xl shadow-lg text-center">
+        <div class="w-16 h-16 bg-gradient-to-r from-green-100 to-green-200 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span class="text-2xl text-green-600">📧</span>
+        </div>
+        <h3 class="font-bold text-lg mb-2">Email</h3>
+        <p class="text-gray-600 mb-2">admissions@miu.edu</p>
+        <p class="text-sm text-gray-500">Response within 24 hours</p>
+      </div>
+      
+      <div class="bg-white p-6 rounded-2xl shadow-lg text-center">
+        <div class="w-16 h-16 bg-gradient-to-r from-purple-100 to-purple-200 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span class="text-2xl text-purple-600">💬</span>
+        </div>
+        <h3 class="font-bold text-lg mb-2">Live Chat</h3>
+        <p class="text-gray-600 mb-2">Available on website</p>
+        <p class="text-sm text-gray-500">Mon-Fri: 10AM-4PM EST</p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

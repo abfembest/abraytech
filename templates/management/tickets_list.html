@@ -1,0 +1,202 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Support Tickets - MIU Admin Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-full">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Support Tickets</h1>
+      <p class="text-gray-500 mt-1">Manage and respond to user support requests</p>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="text-2xl font-bold text-gray-800">{{ stats.total }}</div>
+      <div class="text-sm text-gray-500">Total</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-orange-200">
+      <div class="text-2xl font-bold text-orange-600">{{ stats.open }}</div>
+      <div class="text-sm text-gray-500">Open</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-yellow-200">
+      <div class="text-2xl font-bold text-yellow-600">{{ stats.in_progress }}</div>
+      <div class="text-sm text-gray-500">In Progress</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-green-200">
+      <div class="text-2xl font-bold text-green-600">{{ stats.resolved }}</div>
+      <div class="text-sm text-gray-500">Resolved</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-red-200">
+      <div class="text-2xl font-bold text-red-600">{{ stats.urgent }}</div>
+      <div class="text-sm text-gray-500">Urgent</div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
+    <form method="get" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      <div class="lg:col-span-2">
+        <input type="search" name="search" value="{{ request.GET.search }}"
+               placeholder="Search ticket ID, subject, user…"
+               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+      </div>
+      <div>
+        <select name="status" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          <option value="">All Status</option>
+          <option value="open" {% if request.GET.status == 'open' %}selected{% endif %}>Open</option>
+          <option value="in_progress" {% if request.GET.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+          <option value="waiting_response" {% if request.GET.status == 'waiting_response' %}selected{% endif %}>Waiting Response</option>
+          <option value="resolved" {% if request.GET.status == 'resolved' %}selected{% endif %}>Resolved</option>
+          <option value="closed" {% if request.GET.status == 'closed' %}selected{% endif %}>Closed</option>
+        </select>
+      </div>
+      <div>
+        <select name="priority" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          <option value="">All Priorities</option>
+          <option value="urgent" {% if request.GET.priority == 'urgent' %}selected{% endif %}>Urgent</option>
+          <option value="high" {% if request.GET.priority == 'high' %}selected{% endif %}>High</option>
+          <option value="normal" {% if request.GET.priority == 'normal' %}selected{% endif %}>Normal</option>
+          <option value="low" {% if request.GET.priority == 'low' %}selected{% endif %}>Low</option>
+        </select>
+      </div>
+      <div class="flex gap-2">
+        <button type="submit" class="flex-1 px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium">
+          <i class="fas fa-search mr-1" aria-hidden="true"></i>Filter
+        </button>
+        <a href="{% url 'management:tickets_list' %}" class="px-3 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm">
+          <i class="fas fa-redo" aria-hidden="true"></i>
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tickets Table -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="p-5 border-b border-gray-100">
+      <h2 class="font-semibold text-gray-800">
+        Tickets <span class="text-sm font-normal text-gray-400 ml-1">({{ tickets.paginator.count }} total)</span>
+      </h2>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wide">
+          <tr>
+            <th class="py-3 px-5 text-left font-semibold">Ticket</th>
+            <th class="py-3 px-5 text-left font-semibold">User</th>
+            <th class="py-3 px-5 text-left font-semibold">Category</th>
+            <th class="py-3 px-5 text-left font-semibold">Priority</th>
+            <th class="py-3 px-5 text-left font-semibold">Status</th>
+            <th class="py-3 px-5 text-left font-semibold">Assigned To</th>
+            <th class="py-3 px-5 text-left font-semibold">Created</th>
+            <th class="py-3 px-5 text-left font-semibold">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for ticket in tickets %}
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="py-4 px-5">
+              <a href="{% url 'management:ticket_detail' ticket.pk %}" class="block">
+                <span class="font-mono text-xs text-primary-600 font-medium">{{ ticket.ticket_id }}</span>
+                <div class="font-medium text-gray-800 mt-0.5 text-sm line-clamp-1">{{ ticket.subject }}</div>
+              </a>
+            </td>
+            <td class="py-4 px-5">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-semibold flex-shrink-0">
+                  {{ ticket.user.first_name|slice:":1" }}{{ ticket.user.last_name|slice:":1" }}
+                </div>
+                <div>
+                  <div class="font-medium text-gray-800 text-sm">{{ ticket.user.get_full_name|default:ticket.user.username }}</div>
+                  <div class="text-xs text-gray-400">{{ ticket.user.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="py-4 px-5">
+              <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs font-medium">{{ ticket.get_category_display }}</span>
+            </td>
+            <td class="py-4 px-5">
+              {% if ticket.priority == 'urgent' %}
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
+                <i class="fas fa-exclamation-triangle text-xs" aria-hidden="true"></i>Urgent
+              </span>
+              {% elif ticket.priority == 'high' %}
+              <span class="px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">High</span>
+              {% elif ticket.priority == 'normal' %}
+              <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">Normal</span>
+              {% else %}
+              <span class="px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">Low</span>
+              {% endif %}
+            </td>
+            <td class="py-4 px-5">
+              {% if ticket.status == 'open' %}
+              <span class="px-2.5 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">Open</span>
+              {% elif ticket.status == 'in_progress' %}
+              <span class="px-2.5 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">In Progress</span>
+              {% elif ticket.status == 'waiting_response' %}
+              <span class="px-2.5 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">Waiting</span>
+              {% elif ticket.status == 'resolved' %}
+              <span class="px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Resolved</span>
+              {% else %}
+              <span class="px-2.5 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">Closed</span>
+              {% endif %}
+            </td>
+            <td class="py-4 px-5 text-gray-500 text-sm">
+              {{ ticket.assigned_to.get_full_name|default:"—" }}
+            </td>
+            <td class="py-4 px-5 text-gray-500 text-sm">{{ ticket.created_at|date:"M d, Y" }}</td>
+            <td class="py-4 px-5">
+              <a href="{% url 'management:ticket_detail' ticket.pk %}"
+                 class="inline-flex items-center gap-1 px-3 py-1.5 bg-primary-50 text-primary-700 border border-primary-200 rounded-lg hover:bg-primary-100 transition-colors text-xs font-medium">
+                <i class="fas fa-eye text-xs" aria-hidden="true"></i>View
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="py-16 text-center text-gray-400">
+              <i class="fas fa-headset text-5xl mb-3 block" aria-hidden="true"></i>
+              <p class="font-medium text-gray-600">No tickets found</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if tickets.has_other_pages %}
+    <div class="p-5 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-3">
+      <p class="text-sm text-gray-500">Showing {{ tickets.start_index }}–{{ tickets.end_index }} of {{ tickets.paginator.count }}</p>
+      <nav class="flex gap-1" aria-label="Pagination">
+        {% if tickets.has_previous %}
+        <a href="?page={{ tickets.previous_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}"
+           class="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">
+          <i class="fas fa-chevron-left" aria-hidden="true"></i>
+        </a>
+        {% endif %}
+        {% for num in tickets.paginator.page_range %}
+          {% if tickets.number == num %}
+          <span class="px-3 py-1.5 bg-primary-600 text-white rounded-lg text-sm font-medium">{{ num }}</span>
+          {% elif num > tickets.number|add:"-3" and num < tickets.number|add:"3" %}
+          <a href="?page={{ num }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}"
+             class="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+        {% if tickets.has_next %}
+        <a href="?page={{ tickets.next_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}"
+           class="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">
+          <i class="fas fa-chevron-right" aria-hidden="true"></i>
+        </a>
+        {% endif %}
+      </nav>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

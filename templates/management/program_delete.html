@@ -1,0 +1,125 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Delete Program - MIU Admin{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <a href="{% url 'management:programs_list' %}" class="text-primary-600 hover:text-primary-700 font-medium flex items-center mb-4">
+        <i class="fas fa-arrow-left mr-2"></i>Back to Programs
+    </a>
+    <h1 class="text-3xl font-bold text-gray-800 font-display">Delete Program</h1>
+</div>
+
+<!-- Warning Alert -->
+<div class="bg-red-50 border-l-4 border-red-500 p-6 mb-8 rounded-r-lg">
+    <div class="flex">
+        <i class="fas fa-exclamation-triangle text-red-500 text-2xl mr-4 flex-shrink-0 mt-0.5"></i>
+        <div>
+            <h2 class="text-lg font-bold text-red-800 mb-2">Permanent Action</h2>
+            <p class="text-red-700">Deleting this program is <strong>permanent and cannot be undone</strong>. Please review the information below carefully.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Program Information Card -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
+    <h2 class="text-xl font-bold text-gray-800 mb-6">Program to Delete</h2>
+    
+    <div class="space-y-4">
+        <div class="bg-gray-50 p-4 rounded-lg">
+            <p class="text-sm text-gray-600 mb-1">Program Name</p>
+            <p class="text-lg font-semibold text-gray-800">{{ program.name }}</p>
+        </div>
+        
+        <div class="bg-gray-50 p-4 rounded-lg">
+            <p class="text-sm text-gray-600 mb-1">Program Code</p>
+            <p class="text-lg font-semibold text-gray-800">{{ program.code }}</p>
+        </div>
+        
+        <div class="bg-gray-50 p-4 rounded-lg">
+            <p class="text-sm text-gray-600 mb-1">Department</p>
+            <p class="text-lg font-semibold text-gray-800">{{ program.department.name }}</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <p class="text-sm text-gray-600 mb-1">Degree Level</p>
+                <p class="font-semibold text-gray-800">{{ program.get_degree_level_display|default:program.degree_level }}</p>
+            </div>
+            
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <p class="text-sm text-gray-600 mb-1">Duration</p>
+                <p class="font-semibold text-gray-800">{{ program.duration_years }} years</p>
+            </div>
+        </div>
+        
+        <div class="bg-gray-50 p-4 rounded-lg">
+            <p class="text-sm text-gray-600 mb-1">Status</p>
+            <p class="text-lg font-semibold">
+                <span class="inline-block px-3 py-1 rounded-full text-sm font-medium {% if program.is_active %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                    {% if program.is_active %}Active{% else %}Inactive{% endif %}
+                </span>
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Impact Information -->
+<div class="bg-amber-50 border-l-4 border-amber-500 p-6 mb-8 rounded-r-lg">
+    <h3 class="font-bold text-amber-900 mb-2 flex items-center">
+        <i class="fas fa-info-circle mr-2"></i>
+        What will be deleted with this program:
+    </h3>
+    <ul class="list-disc list-inside text-amber-800 space-y-1 ml-1">
+        <li>The program record itself</li>
+        <li>All course intakes associated with this program</li>
+        <li>All student applications to this program</li>
+        <li>All enrollments from students in this program</li>
+        <li>All course progress and grades for enrolled students</li>
+    </ul>
+</div>
+
+<!-- Related Data Stats -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+    <div class="bg-red-50 border border-red-200 p-4 rounded-lg">
+        <p class="text-sm text-gray-600 mb-1">Applications</p>
+        <p class="text-2xl font-bold text-red-600">{{ program.applications.count }}</p>
+    </div>
+    
+    <div class="bg-red-50 border border-red-200 p-4 rounded-lg">
+        <p class="text-sm text-gray-600 mb-1">Intakes</p>
+        <p class="text-2xl font-bold text-red-600">{{ program.intakes.count }}</p>
+    </div>
+    
+    <div class="bg-red-50 border border-red-200 p-4 rounded-lg">
+        <p class="text-sm text-gray-600 mb-1">Enrolled Students</p>
+        <p class="text-2xl font-bold text-red-600">{{ program.enrollments.count }}</p>
+    </div>
+</div>
+
+<!-- Confirmation Form -->
+<form method="POST" class="space-y-6">
+    {% csrf_token %}
+    
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <label class="flex items-center space-x-3 cursor-pointer">
+            <input type="checkbox" id="confirm-delete" name="confirm" required class="w-5 h-5 text-red-600 rounded focus:ring-2 focus:ring-red-500">
+            <span class="text-gray-700">
+                I understand this action is permanent and will delete the program <strong>{{ program.name }}</strong> and all associated data.
+            </span>
+        </label>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="flex flex-col sm:flex-row gap-4">
+        <a href="{% url 'management:programs_list' %}" class="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors text-center">
+            <i class="fas fa-times mr-2"></i>Cancel
+        </a>
+        <button type="submit" class="px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center" onclick="return confirm('Are you absolutely sure? This will affect ' + '{{ program.enrollments.count }}' + ' students.');">
+            <i class="fas fa-trash mr-2"></i>Delete Program Permanently
+        </button>
+    </div>
+</form>
+
+{% endblock %}

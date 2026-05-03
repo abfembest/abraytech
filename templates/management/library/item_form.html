@@ -1,0 +1,795 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} – {{ site_config.school_short_name }} Admin{% endblock %}
+
+{% block content %}
+
+{# ── Breadcrumb ────────────────────────────────────────────────────────────── #}
+<nav class="flex items-center gap-1.5 text-xs sm:text-sm text-gray-500 mb-5 flex-wrap" aria-label="Breadcrumb">
+    <a href="{% url 'management:dashboard' %}" class="hover:text-blue-600 transition-colors">Dashboard</a>
+    <i class="fas fa-chevron-right text-xs text-gray-300" aria-hidden="true"></i>
+    <a href="{% url 'management:library_items_list' %}" class="hover:text-blue-600 transition-colors">Library</a>
+    <i class="fas fa-chevron-right text-xs text-gray-300" aria-hidden="true"></i>
+    <span class="text-gray-700 font-medium">{{ is_create|yesno:"Add Item,Edit Item" }}</span>
+</nav>
+
+{# ── Page header ───────────────────────────────────────────────────────────── #}
+<div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-6">
+    <div class="min-w-0">
+        <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 font-display flex items-center gap-2">
+            <span class="w-9 h-9 sm:w-10 sm:h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas {% if is_create %}fa-plus{% else %}fa-edit{% endif %} text-blue-600 text-sm sm:text-base" aria-hidden="true"></i>
+            </span>
+            <span class="truncate">{{ page_title }}</span>
+        </h1>
+        {% if not is_create and item %}
+        <p class="text-xs text-gray-400 mt-1.5 ml-11 sm:ml-12">
+            Updated: {{ item.updated_at|date:"M d, Y – H:i" }}
+            {% if item.created_by %} · by {{ item.created_by.get_full_name|default:item.created_by.username }}{% endif %}
+        </p>
+        {% endif %}
+    </div>
+    <a href="{% url 'management:library_items_list' %}"
+       class="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors whitespace-nowrap flex-shrink-0">
+        <i class="fas fa-arrow-left" aria-hidden="true"></i>
+        Back
+    </a>
+</div>
+
+{# ── Form error summary ────────────────────────────────────────────────────── #}
+{% if form.errors %}
+<div class="mb-5 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+    <i class="fas fa-exclamation-circle text-red-500 mt-0.5 flex-shrink-0" aria-hidden="true"></i>
+    <div class="min-w-0">
+        <p class="font-semibold text-red-700 text-sm mb-1">Please fix the following errors:</p>
+        <ul class="list-disc list-inside text-sm text-red-600 space-y-0.5">
+            {% for field in form %}{% for error in field.errors %}
+            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+            {% endfor %}{% endfor %}
+            {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
+
+{# ── Main form ─────────────────────────────────────────────────────────────── #}
+<form method="post" enctype="multipart/form-data" novalidate id="libraryForm">
+{% csrf_token %}
+
+{# Layout: single col on mobile/tablet, 3-col on xl (2+1) #}
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+
+    {# ══ MAIN COLUMN (xl: spans 2) ══════════════════════════════════════════ #}
+    <div class="xl:col-span-2 space-y-5">
+
+        {# ── Core Details ────────────────────────────────────────────────── #}
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-info-circle text-blue-500 text-sm" aria-hidden="true"></i>
+                </div>
+                <h2 class="font-semibold text-gray-800 text-sm sm:text-base">Core Details</h2>
+            </div>
+            <div class="p-4 sm:p-6 space-y-4 sm:space-y-5">
+
+                {# Title #}
+                <div>
+                    <label for="{{ form.title.id_for_label }}"
+                           class="block text-sm font-semibold text-gray-700 mb-1.5">
+                        Title <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.title }}
+                    {% if form.title.errors %}<p class="mt-1 text-xs text-red-600">{{ form.title.errors.0 }}</p>{% endif %}
+                </div>
+
+                {# Category + Subcategory — stack on mobile, side-by-side on sm+ #}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.category.id_for_label }}"
+                               class="block text-sm font-semibold text-gray-700 mb-1.5">
+                            Category <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.category }}
+                        <datalist id="category_datalist">
+                            <option value="Books">
+                            <option value="Periodicals">
+                            <option value="References">
+                            <option value="Other">
+                        </datalist>
+                        {% if form.category.errors %}<p class="mt-1 text-xs text-red-600">{{ form.category.errors.0 }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.subcategory.id_for_label }}"
+                               class="block text-sm font-semibold text-gray-700 mb-1.5">
+                            Subcategory <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.subcategory }}
+                        <p class="mt-1 text-xs text-gray-400">e.g. Apologetics Books, Commentaries, Dictionaries</p>
+                        {% if form.subcategory.errors %}<p class="mt-1 text-xs text-red-600">{{ form.subcategory.errors.0 }}</p>{% endif %}
+                    </div>
+                </div>
+
+                {# Description #}
+                <div>
+                    <label for="{{ form.description.id_for_label }}"
+                           class="block text-sm font-semibold text-gray-700 mb-1.5">
+                        Description
+                    </label>
+                    {{ form.description }}
+                    {% if form.description.errors %}<p class="mt-1 text-xs text-red-600">{{ form.description.errors.0 }}</p>{% endif %}
+                </div>
+
+                {# Tags #}
+                <div>
+                    <label for="{{ form.tags.id_for_label }}"
+                           class="block text-sm font-semibold text-gray-700 mb-1.5">
+                        Tags
+                    </label>
+                    {{ form.tags }}
+                    <p class="mt-1 text-xs text-gray-400">{{ form.tags.help_text }}</p>
+                    {% if form.tags.errors %}<p class="mt-1 text-xs text-red-600">{{ form.tags.errors.0 }}</p>{% endif %}
+                </div>
+
+            </div>
+        </div>
+
+        {# ── Bibliographic Info (collapsible) ────────────────────────────── #}
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <button type="button" id="biblioToggle"
+                    class="w-full px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-book text-purple-500 text-sm" aria-hidden="true"></i>
+                    </div>
+                    <h2 class="font-semibold text-gray-800 text-sm sm:text-base">Bibliographic Info</h2>
+                    <span class="text-xs text-gray-400 hidden sm:inline">(optional)</span>
+                </div>
+                <i class="fas fa-chevron-down text-gray-400 transition-transform duration-200 flex-shrink-0"
+                   id="biblioChevron" aria-hidden="true"></i>
+            </button>
+            <div id="biblioBody" class="p-4 sm:p-6 space-y-4 sm:space-y-5">
+
+                {# Author + Publisher #}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.author.id_for_label }}"
+                               class="block text-sm font-semibold text-gray-700 mb-1.5">Author / Editor</label>
+                        {{ form.author }}
+                        {% if form.author.errors %}<p class="mt-1 text-xs text-red-600">{{ form.author.errors.0 }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.publisher.id_for_label }}"
+                               class="block text-sm font-semibold text-gray-700 mb-1.5">Publisher</label>
+                        {{ form.publisher }}
+                    </div>
+                </div>
+
+                {# Year + Edition + ISBN — 1 col on xs, 3 on sm+ #}
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label for="{{ form.year.id_for_label }}"
+                               class="block text-sm font-semibold text-gray-700 mb-1.5">Year</label>
+                        {{ form.year }}
+                        {% if form.year.errors %}<p class="mt-1 text-xs text-red-600">{{ form.year.errors.0 }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.edition.id_for_label }}"
+                               class="block text-sm font-semibold text-gray-700 mb-1.5">Edition / Vol.</label>
+                        {{ form.edition }}
+                    </div>
+                    <div>
+                        <label for="{{ form.isbn.id_for_label }}"
+                               class="block text-sm font-semibold text-gray-700 mb-1.5">ISBN / ISSN</label>
+                        {{ form.isbn }}
+                    </div>
+                </div>
+
+                {# Language datalist — half width on sm+ #}
+                <div class="w-full sm:w-1/2">
+                    <label for="{{ form.language.id_for_label }}"
+                           class="block text-sm font-semibold text-gray-700 mb-1.5">Language</label>
+                    {{ form.language }}
+                    <datalist id="language_datalist">
+                        <option value="en">English</option>
+                        <option value="es">Español (Spanish)</option>
+                        <option value="fr">Français (French)</option>
+                        <option value="pt_br">Português (Brazil)</option>
+                        <option value="ja">日本語 (Japanese)</option>
+                        <option value="zh">简体中文 (Chinese Simplified)</option>
+                        <option value="ko">한국어 (Korean)</option>
+                        <option value="ur">اردو (Urdu)</option>
+                        <option value="ar">العربية (Arabic)</option>
+                        <option value="hi">हिन्दी (Hindi)</option>
+                        <option value="other">Other</option>
+                    </datalist>
+                    {% if form.language.errors %}<p class="mt-1 text-xs text-red-600">{{ form.language.errors.0 }}</p>{% endif %}
+                </div>
+
+            </div>
+        </div>
+
+        {# ── Document / Resource ─────────────────────────────────────────── #}
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center gap-3 flex-wrap">
+                <div class="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-upload text-green-500 text-sm" aria-hidden="true"></i>
+                </div>
+                <h2 class="font-semibold text-gray-800 text-sm sm:text-base">Document / Resource</h2>
+                <span class="text-xs text-gray-400 hidden sm:inline">— upload a file, paste an external URL, or both</span>
+            </div>
+            <div class="p-4 sm:p-6 space-y-5 sm:space-y-6">
+
+                {# File drop zone #}
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Upload File
+                        <span class="ml-1 text-xs font-normal text-gray-400">(PDF, DOCX, EPUB, TXT, PPTX, XLSX)</span>
+                    </label>
+                    <label for="id_file"
+                           class="flex flex-col items-center justify-center w-full border-2 border-dashed rounded-xl p-6 sm:p-8 cursor-pointer transition-colors border-gray-300 hover:border-blue-400 hover:bg-blue-50"
+                           id="fileDropZone">
+                        <i class="fas fa-cloud-upload-alt text-3xl text-gray-300 mb-3" aria-hidden="true"></i>
+                        <p class="text-sm font-medium text-gray-600 text-center" id="fileLabel">
+                            {% if item and item.file %}
+                            <span class="text-blue-600">Current: {{ item.file_type|upper }} · {{ item.file_size_display }}</span> — click to replace
+                            {% else %}
+                            Click to upload or drag &amp; drop
+                            {% endif %}
+                        </p>
+                        <p class="text-xs text-gray-400 mt-1">PDF · DOCX · EPUB · TXT · PPTX · XLSX</p>
+                        {{ form.file }}
+                    </label>
+                    {% if form.file.errors %}<p class="mt-1 text-xs text-red-600">{{ form.file.errors.0 }}</p>{% endif %}
+                </div>
+
+                {# OR divider #}
+                <div class="flex items-center gap-4">
+                    <div class="flex-1 border-t border-gray-200"></div>
+                    <span class="text-xs font-semibold text-gray-400 uppercase tracking-widest">or</span>
+                    <div class="flex-1 border-t border-gray-200"></div>
+                </div>
+
+                {# External URL — stacked on mobile #}
+                <div class="space-y-4">
+                    <div>
+                        <label for="{{ form.external_url.id_for_label }}"
+                               class="block text-sm font-semibold text-gray-700 mb-1.5">External URL</label>
+                        {{ form.external_url }}
+                        <p class="mt-1 text-xs text-gray-400">{{ form.external_url.help_text }}</p>
+                        {% if form.external_url.errors %}<p class="mt-1 text-xs text-red-600">{{ form.external_url.errors.0 }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.external_url_label.id_for_label }}"
+                               class="block text-sm font-semibold text-gray-700 mb-1.5">
+                            Button Label <span class="text-xs font-normal text-gray-400">(front-end)</span>
+                        </label>
+                        {{ form.external_url_label }}
+                        <p class="mt-1 text-xs text-gray-400">{{ form.external_url_label.help_text }}</p>
+                    </div>
+                </div>
+
+                {# Cover image — stacked on mobile, side-by-side on sm+ #}
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Cover Image
+                        <span class="ml-1 text-xs font-normal text-gray-400">(400×560 px, JPG/PNG)</span>
+                    </label>
+                    <div class="flex flex-col sm:flex-row gap-4 items-start">
+                        <div class="w-24 h-32 rounded-xl border-2 border-dashed border-gray-300 overflow-hidden flex items-center justify-center flex-shrink-0 bg-gray-50"
+                             id="coverPreviewWrapper">
+                            {% if item and item.cover_image %}
+                            <img src="{{ item.cover_image.url }}" alt="Cover" class="w-full h-full object-cover" id="coverPreview">
+                            {% else %}
+                            <i class="fas fa-image text-2xl text-gray-300" id="coverIcon" aria-hidden="true"></i>
+                            <img src="" alt="" class="hidden w-full h-full object-cover" id="coverPreview">
+                            {% endif %}
+                        </div>
+                        <label for="id_cover_image"
+                               class="flex-1 w-full flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-5 sm:p-6 cursor-pointer transition-colors border-gray-300 hover:border-blue-400 hover:bg-blue-50">
+                            <i class="fas fa-portrait text-2xl text-gray-300 mb-2" aria-hidden="true"></i>
+                            <p class="text-sm font-medium text-gray-600 text-center" id="coverLabel">
+                                {% if item and item.cover_image %}Change cover{% else %}Upload cover image{% endif %}
+                            </p>
+                            <p class="text-xs text-gray-400 mt-1">{{ form.cover_image.help_text }}</p>
+                            {{ form.cover_image }}
+                        </label>
+                    </div>
+                    {% if form.cover_image.errors %}<p class="mt-1 text-xs text-red-600">{{ form.cover_image.errors.0 }}</p>{% endif %}
+                </div>
+
+            </div>
+        </div>
+
+        {# ── Save actions — shown at bottom of main col on mobile only ─────── #}
+        <div class="xl:hidden">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-3">
+                <button type="submit" name="save"
+                        class="w-full flex items-center justify-center gap-2 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors text-sm shadow-sm">
+                    <i class="fas fa-save" aria-hidden="true"></i>
+                    {{ is_create|yesno:"Add to Library,Save Changes" }}
+                </button>
+                {% if is_create %}
+                <button type="submit" name="save_and_add"
+                        class="w-full flex items-center justify-center gap-2 py-3 border border-blue-300 text-blue-700 hover:bg-blue-50 font-semibold rounded-lg transition-colors text-sm">
+                    <i class="fas fa-plus" aria-hidden="true"></i>
+                    Save &amp; Add Another
+                </button>
+                {% endif %}
+                <a href="{% url 'management:library_items_list' %}"
+                   class="w-full flex items-center justify-center gap-2 py-3 border border-gray-300 text-gray-600 hover:bg-gray-50 font-semibold rounded-lg transition-colors text-sm">
+                    <i class="fas fa-times" aria-hidden="true"></i>
+                    Cancel
+                </a>
+                {% if not is_create and item %}
+                <hr class="border-gray-100">
+                <button type="button"
+                        onclick="confirmDeleteItem('{{ item.title|escapejs }}', '{% url 'management:library_item_delete' item.pk %}')"
+                        class="w-full flex items-center justify-center gap-2 py-2.5 border border-red-200 text-red-500 hover:bg-red-50 font-semibold rounded-lg transition-colors text-sm">
+                    <i class="fas fa-trash-alt" aria-hidden="true"></i>
+                    Delete this item
+                </button>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>{# /main col #}
+
+    {# ══ SIDEBAR COLUMN (xl only — sticks to right) ══════════════════════════ #}
+    <div class="hidden xl:flex flex-col space-y-5">
+
+        {# ── Access & Visibility ─────────────────────────────────────────── #}
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-3">
+                <div class="w-8 h-8 bg-orange-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-shield-alt text-orange-500 text-sm" aria-hidden="true"></i>
+                </div>
+                <h2 class="font-semibold text-gray-800">Access & Visibility</h2>
+            </div>
+            <div class="p-5 space-y-4">
+
+                {# Access datalist #}
+                <div>
+                    <label for="{{ form.access.id_for_label }}"
+                           class="block text-sm font-semibold text-gray-700 mb-1.5">
+                        Access Level <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.access }}
+                    <datalist id="access_datalist">
+                        <option value="public">Public – anyone can access</option>
+                        <option value="members">Members only – must be logged in</option>
+                    </datalist>
+                    <p class="mt-1 text-xs text-gray-400">Public = anyone. Members = logged in only.</p>
+                    {% if form.access.errors %}<p class="mt-1 text-xs text-red-600">{{ form.access.errors.0 }}</p>{% endif %}
+                </div>
+
+                {# Toggle rows #}
+                {% for field, label, hint in toggle_fields_data %}
+                <div class="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl">
+                    <div class="pr-3">
+                        <p class="text-sm font-semibold text-gray-700">{{ label }}</p>
+                        <p class="text-xs text-gray-400 mt-0.5">{{ hint }}</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer flex-shrink-0"
+                           for="{{ field.id_for_label }}">
+                        {{ field }}
+                        <div class="toggle-track w-11 h-6 bg-gray-300 rounded-full relative ml-2 transition-colors">
+                            <div class="toggle-thumb absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full shadow transition-transform"></div>
+                        </div>
+                    </label>
+                </div>
+                {% empty %}
+                {% comment %}Fallback if context var not provided{% endcomment %}
+                <div class="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl">
+                    <div class="pr-3">
+                        <p class="text-sm font-semibold text-gray-700">Published</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Visible on the public library</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer flex-shrink-0" for="{{ form.is_active.id_for_label }}">
+                        {{ form.is_active }}
+                        <div class="toggle-track w-11 h-6 bg-gray-300 rounded-full relative ml-2 transition-colors">
+                            <div class="toggle-thumb absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full shadow transition-transform"></div>
+                        </div>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl">
+                    <div class="pr-3">
+                        <p class="text-sm font-semibold text-gray-700">Featured</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Show on library homepage shelf</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer flex-shrink-0" for="{{ form.featured.id_for_label }}">
+                        {{ form.featured }}
+                        <div class="toggle-track w-11 h-6 bg-gray-300 rounded-full relative ml-2 transition-colors">
+                            <div class="toggle-thumb absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full shadow transition-transform"></div>
+                        </div>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl">
+                    <div class="pr-3">
+                        <p class="text-sm font-semibold text-gray-700">Allow Download</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Show Download button</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer flex-shrink-0" for="{{ form.allow_download.id_for_label }}">
+                        {{ form.allow_download }}
+                        <div class="toggle-track w-11 h-6 bg-gray-300 rounded-full relative ml-2 transition-colors">
+                            <div class="toggle-thumb absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full shadow transition-transform"></div>
+                        </div>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl">
+                    <div class="pr-3">
+                        <p class="text-sm font-semibold text-gray-700">Allow Read Online</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Show embedded PDF viewer</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer flex-shrink-0" for="{{ form.allow_read_online.id_for_label }}">
+                        {{ form.allow_read_online }}
+                        <div class="toggle-track w-11 h-6 bg-gray-300 rounded-full relative ml-2 transition-colors">
+                            <div class="toggle-thumb absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full shadow transition-transform"></div>
+                        </div>
+                    </label>
+                </div>
+                {% endfor %}
+
+                {# Sort order #}
+                <div>
+                    <label for="{{ form.order.id_for_label }}"
+                           class="block text-sm font-semibold text-gray-700 mb-1.5">Sort Order</label>
+                    {{ form.order }}
+                    <p class="mt-1 text-xs text-gray-400">Lower = appears first (default: 0).</p>
+                </div>
+
+            </div>
+        </div>
+
+        {# ── Item Stats (edit only) ───────────────────────────────────────── #}
+        {% if not is_create and item %}
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100">
+                <h2 class="font-semibold text-gray-800">Item Stats</h2>
+            </div>
+            <div class="p-5 space-y-3 text-sm">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-500">Views</span>
+                    <span class="font-semibold text-gray-700">{{ item.view_count }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-500">Downloads</span>
+                    <span class="font-semibold text-gray-700">{{ item.download_count }}</span>
+                </div>
+                {% if item.file_type %}
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-500">File type</span>
+                    <span class="font-mono font-semibold text-gray-700 uppercase">{{ item.file_type }}</span>
+                </div>
+                {% endif %}
+                {% if item.file_size_mb %}
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-500">File size</span>
+                    <span class="font-semibold text-gray-700">{{ item.file_size_display }}</span>
+                </div>
+                {% endif %}
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-500">Added</span>
+                    <span class="font-semibold text-gray-700">{{ item.created_at|date:"M d, Y" }}</span>
+                </div>
+                {% if item.file %}
+                <div class="pt-2 border-t border-gray-100">
+                    <a href="{{ item.file.url }}" target="_blank" rel="noopener"
+                       class="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:underline">
+                        <i class="fas fa-external-link-alt" aria-hidden="true"></i> View current file
+                    </a>
+                </div>
+                {% endif %}
+                {% if item.external_url %}
+                <div class="{% if not item.file %}pt-2 border-t border-gray-100{% endif %}">
+                    <a href="{{ item.external_url }}" target="_blank" rel="noopener"
+                       class="inline-flex items-center gap-1.5 text-xs text-purple-600 hover:underline">
+                        <i class="fas fa-link" aria-hidden="true"></i> Open external URL
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {# ── Save actions (xl sidebar) ────────────────────────────────────── #}
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
+            <div class="p-5 space-y-3">
+                <button type="submit" name="save"
+                        class="w-full flex items-center justify-center gap-2 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors text-sm shadow-sm">
+                    <i class="fas fa-save" aria-hidden="true"></i>
+                    {{ is_create|yesno:"Add to Library,Save Changes" }}
+                </button>
+                {% if is_create %}
+                <button type="submit" name="save_and_add"
+                        class="w-full flex items-center justify-center gap-2 py-3 border border-blue-300 text-blue-700 hover:bg-blue-50 font-semibold rounded-lg transition-colors text-sm">
+                    <i class="fas fa-plus" aria-hidden="true"></i>
+                    Save &amp; Add Another
+                </button>
+                {% endif %}
+                <a href="{% url 'management:library_items_list' %}"
+                   class="w-full flex items-center justify-center gap-2 py-3 border border-gray-300 text-gray-600 hover:bg-gray-50 font-semibold rounded-lg transition-colors text-sm">
+                    <i class="fas fa-times" aria-hidden="true"></i>
+                    Cancel
+                </a>
+                {% if not is_create and item %}
+                <hr class="border-gray-100">
+                <button type="button"
+                        onclick="confirmDeleteItem('{{ item.title|escapejs }}', '{% url 'management:library_item_delete' item.pk %}')"
+                        class="w-full flex items-center justify-center gap-2 py-2.5 border border-red-200 text-red-500 hover:bg-red-50 font-semibold rounded-lg transition-colors text-sm">
+                    <i class="fas fa-trash-alt" aria-hidden="true"></i>
+                    Delete this item
+                </button>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>{# /sidebar col #}
+
+</div>{# /grid #}
+
+<div class="xl:hidden mt-5 space-y-5">
+
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+            <div class="w-8 h-8 bg-orange-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-shield-alt text-orange-500 text-sm" aria-hidden="true"></i>
+            </div>
+            <h2 class="font-semibold text-gray-800 text-sm sm:text-base">Access & Visibility</h2>
+        </div>
+        <div class="p-4 sm:p-6 space-y-4">
+
+            {# Access datalist (mobile) #}
+            <div>
+                <label for="{{ form.access.id_for_label }}"
+                       class="block text-sm font-semibold text-gray-700 mb-1.5">
+                    Access Level <span class="text-red-500">*</span>
+                </label>
+                {{ form.access }}
+                {# datalist already rendered in xl col — just need the input pointing to it #}
+                <datalist id="access_datalist">
+                    <option value="public">Public – anyone can access</option>
+                    <option value="members">Members only – must be logged in</option>
+                </datalist>
+                <p class="mt-1 text-xs text-gray-400">Public = anyone. Members = logged in only.</p>
+                {% if form.access.errors %}<p class="mt-1 text-xs text-red-600">{{ form.access.errors.0 }}</p>{% endif %}
+            </div>
+
+            {# Toggles — 2 col grid on sm #}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl">
+                    <div class="pr-3">
+                        <p class="text-sm font-semibold text-gray-700">Published</p>
+                        <p class="text-xs text-gray-400">Visible on library</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer flex-shrink-0" for="{{ form.is_active.id_for_label }}">
+                        {{ form.is_active }}
+                        <div class="toggle-track w-11 h-6 bg-gray-300 rounded-full relative ml-2 transition-colors">
+                            <div class="toggle-thumb absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full shadow transition-transform"></div>
+                        </div>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl">
+                    <div class="pr-3">
+                        <p class="text-sm font-semibold text-gray-700">Featured</p>
+                        <p class="text-xs text-gray-400">Homepage shelf</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer flex-shrink-0" for="{{ form.featured.id_for_label }}">
+                        {{ form.featured }}
+                        <div class="toggle-track w-11 h-6 bg-gray-300 rounded-full relative ml-2 transition-colors">
+                            <div class="toggle-thumb absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full shadow transition-transform"></div>
+                        </div>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl">
+                    <div class="pr-3">
+                        <p class="text-sm font-semibold text-gray-700">Allow Download</p>
+                        <p class="text-xs text-gray-400">Download button</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer flex-shrink-0" for="{{ form.allow_download.id_for_label }}">
+                        {{ form.allow_download }}
+                        <div class="toggle-track w-11 h-6 bg-gray-300 rounded-full relative ml-2 transition-colors">
+                            <div class="toggle-thumb absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full shadow transition-transform"></div>
+                        </div>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl">
+                    <div class="pr-3">
+                        <p class="text-sm font-semibold text-gray-700">Read Online</p>
+                        <p class="text-xs text-gray-400">PDF viewer</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer flex-shrink-0" for="{{ form.allow_read_online.id_for_label }}">
+                        {{ form.allow_read_online }}
+                        <div class="toggle-track w-11 h-6 bg-gray-300 rounded-full relative ml-2 transition-colors">
+                            <div class="toggle-thumb absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full shadow transition-transform"></div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            {# Sort order #}
+            <div class="sm:w-1/3">
+                <label for="{{ form.order.id_for_label }}"
+                       class="block text-sm font-semibold text-gray-700 mb-1.5">Sort Order</label>
+                {{ form.order }}
+                <p class="mt-1 text-xs text-gray-400">Lower = first (default 0).</p>
+            </div>
+
+        </div>
+    </div>
+
+    {# Item stats (mobile, edit only) #}
+    {% if not is_create and item %}
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="px-4 sm:px-6 py-4 border-b border-gray-100">
+            <h2 class="font-semibold text-gray-800 text-sm sm:text-base">Item Stats</h2>
+        </div>
+        <div class="p-4 sm:p-6 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+            <div class="bg-gray-50 rounded-lg p-3 text-center">
+                <p class="text-xl font-bold text-gray-800">{{ item.view_count }}</p>
+                <p class="text-xs text-gray-500">Views</p>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-3 text-center">
+                <p class="text-xl font-bold text-gray-800">{{ item.download_count }}</p>
+                <p class="text-xs text-gray-500">Downloads</p>
+            </div>
+            {% if item.file_type %}
+            <div class="bg-gray-50 rounded-lg p-3 text-center">
+                <p class="text-xl font-bold text-gray-800 uppercase font-mono">{{ item.file_type }}</p>
+                <p class="text-xs text-gray-500">Type</p>
+            </div>
+            {% endif %}
+            {% if item.file_size_mb %}
+            <div class="bg-gray-50 rounded-lg p-3 text-center">
+                <p class="text-xl font-bold text-gray-800">{{ item.file_size_display }}</p>
+                <p class="text-xs text-gray-500">Size</p>
+            </div>
+            {% endif %}
+        </div>
+        {% if item.file or item.external_url %}
+        <div class="px-4 sm:px-6 pb-4 flex flex-wrap gap-3">
+            {% if item.file %}
+            <a href="{{ item.file.url }}" target="_blank" rel="noopener"
+               class="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:underline">
+                <i class="fas fa-external-link-alt" aria-hidden="true"></i> View file
+            </a>
+            {% endif %}
+            {% if item.external_url %}
+            <a href="{{ item.external_url }}" target="_blank" rel="noopener"
+               class="inline-flex items-center gap-1.5 text-xs text-purple-600 hover:underline">
+                <i class="fas fa-link" aria-hidden="true"></i> Open URL
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+
+<form id="deleteItemForm" method="post" action="" class="hidden">{% csrf_token %}</form>
+</form>
+
+{# ── Toggle CSS ─────────────────────────────────────────────────────────────── #}
+<style>
+    input[type="checkbox"].lib-toggle,
+    #{{ form.is_active.id_for_label }},
+    #{{ form.featured.id_for_label }},
+    #{{ form.allow_download.id_for_label }},
+    #{{ form.allow_read_online.id_for_label }} { display: none !important; }
+    input[type="checkbox"].lib-toggle:checked + .toggle-track { background-color: #2563eb; }
+    input[type="checkbox"].lib-toggle:checked + .toggle-track .toggle-thumb { transform: translateX(1.25rem); }
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    // ── Bibliographic accordion ────────────────────────────────────────────
+    const biblioToggle = document.getElementById('biblioToggle');
+    const biblioBody   = document.getElementById('biblioBody');
+    const biblioChev   = document.getElementById('biblioChevron');
+
+    const biblioFieldIds = [
+        '{{ form.author.id_for_label }}',
+        '{{ form.publisher.id_for_label }}',
+        '{{ form.year.id_for_label }}',
+        '{{ form.edition.id_for_label }}',
+        '{{ form.isbn.id_for_label }}'
+    ];
+    const hasBiblioData = biblioFieldIds.some(id => {
+        const el = document.getElementById(id);
+        return el && el.value.trim();
+    });
+    if (!hasBiblioData) biblioBody?.classList.add('hidden');
+    biblioToggle?.addEventListener('click', function () {
+        biblioBody?.classList.toggle('hidden');
+        biblioChev?.classList.toggle('rotate-180');
+    });
+
+    // ── Cover image live preview ───────────────────────────────────────────
+    document.getElementById('id_cover_image')?.addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file || !file.type.startsWith('image/')) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            const preview = document.getElementById('coverPreview');
+            const icon    = document.getElementById('coverIcon');
+            const label   = document.getElementById('coverLabel');
+            if (preview) { preview.src = e.target.result; preview.classList.remove('hidden'); }
+            if (icon)    icon.classList.add('hidden');
+            if (label)   label.textContent = file.name;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // ── File upload label update ───────────────────────────────────────────
+    document.getElementById('id_file')?.addEventListener('change', function () {
+        const label = document.getElementById('fileLabel');
+        if (this.files[0] && label) {
+            const f  = this.files[0];
+            const mb = (f.size / (1024 * 1024)).toFixed(2);
+            label.innerHTML = `<span class="text-blue-600">${f.name}</span> <span class="text-gray-400 ml-1">${mb} MB</span>`;
+        }
+    });
+
+    // ── Drag & drop highlight ──────────────────────────────────────────────
+    const dropZone = document.getElementById('fileDropZone');
+    if (dropZone) {
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('border-blue-400','bg-blue-50'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-blue-400','bg-blue-50'));
+        dropZone.addEventListener('drop',      () => dropZone.classList.remove('border-blue-400','bg-blue-50'));
+    }
+
+    // ── Toggle checkboxes ─────────────────────────────────────────────────
+    // Finds ALL toggle-track elements (handles both xl sidebar and mobile duplicates)
+    const toggleIds = [
+        '{{ form.is_active.id_for_label }}',
+        '{{ form.featured.id_for_label }}',
+        '{{ form.allow_download.id_for_label }}',
+        '{{ form.allow_read_online.id_for_label }}',
+    ];
+    toggleIds.forEach(id => {
+        // There may be two labels pointing to the same checkbox (xl + mobile sections)
+        // We wire the single real checkbox, then sync both tracks via querySelectorAll
+        const cb = document.getElementById(id);
+        if (!cb) return;
+        cb.classList.add('lib-toggle');
+
+        function syncTracks() {
+            document.querySelectorAll(`label[for="${id}"] .toggle-track`).forEach(track => {
+                track.style.backgroundColor = cb.checked ? '#2563eb' : '';
+                const thumb = track.querySelector('.toggle-thumb');
+                if (thumb) thumb.style.transform = cb.checked ? 'translateX(1.25rem)' : '';
+            });
+        }
+        cb.addEventListener('change', syncTracks);
+        syncTracks(); // initial sync
+    });
+
+});
+
+// ── Delete confirmation ────────────────────────────────────────────────────
+function confirmDeleteItem(title, url) {
+    Swal.fire({
+        title: 'Delete this item?',
+        html: `<p class="text-gray-600 text-sm">You are about to permanently remove <strong>"${title}"</strong>. This cannot be undone.</p>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Yes, delete',
+        cancelButtonText: 'Cancel',
+        reverseButtons: true,
+    }).then(result => {
+        if (result.isConfirmed) {
+            const form = document.getElementById('deleteItemForm');
+            form.action = url;
+            form.submit();
+        }
+    });
+}
+</script>
+{% endblock %}

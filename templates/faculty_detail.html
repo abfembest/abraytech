@@ -1,0 +1,539 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ faculty.name }} | {{ site_config.school_short_name|default:"ABrayTech" }} Services{% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="{{ faculty.meta_description|default:faculty.description|truncatechars:160 }}">
+<meta name="keywords" content="{{ faculty.meta_keywords|default:faculty.name }}, {{ site_config.school_short_name|default:'ABrayTech' }}, tech training, courses, programs">
+<meta name="robots" content="index, follow">
+<meta name="author" content="{{ site_config.school_name|default:'ABrayTech Limited' }}">
+{% endblock %}
+
+{% block og_tags %}
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ faculty.name }} | {{ site_config.school_short_name|default:'ABrayTech' }}">
+<meta property="og:description" content="{{ faculty.description|default:faculty.tagline|truncatechars:200 }}">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+{% if site_config.og_image %}<meta property="og:image" content="{{ site_config.og_image.url }}">{% endif %}
+{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "{{ faculty.name|escapejs }}",
+  "description": "{{ faculty.description|default:faculty.tagline|truncatechars:200|escapejs }}",
+  "url": "{{ request.build_absolute_uri }}",
+  "parentOrganization": {
+    "@type": "EducationalOrganization",
+    "name": "{{ site_config.school_name|default:'ABrayTech Limited'|escapejs }}"
+  }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<!-- ════════════════════════════════════════════
+     HERO
+════════════════════════════════════════════ -->
+<section class="hero-mesh relative overflow-hidden" aria-labelledby="faculty-heading">
+
+  <!-- Decorative orbs -->
+  <div class="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+    <div class="absolute top-0 right-0 w-48 h-48 sm:w-80 sm:h-80 lg:w-[500px] lg:h-[500px] bg-cyan-500 rounded-full opacity-10 blur-3xl"></div>
+    <div class="absolute bottom-0 left-6 sm:left-10 w-40 h-40 sm:w-64 sm:h-64 lg:w-80 lg:h-80 bg-navy-600 rounded-full opacity-15 blur-3xl"></div>
+  </div>
+
+  <div class="relative z-10 max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-16 pt-28 sm:pt-32 lg:pt-36 pb-16 sm:pb-20 lg:pb-24">
+
+    <!-- Breadcrumb -->
+    <nav class="mb-8 sm:mb-10 fade-up fade-up-1" aria-label="Breadcrumb">
+      <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm text-white/50"
+          itemscope itemtype="https://schema.org/BreadcrumbList">
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="{% url 'eduweb:index' %}" itemprop="item"
+             class="hover:text-cyan-400 transition-colors underline-offset-2 hover:underline focus:outline-none focus:text-cyan-400">
+            <span itemprop="name">Home</span>
+          </a>
+          <meta itemprop="position" content="1">
+        </li>
+        <li aria-hidden="true"><i data-lucide="chevron-right" class="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0"></i></li>
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="{% url 'eduweb:index' %}#services" itemprop="item"
+             class="hover:text-cyan-400 transition-colors underline-offset-2 hover:underline focus:outline-none focus:text-cyan-400">
+            <span itemprop="name">Services</span>
+          </a>
+          <meta itemprop="position" content="2">
+        </li>
+        <li aria-hidden="true"><i data-lucide="chevron-right" class="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0"></i></li>
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" aria-current="page">
+          <span itemprop="name" class="text-white/80 truncate max-w-[160px] sm:max-w-xs inline-block">{{ faculty.name }}</span>
+          <meta itemprop="position" content="3">
+        </li>
+      </ol>
+    </nav>
+
+    <div class="flex flex-col lg:flex-row lg:items-end gap-10 lg:gap-16">
+
+      <!-- Title block -->
+      <div class="flex-1 fade-up fade-up-2">
+        <span class="pill pill-cyan mb-5 sm:mb-6" aria-label="Service code: {{ faculty.code }}">
+          <i data-lucide="{{ faculty.icon|default:'layers' }}" class="w-3 h-3 sm:w-3.5 sm:h-3.5" aria-hidden="true"></i>
+          {{ faculty.code }}
+        </span>
+
+        <h1 id="faculty-heading"
+            class="font-heading text-3xl sm:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-black text-white leading-tight mb-4 sm:mb-5">
+          <span class="gradient-text">{{ faculty.name }}</span>
+        </h1>
+
+        {% if faculty.tagline %}
+        <p class="text-white/60 text-base sm:text-lg lg:text-xl max-w-xl sm:max-w-2xl leading-relaxed mb-8">
+          {{ faculty.tagline }}
+        </p>
+        {% endif %}
+
+        <!-- Action buttons -->
+        <div class="flex flex-row flex-wrap gap-3">
+          <a href="{% url 'eduweb:apply' %}" class="btn-primary text-sm py-2.5 px-6 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+            <i data-lucide="send" class="w-4 h-4" aria-hidden="true"></i>
+            Enrol Now
+          </a>
+          <a href="#departments" class="btn-outline text-sm py-2.5 px-6 focus:outline-none focus:ring-2 focus:ring-white/30">
+            <i data-lucide="layout-grid" class="w-4 h-4" aria-hidden="true"></i>
+            Browse Courses
+          </a>
+        </div>
+      </div>
+
+      <!-- Stats grid -->
+      {% if faculty.student_count or faculty.placement_rate or departments or faculty.partner_count %}
+      <div class="grid grid-cols-2 gap-3 sm:gap-4 w-full sm:w-auto lg:w-72 xl:w-80 flex-shrink-0 fade-up fade-up-3"
+           aria-label="Service statistics">
+        {% if faculty.student_count %}
+        <div class="tech-card p-4 sm:p-5 text-center">
+          <div class="font-heading text-2xl sm:text-3xl font-black shimmer-text">
+            {{ faculty.student_count|floatformat:"0" }}+
+          </div>
+          <div class="text-white/50 text-xs mt-1 font-medium">Learners Trained</div>
+        </div>
+        {% endif %}
+        {% if faculty.placement_rate %}
+        <div class="tech-card p-4 sm:p-5 text-center">
+          <div class="font-heading text-2xl sm:text-3xl font-black shimmer-text">
+            {{ faculty.placement_rate }}%
+          </div>
+          <div class="text-white/50 text-xs mt-1 font-medium">Placement Rate</div>
+        </div>
+        {% endif %}
+        {% if departments %}
+        <div class="tech-card p-4 sm:p-5 text-center">
+          <div class="font-heading text-2xl sm:text-3xl font-black text-cyan-400 stat-glow">
+            {{ departments|length }}
+          </div>
+          <div class="text-white/50 text-xs mt-1 font-medium">Tracks / Streams</div>
+        </div>
+        {% endif %}
+        {% if faculty.partner_count %}
+        <div class="tech-card p-4 sm:p-5 text-center">
+          <div class="font-heading text-2xl sm:text-3xl font-black text-lime-400">
+            {{ faculty.partner_count }}+
+          </div>
+          <div class="text-white/50 text-xs mt-1 font-medium">Industry Partners</div>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Mission & Vision -->
+    {% if faculty.mission or faculty.vision %}
+    <div class="mt-10 sm:mt-12 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 fade-up fade-up-4">
+      {% if faculty.mission %}
+      <div class="tech-card p-5 sm:p-6">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-9 h-9 bg-cyan-500/15 rounded-xl flex items-center justify-center flex-shrink-0" aria-hidden="true">
+            <i data-lucide="target" class="w-4 h-4 text-cyan-400"></i>
+          </div>
+          <h2 class="font-heading font-bold text-white/90 text-xs uppercase tracking-widest">Mission</h2>
+        </div>
+        <p class="text-white/55 text-xs sm:text-sm leading-relaxed">{{ faculty.mission }}</p>
+      </div>
+      {% endif %}
+      {% if faculty.vision %}
+      <div class="tech-card p-5 sm:p-6">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-9 h-9 bg-lime-400/15 rounded-xl flex items-center justify-center flex-shrink-0" aria-hidden="true">
+            <i data-lucide="eye" class="w-4 h-4 text-lime-400"></i>
+          </div>
+          <h2 class="font-heading font-bold text-white/90 text-xs uppercase tracking-widest">Vision</h2>
+        </div>
+        <p class="text-white/55 text-xs sm:text-sm leading-relaxed">{{ faculty.vision }}</p>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     LEAD / DEAN STRIP
+════════════════════════════════════════════ -->
+{% if faculty.dean_name %}
+<section class="section-light border-b border-gray-100 py-7 sm:py-10" aria-label="Service Lead">
+  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-16">
+    <div class="flex items-center gap-5 sm:gap-8">
+      <div class="flex-shrink-0">
+        {% if faculty.dean_photo %}
+          <img src="{{ faculty.dean_photo.url }}"
+               alt="Portrait of {{ faculty.dean_name }}"
+               class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-2xl object-cover object-top border-2 border-cyan-100 shadow-md"
+               loading="lazy">
+        {% else %}
+          <div class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-2xl bg-gradient-to-br from-cyan-50 to-navy-100 flex items-center justify-center border-2 border-cyan-100 shadow-md"
+               aria-hidden="true">
+            <i data-lucide="user-circle" class="w-8 h-8 sm:w-10 sm:h-10 text-cyan-500"></i>
+          </div>
+        {% endif %}
+      </div>
+      <div>
+        <p class="text-xs font-bold tracking-widest uppercase text-cyan-600 mb-0.5 sm:mb-1">
+          {{ faculty.dean_role|default:"Service Lead" }}
+        </p>
+        <p class="font-heading font-bold text-gray-900 text-base sm:text-lg lg:text-xl">
+          {{ faculty.dean_name }}
+        </p>
+        {% if faculty.dean_faculty_label %}
+        <p class="text-gray-500 text-xs sm:text-sm mt-0.5">{{ faculty.dean_faculty_label }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ════════════════════════════════════════════
+     STICKY SEARCH BAR
+════════════════════════════════════════════ -->
+<div class="sticky top-16 lg:top-20 z-30 bg-white/98 border-b border-gray-200 shadow-sm backdrop-blur-md"
+     id="search-bar"
+     role="search"
+     aria-label="Search and filter programs">
+  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-16 py-2.5 sm:py-3 flex flex-col sm:flex-row gap-2.5 sm:gap-3 items-stretch sm:items-center">
+
+    <div class="relative w-full sm:w-64 lg:w-80">
+      <span class="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true">
+        <i data-lucide="search" class="w-4 h-4 text-gray-400"></i>
+      </span>
+      <label for="programSearch" class="sr-only">Search programs or tracks</label>
+      <input type="text"
+             id="programSearch"
+             placeholder="Search programs, tracks…"
+             class="search-input w-full pl-10 pr-4 py-2 sm:py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder-gray-400 transition-all focus:outline-none"
+             autocomplete="off">
+    </div>
+
+    <div class="flex gap-1.5 sm:gap-2 flex-wrap" role="group" aria-label="Filter by level">
+      <button onclick="filterLevel('all')"
+              class="tab-btn active text-xs font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all"
+              data-level="all" aria-pressed="true">All</button>
+      <button onclick="filterLevel('undergraduate')"
+              class="tab-btn text-xs font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-cyan-500 hover:text-cyan-600 transition-all"
+              data-level="undergraduate" aria-pressed="false">Foundational</button>
+      <button onclick="filterLevel('postgraduate')"
+              class="tab-btn text-xs font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-cyan-500 hover:text-cyan-600 transition-all"
+              data-level="postgraduate" aria-pressed="false">Advanced</button>
+      <button onclick="filterLevel('masters')"
+              class="tab-btn text-xs font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-cyan-500 hover:text-cyan-600 transition-all"
+              data-level="masters" aria-pressed="false">Professional</button>
+      <button onclick="filterLevel('phd')"
+              class="tab-btn text-xs font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-cyan-500 hover:text-cyan-600 transition-all"
+              data-level="phd" aria-pressed="false">Expert</button>
+    </div>
+
+    <span id="resultCount" class="text-xs text-gray-400 whitespace-nowrap sm:ml-auto hidden sm:block"
+          aria-live="polite" aria-atomic="true"></span>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     DEPARTMENTS / TRACKS + PROGRAMS
+════════════════════════════════════════════ -->
+<section id="departments" class="section-light py-14 sm:py-16 lg:py-24 scroll-mt-28 lg:scroll-mt-32"
+         aria-labelledby="depts-heading">
+  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-16">
+
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-10 sm:mb-12">
+      <div>
+        <span class="pill pill-light mb-3">Explore</span>
+        <h2 id="depts-heading" class="font-heading text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-gray-900">
+          Tracks &amp; Programs
+        </h2>
+      </div>
+      <span class="text-gray-400 text-xs sm:text-sm" aria-live="polite">
+        {{ departments|length }} track{% if departments|length != 1 %}s{% endif %}
+      </span>
+    </div>
+
+    {% if departments %}
+    <div id="deptList" class="space-y-3 sm:space-y-4" role="list">
+      {% for dept in departments %}
+      <div class="dept-accordion-item light-card overflow-hidden"
+           data-dept="{{ dept.name|lower }}"
+           data-programs="{% for prog in dept.active_programs %}{{ prog.name|lower }} {{ prog.degree_level|lower }} {% endfor %}"
+           role="listitem">
+
+        <button onclick="toggleAccordion(this)"
+                aria-expanded="false"
+                aria-controls="dept-body-{{ forloop.counter }}"
+                class="w-full flex items-center justify-between gap-3 sm:gap-4 px-4 sm:px-6 lg:px-7 py-4 sm:py-5 lg:py-6 text-left hover:bg-cyan-50/40 transition-colors group focus:outline-none focus:ring-2 focus:ring-inset focus:ring-cyan-400">
+          <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+            <div class="w-10 h-10 sm:w-11 sm:h-11 lg:w-12 lg:h-12 rounded-xl sm:rounded-2xl bg-cyan-50 flex items-center justify-center flex-shrink-0 group-hover:bg-cyan-100 transition-all"
+                 aria-hidden="true">
+              <i data-lucide="layers" class="w-4 h-4 sm:w-5 sm:h-5 text-cyan-600"></i>
+            </div>
+            <div class="text-left min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <h3 class="font-heading text-sm sm:text-base lg:text-lg font-bold text-gray-900 group-hover:text-cyan-700 transition-colors">{{ dept.name }}</h3>
+                <span class="pill pill-light text-xs px-2 py-0.5">{{ dept.code }}</span>
+              </div>
+              {% if dept.description %}
+              <p class="text-gray-500 text-xs sm:text-sm mt-0.5 line-clamp-1">{{ dept.description }}</p>
+              {% endif %}
+            </div>
+          </div>
+          <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <span class="text-xs text-gray-400 font-medium hidden sm:block">{{ dept.active_programs|length }} program{% if dept.active_programs|length != 1 %}s{% endif %}</span>
+            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gray-100 group-hover:bg-cyan-100 flex items-center justify-center transition-colors" aria-hidden="true">
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500 rotate-icon"></i>
+            </div>
+          </div>
+        </button>
+
+        <div class="accordion-body border-t border-gray-100" id="dept-body-{{ forloop.counter }}">
+          <div class="px-4 sm:px-6 lg:px-7 py-4 sm:py-5 lg:py-6">
+            {% if dept.active_programs %}
+            <div class="space-y-2 sm:space-y-2.5" role="list" aria-label="Programs in {{ dept.name }}">
+              {% for program in dept.active_programs %}
+              <a href="{% url 'eduweb:program_detail' program.slug %}"
+                 class="program-row flex items-center justify-between gap-3 sm:gap-4 px-3 sm:px-4 lg:px-5 py-3 sm:py-4 rounded-xl bg-gray-50 hover:bg-white hover:shadow-md transition-all group/prog focus:outline-none focus:ring-2 focus:ring-cyan-200 border border-transparent hover:border-cyan-100"
+                 data-level="{{ program.degree_level }}"
+                 data-name="{{ program.name|lower }}"
+                 role="listitem">
+                <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+                  <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center flex-shrink-0 shadow-sm group-hover/prog:border-cyan-300 transition-colors" aria-hidden="true">
+                    <i data-lucide="book-open" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-600"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="font-heading font-semibold text-gray-800 text-xs sm:text-sm group-hover/prog:text-cyan-700 transition-colors truncate">{{ program.name }}</div>
+                    <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
+                      <span class="text-xs font-semibold px-1.5 py-0.5 rounded-md
+                        {% if program.degree_level == 'undergraduate' %}bg-blue-50 text-blue-700
+                        {% elif program.degree_level == 'postgraduate' or program.degree_level == 'masters' %}bg-cyan-50 text-cyan-700
+                        {% elif program.degree_level == 'phd' %}bg-navy-50 text-navy-700
+                        {% else %}bg-gray-100 text-gray-600{% endif %}">
+                        {{ program.get_degree_level_display }}
+                      </span>
+                      {% if program.duration_years %}
+                      <span class="text-gray-400 text-xs">{{ program.duration_years }} yr{% if program.duration_years > 1 %}s{% endif %}</span>
+                      {% endif %}
+                      {% if program.available_study_modes %}
+                      <span class="text-gray-300 text-xs" aria-hidden="true">·</span>
+                      {% for mode in program.available_study_modes %}
+                      <span class="text-gray-400 text-xs">{{ mode|title }}</span>{% if not forloop.last %}<span class="text-gray-300 text-xs" aria-hidden="true">/</span>{% endif %}
+                      {% endfor %}
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 sm:gap-3 lg:gap-4 flex-shrink-0">
+                  {% if program.tuition_fee %}
+                  <div class="hidden md:block text-right">
+                    <div class="text-xs text-gray-400">Fee / yr</div>
+                    <div class="font-heading font-bold text-gray-800 text-xs sm:text-sm">${{ program.tuition_fee|floatformat:"0" }}</div>
+                  </div>
+                  {% endif %}
+                  <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white border border-gray-200 flex items-center justify-center shadow-sm group-hover/prog:bg-cyan-600 group-hover/prog:border-cyan-600 transition-all" aria-hidden="true">
+                    <i data-lucide="arrow-right" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-500 group-hover/prog:text-white transition-colors"></i>
+                  </div>
+                </div>
+              </a>
+              {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-400 text-xs sm:text-sm italic py-3 sm:py-4 text-center">No programs available for this track yet.</p>
+            {% endif %}
+          </div>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+
+    <div id="noResults" class="hidden text-center py-16 sm:py-20" role="status" aria-live="polite">
+      <div class="w-14 h-14 sm:w-16 sm:h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4" aria-hidden="true">
+        <i data-lucide="search-x" class="w-6 h-6 sm:w-7 sm:h-7 text-gray-400"></i>
+      </div>
+      <h3 class="font-heading text-lg sm:text-xl font-bold text-gray-700 mb-2">No programs found</h3>
+      <p class="text-gray-400 text-xs sm:text-sm">Try a different search term or filter.</p>
+    </div>
+
+    {% else %}
+    <div class="text-center py-16 sm:py-20 light-card border border-gray-100">
+      <i data-lucide="inbox" class="w-10 h-10 sm:w-12 sm:h-12 text-gray-300 mx-auto mb-4" aria-hidden="true"></i>
+      <p class="text-gray-400 text-sm sm:text-base">No tracks found for this service.</p>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     WHY CHOOSE / FEATURES + ACCREDITATION
+════════════════════════════════════════════ -->
+{% if faculty.special_features or faculty.accreditation %}
+<section class="section-dark py-14 sm:py-16 lg:py-24" aria-labelledby="features-heading">
+  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-16">
+
+    <div class="text-center mb-10 sm:mb-12 lg:mb-14">
+      <span class="pill pill-cyan mb-4">Why Choose Us</span>
+      <h2 id="features-heading" class="font-heading text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-white mb-3 sm:mb-4">
+        What Sets <span class="gradient-text">Us Apart</span>
+      </h2>
+      {% if faculty.tagline %}
+      <p class="text-white/50 text-sm sm:text-base lg:text-lg max-w-xl sm:max-w-2xl mx-auto leading-relaxed">{{ faculty.tagline }}</p>
+      {% endif %}
+    </div>
+
+    {% if faculty.special_features %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 {% if faculty.accreditation %}mb-10 sm:mb-12 lg:mb-14{% endif %}">
+      {% for feature in faculty.special_features %}
+      <div class="tech-card p-5 sm:p-6 lg:p-8 group">
+        <div class="w-10 h-10 sm:w-11 sm:h-11 lg:w-12 lg:h-12 bg-cyan-500/15 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-5 group-hover:bg-cyan-500/25 transition-all" aria-hidden="true">
+          <i data-lucide="zap" class="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400"></i>
+        </div>
+        <p class="text-white/70 text-sm sm:text-base leading-relaxed">{{ feature }}</p>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Accreditation / recognition banner -->
+    {% if faculty.accreditation %}
+    <div class="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-navy-800 via-navy-700 to-navy-800 border border-white/10 px-5 sm:px-8 lg:px-12 py-6 sm:py-8 lg:py-10">
+      <div class="absolute top-0 right-0 w-48 h-48 bg-cyan-500/10 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" aria-hidden="true"></div>
+      <div class="relative flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
+        <div class="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-cyan-500 to-cyan-700 rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg" aria-hidden="true">
+          <i data-lucide="shield-check" class="w-6 h-6 sm:w-7 sm:h-7 text-white"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-cyan-400 text-xs font-bold tracking-widest uppercase mb-1">Recognition &amp; Credentials</p>
+          <p class="font-heading text-lg sm:text-xl lg:text-2xl font-bold text-white mb-1 sm:mb-2">Certified &amp; Industry-Recognised</p>
+          <p class="text-white/50 text-sm sm:text-base leading-relaxed max-w-2xl">{{ faculty.accreditation }}</p>
+        </div>
+        <a href="{% url 'eduweb:apply' %}"
+           class="btn-primary text-sm py-2.5 px-5 flex-shrink-0 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-cyan-400">
+          <i data-lucide="graduation-cap" class="w-4 h-4" aria-hidden="true"></i>
+          Enrol Now
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  /* ── Accordion ── */
+  function toggleAccordion(btn) {
+    const bodyId = btn.getAttribute('aria-controls');
+    const body = bodyId ? document.getElementById(bodyId) : btn.nextElementSibling;
+    const icon = btn.querySelector('.rotate-icon');
+    const open = body.classList.contains('open');
+    body.classList.toggle('open', !open);
+    icon.classList.toggle('open', !open);
+    btn.setAttribute('aria-expanded', String(!open));
+  }
+  window.toggleAccordion = toggleAccordion;
+
+  /* ── Level filter ── */
+  function filterLevel(level) {
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      const isActive = b.dataset.level === level;
+      b.classList.toggle('active', isActive);
+      b.setAttribute('aria-pressed', String(isActive));
+      if (!isActive) b.classList.add('border', 'border-gray-200', 'text-gray-600');
+      else b.classList.remove('border', 'border-gray-200', 'text-gray-600');
+    });
+    runFilter();
+  }
+  window.filterLevel = filterLevel;
+
+  const searchInput = document.getElementById('programSearch');
+  if (searchInput) searchInput.addEventListener('input', runFilter);
+
+  function runFilter() {
+    const query = (searchInput ? searchInput.value : '').toLowerCase().trim();
+    const level = document.querySelector('.tab-btn.active')?.dataset.level || 'all';
+    let total = 0;
+    let visibleDepts = 0;
+
+    document.querySelectorAll('.dept-accordion-item').forEach(dept => {
+      const rows = dept.querySelectorAll('a[data-level]');
+      let anyVis = false;
+
+      rows.forEach(row => {
+        const nameMatch = row.dataset.name.includes(query);
+        const levelMatch = level === 'all' || row.dataset.level === level;
+        const vis = nameMatch && levelMatch;
+        row.style.display = vis ? '' : 'none';
+        if (vis) { anyVis = true; total++; }
+      });
+
+      const deptNameMatch = dept.dataset.dept.includes(query);
+      if (deptNameMatch && level === 'all') { rows.forEach(r => r.style.display = ''); anyVis = true; }
+
+      dept.style.display = anyVis ? '' : 'none';
+      if (anyVis) visibleDepts++;
+
+      if (query && anyVis) {
+        const body = dept.querySelector('.accordion-body');
+        const icon = dept.querySelector('.rotate-icon');
+        const btn = dept.querySelector('button[aria-expanded]');
+        body.classList.add('open');
+        icon.classList.add('open');
+        if (btn) btn.setAttribute('aria-expanded', 'true');
+      }
+    });
+
+    const rc = document.getElementById('resultCount');
+    if (rc) rc.textContent = (query || level !== 'all') ? `${total} program${total !== 1 ? 's' : ''} found` : '';
+
+    const noResults = document.getElementById('noResults');
+    if (noResults) noResults.classList.toggle('hidden', visibleDepts > 0);
+  }
+
+  /* ── Lucide init ── */
+  if (window.lucide) {
+    document.querySelectorAll('[data-lucide]').forEach(el => {
+      if (!el.getAttribute('data-lucide') || el.getAttribute('data-lucide').trim() === '') {
+        el.setAttribute('data-lucide', 'book');
+      }
+    });
+    lucide.createIcons();
+  }
+
+});
+</script>
+{% endblock %}

@@ -1,0 +1,597 @@
+{% extends 'management/base.html' %}
+
+{% block title %}Faculties Management - MIU Admin{% endblock %}
+{% block breadcrumb %}Academics › Faculties{% endblock %}
+{% block breadcrumb_title %}Faculties Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    .modal-tab { padding: .6rem 1rem; font-size: .75rem; font-weight: 600; color: #6b7280; border-bottom: 2px solid transparent; white-space: nowrap; transition: all .15s; background: transparent; flex-shrink: 0; }
+    .modal-tab:hover { color: #3a56d4; background: #f9fafb; }
+    .modal-tab.active-tab { color: #3a56d4; border-bottom-color: #3a56d4; background: white; }
+    .field-label { display: block; font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #6b7280; margin-bottom: .3rem; }
+    .field-error { color: #ef4444; font-size: .75rem; margin-top: .2rem; }
+    #facultyForm input[type=text], #facultyForm input[type=number],
+    #facultyForm textarea, #facultyForm select {
+        width: 100%; padding: .5rem .75rem; border: 1px solid #e5e7eb; border-radius: .5rem;
+        font-size: .875rem; color: #111827; background: #fff; transition: border-color .15s, box-shadow .15s;
+    }
+    #facultyForm input:focus, #facultyForm textarea:focus, #facultyForm select:focus {
+        outline: none; border-color: #3a56d4; box-shadow: 0 0 0 3px rgba(58,86,212,.1);
+    }
+    #facultyForm input[type=checkbox] { width: 1rem; height: 1rem; accent-color: #3a56d4; cursor: pointer; }
+    #facultyForm input[type=file] { width: 100%; font-size: .8rem; color: #6b7280; cursor: pointer; }
+    #facultyForm textarea { resize: vertical; }
+    .color-row { display: flex; align-items: center; gap: .5rem; }
+    .color-swatch { width: 2rem; height: 2rem; border-radius: .375rem; border: 1px solid #e5e7eb; flex-shrink: 0; transition: background .2s; }
+    .file-drop { position: relative; border: 1.5px dashed #d1d5db; border-radius: .75rem; padding: .6rem .875rem; background: #f9fafb; transition: all .15s; }
+    .file-drop:hover { border-color: #3a56d4; background: #eff6ff; }
+    .file-drop input[type=file] { opacity: 0; position: absolute; inset: 0; cursor: pointer; width: 100%; height: 100%; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{# ── Page Header ── #}
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-900 font-heading">Faculties</h1>
+        <p class="text-sm text-gray-500 mt-1">Manage university faculties, departments and programs</p>
+    </div>
+    <button onclick="openFacultyModal(null)"
+            class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-all shadow flex-shrink-0">
+        <i class="fas fa-plus"></i>Add Faculty
+    </button>
+</div>
+
+{# ── Stats Row ── #}
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+    <div class="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-university text-primary-600 text-sm"></i>
+        </div>
+        <div><p class="text-xs text-gray-500 font-medium">Total Faculties</p><p class="text-2xl font-bold text-gray-900">{{ faculties|length }}</p></div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-check-circle text-green-600 text-sm"></i>
+        </div>
+        <div><p class="text-xs text-gray-500 font-medium">Active</p><p class="text-2xl font-bold text-gray-900">{{ active_count|default:faculties|length }}</p></div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-secondary-100 flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-sitemap text-secondary-600 text-sm"></i>
+        </div>
+        <div><p class="text-xs text-gray-500 font-medium">Departments</p><p class="text-2xl font-bold text-gray-900">{{ total_departments|default:"—" }}</p></div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-graduation-cap text-amber-600 text-sm"></i>
+        </div>
+        <div><p class="text-xs text-gray-500 font-medium">Programs</p><p class="text-2xl font-bold text-gray-900">{{ total_programs|default:"—" }}</p></div>
+    </div>
+</div>
+
+{# ── Table Card ── #}
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h2 class="font-semibold text-gray-800 text-sm">All Faculties</h2>
+        <span class="text-xs text-gray-400">{{ faculties|length }} record{{ faculties|length|pluralize }}</span>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    <th class="px-4 py-3 text-left w-12">#</th>
+                    <th class="px-4 py-3 text-left">Faculty</th>
+                    <th class="px-4 py-3 text-left w-20">Code</th>
+                    <th class="px-4 py-3 text-left hidden md:table-cell w-24">Depts</th>
+                    <th class="px-4 py-3 text-left w-24">Status</th>
+                    <th class="px-4 py-3 text-right w-20">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for f in faculties %}
+                <tr class="hover:bg-gray-50/60 transition-colors">
+                    <td class="px-4 py-3.5">
+                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-xs font-bold text-gray-500">{{ f.display_order }}</span>
+                    </td>
+                    <td class="px-4 py-3.5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg bg-primary-50 border border-primary-100 flex items-center justify-center flex-shrink-0">
+                                <i data-lucide="{{ f.icon }}" class="w-4 h-4 text-primary-600"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-semibold text-gray-900 truncate">{{ f.name }}</p>
+                                <p class="text-xs text-gray-400 truncate max-w-xs">{{ f.tagline|truncatewords:8 }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3.5">
+                        <span class="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-md text-xs font-mono font-semibold">{{ f.code }}</span>
+                    </td>
+                    <td class="px-4 py-3.5 hidden md:table-cell text-gray-600">
+                        {{ f.departments.count }} <span class="text-gray-400 text-xs">dept{{ f.departments.count|pluralize }}</span>
+                    </td>
+                    <td class="px-4 py-3.5">
+                        {% if f.is_active %}
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 rounded-full text-xs font-semibold border border-green-100">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Active
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-semibold">
+                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>Inactive
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3.5">
+                        <div class="flex items-center justify-end gap-1">
+                            {% comment %}<a href="{% url 'eduweb:faculty_detail' f.slug %}" target="_blank" class="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-all" title="View"><i class="fas fa-eye text-sm"></i></a>{% endcomment %}
+                            <button onclick="openFacultyModal({{ f.pk }})" class="p-1.5 text-primary-600 hover:bg-primary-50 rounded-lg transition-all" title="Edit">
+                                <i class="fas fa-edit text-sm"></i>
+                            </button>
+                            <button onclick="confirmDelete({{ f.pk }}, '{{ f.name|escapejs }}')" class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Delete">
+                                <i class="fas fa-trash text-sm"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-5 py-16 text-center">
+                        <div class="flex flex-col items-center gap-3">
+                            <div class="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center">
+                                <i class="fas fa-university text-gray-300 text-xl"></i>
+                            </div>
+                            <p class="text-gray-500 font-medium text-sm">No faculties yet</p>
+                            <button onclick="openFacultyModal(null)" class="text-sm text-primary-600 hover:underline font-semibold">+ Create your first faculty</button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="facultyModal"
+     class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-5"
+     role="dialog" aria-modal="true">
+
+    <div class="relative bg-white w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[92vh]">
+
+        {# Header #}
+        <div class="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-primary-600 to-secondary-500 rounded-t-2xl flex-shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                    <i class="fas fa-university text-white text-sm"></i>
+                </div>
+                <div>
+                    <h2 id="modalTitle" class="text-sm font-bold text-white">Add New Faculty</h2>
+                    <p id="modalSubtitle" class="text-xs text-white/70">Fill in the details below</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeFacultyModal()"
+                    class="w-7 h-7 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 rounded-lg transition-all">
+                <i class="fas fa-times text-xs"></i>
+            </button>
+        </div>
+
+        {# Tabs — 4 #}
+        <div class="flex border-b border-gray-200 bg-gray-50 flex-shrink-0">
+            <button type="button" onclick="switchTab(1)" id="tab-1" class="modal-tab active-tab"><i class="fas fa-info-circle mr-1.5"></i>Basic & Colors</button>
+            <button type="button" onclick="switchTab(2)" id="tab-2" class="modal-tab"><i class="fas fa-align-left mr-1.5"></i>Content</button>
+            <button type="button" onclick="switchTab(3)" id="tab-3" class="modal-tab"><i class="fas fa-chart-bar mr-1.5"></i>Stats & Features</button>
+            <button type="button" onclick="switchTab(4)" id="tab-4" class="modal-tab"><i class="fas fa-images mr-1.5"></i>Images & SEO</button>
+        </div>
+
+        {# Form #}
+        <form id="facultyForm" method="post" enctype="multipart/form-data" action="{% url 'management:faculty_create' %}">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="mx-5 mt-3 bg-red-50 border border-red-200 text-red-700 text-xs p-3 rounded-lg flex gap-2">
+                <i class="fas fa-exclamation-circle flex-shrink-0 mt-0.5"></i>{{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            <div class="overflow-y-auto flex-1 px-5 py-4">
+
+                {# TAB 1 — Basic + Colors #}
+                <div id="tabContent-1" class="tab-content space-y-4">
+                    <div class="grid sm:grid-cols-2 gap-4">
+                        <div class="sm:col-span-2">
+                            <label class="field-label">Faculty Name <span class="text-red-500">*</span></label>
+                            {{ form.name }}
+                            {% if form.name.errors %}<p class="field-error">{{ form.name.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label class="field-label">Code <span class="text-red-500">*</span></label>
+                            {{ form.code }}
+                            {% if form.code.errors %}<p class="field-error">{{ form.code.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label class="field-label">Icon <span class="text-red-500">*</span> <a href="https://lucide.dev/icons" target="_blank" class="normal-case text-primary-500 font-normal ml-1">lucide.dev ↗</a></label>
+                            {{ form.icon }}
+                            {% if form.icon.errors %}<p class="field-error">{{ form.icon.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="field-label">Tagline <span class="text-red-500">*</span></label>
+                            {{ form.tagline }}
+                            {% if form.tagline.errors %}<p class="field-error">{{ form.tagline.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-100 pt-3">
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3"><i class="fas fa-palette mr-1"></i>Color Scheme</p>
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="field-label">Primary Color <span class="text-red-500">*</span></label>
+                                <div class="color-row">
+                                    <span id="swatchPrimary" class="color-swatch bg-gray-200"></span>
+                                    <div class="flex-1">
+                                        <input type="text" id="id_color_primary_dl" list="colorPrimaryList" placeholder="e.g. blue" autocomplete="off">
+                                        <input type="hidden" id="id_color_primary" name="color_primary">
+                                        <datalist id="colorPrimaryList">
+                                            <option value="orange"><option value="blue"><option value="teal">
+                                            <option value="green"><option value="purple"><option value="red">
+                                            <option value="pink"><option value="indigo"><option value="cyan">
+                                        </datalist>
+                                    </div>
+                                </div>
+                                {% if form.color_primary.errors %}<p class="field-error">{{ form.color_primary.errors.0 }}</p>{% endif %}
+                            </div>
+                            <div>
+                                <label class="field-label">Secondary Color <span class="text-red-500">*</span></label>
+                                <div class="color-row">
+                                    <span id="swatchSecondary" class="color-swatch bg-gray-200"></span>
+                                    <div class="flex-1">
+                                        <input type="text" id="id_color_secondary_dl" list="colorSecondaryList" placeholder="e.g. amber" autocomplete="off">
+                                        <input type="hidden" id="id_color_secondary" name="color_secondary">
+                                        <datalist id="colorSecondaryList">
+                                            <option value="amber"><option value="cyan"><option value="emerald">
+                                            <option value="lime"><option value="violet"><option value="rose">
+                                            <option value="fuchsia"><option value="sky"><option value="yellow">
+                                        </datalist>
+                                    </div>
+                                </div>
+                                {% if form.color_secondary.errors %}<p class="field-error">{{ form.color_secondary.errors.0 }}</p>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# TAB 2 — Content #}
+                <div id="tabContent-2" class="tab-content hidden space-y-4">
+                    <div>
+                        <label class="field-label">Description <span class="text-red-500">*</span></label>
+                        {{ form.description }}
+                        {% if form.description.errors %}<p class="field-error">{{ form.description.errors.0 }}</p>{% endif %}
+                    </div>
+                    <div class="grid sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="field-label">Mission</label>
+                            {{ form.mission }}
+                            {% if form.mission.errors %}<p class="field-error">{{ form.mission.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label class="field-label">Vision</label>
+                            {{ form.vision }}
+                            {% if form.vision.errors %}<p class="field-error">{{ form.vision.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        <label class="field-label">Accreditation</label>
+                        {{ form.accreditation }}
+                        {% if form.accreditation.errors %}<p class="field-error">{{ form.accreditation.errors.0 }}</p>{% endif %}
+                    </div>
+                </div>
+
+                {# TAB 3 — Stats + Features #}
+                <div id="tabContent-3" class="tab-content hidden space-y-4">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div>
+                            <label class="field-label">Students</label>
+                            {{ form.student_count }}
+                            {% if form.student_count.errors %}<p class="field-error">{{ form.student_count.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label class="field-label">Placement %</label>
+                            {{ form.placement_rate }}
+                            {% if form.placement_rate.errors %}<p class="field-error">{{ form.placement_rate.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label class="field-label">Partners</label>
+                            {{ form.partner_count }}
+                            {% if form.partner_count.errors %}<p class="field-error">{{ form.partner_count.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label class="field-label">Intl. Faculty %</label>
+                            {{ form.international_faculty }}
+                            {% if form.international_faculty.errors %}<p class="field-error">{{ form.international_faculty.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-100 pt-3">
+                        <label class="field-label">Special Features</label>
+                        <p class="text-xs text-gray-400 mb-2">One per line: <code class="bg-gray-100 px-1 rounded font-mono">icon|title|description</code></p>
+                        {{ form.special_features_text }}
+                        {% if form.special_features_text.errors %}<p class="field-error">{{ form.special_features_text.errors.0 }}</p>{% endif %}
+                    </div>
+                </div>
+
+                {# TAB 4 — Images + SEO + Settings #}
+                <div id="tabContent-4" class="tab-content hidden space-y-4">
+                    <div class="grid sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="field-label">Hero Image</label>
+                            <div class="file-drop">
+                                <div class="flex items-center gap-2 pointer-events-none">
+                                    <i class="fas fa-image text-gray-400 text-sm"></i>
+                                    <span class="text-xs text-gray-500 truncate" id="heroFileName">Choose hero image…</span>
+                                </div>
+                                {{ form.hero_image }}
+                            </div>
+                            <div id="heroPreviewWrap" class="mt-2 hidden">
+                                <img id="heroPreviewImg" src="" alt="Hero" class="w-full max-h-24 object-cover rounded-lg border border-gray-200">
+                            </div>
+                            {% if form.hero_image.errors %}<p class="field-error">{{ form.hero_image.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label class="field-label">About Image</label>
+                            <div class="file-drop">
+                                <div class="flex items-center gap-2 pointer-events-none">
+                                    <i class="fas fa-image text-gray-400 text-sm"></i>
+                                    <span class="text-xs text-gray-500 truncate" id="aboutFileName">Choose about image…</span>
+                                </div>
+                                {{ form.about_image }}
+                            </div>
+                            <div id="aboutPreviewWrap" class="mt-2 hidden">
+                                <img id="aboutPreviewImg" src="" alt="About" class="w-full max-h-24 object-cover rounded-lg border border-gray-200">
+                            </div>
+                            {% if form.about_image.errors %}<p class="field-error">{{ form.about_image.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-100 pt-3 space-y-3">
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider"><i class="fas fa-search mr-1"></i>SEO & Settings</p>
+                        <div>
+                            <label class="field-label">Meta Description</label>
+                            {{ form.meta_description }}
+                            {% if form.meta_description.errors %}<p class="field-error">{{ form.meta_description.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label class="field-label">Meta Keywords</label>
+                            {{ form.meta_keywords }}
+                            {% if form.meta_keywords.errors %}<p class="field-error">{{ form.meta_keywords.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div class="flex flex-wrap items-center gap-5 pt-1 border-t border-gray-100">
+                            <label class="flex items-center gap-2 cursor-pointer select-none">
+                                {{ form.is_active }}
+                                <span class="text-sm font-medium text-gray-700">Active (visible on website)</span>
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <label class="field-label mb-0 whitespace-nowrap">Display Order</label>
+                                <div class="w-20">{{ form.display_order }}</div>
+                                {% if form.display_order.errors %}<p class="field-error">{{ form.display_order.errors.0 }}</p>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>{# /scroll area #}
+
+            {# Footer #}
+            <div class="flex items-center justify-between px-5 py-3.5 border-t border-gray-100 bg-gray-50 rounded-b-2xl flex-shrink-0">
+                <button type="button" onclick="closeFacultyModal()"
+                        class="px-4 py-2 text-sm font-semibold text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 transition-all">
+                    Cancel
+                </button>
+                <div class="flex items-center gap-3">
+                    <span id="tabProgress" class="text-xs text-gray-400 hidden sm:block">Step 1 of 4</span>
+                    <button type="submit"
+                            class="inline-flex items-center gap-2 px-5 py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-all shadow">
+                        <i class="fas fa-save text-xs"></i>
+                        <span id="submitBtnText">Save Faculty</span>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{# Hidden delete form #}
+<form id="deleteForm" method="post" action="" class="hidden">{% csrf_token %}</form>
+
+{# Faculty data for JS #}
+<script>
+const FACULTY_DATA = {
+    {% for f in faculties %}
+    "{{ f.pk }}": {
+        name:"{{ f.name|escapejs }}", code:"{{ f.code|escapejs }}",
+        icon:"{{ f.icon|escapejs }}", tagline:"{{ f.tagline|escapejs }}",
+        color_primary:"{{ f.color_primary|escapejs }}", color_secondary:"{{ f.color_secondary|escapejs }}",
+        description:"{{ f.description|escapejs }}", mission:"{{ f.mission|escapejs }}",
+        vision:"{{ f.vision|escapejs }}", accreditation:"{{ f.accreditation|escapejs }}",
+        student_count:{{ f.student_count|default:0 }}, placement_rate:{{ f.placement_rate|default:0 }},
+        partner_count:{{ f.partner_count|default:0 }}, international_faculty:{{ f.international_faculty|default:0 }},
+        meta_description:"{{ f.meta_description|escapejs }}", meta_keywords:"{{ f.meta_keywords|escapejs }}",
+        is_active:{{ f.is_active|yesno:"true,false" }}, display_order:{{ f.display_order|default:0 }},
+        hero_image_url:"{% if f.hero_image %}{{ f.hero_image.url }}{% endif %}",
+        about_image_url:"{% if f.about_image %}{{ f.about_image.url }}{% endif %}",
+        special_features:{{ f.special_features|default:"[]"|safe }},
+        edit_url:"{% url 'management:faculty_edit' f.pk %}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+};
+const COLOR_BG = {
+    orange:'bg-orange-500', blue:'bg-blue-500', teal:'bg-teal-500', green:'bg-green-500',
+    purple:'bg-purple-500', red:'bg-red-500', pink:'bg-pink-500', indigo:'bg-indigo-500',
+    cyan:'bg-cyan-500', amber:'bg-amber-400', emerald:'bg-emerald-500', lime:'bg-lime-500',
+    violet:'bg-violet-500', rose:'bg-rose-500', fuchsia:'bg-fuchsia-500', sky:'bg-sky-500',
+    yellow:'bg-yellow-400'
+};
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const TOTAL_TABS = 4;
+
+    window.switchTab = function (n) {
+        for (let i = 1; i <= TOTAL_TABS; i++) {
+            document.getElementById('tabContent-' + i).classList.add('hidden');
+            document.getElementById('tab-' + i).classList.remove('active-tab');
+        }
+        document.getElementById('tabContent-' + n).classList.remove('hidden');
+        document.getElementById('tab-' + n).classList.add('active-tab');
+        const prog = document.getElementById('tabProgress');
+        if (prog) prog.textContent = 'Step ' + n + ' of ' + TOTAL_TABS;
+    };
+
+    /* Color swatch */
+    function updateSwatch(swatchId, val) {
+        const el = document.getElementById(swatchId);
+        if (!el) return;
+        el.className = 'color-swatch ' + (COLOR_BG[(val||'').toLowerCase()] || 'bg-gray-200');
+    }
+    function wireColor(dlId, hiddenId, swatchId) {
+        const dl = document.getElementById(dlId), hid = document.getElementById(hiddenId);
+        if (!dl || !hid) return;
+        const sync = () => { hid.value = dl.value.toLowerCase().trim(); updateSwatch(swatchId, hid.value); };
+        dl.addEventListener('input', sync);
+        dl.addEventListener('change', sync);
+    }
+    wireColor('id_color_primary_dl',   'id_color_primary',   'swatchPrimary');
+    wireColor('id_color_secondary_dl', 'id_color_secondary', 'swatchSecondary');
+
+    function setVal(id, val) {
+        const el = document.getElementById(id);
+        if (el) el.value = (val !== null && val !== undefined) ? String(val) : '';
+    }
+    function showPreview(imgId, wrapId, src) {
+        const img = document.getElementById(imgId), wrap = document.getElementById(wrapId);
+        if (img) img.src = src;
+        if (wrap) wrap.classList.remove('hidden');
+    }
+    function hidePreview(wrapId) {
+        const w = document.getElementById(wrapId);
+        if (w) w.classList.add('hidden');
+    }
+
+    window.openFacultyModal = function (pk) {
+        const modal = document.getElementById('facultyModal');
+        const form  = document.getElementById('facultyForm');
+        form.reset();
+        switchTab(1);
+        hidePreview('heroPreviewWrap'); hidePreview('aboutPreviewWrap');
+        document.getElementById('heroFileName').textContent  = 'Choose hero image…';
+        document.getElementById('aboutFileName').textContent = 'Choose about image…';
+
+        if (pk != null) {
+            const d = FACULTY_DATA[String(pk)];
+            if (!d) { console.warn('Faculty not found:', pk); return; }
+
+            document.getElementById('modalTitle').textContent    = 'Edit Faculty';
+            document.getElementById('modalSubtitle').textContent = 'Update the details below';
+            document.getElementById('submitBtnText').textContent = 'Update Faculty';
+            form.action = d.edit_url;
+
+            setVal('id_name', d.name); setVal('id_code', d.code);
+            setVal('id_icon', d.icon); setVal('id_tagline', d.tagline);
+            setVal('id_description', d.description); setVal('id_mission', d.mission);
+            setVal('id_vision', d.vision); setVal('id_accreditation', d.accreditation);
+            setVal('id_student_count', d.student_count); setVal('id_placement_rate', d.placement_rate);
+            setVal('id_partner_count', d.partner_count); setVal('id_international_faculty', d.international_faculty);
+            setVal('id_meta_description', d.meta_description); setVal('id_meta_keywords', d.meta_keywords);
+            setVal('id_display_order', d.display_order);
+
+            const cb = document.getElementById('id_is_active');
+            if (cb) cb.checked = !!d.is_active;
+
+            // Color datalist inputs
+            setVal('id_color_primary_dl', d.color_primary);   setVal('id_color_primary', d.color_primary);
+            setVal('id_color_secondary_dl', d.color_secondary); setVal('id_color_secondary', d.color_secondary);
+            updateSwatch('swatchPrimary', d.color_primary);
+            updateSwatch('swatchSecondary', d.color_secondary);
+
+            if (Array.isArray(d.special_features) && d.special_features.length)
+                setVal('id_special_features_text',
+                    d.special_features.map(f => (f.icon||'')+'|'+(f.title||'')+'|'+(f.description||'')).join('\n'));
+
+            if (d.hero_image_url)  showPreview('heroPreviewImg',  'heroPreviewWrap',  d.hero_image_url);
+            if (d.about_image_url) showPreview('aboutPreviewImg', 'aboutPreviewWrap', d.about_image_url);
+
+        } else {
+            document.getElementById('modalTitle').textContent    = 'Add New Faculty';
+            document.getElementById('modalSubtitle').textContent = 'Fill in the details below';
+            document.getElementById('submitBtnText').textContent = 'Save Faculty';
+            form.action = "{% url 'management:faculty_create' %}";
+            updateSwatch('swatchPrimary', ''); updateSwatch('swatchSecondary', '');
+        }
+
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.closeFacultyModal = function () {
+        document.getElementById('facultyModal').classList.add('hidden');
+        document.body.style.overflow = '';
+    };
+    document.getElementById('facultyModal').addEventListener('click', function (e) {
+        if (e.target === this) closeFacultyModal();
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !document.getElementById('facultyModal').classList.contains('hidden'))
+            closeFacultyModal();
+    });
+
+    window.confirmDelete = function (pk, name) {
+        Swal.fire({
+            title: 'Delete "' + name + '"?',
+            text: 'This permanently removes the faculty and may affect related departments and programs.',
+            icon: 'warning', showCancelButton: true,
+            confirmButtonColor: '#ef4444', cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Yes, delete', cancelButtonText: 'Cancel', reverseButtons: true,
+        }).then(r => {
+            if (r.isConfirmed) {
+                const f = document.getElementById('deleteForm');
+                f.action = '/management/faculties/' + pk + '/delete/';
+                f.submit();
+            }
+        });
+    };
+
+    function setupFilePreview(inputId, imgId, wrapId, labelId) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        input.addEventListener('change', function () {
+            if (this.files && this.files[0]) {
+                document.getElementById(labelId).textContent = this.files[0].name;
+                const r = new FileReader();
+                r.onload = e => showPreview(imgId, wrapId, e.target.result);
+                r.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+    setupFilePreview('id_hero_image',  'heroPreviewImg',  'heroPreviewWrap',  'heroFileName');
+    setupFilePreview('id_about_image', 'aboutPreviewImg', 'aboutPreviewWrap', 'aboutFileName');
+
+    {% if form.errors %}
+    document.addEventListener('DOMContentLoaded', function () {
+        openFacultyModal({% if edit_pk %}{{ edit_pk }}{% else %}null{% endif %});
+        {% if form.name.errors or form.code.errors or form.icon.errors or form.tagline.errors or form.color_primary.errors or form.color_secondary.errors %}
+            switchTab(1);
+        {% elif form.description.errors or form.mission.errors or form.vision.errors or form.accreditation.errors %}
+            switchTab(2);
+        {% elif form.student_count.errors or form.placement_rate.errors or form.partner_count.errors or form.international_faculty.errors or form.special_features_text.errors %}
+            switchTab(3);
+        {% else %}
+            switchTab(4);
+        {% endif %}
+    });
+    {% endif %}
+
+    if (window.lucide) lucide.createIcons();
+})();
+</script>
+{% endblock %}

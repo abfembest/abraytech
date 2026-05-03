@@ -1,0 +1,237 @@
+{% extends "management/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - MIU Student Portal{% endblock %}
+
+{% block extra_meta %}
+<meta name="description" content="Manage your student profile, update personal information, and customize your learning experience.">
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
+{% block content %}
+<div class="max-w-12xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">My Profile</h1>
+        <p class="text-gray-600 mt-2">Manage your personal information and preferences</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Profile Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center">
+                <div class="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden border-4 border-primary-100">
+                    {% if request.user.profile.avatar %}
+                    <img src="{{ request.user.profile.avatar.url }}" 
+                         alt="Profile picture of {{ request.user.get_full_name }}" 
+                         class="w-full h-full object-cover">
+                    {% else %}
+                    <img src="https://ui-avatars.com/api/?name={{ request.user.get_full_name|urlencode }}&size=128&background=4a6bff&color=fff" 
+                         alt="Default profile picture for {{ request.user.get_full_name }}" 
+                         class="w-full h-full object-cover">
+                    {% endif %}
+                </div>
+                <h2 class="text-xl font-bold text-gray-900 mb-1">
+                    {{ request.user.get_full_name|default:request.user.username }}
+                </h2>
+                <p class="text-gray-600 mb-4">{{ request.user.profile.get_role_display }}</p>
+                
+                <div class="space-y-2 text-sm text-gray-600">
+                    <div class="flex items-center justify-center gap-2">
+                        <i class="fas fa-envelope text-gray-400" aria-hidden="true"></i>
+                        <span class="truncate">{{ request.user.email }}</span>
+                    </div>
+                    {% if request.user.profile.phone %}
+                    <div class="flex items-center justify-center gap-2">
+                        <i class="fas fa-phone text-gray-400" aria-hidden="true"></i>
+                        <span>{{ request.user.profile.phone }}</span>
+                    </div>
+                    {% endif %}
+                    {% if request.user.profile.city %}
+                    <div class="flex items-center justify-center gap-2">
+                        <i class="fas fa-map-marker-alt text-gray-400" aria-hidden="true"></i>
+                        <span>{{ request.user.profile.city }}, {{ request.user.profile.country }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Stats Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="font-semibold text-gray-900 mb-4">Learning Stats</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Courses Enrolled</span>
+                        <span class="font-bold text-primary-600">{{ total_enrolled|default:0 }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Completed</span>
+                        <span class="font-bold text-green-600">{{ completed_courses|default:0 }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Certificates</span>
+                        <span class="font-bold text-yellow-600">{{ certificates_earned|default:0 }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Total Hours</span>
+                        <span class="font-bold text-gray-900">{{ total_hours|default:0 }}h</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="lg:col-span-2">
+            {% if messages %}
+            <div class="mb-6 space-y-2">
+                {% for message in messages %}
+                <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200{% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}" role="alert">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+
+                <!-- Personal Information -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-xl font-bold text-gray-900 mb-6">Personal Information</h2>
+                    
+                    <!-- Render form fields with custom styling -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {% for field in form %}
+                            {% if field.name in 'first_name,last_name,email' %}
+                            <div {% if field.name == 'email' %}class="md:col-span-2"{% endif %}>
+                                <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ field.label }}
+                                    {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+                                </label>
+                                {{ field }}
+                                {% if field.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ field.errors.0 }}</p>
+                                {% endif %}
+                                {% if field.help_text %}
+                                <p class="mt-1 text-sm text-gray-500">{{ field.help_text }}</p>
+                                {% endif %}
+                            </div>
+                            {% elif field.name in 'phone,city,country' %}
+                            <div>
+                                <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ field.label }}
+                                </label>
+                                {{ field }}
+                                {% if field.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ field.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            {% elif field.name == 'bio' %}
+                            <div class="md:col-span-2">
+                                <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ field.label }}
+                                </label>
+                                {{ field }}
+                                {% if field.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ field.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Profile Picture -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-xl font-bold text-gray-900 mb-6">Profile Picture</h2>
+                    
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                        <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-200 flex-shrink-0">
+                            {% if request.user.profile.avatar %}
+                            <img src="{{ request.user.profile.avatar.url }}" 
+                                 alt="Current profile picture" 
+                                 class="w-full h-full object-cover"
+                                 id="avatar-preview">
+                            {% else %}
+                            <img src="https://ui-avatars.com/api/?name={{ request.user.get_full_name|urlencode }}&size=96&background=4a6bff&color=fff" 
+                                 alt="Default profile picture" 
+                                 class="w-full h-full object-cover"
+                                 id="avatar-preview">
+                            {% endif %}
+                        </div>
+                        
+                        <div class="flex-1 w-full">
+                            {{ form.avatar }}
+                            {% if form.avatar.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.avatar.errors.0 }}</p>
+                            {% endif %}
+                            <p class="text-sm text-gray-500 mt-2">
+                                JPG, PNG, GIF or WebP (Max 2MB)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social Links -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-xl font-bold text-gray-900 mb-6">Social Links (Optional)</h2>
+                    
+                    <div class="space-y-4">
+                        {% for field in form %}
+                            {% if field.name in 'website,linkedin,twitter' %}
+                            <div>
+                                <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {% if field.name == 'website' %}<i class="fas fa-globe mr-2"></i>{% endif %}
+                                    {% if field.name == 'linkedin' %}<i class="fab fa-linkedin mr-2"></i>{% endif %}
+                                    {% if field.name == 'twitter' %}<i class="fab fa-twitter mr-2"></i>{% endif %}
+                                    {{ field.label }}
+                                </label>
+                                {{ field }}
+                                {% if field.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ field.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <a href="{% url 'students:dashboard' %}" 
+                       class="w-full sm:w-auto px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all text-center">
+                        Cancel
+                    </a>
+                    <button type="submit" 
+                            class="w-full sm:w-auto px-8 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        <i class="fas fa-save mr-2"></i>Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Avatar preview when file is selected
+document.addEventListener('DOMContentLoaded', function() {
+    const avatarInput = document.getElementById('id_avatar');
+    if (avatarInput) {
+        avatarInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('avatar-preview');
+                    if (preview) {
+                        preview.src = event.target.result;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

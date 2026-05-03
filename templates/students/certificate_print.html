@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate — {{ cert.display_title }}</title>
+
+    <!-- Fonts: Poppins (headings) + Inter (body) matching base.html -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome (matching base.html) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CDN (standalone for this page — no sidebar/nav needed) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'cinzel':    ['Cinzel', 'serif'],
+                        'cormorant': ['Cormorant Garamond', 'Georgia', 'serif'],
+                        'poppins':   ['Poppins', 'system-ui', 'sans-serif'],
+                        'inter':     ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        gold: {
+                            50:  '#fffdf0',
+                            100: '#fef9d7',
+                            200: '#fef0a0',
+                            300: '#fde165',
+                            400: '#f9c930',
+                            500: '#d4af37',
+                            600: '#b7962e',
+                            700: '#967a20',
+                            800: '#7a6010',
+                            900: '#5c470a',
+                        },
+                        parchment: '#fdf8ef',
+                    },
+                    animation: {
+                        'fade-in':    'fadeIn 0.8s ease forwards',
+                        'slide-up':   'slideUp 0.6s ease forwards',
+                        'shimmer':    'shimmer 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        fadeIn:  { from: { opacity: '0' },              to: { opacity: '1' } },
+                        slideUp: { from: { opacity: '0', transform: 'translateY(20px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+                        shimmer: {
+                            '0%, 100%': { opacity: '0.6' },
+                            '50%':      { opacity: '1' },
+                        },
+                    },
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* ─── Base reset ──────────────────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #1a1410;
+            min-height: 100vh;
+        }
+
+        /* ─── Screen background: rich dark parchment + floating orbs ─── */
+        .screen-bg {
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 10%, rgba(212,175,55,0.12) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 80% 90%, rgba(183,150,46,0.10) 0%, transparent 55%),
+                radial-gradient(ellipse 40% 40% at 50% 50%, rgba(212,175,55,0.04) 0%, transparent 70%),
+                linear-gradient(160deg, #1e180e 0%, #12100a 40%, #1a1410 70%, #0e0c08 100%);
+        }
+
+        /* Subtle noise texture overlay */
+        .screen-bg::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ─── Floating decorative particles ─────────────────────────── */
+        .particle {
+            position: fixed;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(212,175,55,0.3), transparent);
+            animation: float linear infinite;
+            pointer-events: none;
+        }
+        @keyframes float {
+            0%   { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: 0.6; }
+            100% { transform: translateY(-20vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* ─── Toolbar ────────────────────────────────────────────────── */
+        .toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background: rgba(18, 14, 8, 0.85);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        /* ─── Certificate card wrapper ───────────────────────────────── */
+        .cert-wrapper {
+            background: #fdf8ef;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+            box-shadow:
+                0 0 0 1px rgba(212,175,55,0.4),
+                0 4px 24px rgba(0,0,0,0.4),
+                0 20px 60px rgba(0,0,0,0.5),
+                0 0 80px rgba(212,175,55,0.08);
+            animation: fadeIn 1s ease forwards;
+        }
+
+        /* Corner ornaments */
+        .corner {
+            position: absolute;
+            width: 48px;
+            height: 48px;
+            border-color: #b7962e;
+            border-style: solid;
+            opacity: 0.6;
+        }
+        .corner-tl { top: 10px; left: 10px;  border-width: 2px 0 0 2px; }
+        .corner-tr { top: 10px; right: 10px; border-width: 2px 2px 0 0; }
+        .corner-bl { bottom: 10px; left: 10px;  border-width: 0 0 2px 2px; }
+        .corner-br { bottom: 10px; right: 10px; border-width: 0 2px 2px 0; }
+
+        /* Parchment texture on the card */
+        .cert-wrapper::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 70% 50% at 30% 20%, rgba(253,241,192,0.5) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 80% 80%, rgba(245,220,150,0.3) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        /* Gold outer border */
+        .border-outer {
+            border: 6px solid;
+            border-image: linear-gradient(135deg, #d4af37, #f9c930, #b7962e, #d4af37, #f9c930, #967a20, #d4af37) 1;
+        }
+        /* Gold inner border */
+        .border-inner {
+            border: 1.5px solid;
+            border-image: linear-gradient(135deg, #d4af37, #f9c93088, #b7962e, #d4af37) 1;
+        }
+
+        /* ─── Watermark seal ─────────────────────────────────────────── */
+        .watermark-seal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: clamp(120px, 20vw, 200px);
+            height: clamp(120px, 20vw, 200px);
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(212,175,55,0.07) 0%, rgba(183,150,46,0.04) 60%, transparent 100%);
+            border: 2px solid rgba(212,175,55,0.1);
+            pointer-events: none;
+        }
+
+        /* ─── Typography ─────────────────────────────────────────────── */
+        .school-name {
+            font-family: 'Cinzel', serif;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: #7a6010;
+            font-weight: 700;
+        }
+        .cert-type-text {
+            font-family: 'Cinzel', serif;
+            color: #1a1a1a;
+            font-weight: 400;
+            letter-spacing: 0.05em;
+        }
+        .certifies-text {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            color: #6b6052;
+            font-style: italic;
+            font-weight: 400;
+        }
+        .student-name {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            color: #1a1208;
+            font-weight: 600;
+            font-style: italic;
+            letter-spacing: 0.02em;
+        }
+        .course-name {
+            font-family: 'Cinzel', serif;
+            color: #1a1208;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+        }
+        .footer-label {
+            font-family: 'Inter', system-ui, sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: #9e8a6a;
+            font-weight: 500;
+        }
+        .footer-value {
+            font-family: 'Poppins', system-ui, sans-serif;
+            color: #3d2f0e;
+            font-weight: 600;
+        }
+
+        /* ─── Gold divider line ──────────────────────────────────────── */
+        .gold-rule {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #d4af37, #f9c930, #d4af37, transparent);
+        }
+        .gold-rule-thick {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #d4af37, #f9c930, #d4af37, transparent);
+        }
+
+        /* ─── Seal stamp ─────────────────────────────────────────────── */
+        .seal-stamp {
+            background: conic-gradient(#d4af37 0deg, #f9c930 30deg, #b7962e 60deg, #d4af37 90deg, #f9c930 120deg, #b7962e 150deg, #d4af37 180deg, #f9c930 210deg, #b7962e 240deg, #d4af37 270deg, #f9c930 300deg, #b7962e 330deg, #d4af37 360deg);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow:
+                0 2px 8px rgba(0,0,0,0.2),
+                inset 0 1px 2px rgba(255,255,255,0.3);
+        }
+        .seal-inner {
+            background: #b7962e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #d4af37;
+        }
+
+        /* Shimmer animation on seal */
+        .seal-stamp::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%, rgba(255,255,255,0.1) 100%);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        /* ─── Program badge ──────────────────────────────────────────── */
+        .program-badge {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #fef9d7, #fef0a0);
+            border: 1px solid #d4af37;
+            color: #7a6010;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        /* ─── Print styles ───────────────────────────────────────────── */
+        @page {
+            size: A4 landscape;
+            margin: 0;
+        }
+
+        @media print {
+            html, body {
+                background: #fdf8ef !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .screen-bg, .screen-bg::before { background: none !important; }
+            .no-print { display: none !important; }
+            .toolbar  { display: none !important; }
+            .particle { display: none !important; }
+
+            .print-page {
+                width: 297mm !important;
+                height: 210mm !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                background: #fdf8ef !important;
+            }
+
+            .cert-wrapper {
+                width: 277mm !important;
+                height: 190mm !important;
+                margin: 10mm auto !important;
+                box-shadow: none !important;
+                animation: none !important;
+                border-radius: 0 !important;
+            }
+
+            .print-padding {
+                padding: 8mm 10mm !important;
+            }
+
+            .corner { opacity: 0.5 !important; }
+            .watermark-seal { opacity: 1 !important; }
+        }
+    </style>
+</head>
+<body class="screen-bg relative">
+
+    <!-- Floating particles (screen only) -->
+    <div class="particle no-print" style="width:4px;height:4px;left:15%;animation-duration:12s;animation-delay:0s;"></div>
+    <div class="particle no-print" style="width:3px;height:3px;left:35%;animation-duration:18s;animation-delay:3s;"></div>
+    <div class="particle no-print" style="width:5px;height:5px;left:55%;animation-duration:14s;animation-delay:6s;"></div>
+    <div class="particle no-print" style="width:3px;height:3px;left:75%;animation-duration:20s;animation-delay:1s;"></div>
+    <div class="particle no-print" style="width:4px;height:4px;left:88%;animation-duration:16s;animation-delay:9s;"></div>
+    <div class="particle no-print" style="width:2px;height:2px;left:25%;animation-duration:22s;animation-delay:4s;"></div>
+
+    <!-- ── Toolbar (screen only) ───────────────────────────────────── -->
+    <div class="toolbar no-print">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+
+            <!-- Left: back link -->
+            <a href="{% url 'students:certificates' %}"
+               class="inline-flex items-center gap-2 text-yellow-400/80 hover:text-yellow-300 transition-colors text-sm font-inter font-medium group">
+                <i class="fas fa-arrow-left text-xs group-hover:-translate-x-0.5 transition-transform"></i>
+                Back to Certificates
+            </a>
+
+            <!-- Center: title -->
+            <span class="hidden sm:block text-yellow-600/60 text-xs tracking-widest uppercase font-cinzel">
+                Certificate Preview
+            </span>
+
+            <!-- Right: print button -->
+            <button onclick="window.print()"
+                    class="inline-flex items-center gap-2.5 px-5 py-2.5
+                           bg-gradient-to-r from-yellow-600 to-yellow-500
+                           hover:from-yellow-500 hover:to-yellow-400
+                           text-white rounded-lg text-sm font-poppins font-semibold
+                           shadow-lg shadow-yellow-900/30
+                           transition-all duration-200 hover:shadow-yellow-800/40 hover:scale-[1.02]
+                           focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 focus:ring-offset-black">
+                <i class="fas fa-print text-xs"></i>
+                Print / Save as PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- ── Screen view wrapper ─────────────────────────────────────── -->
+    <div class="relative z-10 min-h-screen flex flex-col items-center justify-center py-8 px-3 sm:px-6 print-page">
+
+        <!-- Glow behind certificate (screen only) -->
+        <div class="no-print absolute w-full max-w-4xl h-64 bg-yellow-500/5 blur-3xl rounded-full pointer-events-none"
+             style="top: 50%; transform: translateY(-50%);"></div>
+
+        <!-- ── Certificate Card ─────────────────────────────────────── -->
+        <div class="cert-wrapper w-full max-w-5xl relative print-padding"
+             style="padding: clamp(16px, 3vw, 40px) clamp(20px, 4vw, 56px);">
+
+            <!-- Outer gold border frame -->
+            <div class="border-outer absolute inset-2 sm:inset-3 pointer-events-none"></div>
+            <!-- Inner gold border frame -->
+            <div class="border-inner absolute inset-4 sm:inset-6 pointer-events-none"></div>
+
+            <!-- Corner ornaments -->
+            <div class="corner corner-tl"></div>
+            <div class="corner corner-tr"></div>
+            <div class="corner corner-bl"></div>
+            <div class="corner corner-br"></div>
+
+            <!-- Watermark seal (center background) -->
+            <div class="watermark-seal pointer-events-none z-0"></div>
+
+            <!-- ── Content ──────────────────────────────────────────── -->
+            <div class="relative z-10 flex flex-col items-center text-center"
+                 style="gap: clamp(8px, 1.8vw, 22px); padding: clamp(20px, 3vw, 40px) clamp(10px, 2vw, 24px);">
+
+                <!-- Top ornament row -->
+                <div class="flex items-center gap-3 w-full max-w-xs sm:max-w-sm md:max-w-md">
+                    <div class="gold-rule flex-1"></div>
+                    <i class="fas fa-star text-gold-500 text-xs"
+                       style="color:#d4af37; font-size: clamp(8px, 1vw, 12px);"></i>
+                    <i class="fas fa-circle text-gold-400 text-xs"
+                       style="color:#b7962e; font-size: clamp(5px, 0.6vw, 7px);"></i>
+                    <i class="fas fa-star text-gold-500 text-xs"
+                       style="color:#d4af37; font-size: clamp(8px, 1vw, 12px);"></i>
+                    <div class="gold-rule flex-1"></div>
+                </div>
+
+                <!-- School name -->
+                <div class="school-name" style="font-size: clamp(8px, 1.5vw, 16px); letter-spacing: 0.25em;">
+                    {{ site_config.school_name|default:"Metropolitan International University" }}
+                </div>
+
+                <!-- Certificate type heading -->
+                <div class="cert-type-text" style="font-size: clamp(16px, 3.5vw, 38px); line-height: 1.2;">
+                    {% if cert.is_program_cert %}
+                        Certificate of Graduation
+                    {% else %}
+                        Certificate of Completion
+                    {% endif %}
+                </div>
+
+                <!-- Gold rule -->
+                <div class="gold-rule-thick w-24 sm:w-32 md:w-40"></div>
+
+                <!-- Certifies text -->
+                <div class="certifies-text" style="font-size: clamp(10px, 1.5vw, 16px);">
+                    This is to certify that
+                </div>
+
+                <!-- Student name -->
+                <div class="student-name" style="font-size: clamp(20px, 4.5vw, 52px); line-height: 1.1;">
+                    {{ cert.student.get_full_name }}
+                </div>
+
+                <!-- Name underline -->
+                <div class="gold-rule-thick"
+                     style="width: clamp(120px, 30vw, 320px);
+                            background: linear-gradient(90deg, transparent, #d4af37 20%, #f9c930 50%, #d4af37 80%, transparent);"></div>
+
+                <!-- Completed text -->
+                <div class="certifies-text" style="font-size: clamp(10px, 1.5vw, 16px);">
+                    {% if cert.is_program_cert %}
+                        has successfully completed the degree program
+                    {% else %}
+                        has successfully completed the course
+                    {% endif %}
+                </div>
+
+                <!-- Course / Program name -->
+                <div class="course-name px-4" style="font-size: clamp(11px, 2.2vw, 24px); max-width: 80%;">
+                    {{ cert.display_title }}
+                </div>
+
+                <!-- Subtitle (faculty name for program certs) -->
+                {% if cert.display_subtitle %}
+                <div class="certifies-text" style="font-size: clamp(9px, 1.3vw, 14px); color: #9e8a6a;">
+                    {{ cert.display_subtitle }}
+                </div>
+                {% endif %}
+
+                <!-- Program badge -->
+                {% if cert.is_program_cert %}
+                <div class="program-badge rounded px-3 py-1" style="font-size: clamp(8px, 1.1vw, 12px);">
+                    <i class="fas fa-graduation-cap mr-1.5"></i>Academic Program Certificate
+                </div>
+                {% endif %}
+
+                <!-- Bottom gold rule -->
+                <div class="gold-rule w-full mt-1"></div>
+
+                <!-- Footer row: date | seal | grade | cert id | issuer -->
+                <div class="flex items-end justify-between w-full"
+                     style="margin-top: clamp(2px, 0.5vw, 8px);">
+
+                    <!-- Date of Completion -->
+                    <div class="text-center">
+                        <div class="footer-label" style="font-size: clamp(6px, 0.9vw, 9px);">Date of Completion</div>
+                        <div class="footer-value" style="font-size: clamp(8px, 1.1vw, 12px);">
+                            {{ cert.completion_date|date:"F d, Y" }}
+                        </div>
+                    </div>
+
+                    <!-- Grade -->
+                    <div class="text-center">
+                        {% if cert.grade %}
+                        <div class="footer-label" style="font-size: clamp(6px, 0.9vw, 9px);">Grade</div>
+                        <div class="footer-value" style="font-size: clamp(10px, 1.5vw, 18px);">{{ cert.grade }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Centre seal stamp -->
+                    <div class="flex flex-col items-center gap-1">
+                        <div class="seal-stamp relative"
+                             style="width: clamp(44px, 8vw, 80px); height: clamp(44px, 8vw, 80px);">
+                            <div class="seal-inner"
+                                 style="width: clamp(36px, 6.5vw, 64px); height: clamp(36px, 6.5vw, 64px);">
+                                <i class="fas fa-award text-white"
+                                   style="font-size: clamp(14px, 2.5vw, 26px);"></i>
+                            </div>
+                        </div>
+                        <div class="footer-label" style="font-size: clamp(5px, 0.7vw, 8px);">Official Seal</div>
+                    </div>
+
+                    <!-- Certificate ID -->
+                    <div class="text-center">
+                        <div class="footer-label" style="font-size: clamp(6px, 0.9vw, 9px);">Certificate ID</div>
+                        <div class="footer-value" style="font-size: clamp(6px, 0.8vw, 9px); font-family:'Inter',sans-serif; letter-spacing:0.05em;">
+                            {{ cert.certificate_id }}
+                        </div>
+                    </div>
+
+                    <!-- Issued By (with signature line) -->
+                    <div class="text-center">
+                        <div class="gold-rule mb-1"
+                             style="width: clamp(60px, 10vw, 110px); margin-left:auto; margin-right:auto;"></div>
+                        <div class="footer-label" style="font-size: clamp(6px, 0.9vw, 9px);">Issued By</div>
+                        <div class="footer-value" style="font-size: clamp(7px, 1vw, 11px);">{{ cert.issuer }}</div>
+                    </div>
+                </div>
+
+                <!-- Bottom ornament row -->
+                <div class="flex items-center gap-3 w-full max-w-xs sm:max-w-sm md:max-w-md mt-1">
+                    <div class="gold-rule flex-1"></div>
+                    <i class="fas fa-diamond" style="color:#d4af37; font-size: clamp(6px, 0.8vw, 10px);"></i>
+                    <i class="fas fa-star"    style="color:#b7962e; font-size: clamp(6px, 0.8vw, 10px);"></i>
+                    <i class="fas fa-diamond" style="color:#d4af37; font-size: clamp(6px, 0.8vw, 10px);"></i>
+                    <div class="gold-rule flex-1"></div>
+                </div>
+
+            </div><!-- /content -->
+        </div><!-- /cert-wrapper -->
+
+        <!-- Screen-only helper text -->
+        <p class="no-print mt-6 text-yellow-600/40 text-xs font-inter tracking-wide text-center">
+            Click <strong class="text-yellow-500/60">Print / Save as PDF</strong> above — select <em>Save as PDF</em> in your browser's print dialog for an exact digital copy.
+        </p>
+
+    </div><!-- /screen wrapper -->
+
+</body>
+</html>

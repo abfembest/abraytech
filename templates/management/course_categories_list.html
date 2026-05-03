@@ -1,0 +1,167 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Course Categories - MIU Admin Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-full">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Course Categories</h1>
+      <p class="text-gray-500 mt-1">Organize LMS courses into categories</p>
+    </div>
+    <a href="{% url 'management:course_category_create' %}"
+       class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium shadow-sm">
+      <i class="fas fa-plus" aria-hidden="true"></i>New Category
+    </a>
+  </div>
+
+  <!-- Category Cards Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-8">
+    {% for category in categories %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow overflow-hidden">
+      <!-- Color Bar -->
+      <div class="h-1.5 bg-{{ category.color }}-500"></div>
+      <div class="p-5">
+        <div class="flex items-start justify-between gap-3 mb-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-{{ category.color }}-100 flex items-center justify-center">
+              <i class="fas fa-{{ category.icon }} text-{{ category.color }}-600" aria-hidden="true"></i>
+            </div>
+            <div>
+              <h3 class="font-semibold text-gray-800 text-sm leading-tight">{{ category.name }}</h3>
+              {% if category.parent %}
+              <span class="text-xs text-gray-400">sub: {{ category.parent.name }}</span>
+              {% endif %}
+            </div>
+          </div>
+          {% if category.is_active %}
+          <span class="flex-shrink-0 w-2 h-2 rounded-full bg-green-500 mt-1.5" title="Active"></span>
+          {% else %}
+          <span class="flex-shrink-0 w-2 h-2 rounded-full bg-gray-300 mt-1.5" title="Inactive"></span>
+          {% endif %}
+        </div>
+
+        {% if category.description %}
+        <p class="text-xs text-gray-500 mb-3 line-clamp-2">{{ category.description }}</p>
+        {% endif %}
+
+        <div class="flex items-center justify-between">
+          <div class="text-xs text-gray-500">
+            <span class="font-medium text-primary-600">{{ category.lms_courses.count }}</span> courses
+            {% if category.subcategories.count %}
+            &nbsp;·&nbsp; <span class="font-medium text-blue-600">{{ category.subcategories.count }}</span> subcats
+            {% endif %}
+          </div>
+          <div class="flex gap-1">
+            <a href="{% url 'management:course_category_edit' category.pk %}"
+               class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Edit">
+              <i class="fas fa-edit text-xs" aria-hidden="true"></i>
+            </a>
+            <button type="button"
+                    onclick="confirmDelete('{% url 'management:course_category_delete' category.pk %}', '{{ category.name|escapejs }}')"
+                    class="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors" title="Delete">
+              <i class="fas fa-trash-alt text-xs" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-span-full py-16 text-center">
+      <div class="text-gray-400">
+        <i class="fas fa-folder-open text-5xl mb-3 block" aria-hidden="true"></i>
+        <p class="font-medium text-gray-600">No categories yet</p>
+        <a href="{% url 'management:course_category_create' %}" class="text-primary-600 text-sm hover:underline mt-1 inline-block">
+          Create the first category
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Table View (for quick reference) -->
+  {% if categories %}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100">
+      <h2 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">All Categories — Table View</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wide">
+          <tr>
+            <th class="py-3 px-5 text-left font-semibold">Name</th>
+            <th class="py-3 px-5 text-left font-semibold">Parent</th>
+            <th class="py-3 px-5 text-left font-semibold">Courses</th>
+            <th class="py-3 px-5 text-left font-semibold">Order</th>
+            <th class="py-3 px-5 text-left font-semibold">Status</th>
+            <th class="py-3 px-5 text-left font-semibold">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for category in categories %}
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="py-3 px-5">
+              <div class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-lg bg-{{ category.color }}-100 flex items-center justify-center">
+                  <i class="fas fa-{{ category.icon }} text-{{ category.color }}-600 text-xs" aria-hidden="true"></i>
+                </span>
+                <span class="font-medium text-gray-800">{{ category.name }}</span>
+              </div>
+            </td>
+            <td class="py-3 px-5 text-gray-500">{{ category.parent.name|default:"—" }}</td>
+            <td class="py-3 px-5 font-medium text-primary-600">{{ category.lms_courses.count }}</td>
+            <td class="py-3 px-5 text-gray-500">{{ category.display_order }}</td>
+            <td class="py-3 px-5">
+              {% if category.is_active %}
+              <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">Active</span>
+              {% else %}
+              <span class="px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">Inactive</span>
+              {% endif %}
+            </td>
+            <td class="py-3 px-5">
+              <div class="flex gap-2">
+                <a href="{% url 'management:course_category_edit' category.pk %}"
+                   class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors">
+                  <i class="fas fa-edit text-xs" aria-hidden="true"></i>
+                </a>
+                <button type="button"
+                        onclick="confirmDelete('{% url 'management:course_category_delete' category.pk %}', '{{ category.name|escapejs }}')"
+                        class="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors">
+                  <i class="fas fa-trash-alt text-xs" aria-hidden="true"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+<form id="deleteForm" method="post" action="" style="display:none;">{% csrf_token %}</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(url, name) {
+  Swal.fire({
+    title: 'Delete Category?',
+    html: `Delete <strong>${name}</strong>? Courses in this category will become uncategorized.`,
+    icon: 'warning', showCancelButton: true,
+    confirmButtonColor: '#ef4444', cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Delete',
+  }).then(r => {
+    if (r.isConfirmed) {
+      document.getElementById('deleteForm').action = url;
+      document.getElementById('deleteForm').submit();
+    }
+  });
+}
+</script>
+{% endblock %}

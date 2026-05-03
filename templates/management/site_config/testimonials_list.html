@@ -1,0 +1,135 @@
+{% extends 'management/base.html' %}
+{% load static %}
+{% block title %}Testimonials — MIU Admin{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto">
+
+  {# ── Breadcrumb ── #}
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+    <span class="text-gray-400">Site Content</span>
+    <i class="fas fa-chevron-right text-xs"></i>
+    <span class="text-gray-800 font-medium">Testimonials</span>
+  </nav>
+
+  {# ── Page header ── #}
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Testimonials</h1>
+      <p class="text-gray-500 mt-1 text-sm">Student and alumni quotes shown on the home and about pages.</p>
+    </div>
+    <a href="{% url 'management:testimonial_create' %}"
+       class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium shadow-sm flex-shrink-0 transition-colors">
+      <i class="fas fa-plus"></i> Add Testimonial
+    </a>
+  </div>
+
+  {# ── Stats strip ── #}
+  <div class="grid grid-cols-2 gap-4 mb-8">
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="text-2xl font-bold text-primary-600">{{ testimonials|length }}</div>
+      <div class="text-xs text-gray-500 mt-0.5">Total Testimonials</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="text-2xl font-bold text-green-600">
+        {% with c=0 %}
+          {% for t in testimonials %}{% if t.is_active %}{% with c=c|add:1 %}{% endwith %}{% endif %}{% endfor %}
+          {{ testimonials|length }}
+        {% endwith %}
+      </div>
+      <div class="text-xs text-gray-500 mt-0.5">Visible on Site</div>
+    </div>
+  </div>
+
+  {# ── List ── #}
+  <div class="space-y-3">
+    {% for t in testimonials %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+      <div class="flex flex-col sm:flex-row sm:items-center gap-4 p-5">
+
+        {# Avatar #}
+        <div class="w-13 h-13 flex-shrink-0">
+          <div class="w-12 h-12 rounded-full overflow-hidden bg-primary-100 flex items-center justify-center border-2 border-white shadow-sm">
+            {% if t.avatar %}
+            <img src="{{ t.avatar.url }}" class="w-full h-full object-cover" alt="{{ t.author_name }}">
+            {% else %}
+            <span class="text-primary-600 font-bold text-sm select-none">{{ t.author_name|slice:":2"|upper }}</span>
+            {% endif %}
+          </div>
+        </div>
+
+        {# Content #}
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-2 mb-1">
+            <h3 class="font-semibold text-gray-800">{{ t.author_name }}</h3>
+            <span class="text-xs text-gray-500">{{ t.author_role }}</span>
+            {% if t.is_active %}
+            <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Active</span>
+            {% else %}
+            <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">Hidden</span>
+            {% endif %}
+            <span class="text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full border border-gray-200">
+              <i class="fas fa-sort-numeric-up text-gray-300 mr-1"></i>Order: {{ t.order }}
+            </span>
+          </div>
+          <p class="text-sm text-gray-500 italic line-clamp-2 leading-relaxed">
+            <i class="fas fa-quote-left text-primary-200 text-xs mr-1"></i>{{ t.quote|truncatechars:140 }}<i class="fas fa-quote-right text-primary-200 text-xs ml-1"></i>
+          </p>
+        </div>
+
+        {# Actions #}
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <a href="{% url 'management:testimonial_edit' t.pk %}"
+             class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
+            <i class="fas fa-edit"></i>
+          </a>
+          <button type="button"
+                  onclick="confirmDelete('{% url 'management:testimonial_delete' t.pk %}', '{{ t.author_name|escapejs }}')"
+                  class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    {% empty %}
+    <div class="bg-white rounded-xl p-16 text-center shadow-sm border border-gray-200">
+      <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-quote-right text-3xl text-gray-300"></i>
+      </div>
+      <p class="font-semibold text-gray-600 mb-1">No testimonials yet</p>
+      <p class="text-sm text-gray-400 mb-4">Add a student or alumni quote to display on the site.</p>
+      <a href="{% url 'management:testimonial_create' %}"
+         class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium shadow-sm transition-colors">
+        <i class="fas fa-plus"></i> Add First Testimonial
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<form id="deleteForm" method="post" action="" style="display:none;">{% csrf_token %}</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(url, name) {
+  Swal.fire({
+    title: 'Delete Testimonial?',
+    html: `Delete the testimonial from <strong>${name}</strong>?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Delete',
+    cancelButtonText: 'Cancel',
+  }).then(r => {
+    if (r.isConfirmed) {
+      document.getElementById('deleteForm').action = url;
+      document.getElementById('deleteForm').submit();
+    }
+  });
+}
+</script>
+{% endblock %}

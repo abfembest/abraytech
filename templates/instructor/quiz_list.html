@@ -1,0 +1,116 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Quizzes - {{ lesson.title }}{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<nav class="flex mb-4 sm:mb-6 overflow-x-auto" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 text-sm whitespace-nowrap">
+        <li><a href="{% url 'instructor:course_list' %}" class="text-gray-500 hover:text-primary-600 transition-colors">Courses</a></li>
+        <li class="flex items-center">
+            <i class="fas fa-chevron-right text-gray-400 mx-1.5 text-xs"></i>
+            <a href="{% url 'instructor:lesson_list' course.slug %}" class="text-gray-500 hover:text-primary-600 transition-colors truncate max-w-[100px] sm:max-w-[180px]">{{ course.title }}</a>
+        </li>
+        <li class="flex items-center">
+            <i class="fas fa-chevron-right text-gray-400 mx-1.5 text-xs"></i>
+            <span class="text-gray-800 font-medium truncate max-w-[100px] sm:max-w-none">{{ lesson.title }} — Quizzes</span>
+        </li>
+    </ol>
+</nav>
+
+<!-- Page Header -->
+<div class="mb-6 sm:mb-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Quizzes</h1>
+            <p class="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">Manage quizzes for <span class="font-medium">{{ lesson.title }}</span></p>
+        </div>
+        <a href="{% url 'instructor:quiz_create' course.slug lesson.slug %}"
+           class="inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 shadow-sm hover:shadow-md transition-all w-full sm:w-auto">
+            <i class="fas fa-plus-circle mr-2"></i>Create Quiz
+        </a>
+    </div>
+</div>
+
+{% if quizzes %}
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
+    {% for quiz in quizzes %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow flex flex-col">
+
+        <!-- Card Header -->
+        <div class="bg-gradient-to-r from-yellow-50 to-yellow-100 p-4 sm:p-6 border-b border-yellow-200">
+            <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0 flex-1">
+                    <h3 class="font-bold text-gray-900 text-base sm:text-lg mb-1 sm:mb-2 line-clamp-2">{{ quiz.title }}</h3>
+                    {% if quiz.description %}
+                    <p class="text-gray-600 text-xs sm:text-sm line-clamp-2">{{ quiz.description|truncatewords:12 }}</p>
+                    {% endif %}
+                </div>
+                <div class="flex-shrink-0">
+                    {% if quiz.is_active %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 whitespace-nowrap">Active</span>
+                    {% else %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 whitespace-nowrap">Inactive</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Body -->
+        <div class="p-4 sm:p-6 flex-1 flex flex-col">
+            <div class="grid grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-5 flex-1">
+                <div>
+                    <p class="text-xs text-gray-500 mb-0.5">Questions</p>
+                    <p class="text-lg sm:text-xl font-bold text-gray-900">{{ quiz.questions.count }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 mb-0.5">Passing Score</p>
+                    <p class="text-lg sm:text-xl font-bold text-gray-900">{{ quiz.passing_score }}%</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 mb-0.5">Time Limit</p>
+                    <p class="text-lg sm:text-xl font-bold text-gray-900">
+                        {% if quiz.time_limit_minutes %}{{ quiz.time_limit_minutes }} min{% else %}None{% endif %}
+                    </p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 mb-0.5">Max Attempts</p>
+                    <p class="text-lg sm:text-xl font-bold text-gray-900">{{ quiz.max_attempts }}</p>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center gap-2">
+                <a href="{% url 'instructor:quiz_questions' course.slug lesson.slug quiz.slug %}"
+                   class="flex-1 px-3 sm:px-4 py-2 bg-primary-50 text-primary-700 text-center rounded-lg hover:bg-primary-100 transition-colors text-xs sm:text-sm font-medium">
+                    <i class="fas fa-list mr-1"></i>Questions
+                </a>
+                <a href="{% url 'instructor:quiz_edit' course.slug lesson.slug quiz.slug %}"
+                   class="flex-1 px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 text-center rounded-lg hover:bg-gray-200 transition-colors text-xs sm:text-sm font-medium">
+                    <i class="fas fa-edit mr-1"></i>Edit
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 sm:p-12 text-center">
+    <div class="max-w-md mx-auto">
+        <div class="w-16 h-16 sm:w-24 sm:h-24 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+            <i class="fas fa-question-circle text-3xl sm:text-5xl text-yellow-500"></i>
+        </div>
+        <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">No Quizzes Yet</h3>
+        <p class="text-gray-600 mb-5 sm:mb-6 text-sm sm:text-base">Create quizzes to test student understanding</p>
+        <a href="{% url 'instructor:quiz_create' course.slug lesson.slug %}"
+           class="inline-flex items-center px-5 sm:px-6 py-2.5 sm:py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 shadow-sm hover:shadow-md transition-all text-sm sm:text-base">
+            <i class="fas fa-plus-circle mr-2"></i>Create First Quiz
+        </a>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

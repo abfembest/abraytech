@@ -1,0 +1,59 @@
+<script src="https://js.stripe.com/v3/"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<div class="min-h-screen flex items-center justify-center bg-gray-100">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+
+        <h2 class="text-2xl font-bold mb-4">Application Fee</h2>
+        <input type="hidden" id="csrf_token" value="{{ csrf_token }}">
+
+        <div class="bg-gray-100 p-4 rounded mb-4">
+            <p>Application Processing Fee</p>
+            <p class="text-xl font-bold">250.00</p>
+        </div>
+
+        <div id="card-element" class="border p-3 rounded"></div>
+        <p id="error" class="text-red-500 mt-2"></p>
+
+        <button id="payBtn" class="mt-4 w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-700">
+            Pay Securely
+        </button>
+
+    </div>
+</div>
+
+<script>
+const stripe = Stripe("{{ stripe_key }}");
+const elements = stripe.elements();
+const card = elements.create("card");
+card.mount("#card-element");
+const csrfToken = document.getElementById("csrf_token").value;
+document.getElementById("payBtn").onclick = async () => {
+    const response = await fetch("/create-intent/", {
+        method:"POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+        body: JSON.stringify({
+            amount: 25000,
+            application_id: "APP2026"
+        })
+    });
+
+    const data = await response.json();
+
+    const result = await stripe.confirmCardPayment(data.clientSecret, {
+        payment_method: { card: card }
+    });
+
+    if(result.error){
+        document.getElementById("error").innerText = result.error.message;
+    } else {
+        await fetch("/confirm/", {
+            method:"POST",
+            headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+            body: JSON.stringify({ payment_intent: result.paymentIntent.id })
+        });
+
+        window.location.href = "/success/";
+    }
+};
+</script>

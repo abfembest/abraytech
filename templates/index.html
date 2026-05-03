@@ -1,0 +1,1114 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ site_config.school_name|default:"ABrayTech Limited" }} – Build In-Demand Tech Skills | UK &amp; Nigeria{% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="{{ site_config.meta_description|default:'ABrayTech — career-focused training in AI, cybersecurity, full-stack development & business digitalization. UK & Nigeria based.' }}">
+<meta name="keywords"    content="{{ site_config.meta_keywords|default:'ABrayTech, tech training Nigeria, AI courses UK, cybersecurity training, full-stack development, digital skills' }}">
+<meta name="robots"      content="index, follow">
+<meta name="author"      content="{{ site_config.school_name|default:'ABrayTech Limited' }}">
+{% endblock %}
+
+{% block og_tags %}
+<meta property="og:title"       content="{{ site_config.school_name|default:'ABrayTech Limited' }} – Build In-Demand Tech Skills">
+<meta property="og:description" content="{{ site_config.meta_description|default:'Career-focused tech training & digital transformation across UK & Nigeria.' }}">
+<meta property="og:type"        content="website">
+<meta property="og:url"         content="{{ request.build_absolute_uri }}">
+{% if site_config.og_image %}<meta property="og:image" content="{{ site_config.og_image.url }}">{% endif %}
+<meta name="twitter:card"        content="summary_large_image">
+<meta name="twitter:title"       content="{{ site_config.school_name|default:'ABrayTech Limited' }}">
+<meta name="twitter:description" content="{{ site_config.meta_description|default:'Career-focused tech training & digital transformation.' }}">
+{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "{{ site_config.school_name|default:'ABrayTech Limited' }}",
+  "url": "{{ request.build_absolute_uri }}",
+  "description": "{{ site_config.meta_description|default:'Career-focused tech training and digital transformation.' }}",
+  "address": [
+    {% if site_config.address_uk %}{ "@type": "PostalAddress", "addressCountry": "GB", "streetAddress": "{{ site_config.address_uk|escapejs }}" }{% endif %}
+    {% if site_config.address_ng %}{ "@type": "PostalAddress", "addressCountry": "NG", "streetAddress": "{{ site_config.address_ng|escapejs }}" }{% endif %}
+  ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<!-- ══════════════════════════════════════════════════════════════
+     §1 HERO  — dark section (odd)
+══════════════════════════════════════════════════════════════ -->
+<section class="relative overflow-hidden hero-mesh min-h-screen flex items-center pt-20"
+         aria-label="Hero" role="banner">
+
+  <!-- Decorative grid lines -->
+  <div class="absolute inset-0 pointer-events-none" aria-hidden="true"
+       style="background-image: linear-gradient(rgba(6,182,212,.07) 1px, transparent 1px),
+                                linear-gradient(90deg, rgba(6,182,212,.07) 1px, transparent 1px);
+              background-size: 60px 60px;"></div>
+
+  <!-- Background hero slideshow -->
+  <div class="absolute inset-0">
+    {# ── SLIDE 1 ── #}
+    {% if site_config.hero_slide_1_video %}
+    <div class="hero-bg active absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-100"
+         data-type="video" data-duration="{{ site_config.hero_slide_1_duration|default:15 }}">
+      <video class="absolute inset-0 w-full h-full object-cover opacity-25" muted playsinline preload="auto" aria-hidden="true" data-video-index="0">
+        <source src="{{ site_config.hero_slide_1_video.url }}" type="video/mp4">
+      </video>
+    </div>
+    {% else %}
+    <div class="hero-bg active absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-100"
+         data-type="image" data-duration="{{ site_config.hero_slide_1_duration|default:6 }}">
+      <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+           style="background-image: url('{% if site_config.hero_slide_1_image %}{{ site_config.hero_slide_1_image.url }}{% else %}{% static 'images/hero.webp' %}{% endif %}')"
+           aria-hidden="true"></div>
+    </div>
+    {% endif %}
+
+    {# ── SLIDE 2 ── #}
+    {% if site_config.hero_slide_2_video %}
+    <div class="hero-bg absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-0"
+         data-type="video" data-duration="{{ site_config.hero_slide_2_duration|default:15 }}">
+      <video class="absolute inset-0 w-full h-full object-cover opacity-25" muted playsinline preload="metadata" aria-hidden="true" data-video-index="1">
+        <source src="{{ site_config.hero_slide_2_video.url }}" type="video/mp4">
+      </video>
+    </div>
+    {% else %}
+    <div class="hero-bg absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-0"
+         data-type="image" data-duration="{{ site_config.hero_slide_2_duration|default:6 }}">
+      <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+           style="background-image: url('{% if site_config.hero_slide_2_image %}{{ site_config.hero_slide_2_image.url }}{% else %}{% static 'images/hero2.webp' %}{% endif %}')"
+           aria-hidden="true"></div>
+    </div>
+    {% endif %}
+
+    {# ── SLIDE 3 ── #}
+    {% if site_config.hero_slide_3_video %}
+    <div class="hero-bg absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-0"
+         data-type="video" data-duration="{{ site_config.hero_slide_3_duration|default:15 }}">
+      <video class="absolute inset-0 w-full h-full object-cover opacity-25" muted playsinline preload="metadata" aria-hidden="true" data-video-index="2">
+        <source src="{{ site_config.hero_slide_3_video.url }}" type="video/mp4">
+      </video>
+    </div>
+    {% else %}
+    <div class="hero-bg absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-0"
+         data-type="image" data-duration="{{ site_config.hero_slide_3_duration|default:6 }}">
+      <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+           style="background-image: url('{% if site_config.hero_slide_3_image %}{{ site_config.hero_slide_3_image.url }}{% else %}{% static 'images/hero3.webp' %}{% endif %}')"
+           aria-hidden="true"></div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Hero content -->
+  <div class="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
+    <div class="max-w-4xl">
+
+      <!-- Eyebrow badge -->
+      <div class="inline-flex items-center gap-2 pill pill-cyan mb-6 animate-fade-in">
+        <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 pulse-dot"></span>
+        <span>{{ site_config.tagline|default:"UK &amp; Nigeria — Practical Tech Training" }}</span>
+      </div>
+
+      <!-- Headline -->
+      <h1 class="font-heading font-extrabold text-white leading-[1.05] mb-6 animate-slide-up"
+          style="font-size: clamp(2.5rem, 7vw, 5rem); animation-delay:.1s">
+        Build Skills That<br>
+        <span class="shimmer-text">Actually Get You Hired.</span>
+      </h1>
+
+      <!-- Sub-headline -->
+      <p class="text-navy-200 text-lg sm:text-xl leading-relaxed mb-10 max-w-2xl animate-slide-up"
+         style="animation-delay:.25s">
+        {{ site_config.hero_subtitle|default:"Hands-on training in AI, Cybersecurity, Full-Stack Development and Business Digitalization — delivered by industry professionals, not just lecturers." }}
+      </p>
+
+      <!-- CTA row -->
+      <div class="flex flex-col sm:flex-row gap-4 animate-scale-in" style="animation-delay:.4s">
+        <a href="{% url 'eduweb:all_programs' %}" class="btn-primary text-base px-8 py-4 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+          <i data-lucide="rocket" class="w-5 h-5"></i> Explore Courses
+        </a>
+        <a href="{% url 'eduweb:apply' %}" class="btn-outline text-base px-8 py-4 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+          <i data-lucide="user-plus" class="w-5 h-5"></i> Enrol Free Today
+        </a>
+      </div>
+
+      <!-- Trust signals -->
+      <div class="flex flex-wrap items-center gap-5 mt-10 animate-fade-in" style="animation-delay:.55s">
+        <div class="flex items-center gap-2 text-navy-300 text-sm">
+          <i data-lucide="shield-check" class="w-4 h-4 text-cyan-400"></i>
+          <span>Industry-Certified Instructors</span>
+        </div>
+        <div class="flex items-center gap-2 text-navy-300 text-sm">
+          <i data-lucide="globe-2" class="w-4 h-4 text-lime-400"></i>
+          <span>UK &amp; Nigeria Presence</span>
+        </div>
+        <div class="flex items-center gap-2 text-navy-300 text-sm">
+          <i data-lucide="briefcase" class="w-4 h-4 text-amber-400"></i>
+          <span>Career-Outcome Focused</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Scroll indicator -->
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2" aria-hidden="true">
+    <div class="w-px h-10 bg-gradient-to-b from-cyan-400/60 to-transparent"></div>
+    <!-- Slide dots -->
+    <div class="flex gap-2" role="navigation" aria-label="Hero slides">
+      <button class="hero-indicator active w-8 h-1 rounded-full transition-all hover:bg-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400" aria-label="Slide 1" data-index="0"></button>
+      <button class="hero-indicator w-8 h-1 rounded-full transition-all hover:bg-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400" aria-label="Slide 2" data-index="1"></button>
+      <button class="hero-indicator w-8 h-1 rounded-full transition-all hover:bg-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400" aria-label="Slide 3" data-index="2"></button>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     §2 STATS — light section (even)
+══════════════════════════════════════════════════════════════ -->
+<section class="section-light py-14 sm:py-16" aria-label="Platform statistics">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+
+      <article class="light-card p-6 text-center group">
+        <div class="w-12 h-12 mx-auto mb-4 rounded-xl bg-cyan-50 flex items-center justify-center group-hover:bg-cyan-100 transition-colors">
+          <i data-lucide="users" class="w-6 h-6 text-cyan-600"></i>
+        </div>
+        <div class="font-heading font-extrabold text-3xl sm:text-4xl text-navy-800 mb-1">{{ site_config.stat_students|default:"2,000+" }}</div>
+        <div class="text-gray-500 text-sm">Graduates Placed</div>
+      </article>
+
+      <article class="light-card p-6 text-center group">
+        <div class="w-12 h-12 mx-auto mb-4 rounded-xl bg-lime-50 flex items-center justify-center group-hover:bg-lime-100 transition-colors">
+          <i data-lucide="trending-up" class="w-6 h-6 text-lime-600"></i>
+        </div>
+        <div class="font-heading font-extrabold text-3xl sm:text-4xl text-navy-800 mb-1">{{ site_config.stat_placement|default:"94%" }}</div>
+        <div class="text-gray-500 text-sm">Employment Rate</div>
+      </article>
+
+      <article class="light-card p-6 text-center group">
+        <div class="w-12 h-12 mx-auto mb-4 rounded-xl bg-amber-50 flex items-center justify-center group-hover:bg-amber-100 transition-colors">
+          <i data-lucide="book-open" class="w-6 h-6 text-amber-600"></i>
+        </div>
+        <div class="font-heading font-extrabold text-3xl sm:text-4xl text-navy-800 mb-1">{{ site_config.stat_courses|default:"20+" }}</div>
+        <div class="text-gray-500 text-sm">Live Courses</div>
+      </article>
+
+      <article class="light-card p-6 text-center group">
+        <div class="w-12 h-12 mx-auto mb-4 rounded-xl bg-purple-50 flex items-center justify-center group-hover:bg-purple-100 transition-colors">
+          <i data-lucide="globe-2" class="w-6 h-6 text-purple-600"></i>
+        </div>
+        <div class="font-heading font-extrabold text-3xl sm:text-4xl text-navy-800 mb-1">2</div>
+        <div class="text-gray-500 text-sm">Countries — UK &amp; NG</div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     §3 SERVICES — dark section (odd)
+══════════════════════════════════════════════════════════════ -->
+<section id="services" class="section-dark py-20 lg:py-28" aria-labelledby="services-heading">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+
+    <div class="text-center mb-14">
+      <div class="pill pill-cyan mb-4 inline-flex">
+        <i data-lucide="layers" class="w-3.5 h-3.5"></i> What We Do
+      </div>
+      <h2 id="services-heading" class="font-heading font-extrabold text-white text-3xl sm:text-4xl lg:text-5xl mb-4">
+        Four Domains. <span class="gradient-text">Limitless Careers.</span>
+      </h2>
+      <p class="text-navy-300 text-lg max-w-2xl mx-auto">
+        We focus on the skills that companies are actually hiring for — not outdated theory.
+      </p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+      <!-- AI & Machine Learning -->
+      <article class="tech-card p-7 group">
+        <div class="w-14 h-14 mb-6 rounded-2xl bg-cyan-500/15 border border-cyan-500/25 flex items-center justify-center group-hover:bg-cyan-500/25 transition-colors">
+          <i data-lucide="brain-circuit" class="w-7 h-7 text-cyan-400"></i>
+        </div>
+        <h3 class="font-heading font-bold text-white text-xl mb-3">AI &amp; Machine Learning</h3>
+        <p class="text-navy-300 text-sm leading-relaxed mb-5">
+          Build real ML pipelines, work with LLMs, prompt engineering, and deploy AI-powered products end-to-end.
+        </p>
+        <span class="pill pill-cyan text-xs">Most Popular</span>
+      </article>
+
+      <!-- Cybersecurity -->
+      <article class="tech-card p-7 group">
+        <div class="w-14 h-14 mb-6 rounded-2xl bg-red-500/12 border border-red-500/20 flex items-center justify-center group-hover:bg-red-500/22 transition-colors">
+          <i data-lucide="shield-alert" class="w-7 h-7 text-red-400"></i>
+        </div>
+        <h3 class="font-heading font-bold text-white text-xl mb-3">Cybersecurity</h3>
+        <p class="text-navy-300 text-sm leading-relaxed mb-5">
+          Ethical hacking, penetration testing, SOC operations, and security frameworks aligned to real-world threats.
+        </p>
+        <span class="pill pill-amber text-xs">High Demand</span>
+      </article>
+
+      <!-- Full-Stack Dev -->
+      <article class="tech-card p-7 group">
+        <div class="w-14 h-14 mb-6 rounded-2xl bg-lime-500/12 border border-lime-500/20 flex items-center justify-center group-hover:bg-lime-500/22 transition-colors">
+          <i data-lucide="code-2" class="w-7 h-7 text-lime-400"></i>
+        </div>
+        <h3 class="font-heading font-bold text-white text-xl mb-3">Full-Stack Development</h3>
+        <p class="text-navy-300 text-sm leading-relaxed mb-5">
+          React, Node.js, Django, databases, APIs, and DevOps. Ship products, not just tutorials.
+        </p>
+        <span class="pill pill-lime text-xs">Project-Based</span>
+      </article>
+
+      <!-- Business Digitalization -->
+      <article class="tech-card p-7 group">
+        <div class="w-14 h-14 mb-6 rounded-2xl bg-purple-500/12 border border-purple-500/20 flex items-center justify-center group-hover:bg-purple-500/22 transition-colors">
+          <i data-lucide="store" class="w-7 h-7 text-purple-400"></i>
+        </div>
+        <h3 class="font-heading font-bold text-white text-xl mb-3">Business Digitalization</h3>
+        <p class="text-navy-300 text-sm leading-relaxed mb-5">
+          Launch your online presence, SEO, digital marketing, e-commerce, and automating business workflows.
+        </p>
+        <span class="pill text-xs" style="background:rgba(168,85,247,.15);color:#c084fc;border:1px solid rgba(168,85,247,.25);">For Businesses</span>
+      </article>
+
+    </div>
+
+    <div class="text-center mt-10">
+      <a href="{% url 'eduweb:all_programs' %}" class="btn-outline focus:outline-none focus:ring-2 focus:ring-cyan-400">
+        <i data-lucide="grid-2x2" class="w-4 h-4"></i> See All Courses
+      </a>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     §4 DYNAMIC COURSES — light section (even)
+══════════════════════════════════════════════════════════════ -->
+{% if featured_programs %}
+<section id="courses" class="section-light py-20 lg:py-28" aria-labelledby="courses-heading">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-12">
+      <div>
+        <div class="pill pill-light mb-3 inline-flex">
+          <i data-lucide="bookmark" class="w-3.5 h-3.5"></i> Live Courses
+        </div>
+        <h2 id="courses-heading" class="font-heading font-extrabold text-navy-900 text-3xl sm:text-4xl">
+          Currently Enrolling
+        </h2>
+      </div>
+      <a href="{% url 'eduweb:all_programs' %}"
+         class="btn-dark flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+        <i data-lucide="arrow-right" class="w-4 h-4"></i> All Courses
+      </a>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for program in featured_programs %}
+      <article class="light-card overflow-hidden group flex flex-col">
+
+        <!-- Color stripe -->
+        <div class="h-1.5 bg-gradient-to-r from-cyan-500 to-cyan-400"></div>
+
+        <div class="p-7 flex flex-col flex-1">
+          <div class="flex items-start justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-cyan-50 border border-cyan-100 flex items-center justify-center group-hover:bg-cyan-100 transition-colors flex-shrink-0">
+              <i data-lucide="{{ program.icon|default:'code-2' }}" class="w-6 h-6 text-cyan-600"></i>
+            </div>
+            <span class="pill pill-light text-xs">{{ program.get_degree_level_display }}</span>
+          </div>
+
+          <h3 class="font-heading font-bold text-navy-900 text-xl mb-2">{{ program.name }}</h3>
+          <p class="text-gray-500 text-sm leading-relaxed flex-1 mb-6">
+            {{ program.description|truncatewords:20|default:"A focused, career-ready program built around what employers actually want." }}
+          </p>
+
+          <!-- Meta row -->
+          <div class="flex items-center gap-4 text-xs text-gray-400 mb-5">
+            {% if program.duration %}
+            <span class="flex items-center gap-1">
+              <i data-lucide="clock" class="w-3.5 h-3.5"></i> {{ program.duration }}
+            </span>
+            {% endif %}
+            {% if program.mode %}
+            <span class="flex items-center gap-1">
+              <i data-lucide="monitor" class="w-3.5 h-3.5"></i> {{ program.mode }}
+            </span>
+            {% endif %}
+          </div>
+
+          <a href="{% url 'eduweb:program_detail' program.slug %}"
+             class="flex items-center gap-2 text-cyan-600 font-semibold text-sm hover:text-cyan-700 transition-colors group/link focus:outline-none focus:ring-2 focus:ring-cyan-500 rounded"
+             aria-label="View {{ program.name }}">
+            View Programme
+            <i data-lucide="arrow-right" class="w-4 h-4 group-hover/link:translate-x-1 transition-transform"></i>
+          </a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+
+  </div>
+</section>
+{% endif %}
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     §5 WHY ABRAYTECH — dark section (odd)
+══════════════════════════════════════════════════════════════ -->
+<section id="about" class="section-dark py-20 lg:py-28" aria-labelledby="about-heading">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid lg:grid-cols-2 gap-14 items-center">
+
+      <!-- Left: text -->
+      <div>
+        <div class="pill pill-cyan mb-5 inline-flex">
+          <i data-lucide="info" class="w-3.5 h-3.5"></i> Why ABrayTech
+        </div>
+        <h2 id="about-heading" class="font-heading font-extrabold text-white text-3xl sm:text-4xl lg:text-5xl mb-6 leading-tight">
+          We Train People<br>
+          <span class="gradient-text">Who Build Things.</span>
+        </h2>
+        <p class="text-navy-300 text-lg leading-relaxed mb-8">
+          {{ site_config.about_text|default:"ABrayTech is not a traditional school. Every course is built around real projects, real tools, and outcomes that move your career forward — whether you're a beginner or upskilling as a professional." }}
+        </p>
+
+        <ul class="space-y-4 mb-10">
+          <li class="flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-cyan-400"></i>
+            </div>
+            <span class="text-navy-200 text-sm">100% project-based curriculum — build a portfolio while you learn</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-cyan-400"></i>
+            </div>
+            <span class="text-navy-200 text-sm">Instructors are active professionals, not theoretical academics</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-cyan-400"></i>
+            </div>
+            <span class="text-navy-200 text-sm">Career support, CV reviews, and employer connections included</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-cyan-400"></i>
+            </div>
+            <span class="text-navy-200 text-sm">Flexible online and in-person options across UK &amp; Nigeria</span>
+          </li>
+        </ul>
+
+        <a href="{% url 'eduweb:about' %}" class="btn-primary focus:outline-none focus:ring-2 focus:ring-cyan-400">
+          <i data-lucide="arrow-right" class="w-4 h-4"></i> Our Story
+        </a>
+      </div>
+
+      <!-- Right: promo video or feature tiles -->
+      <div>
+        {% if site_config.promo_video_url %}
+        <div class="rounded-2xl overflow-hidden aspect-video shadow-2xl shadow-cyan-900/30 border border-white/10">
+          <div class="w-full h-full [&>iframe]:w-full [&>iframe]:h-full">{{ site_config.promo_video_url|safe }}</div>
+        </div>
+        {% else %}
+        <div class="rounded-2xl overflow-hidden aspect-video shadow-2xl shadow-cyan-900/30 border border-white/10">
+          <iframe class="w-full h-full"
+                  src="https://www.youtube.com/embed/wzcQ5_XU58I?start=4"
+                  title="{{ site_config.school_short_name|default:'ABrayTech' }} Intro"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen loading="lazy"></iframe>
+        </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     §6 PROJECTS / WORK DONE — light section (even)
+══════════════════════════════════════════════════════════════ -->
+<section id="projects" class="section-light py-20 lg:py-28" aria-labelledby="projects-heading">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+
+    <div class="text-center mb-14">
+      <div class="pill pill-light mb-4 inline-flex">
+        <i data-lucide="briefcase" class="w-3.5 h-3.5"></i> Work Done
+      </div>
+      <h2 id="projects-heading" class="font-heading font-extrabold text-navy-900 text-3xl sm:text-4xl lg:text-5xl mb-4">
+        Real Projects. Real Impact.
+      </h2>
+      <p class="text-gray-500 text-lg max-w-2xl mx-auto">
+        A sample of client and student projects delivered through ABrayTech.
+      </p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <!-- Dynamic projects if available, else placeholder showcase cards -->
+      {% if projects %}
+        {% for project in projects %}
+        <a href="{{ project.url|default:'#' }}" target="_blank" rel="noopener"
+           class="light-card group overflow-hidden block focus:outline-none focus:ring-2 focus:ring-cyan-500">
+          {% if project.image %}
+          <div class="h-44 overflow-hidden bg-gray-100">
+            <img src="{{ project.image.url }}" alt="{{ project.title }}"
+                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          </div>
+          {% else %}
+          <div class="h-44 flex items-center justify-center bg-gradient-to-br from-navy-800 to-cyan-900">
+            <i data-lucide="{{ project.icon|default:'layout-dashboard' }}" class="w-12 h-12 text-cyan-400 opacity-60"></i>
+          </div>
+          {% endif %}
+          <div class="p-6">
+            <span class="pill pill-light text-xs mb-3 inline-flex">{{ project.category|default:"Digital Product" }}</span>
+            <h3 class="font-heading font-bold text-navy-900 text-lg mb-2 group-hover:text-cyan-600 transition-colors">{{ project.title }}</h3>
+            <p class="text-gray-500 text-sm leading-relaxed mb-4">{{ project.description|truncatewords:18 }}</p>
+            <span class="flex items-center gap-1 text-cyan-600 text-sm font-semibold">
+              View Project <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+            </span>
+          </div>
+        </a>
+        {% endfor %}
+      {% else %}
+        <!-- Placeholder cards — remove when real projects are set up -->
+        <a href="#" class="light-card group overflow-hidden block focus:outline-none focus:ring-2 focus:ring-cyan-500">
+          <div class="h-44 flex items-center justify-center bg-gradient-to-br from-navy-900 to-cyan-900">
+            <i data-lucide="shopping-cart" class="w-12 h-12 text-cyan-400 opacity-70"></i>
+          </div>
+          <div class="p-6">
+            <span class="pill pill-light text-xs mb-3 inline-flex">E-Commerce</span>
+            <h3 class="font-heading font-bold text-navy-900 text-lg mb-2 group-hover:text-cyan-600 transition-colors">Multi-Vendor Marketplace</h3>
+            <p class="text-gray-500 text-sm leading-relaxed mb-4">Full-stack marketplace with Stripe payments, real-time chat, and seller dashboard.</p>
+            <span class="flex items-center gap-1 text-cyan-600 text-sm font-semibold">View Project <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i></span>
+          </div>
+        </a>
+
+        <a href="#" class="light-card group overflow-hidden block focus:outline-none focus:ring-2 focus:ring-cyan-500">
+          <div class="h-44 flex items-center justify-center bg-gradient-to-br from-navy-900 to-purple-900">
+            <i data-lucide="shield-check" class="w-12 h-12 text-purple-400 opacity-70"></i>
+          </div>
+          <div class="p-6">
+            <span class="pill text-xs mb-3 inline-flex" style="background:rgba(168,85,247,.1);color:#a855f7;border:1px solid rgba(168,85,247,.2);">Cybersecurity</span>
+            <h3 class="font-heading font-bold text-navy-900 text-lg mb-2 group-hover:text-purple-600 transition-colors">SME Security Audit &amp; Dashboard</h3>
+            <p class="text-gray-500 text-sm leading-relaxed mb-4">Automated vulnerability scanner and compliance dashboard for a UK fintech client.</p>
+            <span class="flex items-center gap-1 text-purple-600 text-sm font-semibold">View Project <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i></span>
+          </div>
+        </a>
+
+        <a href="#" class="light-card group overflow-hidden block focus:outline-none focus:ring-2 focus:ring-cyan-500">
+          <div class="h-44 flex items-center justify-center bg-gradient-to-br from-navy-900 to-lime-900">
+            <i data-lucide="bot" class="w-12 h-12 text-lime-400 opacity-70"></i>
+          </div>
+          <div class="p-6">
+            <span class="pill pill-lime text-xs mb-3 inline-flex">AI Product</span>
+            <h3 class="font-heading font-bold text-navy-900 text-lg mb-2 group-hover:text-lime-600 transition-colors">AI Customer Support Bot</h3>
+            <p class="text-gray-500 text-sm leading-relaxed mb-4">LLM-powered support agent trained on a Nigerian logistics company's knowledge base.</p>
+            <span class="flex items-center gap-1 text-lime-600 text-sm font-semibold">View Project <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i></span>
+          </div>
+        </a>
+
+        <a href="#" class="light-card group overflow-hidden block focus:outline-none focus:ring-2 focus:ring-cyan-500">
+          <div class="h-44 flex items-center justify-center bg-gradient-to-br from-navy-900 to-amber-900">
+            <i data-lucide="globe" class="w-12 h-12 text-amber-400 opacity-70"></i>
+          </div>
+          <div class="p-6">
+            <span class="pill pill-amber text-xs mb-3 inline-flex">Digitalization</span>
+            <h3 class="font-heading font-bold text-navy-900 text-lg mb-2 group-hover:text-amber-600 transition-colors">Brand + Online Launch Package</h3>
+            <p class="text-gray-500 text-sm leading-relaxed mb-4">Website, SEO, and social presence built for a Lagos-based fashion startup in 3 weeks.</p>
+            <span class="flex items-center gap-1 text-amber-600 text-sm font-semibold">View Project <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i></span>
+          </div>
+        </a>
+
+        <a href="#" class="light-card group overflow-hidden block focus:outline-none focus:ring-2 focus:ring-cyan-500">
+          <div class="h-44 flex items-center justify-center bg-gradient-to-br from-navy-900 to-cyan-800">
+            <i data-lucide="bar-chart-3" class="w-12 h-12 text-cyan-300 opacity-70"></i>
+          </div>
+          <div class="p-6">
+            <span class="pill pill-cyan text-xs mb-3 inline-flex">Data &amp; Analytics</span>
+            <h3 class="font-heading font-bold text-navy-900 text-lg mb-2 group-hover:text-cyan-600 transition-colors">Real-Time Sales Analytics</h3>
+            <p class="text-gray-500 text-sm leading-relaxed mb-4">Django + React analytics suite replacing Excel reports for a retail chain.</p>
+            <span class="flex items-center gap-1 text-cyan-600 text-sm font-semibold">View Project <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i></span>
+          </div>
+        </a>
+
+        <a href="{% url 'eduweb:all_programs' %}" class="light-card group overflow-hidden block focus:outline-none focus:ring-2 focus:ring-cyan-500 border-dashed">
+          <div class="h-44 flex items-center justify-center bg-gray-50 group-hover:bg-cyan-50 transition-colors">
+            <i data-lucide="plus-circle" class="w-12 h-12 text-gray-300 group-hover:text-cyan-400 transition-colors"></i>
+          </div>
+          <div class="p-6 text-center">
+            <h3 class="font-heading font-bold text-navy-900 text-lg mb-2">Your Project Next?</h3>
+            <p class="text-gray-500 text-sm leading-relaxed mb-4">Enrol in a programme and build your own portfolio-worthy project.</p>
+            <span class="flex items-center justify-center gap-1 text-cyan-600 text-sm font-semibold">Start a Course <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i></span>
+          </div>
+        </a>
+      {% endif %}
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     §7 UK & NIGERIA PRESENCE — dark section (odd)
+══════════════════════════════════════════════════════════════ -->
+<section id="locations" class="section-dark py-20 lg:py-28" aria-labelledby="locations-heading">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+
+    <div class="text-center mb-14">
+      <div class="pill pill-cyan mb-4 inline-flex">
+        <i data-lucide="globe-2" class="w-3.5 h-3.5"></i> Our Presence
+      </div>
+      <h2 id="locations-heading" class="font-heading font-extrabold text-white text-3xl sm:text-4xl lg:text-5xl mb-4">
+        UK &amp; Nigeria. <span class="gradient-text">One Vision.</span>
+      </h2>
+      <p class="text-navy-300 text-lg max-w-2xl mx-auto">
+        ABrayTech operates across two tech markets, delivering the same high standard of practical training.
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+
+      <!-- UK Card -->
+      <div class="tech-card p-8 group">
+        <div class="flex items-center gap-4 mb-6">
+          <div class="w-14 h-14 rounded-2xl bg-blue-500/15 border border-blue-500/25 flex items-center justify-center flex-shrink-0">
+            <!-- UK flag emoji fallback -->
+            <span class="text-2xl" role="img" aria-label="United Kingdom flag">🇬🇧</span>
+          </div>
+          <div>
+            <h3 class="font-heading font-bold text-white text-xl">United Kingdom</h3>
+            <p class="text-navy-400 text-sm">Our founding hub</p>
+          </div>
+        </div>
+        <ul class="space-y-3 text-sm text-navy-300">
+          {% if site_config.address_uk %}
+          <li class="flex items-start gap-2.5">
+            <i data-lucide="map-pin" class="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5"></i>
+            {{ site_config.address_uk }}
+          </li>
+          {% else %}
+          <li class="flex items-start gap-2.5">
+            <i data-lucide="map-pin" class="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5"></i>
+            London &amp; remote-first across the UK
+          </li>
+          {% endif %}
+          {% if site_config.phone_primary %}
+          <li class="flex items-center gap-2.5">
+            <i data-lucide="phone" class="w-4 h-4 text-cyan-400 flex-shrink-0"></i>
+            <a href="tel:{{ site_config.phone_primary }}" class="hover:text-cyan-400 transition-colors focus:outline-none focus:text-cyan-400">{{ site_config.phone_primary }}</a>
+          </li>
+          {% endif %}
+          {% if site_config.email %}
+          <li class="flex items-center gap-2.5">
+            <i data-lucide="mail" class="w-4 h-4 text-cyan-400 flex-shrink-0"></i>
+            <a href="mailto:{{ site_config.email }}" class="hover:text-cyan-400 transition-colors focus:outline-none focus:text-cyan-400">{{ site_config.email }}</a>
+          </li>
+          {% endif %}
+          <li class="flex items-center gap-2.5">
+            <i data-lucide="clock" class="w-4 h-4 text-cyan-400 flex-shrink-0"></i>
+            {{ site_config.office_hours_weekday|default:"Mon–Fri 9am–6pm GMT" }}
+          </li>
+        </ul>
+      </div>
+
+      <!-- Nigeria Card -->
+      <div class="tech-card p-8 group">
+        <div class="flex items-center gap-4 mb-6">
+          <div class="w-14 h-14 rounded-2xl bg-lime-500/15 border border-lime-500/25 flex items-center justify-center flex-shrink-0">
+            <span class="text-2xl" role="img" aria-label="Nigeria flag">🇳🇬</span>
+          </div>
+          <div>
+            <h3 class="font-heading font-bold text-white text-xl">Nigeria</h3>
+            <p class="text-navy-400 text-sm">Growing fast with Africa's tech scene</p>
+          </div>
+        </div>
+        <ul class="space-y-3 text-sm text-navy-300">
+          {% if site_config.address_ng %}
+          <li class="flex items-start gap-2.5">
+            <i data-lucide="map-pin" class="w-4 h-4 text-lime-400 flex-shrink-0 mt-0.5"></i>
+            {{ site_config.address_ng }}
+          </li>
+          {% else %}
+          <li class="flex items-start gap-2.5">
+            <i data-lucide="map-pin" class="w-4 h-4 text-lime-400 flex-shrink-0 mt-0.5"></i>
+            Lagos &amp; Abuja — online nationwide
+          </li>
+          {% endif %}
+          {% if site_config.phone_ng_primary %}
+          <li class="flex items-center gap-2.5">
+            <i data-lucide="phone" class="w-4 h-4 text-lime-400 flex-shrink-0"></i>
+            <a href="tel:{{ site_config.phone_ng_primary }}" class="hover:text-lime-400 transition-colors focus:outline-none focus:text-lime-400">{{ site_config.phone_ng_primary }}</a>
+          </li>
+          {% endif %}
+          {% if site_config.whatsapp %}
+          <li class="flex items-center gap-2.5">
+            <i data-lucide="message-circle" class="w-4 h-4 text-lime-400 flex-shrink-0"></i>
+            <a href="https://wa.me/{{ site_config.whatsapp }}" target="_blank" rel="noopener"
+               class="hover:text-lime-400 transition-colors focus:outline-none focus:text-lime-400">
+              WhatsApp: {{ site_config.whatsapp }}
+            </a>
+          </li>
+          {% endif %}
+          <li class="flex items-center gap-2.5">
+            <i data-lucide="clock" class="w-4 h-4 text-lime-400 flex-shrink-0"></i>
+            Mon–Fri 9am–6pm WAT
+          </li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Map embed if available -->
+    {% if site_config.map_embed_url %}
+    <div class="mt-12 rounded-2xl overflow-hidden border border-white/10 h-64 sm:h-80">
+      <iframe src="{{ site_config.map_embed_url }}" class="w-full h-full" style="border:0;" allowfullscreen loading="lazy" title="ABrayTech office location"></iframe>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     §8 TESTIMONIALS — light (even)
+══════════════════════════════════════════════════════════════ -->
+<section id="testimonials" class="section-muted py-20 lg:py-28" aria-labelledby="testimonials-heading">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+
+    <div class="text-center mb-12">
+      <div class="pill pill-light mb-4 inline-flex">
+        <i data-lucide="quote" class="w-3.5 h-3.5"></i> Student Stories
+      </div>
+      <h2 id="testimonials-heading" class="font-heading font-extrabold text-navy-900 text-3xl sm:text-4xl">
+        From Our Community
+      </h2>
+    </div>
+
+    <div id="testimonial"
+         class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 sm:p-10 max-w-3xl mx-auto"
+         aria-live="polite" aria-atomic="true">
+
+      <i data-lucide="quote" class="w-10 h-10 text-cyan-500 mb-5" aria-hidden="true"></i>
+
+      <blockquote>
+        <p id="testimonialQuote" class="text-gray-700 text-lg sm:text-xl leading-relaxed italic mb-8">
+          {% with testimonials|first as first_t %}{{ first_t.quote|default:"ABrayTech gave me real skills I could use on the job from day one. No fluff — just hands-on practice with industry tools. I landed my first dev role within 3 months of completing the Full-Stack bootcamp." }}{% endwith %}
+        </p>
+      </blockquote>
+
+      <div class="flex items-center gap-4">
+        <div id="testimonialAvatar"
+             class="w-14 h-14 bg-gradient-to-br from-cyan-500 to-cyan-700 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0 overflow-hidden"
+             aria-hidden="true">
+          {% with testimonials|first as first_t %}
+            {% if first_t.avatar %}<img src="{{ first_t.avatar.url }}" alt="{{ first_t.author_name }}" class="w-full h-full object-cover">
+            {% else %}{{ first_t.author_name|slice:":2"|upper|default:"AT" }}{% endif %}
+          {% endwith %}
+        </div>
+        <div>
+          <p id="testimonialAuthor" class="font-bold text-navy-900 text-base">{% with testimonials|first as first_t %}{{ first_t.author_name|default:"Chika O." }}{% endwith %}</p>
+          <p id="testimonialRole" class="text-gray-500 text-sm">{% with testimonials|first as first_t %}{{ first_t.author_role|default:"Full-Stack Graduate, 2024 — Lagos" }}{% endwith %}</p>
+        </div>
+      </div>
+
+      <div class="flex justify-center mt-7 gap-2" role="tablist" aria-label="Testimonial navigation">
+        {% for t in testimonials %}
+        <button class="testimonial-indicator w-3 h-3 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-cyan-500 {% if forloop.first %}active{% endif %}"
+                data-index="{{ forloop.counter0 }}"
+                aria-label="Testimonial {{ forloop.counter }}"
+                role="tab"
+                aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"></button>
+        {% empty %}
+        <button class="testimonial-indicator active w-3 h-3 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-cyan-500" data-index="0" role="tab" aria-selected="true"></button>
+        <button class="testimonial-indicator w-3 h-3 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-cyan-500" data-index="1" role="tab" aria-selected="false"></button>
+        <button class="testimonial-indicator w-3 h-3 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-cyan-500" data-index="2" role="tab" aria-selected="false"></button>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     §9 CONTACT — dark (odd)
+══════════════════════════════════════════════════════════════ -->
+<section id="contact" class="section-dark py-20 lg:py-28" aria-labelledby="contact-heading">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+
+    <div class="text-center mb-12">
+      <div class="pill pill-cyan mb-4 inline-flex">
+        <i data-lucide="mail" class="w-3.5 h-3.5"></i> Get In Touch
+      </div>
+      <h2 id="contact-heading" class="font-heading font-extrabold text-white text-3xl sm:text-4xl lg:text-5xl mb-4">
+        Ready to Start?
+      </h2>
+      <p class="text-navy-300 text-lg max-w-xl mx-auto">
+        Book a free consultation, ask about a course, or get a quote for your business project.
+      </p>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-10 items-start max-w-5xl mx-auto">
+
+      <!-- Contact form -->
+      <div class="tech-card p-8 sm:p-10">
+        <h3 class="font-heading font-bold text-white text-xl mb-6">Send a Message</h3>
+        <form method="post" action="{% url 'eduweb:contact' %}" class="space-y-5" novalidate>
+          {% csrf_token %}
+          <div class="grid sm:grid-cols-2 gap-5">
+            <div>
+              <label for="contact-name" class="block text-navy-300 text-sm font-medium mb-1.5">Full Name <span class="text-cyan-500">*</span></label>
+              <input id="contact-name" name="name" type="text" required
+                     class="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-white placeholder-navy-500 text-sm focus:outline-none focus:border-cyan-500 focus:bg-white/8 transition-all"
+                     placeholder="Ada Okafor">
+            </div>
+            <div>
+              <label for="contact-email" class="block text-navy-300 text-sm font-medium mb-1.5">Email <span class="text-cyan-500">*</span></label>
+              <input id="contact-email" name="email" type="email" required
+                     class="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-white placeholder-navy-500 text-sm focus:outline-none focus:border-cyan-500 focus:bg-white/8 transition-all"
+                     placeholder="ada@email.com">
+            </div>
+          </div>
+          <div>
+            <label for="contact-subject" class="block text-navy-300 text-sm font-medium mb-1.5">Subject</label>
+            <select id="contact-subject" name="subject"
+                    class="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500 transition-all"
+                    style="background-color: #0f2236">
+              <option value="">Select a topic…</option>
+              <option value="course">Course enquiry</option>
+              <option value="business">Business digitalization</option>
+              <option value="partnership">Partnership</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label for="contact-message" class="block text-navy-300 text-sm font-medium mb-1.5">Message <span class="text-cyan-500">*</span></label>
+            <textarea id="contact-message" name="message" rows="5" required
+                      class="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-white placeholder-navy-500 text-sm focus:outline-none focus:border-cyan-500 focus:bg-white/8 transition-all resize-none"
+                      placeholder="Tell us what you need…"></textarea>
+          </div>
+          <button type="submit" class="btn-primary w-full justify-center py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-cyan-400">
+            <i data-lucide="send" class="w-4 h-4"></i> Send Message
+          </button>
+        </form>
+      </div>
+
+      <!-- Contact info -->
+      <div class="space-y-5">
+
+        {% if site_config.address_uk or site_config.address_usa %}
+        <div class="tech-card p-6">
+          <div class="flex items-start gap-4">
+            <div class="w-11 h-11 rounded-xl bg-cyan-500/15 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="map-pin" class="w-5 h-5 text-cyan-400"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-white mb-1.5">UK Office</h4>
+              <p class="text-navy-300 text-sm">{{ site_config.address_uk|default:site_config.address_usa|default:"London, United Kingdom"|linebreaksbr }}</p>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if site_config.address_ng %}
+        <div class="tech-card p-6">
+          <div class="flex items-start gap-4">
+            <div class="w-11 h-11 rounded-xl bg-lime-500/15 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="map-pin" class="w-5 h-5 text-lime-400"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-white mb-1.5">Nigeria Office</h4>
+              <p class="text-navy-300 text-sm">{{ site_config.address_ng|linebreaksbr }}</p>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if site_config.email or site_config.email_info %}
+        <div class="tech-card p-6">
+          <div class="flex items-start gap-4">
+            <div class="w-11 h-11 rounded-xl bg-cyan-500/15 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="mail" class="w-5 h-5 text-cyan-400"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-white mb-1.5">Email</h4>
+              {% if site_config.email_admissions %}
+              <p class="text-navy-300 text-sm"><span class="text-navy-500">Enrolments —</span> <a href="mailto:{{ site_config.email_admissions }}" class="hover:text-cyan-400 transition-colors">{{ site_config.email_admissions }}</a></p>
+              {% endif %}
+              {% if site_config.email_info %}
+              <p class="text-navy-300 text-sm"><span class="text-navy-500">General —</span> <a href="mailto:{{ site_config.email_info }}" class="hover:text-cyan-400 transition-colors">{{ site_config.email_info }}</a></p>
+              {% endif %}
+              {% if not site_config.email_admissions and not site_config.email_info and site_config.email %}
+              <p class="text-navy-300 text-sm"><a href="mailto:{{ site_config.email }}" class="hover:text-cyan-400 transition-colors">{{ site_config.email }}</a></p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if site_config.phone_primary or site_config.phone_ng_primary %}
+        <div class="tech-card p-6">
+          <div class="flex items-start gap-4">
+            <div class="w-11 h-11 rounded-xl bg-cyan-500/15 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="phone" class="w-5 h-5 text-cyan-400"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-white mb-1.5">Call / WhatsApp</h4>
+              {% if site_config.phone_primary %}<p class="text-navy-300 text-sm"><a href="tel:{{ site_config.phone_primary }}" class="hover:text-cyan-400 transition-colors">{{ site_config.phone_primary }} (UK)</a></p>{% endif %}
+              {% if site_config.phone_ng_primary %}<p class="text-navy-300 text-sm"><a href="tel:{{ site_config.phone_ng_primary }}" class="hover:text-lime-400 transition-colors">{{ site_config.phone_ng_primary }} (NG)</a></p>{% endif %}
+              {% if site_config.whatsapp %}<p class="text-navy-300 text-sm"><a href="https://wa.me/{{ site_config.whatsapp }}" target="_blank" rel="noopener" class="hover:text-green-400 transition-colors">WhatsApp: {{ site_config.whatsapp }}</a></p>{% endif %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if site_config.office_hours_weekday %}
+        <div class="tech-card p-6">
+          <div class="flex items-start gap-4">
+            <div class="w-11 h-11 rounded-xl bg-amber-500/15 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="clock" class="w-5 h-5 text-amber-400"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-white mb-1.5">Office Hours</h4>
+              {% if site_config.office_hours_weekday %}<p class="text-navy-300 text-sm">{{ site_config.office_hours_weekday }}</p>{% endif %}
+              {% if site_config.office_hours_saturday %}<p class="text-navy-300 text-sm">{{ site_config.office_hours_saturday }}</p>{% endif %}
+              {% if site_config.office_hours_sunday %}<p class="text-navy-300 text-sm">{{ site_config.office_hours_sunday }}</p>{% endif %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     §10 ENROL CTA — light (even)
+══════════════════════════════════════════════════════════════ -->
+<section class="section-light py-20 lg:py-28" aria-label="Enrolment call to action">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto bg-gradient-to-br from-navy-900 to-cyan-900 rounded-3xl p-10 sm:p-14 text-center relative overflow-hidden">
+      <!-- Decorative circles -->
+      <div class="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
+      <div class="absolute bottom-0 left-0 w-48 h-48 bg-lime-500/8 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
+
+      <div class="relative z-10">
+        <div class="pill pill-cyan mb-5 inline-flex mx-auto">
+          <i data-lucide="zap" class="w-3.5 h-3.5"></i> Limited Spots Available
+        </div>
+        <h2 class="font-heading font-extrabold text-white text-3xl sm:text-4xl lg:text-5xl mb-4 leading-tight">
+          Your Next Career Move<br>Starts Here.
+        </h2>
+        <p class="text-navy-300 text-lg mb-8 max-w-xl mx-auto">
+          Join thousands of professionals across the UK &amp; Nigeria who are building in-demand digital skills with ABrayTech.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="{% url 'eduweb:apply' %}" class="btn-primary text-base px-8 py-4 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+            <i data-lucide="rocket" class="w-5 h-5"></i> Enrol Now — It's Free
+          </a>
+          <a href="{% url 'eduweb:all_programs' %}" class="btn-outline text-base px-8 py-4 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+            <i data-lucide="book-open" class="w-5 h-5"></i> Browse Courses
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<script>
+// ── Hero slideshow ──────────────────────────────────────────
+(function () {
+  const heroBackgrounds = Array.from(document.querySelectorAll('.hero-bg'));
+  const heroIndicators  = Array.from(document.querySelectorAll('.hero-indicator'));
+  if (!heroBackgrounds.length) return;
+
+  let currentBg = 0;
+  let rotationTimer = null;
+  let isUserInteracting = false;
+
+  function setupVideos() {
+    heroBackgrounds.forEach(bg => {
+      const video = bg.querySelector('video');
+      if (video) {
+        video.addEventListener('ended', advanceToNext);
+        video.addEventListener('error', () => {
+          const d = parseInt(bg.getAttribute('data-duration')) * 1000;
+          scheduleNextTransition(d);
+        });
+      }
+    });
+  }
+
+  function updateIndicators(index) {
+    heroIndicators.forEach((ind, i) => {
+      ind.classList.toggle('active', i === index);
+    });
+  }
+
+  function showBackground(index) {
+    const prev = heroBackgrounds[currentBg];
+    const next = heroBackgrounds[index];
+    clearTimeout(rotationTimer);
+
+    const prevVideo = prev.querySelector('video');
+    if (prevVideo) prevVideo.pause();
+
+    prev.classList.remove('active', 'opacity-100');
+    prev.classList.add('opacity-0');
+    next.classList.remove('opacity-0');
+    next.classList.add('active', 'opacity-100');
+
+    currentBg = index;
+    updateIndicators(index);
+
+    const nextType  = next.getAttribute('data-type');
+    const nextVideo = next.querySelector('video');
+
+    if (nextType === 'video' && nextVideo) {
+      nextVideo.currentTime = 0;
+      nextVideo.play().catch(() => {
+        scheduleNextTransition(parseInt(next.getAttribute('data-duration')) * 1000);
+      });
+    } else {
+      scheduleNextTransition(parseInt(next.getAttribute('data-duration')) * 1000);
+    }
+  }
+
+  function scheduleNextTransition(ms) {
+    clearTimeout(rotationTimer);
+    if (!isUserInteracting) {
+      rotationTimer = setTimeout(advanceToNext, ms);
+    }
+  }
+
+  function advanceToNext() {
+    showBackground((currentBg + 1) % heroBackgrounds.length);
+  }
+
+  heroIndicators.forEach((btn, i) => {
+    btn.addEventListener('click', () => {
+      isUserInteracting = true;
+      showBackground(i);
+      setTimeout(() => { isUserInteracting = false; }, 5000);
+    });
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      isUserInteracting = true;
+      clearTimeout(rotationTimer);
+      const v = heroBackgrounds[currentBg].querySelector('video');
+      if (v) v.pause();
+    } else {
+      isUserInteracting = false;
+      const bg = heroBackgrounds[currentBg];
+      const v  = bg.querySelector('video');
+      if (bg.getAttribute('data-type') === 'video' && v) {
+        v.play().catch(() => {});
+      } else {
+        scheduleNextTransition(parseInt(bg.getAttribute('data-duration')) * 1000);
+      }
+    }
+  });
+
+  setupVideos();
+  updateIndicators(0);
+
+  const first     = heroBackgrounds[0];
+  const firstType = first.getAttribute('data-type');
+  const firstVid  = first.querySelector('video');
+  if (firstType === 'video' && firstVid) {
+    firstVid.play().catch(() => scheduleNextTransition(parseInt(first.getAttribute('data-duration')) * 1000));
+  } else {
+    scheduleNextTransition(parseInt(first.getAttribute('data-duration')) * 1000);
+  }
+})();
+
+
+// ── Testimonials ────────────────────────────────────────────
+const testimonials = [
+  {% for t in testimonials %}
+  {
+    quote:     "{{ t.quote|escapejs }}",
+    author:    "{{ t.author_name|escapejs }}",
+    role:      "{{ t.author_role|escapejs }}",
+    avatarImg: {% if t.avatar %}"{{ t.avatar.url }}"{% else %}null{% endif %},
+    avatar:    "{{ t.author_name|slice:':2'|upper|escapejs }}"
+  }{% if not forloop.last %},{% endif %}
+  {% empty %}
+  { quote:"ABrayTech gave me real skills I could use on the job from day one. I landed my first dev role within 3 months of completing the Full-Stack bootcamp.", author:"Chika O.", role:"Full-Stack Graduate, 2024 — Lagos", avatarImg:null, avatar:"CO" },
+  { quote:"The AI course was intense, practical, and incredibly relevant. Within weeks I was using Python and LangChain on actual client projects.", author:"Sarah M.", role:"AI Practitioner — London", avatarImg:null, avatar:"SM" },
+  { quote:"ABrayTech helped us take our retail business fully online in just 4 weeks. Sales tripled. Best investment we've made.", author:"Emeka A.", role:"Business Owner — Abuja", avatarImg:null, avatar:"EA" }
+  {% endfor %}
+];
+
+let currentTestimonial = 0;
+const indicators = document.querySelectorAll('.testimonial-indicator');
+const tSection   = document.getElementById('testimonial');
+
+function showTestimonial(index) {
+  const t = testimonials[index];
+  document.getElementById('testimonialQuote').textContent  = t.quote;
+  document.getElementById('testimonialAuthor').textContent = t.author;
+  document.getElementById('testimonialRole').textContent   = t.role;
+  const av = document.getElementById('testimonialAvatar');
+  if (t.avatarImg) {
+    av.innerHTML = `<img src="${t.avatarImg}" alt="${t.author}" class="w-full h-full object-cover rounded-full">`;
+  } else {
+    av.textContent = t.avatar;
+  }
+  indicators.forEach((ind, i) => {
+    ind.classList.toggle('active', i === index);
+    ind.setAttribute('aria-selected', String(i === index));
+  });
+}
+
+let tTimer = setInterval(() => {
+  currentTestimonial = (currentTestimonial + 1) % testimonials.length;
+  showTestimonial(currentTestimonial);
+}, 7000);
+
+indicators.forEach((ind, i) => {
+  ind.addEventListener('click', () => {
+    currentTestimonial = i;
+    showTestimonial(i);
+    clearInterval(tTimer);
+    tTimer = setInterval(() => {
+      currentTestimonial = (currentTestimonial + 1) % testimonials.length;
+      showTestimonial(currentTestimonial);
+    }, 7000);
+  });
+});
+if (tSection) {
+  tSection.addEventListener('mouseenter', () => clearInterval(tTimer));
+  tSection.addEventListener('mouseleave', () => {
+    tTimer = setInterval(() => {
+      currentTestimonial = (currentTestimonial + 1) % testimonials.length;
+      showTestimonial(currentTestimonial);
+    }, 7000);
+  });
+}
+
+lucide.createIcons();
+</script>
+{% endblock %}

@@ -1,0 +1,273 @@
+{% extends 'melbac/base.html' %}
+{% load static %}
+
+{% block title %}Student Activities — Melchisedec Graduate Bible Academy (MELBAC){% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="MELBAC students serve through prison and hospital ministry, widows and orphanage care, and care for the elderly — applying their faith in real-world ministry settings.">
+<meta name="keywords"    content="MELBAC student activities, prison ministry Nigeria, hospital ministry, orphanage care, Christian service, Bible academy outreach">
+<meta name="robots"      content="index, follow">
+{% endblock %}
+
+{% block content %}
+
+<!-- ── PAGE HERO ─────────────────────────────────────────────────── -->
+<section class="mb-page-hero" aria-label="Student Activities page header">
+  <div class="mb-page-hero-pattern" aria-hidden="true"></div>
+  <div class="mb-container mb-page-hero-inner">
+    <nav aria-label="Breadcrumb">
+      <ol class="mb-breadcrumb">
+        <li><a href="{% url 'melbac:index' %}">Home</a></li>
+        <li class="mb-breadcrumb-sep" aria-hidden="true">/</li>
+        <li aria-current="page">Activities</li>
+      </ol>
+    </nav>
+    <h1>Student Activities</h1>
+    <p>Our students don't just study the Word — they live it. Through hands-on ministry, they develop pastoral skills and deepen their understanding of Christian service.</p>
+  </div>
+</section>
+
+
+<!-- ── INTRO STRIP ───────────────────────────────────────────────── -->
+<div class="mb-intro-strip">
+  <div class="mb-container">
+    <div class="mb-intro-strip-inner mb-reveal">
+      <p class="mb-intro-text">
+        At MELBAC, ministry is not just taught in the classroom — it is practised in the community. Our students are actively engaged in three key areas of service that embody the love, compassion, and authority of Jesus Christ.
+      </p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════
+     ACTIVITY 1 — PRISON & HOSPITAL MINISTRY
+     Image LEFT · Content RIGHT
+     ══════════════════════════════════════════════════════════════════ -->
+<section class="mb-act-section" id="prison-ministry" aria-labelledby="prison-heading">
+
+  <div class="mb-act-img-col mb-reveal">
+    <img src="{% static 'images/hero3.webp' %}"
+         alt="MELBAC students ministering in a hospital ward, offering prayer and support to patients"
+         class="mb-act-img"
+         loading="lazy"
+         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+    <div class="mb-act-img-fallback mb-act-img-fallback-1" aria-hidden="true">
+      <div class="mb-icon-wrap w-16 h-16">
+        <i data-lucide="shield-plus" class="w-7 h-7 text-gospel-600"></i>
+      </div>
+      <span class="mb-font-ui text-xs text-neutral-500">Prison &amp; Hospital Ministry</span>
+    </div>
+  </div>
+
+  <div class="mb-act-content-col mb-act-content-bg-1">
+    <div class="mb-reveal d1">
+      <div class="mb-act-number" aria-hidden="true">01</div>
+      <p class="mb-eyebrow">Outreach Ministry</p>
+      <h2 id="prison-heading" class="mb-act-heading">Prison and Hospital Ministry</h2>
+      <div class="mb-divider"></div>
+
+      <p class="mb-act-p">Our students participate in prison and hospital visitations to apply their studies in real-world settings. These experiences provide opportunities to share their faith, offer spiritual support, and provide compassionate care to those in need.</p>
+      <p class="mb-act-p">These ministries offer valuable hands-on experience, helping students develop their pastoral skills and deepen their understanding of ministry as a calling, not merely a profession.</p>
+
+      <blockquote class="mb-act-quote">
+        "The Spirit of the Lord is upon me, because he has anointed me to preach good news to the poor."
+        <br><cite class="mb-act-cite">— Luke 4:18</cite>
+      </blockquote>
+
+      <div class="mb-act-checks">
+        <div class="mb-act-check">
+          <div class="mb-icon-wrap mb-act-check-icon"><i data-lucide="check" class="w-3 h-3 text-gospel-600" aria-hidden="true"></i></div>
+          <span class="mb-act-check-text">Regular prison visitations to share the Gospel and offer prayer</span>
+        </div>
+        <div class="mb-act-check">
+          <div class="mb-icon-wrap mb-act-check-icon"><i data-lucide="check" class="w-3 h-3 text-gospel-600" aria-hidden="true"></i></div>
+          <span class="mb-act-check-text">Hospital ward visits offering comfort, prayer, and scripture reading</span>
+        </div>
+        <div class="mb-act-check">
+          <div class="mb-icon-wrap mb-act-check-icon"><i data-lucide="check" class="w-3 h-3 text-gospel-600" aria-hidden="true"></i></div>
+          <span class="mb-act-check-text">Pastoral skills development in challenging real-world environments</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════════════
+     ACTIVITY 2 — WIDOWS & ORPHANAGE CARE
+     Content LEFT · Image RIGHT  (reverse layout)
+     ══════════════════════════════════════════════════════════════════ -->
+<section class="mb-act-section mb-act-section-rev" id="widows-orphanage" aria-labelledby="widows-heading">
+
+  <div class="mb-act-content-col mb-act-content-bg-2">
+    <div class="mb-reveal d1">
+      <div class="mb-act-number" aria-hidden="true">02</div>
+      <p class="mb-eyebrow">Compassionate Service</p>
+      <h2 id="widows-heading" class="mb-act-heading">Widows and Orphanage Care</h2>
+      <div class="mb-divider"></div>
+
+      <p class="mb-act-p">Students actively engage in Widows and Orphanage Care, embodying the biblical call to serve the vulnerable. This involvement takes many forms, from regular visits to local orphanages and care facilities, where students offer companionship, practical assistance, and spiritual encouragement.</p>
+      <p class="mb-act-p">Students also organise events to provide essential resources — food, clothing, and educational materials — demonstrating the tangible love of Christ to those society often overlooks.</p>
+
+      <blockquote class="mb-act-quote">
+        "Pure and genuine religion in the sight of God the Father means caring for orphans and widows in their distress."
+        <br><cite class="mb-act-cite">— James 1:27</cite>
+      </blockquote>
+
+      <div class="mb-act-checks">
+        <div class="mb-act-check">
+          <div class="mb-icon-wrap mb-act-check-icon"><i data-lucide="check" class="w-3 h-3 text-gospel-600" aria-hidden="true"></i></div>
+          <span class="mb-act-check-text">Regular visits to orphanages and widows' homes</span>
+        </div>
+        <div class="mb-act-check">
+          <div class="mb-icon-wrap mb-act-check-icon"><i data-lucide="check" class="w-3 h-3 text-gospel-600" aria-hidden="true"></i></div>
+          <span class="mb-act-check-text">Resource drives providing food, clothing and educational materials</span>
+        </div>
+        <div class="mb-act-check">
+          <div class="mb-icon-wrap mb-act-check-icon"><i data-lucide="check" class="w-3 h-3 text-gospel-600" aria-hidden="true"></i></div>
+          <span class="mb-act-check-text">Spiritual encouragement and scripture-based counseling</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-act-img-col mb-reveal">
+    <img src="{% static 'images/hero2.webp' %}"
+         alt="MELBAC students visiting an orphanage, providing care and spiritual support to children"
+         class="mb-act-img"
+         loading="lazy"
+         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+    <div class="mb-act-img-fallback mb-act-img-fallback-2" aria-hidden="true">
+      <div class="mb-icon-wrap w-16 h-16">
+        <i data-lucide="heart-handshake" class="w-7 h-7 text-gospel-600"></i>
+      </div>
+      <span class="mb-font-ui text-xs text-neutral-500">Widows &amp; Orphanage Care</span>
+    </div>
+  </div>
+
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════════════
+     ACTIVITY 3 — CARE FOR THE ELDERLY
+     Image LEFT · Content RIGHT
+     ══════════════════════════════════════════════════════════════════ -->
+<section class="mb-act-section" id="elderly-care" aria-labelledby="elderly-heading">
+
+  <div class="mb-act-img-col mb-reveal">
+    <img src="{% static 'images/hero.webp' %}"
+         alt="MELBAC student reading scripture to an elderly person in an assisted living facility"
+         class="mb-act-img"
+         loading="lazy"
+         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+    <div class="mb-act-img-fallback mb-act-img-fallback-3" aria-hidden="true">
+      <div class="mb-icon-wrap w-16 h-16">
+        <i data-lucide="users" class="w-7 h-7 text-gospel-600"></i>
+      </div>
+      <span class="mb-font-ui text-xs text-neutral-500">Care for the Elderly</span>
+    </div>
+  </div>
+
+  <div class="mb-act-content-col mb-act-content-bg-3">
+    <div class="mb-reveal d1">
+      <div class="mb-act-number" aria-hidden="true">03</div>
+      <p class="mb-eyebrow">Elderly Outreach</p>
+      <h2 id="elderly-heading" class="mb-act-heading">Care for the Elderly</h2>
+      <div class="mb-divider"></div>
+
+      <p class="mb-act-p">Students may provide companionship, read scripture, and offer prayer to elderly individuals in nursing homes or assisted living facilities. They often provide spiritual support to those who are dealing with issues related to the end of life.</p>
+      <p class="mb-act-p">Essentially, our students demonstrate Christian love and compassion through practical service and spiritual support — meeting people at the most vulnerable point of their lives with the grace of God.</p>
+
+      <blockquote class="mb-act-quote">
+        "Rise in the presence of the aged, show respect for the elderly and revere your God."
+        <br><cite class="mb-act-cite">— Leviticus 19:32</cite>
+      </blockquote>
+
+      <div class="mb-act-checks">
+        <div class="mb-act-check">
+          <div class="mb-icon-wrap mb-act-check-icon"><i data-lucide="check" class="w-3 h-3 text-gospel-600" aria-hidden="true"></i></div>
+          <span class="mb-act-check-text">Regular visits to nursing homes and assisted living facilities</span>
+        </div>
+        <div class="mb-act-check">
+          <div class="mb-icon-wrap mb-act-check-icon"><i data-lucide="check" class="w-3 h-3 text-gospel-600" aria-hidden="true"></i></div>
+          <span class="mb-act-check-text">Scripture reading, prayer, and spiritual companionship</span>
+        </div>
+        <div class="mb-act-check">
+          <div class="mb-icon-wrap mb-act-check-icon"><i data-lucide="check" class="w-3 h-3 text-gospel-600" aria-hidden="true"></i></div>
+          <span class="mb-act-check-text">End-of-life spiritual support and pastoral counseling</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+
+<!-- ── HRM STRIP ─────────────────────────────────────────────────── -->
+<div class="mb-hrm-strip">
+  <div class="mb-container mb-hrm-inner">
+    <div class="mb-card mb-hrm-card mb-reveal">
+      <div class="mb-hrm-card-inner">
+        <div class="mb-icon-wrap mb-hrm-icon">
+          <i data-lucide="link-2" class="w-5 h-5 text-gospel-600" aria-hidden="true"></i>
+        </div>
+        <div>
+          <p class="mb-hrm-heading">Help and Reconciliation Ministry</p>
+          <p class="mb-hrm-sub">Wish to know more about admissions and requirements? Visit the parent ministry.</p>
+        </div>
+      </div>
+      <a href="http://www.harmabitrac.org" target="_blank" rel="noopener noreferrer"
+         class="mb-btn mb-btn-primary">
+        <i data-lucide="external-link" class="w-4 h-4" aria-hidden="true"></i>
+        Visit HRM Site
+      </a>
+    </div>
+  </div>
+</div>
+
+
+<!-- ── IMPACT STATS ──────────────────────────────────────────────── -->
+<section class="mb-section mb-impact-section" aria-label="Impact statistics">
+  <div class="mb-container">
+    <h2 class="mb-impact-title mb-reveal">Ministry in Numbers</h2>
+    <div class="mb-impact-grid">
+      <div class="mb-card mb-impact-card mb-reveal d1">
+        <div class="mb-stat-num mb-impact-num">3</div>
+        <div class="mb-impact-label">Ministry Types</div>
+      </div>
+      <div class="mb-card mb-impact-card mb-reveal d2">
+        <div class="mb-stat-num mb-impact-num">2</div>
+        <div class="mb-impact-label">Campuses Active</div>
+      </div>
+      <div class="mb-card mb-impact-card mb-reveal d3">
+        <div class="mb-stat-num mb-impact-num">26<span class="mb-gold-sup">+</span></div>
+        <div class="mb-impact-label">Years of Service</div>
+      </div>
+      <div class="mb-card mb-impact-card mb-reveal d4">
+        <div class="mb-stat-num mb-impact-num">0<span class="mb-gold-sup">₦</span></div>
+        <div class="mb-impact-label">Cost to Students</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ── FINAL CTA ─────────────────────────────────────────────────── -->
+<section class="mb-section mb-bg-cta mb-final-cta" aria-label="Join MELBAC">
+  <div class="mb-container mb-final-cta-inner">
+    <h2 class="mb-reveal">Ready to Serve? Join MELBAC.</h2>
+    <p class="mb-reveal d1">Train as a minister of the Gospel — completely free — and put your faith to work in the lives of others.</p>
+    <div class="mb-final-cta-btns mb-reveal d2">
+      <a href="{% url 'melbac:contact' %}"   class="mb-btn mb-btn-gold">
+        <i data-lucide="send" class="w-4 h-4" aria-hidden="true"></i><span>Apply Now — Free Admission</span>
+      </a>
+      <a href="{% url 'melbac:academics' %}" class="mb-btn mb-btn-white-outline">
+        <i data-lucide="graduation-cap" class="w-4 h-4" aria-hidden="true"></i><span>View Academic Programs</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,277 @@
+{
+  "intents": [
+    {
+      "intent": "greeting",
+      "patterns": [
+        "hi",
+        "hello",
+        "hey",
+        "good morning",
+        "good afternoon",
+        "good evening",
+        "what's up",
+        "howdy",
+        "greetings",
+        "nice to meet you"
+      ],
+      "responses": [
+        "Hello! I'm your MIU Student Life Assistant. How can I help you today?",
+        "Hi there! How can I assist you with your student life questions?",
+        "Greetings! What would you like to know about MIU?"
+      ]
+    },
+
+    {
+      "intent": "about_miu",
+      "patterns": [
+        "what is miu",
+        "tell me about miu",
+        "about miu",
+        "what does miu stand for",
+        "information about miu",
+        "describe miu",
+        "what kind of university is miu",
+        "miu overview",
+        "explain miu to me",
+        "what is melchisedec international university",
+        "history of miu",
+        "when was miu founded",
+        "what is miu known for",
+        "miu background"
+      ],
+      "responses": [
+        "Melchisedec International University (MIU) is a global higher education institution offering undergraduate and postgraduate programs across various disciplines. MIU focuses on flexible learning, innovation, academic excellence, and preparing students for successful global careers."
+      ]
+    },
+
+    {
+      "intent": "miu_location",
+      "patterns": [
+        "where is miu located",
+        "miu location",
+        "where is melchisedec international university",
+        "what country is miu in",
+        "miu address",
+        "where can i find miu",
+        "does miu have a physical campus",
+        "how do i get to miu",
+        "where is the university based",
+        "location of miu campus",
+        "location"
+      ],
+      "responses": [
+        "MIU operates as an international institution serving students globally. You can find official campus and contact location details on the MIU website under the Contact or About section."
+      ]
+    },
+
+    {
+      "intent": "accreditation",
+      "patterns": [
+        "is miu accredited",
+        "miu accreditation status",
+        "is miu recognized",
+        "is miu a legitimate university",
+        "who accredits miu",
+        "is miu approved",
+        "is miu recognized internationally",
+        "accreditation information",
+        "is miu degree valid",
+        "is miu certificate recognized"
+      ],
+      "responses": [
+        "Accreditation and recognition details can be found on MIU�s official website. It is recommended to verify accreditation status directly through official accreditation bodies and the university's published information."
+      ]
+    },
+
+    {
+      "intent": "tuition_fees",
+      "patterns": [
+        "how much is tuition",
+        "miu tuition fees",
+        "cost of studying at miu",
+        "how much does miu cost",
+        "program fees",
+        "price of degree",
+        "tuition per semester",
+        "payment structure",
+        "how much do i pay",
+        "what are the fees"
+      ],
+      "responses": [
+        "Tuition fees vary depending on the program and level of study. For detailed and up-to-date tuition information, please visit the official MIU website or contact the admissions office."
+      ]
+    },
+
+    {
+      "intent": "admissions",
+      "patterns": [
+        "how do i apply",
+        "application process",
+        "admission requirements",
+        "application deadline",
+        "when is the deadline",
+        "what do i need to apply",
+        "how to get admitted",
+        "transfer requirements",
+        "international admission",
+        "scholarship requirements",
+        "application fee",
+        "do you need letters of recommendation",
+        "personal statement",
+        "transcripts",
+        "admissions",
+        "admision",
+        "requirement",
+        "how can i register",
+        "apply for admission",
+        "steps to apply",
+        "online application",
+        "where do i submit application",
+        "how to enroll",
+        "tell me about admissions"
+      ],
+      "responses": [
+        "Our admission process is simple:\n\n1. Complete the online application\n2. Submit official transcripts\n3. Provide 2 letters of recommendation\n4. Write a personal statement\n5. Pay the application fee\n\nDeadlines vary by program. Would you like specific details for a particular program?"
+      ]
+    },
+
+    {
+      "intent": "international_students",
+      "patterns": [
+        "international students",
+        "can international students apply",
+        "visa requirements",
+        "visa requirement",
+        "do you accept foreign students",
+        "study from abroad",
+        "global students",
+        "overseas applicants",
+        "can i apply from another country"
+      ],
+      "responses": [
+        "MIU welcomes international students from around the world. Admission requirements for international applicants may include academic credentials and identification documents. Please check the admissions page for detailed guidance."
+      ]
+    },
+
+    {
+      "intent": "online_learning",
+      "patterns": [
+        "is miu online",
+        "do you offer online classes",
+        "distance learning",
+        "can i study remotely",
+        "virtual learning",
+        "online degree programs",
+        "e-learning options",
+        "study from home",
+        "remote education"
+      ],
+      "responses": [
+        "MIU offers flexible learning options including online and distance education programs, allowing students to study from various locations worldwide."
+      ]
+    },
+
+    {
+      "intent": "contact_information",
+      "patterns": [
+        "contact miu",
+        "miu email",
+        "miu phone number",
+        "how can i contact the university",
+        "customer service",
+        "support email",
+        "call miu",
+        "how do i reach miu",
+        "tell me about support"
+      ],
+      "responses": [
+        "You can find official contact details including email addresses and phone numbers on the MIU website under the Contact section."
+      ]
+    },
+
+    {
+      "intent": "mission_vision",
+      "patterns": [
+        "miu mission",
+        "miu vision",
+        "what is the mission of miu",
+        "university goals",
+        "core values of miu",
+        "what does miu believe in",
+        "educational philosophy",
+        "vision statement"
+      ],
+      "responses": [
+        "MIU�s mission focuses on delivering accessible, high-quality education that empowers students to achieve personal and professional success in a global environment."
+      ]
+    },
+
+    {
+      "intent": "programs",
+      "patterns": [
+        "what programs do you offer",
+        "tell me about courses",
+        "what majors are available",
+        "list of academic programs",
+        "business programs",
+        "computer science courses",
+        "data science degree",
+        "engineering majors",
+        "health sciences programs",
+        "graduate programs",
+        "undergraduate degrees"
+      ],
+      "responses": [
+        "MIU offers a wide range of programs including:\n\n� Business Administration (MBA, BBA)\n� Computer Science (BS, MS)\n� Data Science (MS)\n� Engineering (Civil, Mechanical, Electrical)\n� Health Sciences (Nursing, Public Health)\n\nWhich program are you interested in?"
+      ]
+    },
+
+    {
+      "intent": "campus_life",
+      "patterns": [
+        "campus life",
+        "student activities",
+        "clubs and organizations",
+        "what is there to do on campus",
+        "student clubs",
+        "online library",
+        "career services",
+        "academic counseling",
+        "student support services",
+        "events on campus",
+        "sports and recreation"
+      ],
+      "responses": [
+        "MIU offers a vibrant virtual campus experience with:\n\n� 24/7 online library access\n� Virtual student clubs\n� Career services (resume workshops and job fairs)\n� Academic counseling\n� Weekly virtual events and webinars\n\nWhat aspect of campus life would you like to explore?"
+      ]
+    },
+
+    {
+      "intent": "support",
+      "patterns": [
+        "i need help",
+        "technical support",
+        "help desk",
+        "tutoring services",
+        "writing center",
+        "career counseling",
+        "academic advising",
+        "student services",
+        "mental health resources",
+        "financial aid help",
+        "registration assistance"
+      ],
+      "responses": [
+        "We provide comprehensive student support including technical help desk, academic advising, tutoring services, writing support, career counseling, and wellness resources. How can we assist you today?"
+      ]
+    },
+
+    {
+      "intent": "fallback",
+      "patterns": [],
+      "responses": [
+        "I'm sorry, I didn't quite understand that. Please ask about programs, admissions, tuition, campus life, or student support."
+      ]
+    }
+  ]
+}

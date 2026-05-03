@@ -1,0 +1,158 @@
+{% extends "management/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - MIU Student Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-12xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <!-- Back link -->
+    <div class="mb-6">
+        <a href="{% url 'students:inbox' %}"
+           class="inline-flex items-center text-primary-600 hover:text-primary-800 text-sm font-medium">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Inbox
+        </a>
+    </div>
+
+    <div class="mb-8">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Compose Message</h1>
+        <p class="text-gray-500 mt-1 text-sm">Send a message to an instructor or support staff</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Form card -->
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <form method="post" novalidate class="space-y-5">
+                {% csrf_token %}
+
+                <!-- Recipient -->
+                <div>
+                    <label for="recipient-search"
+                           class="block text-sm font-medium text-gray-700 mb-1.5">
+                        Recipient <span class="text-red-500">*</span>
+                    </label>
+
+                    <!-- Visible search input -->
+                    <input type="text"
+                           id="recipient-search"
+                           list="recipient-list"
+                           placeholder="Search by name or role..."
+                           autocomplete="off"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg
+                                  focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                                  text-sm"
+                           oninput="syncRecipient(this.value)">
+
+                    <!-- Datalist options: value is display text, data holds the ID -->
+                    <datalist id="recipient-list">
+                        {% for user in form.recipient.field.queryset %}
+                        <option value="{{ user.get_full_name|default:user.username }} — {{ user.profile.get_role_display|default:user.profile.role|capfirst }}"
+                                data-id="{{ user.pk }}">
+                        </option>
+                        {% endfor %}
+                    </datalist>
+
+                    <!-- Hidden field that actually submits the user ID -->
+                    {{ form.recipient }}
+
+                    {% if form.recipient.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ form.recipient.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Subject -->
+                <div>
+                    <label for="{{ form.subject.id_for_label }}"
+                           class="block text-sm font-medium text-gray-700 mb-1.5">
+                        Subject <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.subject }}
+                    {% if form.subject.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ form.subject.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Body -->
+                <div>
+                    <label for="{{ form.body.id_for_label }}"
+                           class="block text-sm font-medium text-gray-700 mb-1.5">
+                        Message <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.body }}
+                    {% if form.body.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ form.body.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Actions -->
+                <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                    <button type="submit"
+                            class="px-8 py-3 bg-primary-600 text-white rounded-lg
+                                   hover:bg-primary-700 font-semibold text-sm transition-all
+                                   focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        <i class="fas fa-paper-plane mr-2"></i>Send Message
+                    </button>
+                    <a href="{% url 'students:inbox' %}"
+                       class="px-8 py-3 bg-gray-100 text-gray-700 text-center rounded-lg
+                              hover:bg-gray-200 font-medium text-sm transition-all">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tips sidebar -->
+        <div class="space-y-4">
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-5">
+                <h3 class="font-semibold text-blue-900 mb-3 flex items-center gap-2 text-sm">
+                    <i class="fas fa-lightbulb text-blue-500"></i>Tips
+                </h3>
+                <ul class="space-y-2 text-sm text-blue-800">
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check-circle text-blue-500 mt-0.5 flex-shrink-0 text-xs"></i>
+                        Be specific in your subject line
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check-circle text-blue-500 mt-0.5 flex-shrink-0 text-xs"></i>
+                        Mention the course name if relevant
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check-circle text-blue-500 mt-0.5 flex-shrink-0 text-xs"></i>
+                        Allow 1–2 business days for a reply
+                    </li>
+                </ul>
+            </div>
+
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-5">
+                <h3 class="font-semibold text-amber-900 mb-2 flex items-center gap-2 text-sm">
+                    <i class="fas fa-bolt text-amber-500"></i>Need urgent help?
+                </h3>
+                <p class="text-sm text-amber-800 mb-3">
+                    Submit a support ticket for faster assistance.
+                </p>
+                <a href="{% url 'students:help_support' %}"
+                   class="text-sm font-semibold text-amber-700 hover:text-amber-900 transition-colors
+                          flex items-center gap-1">
+                    Go to Help &amp; Support <i class="fas fa-arrow-right text-xs"></i>
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+function syncRecipient(selectedText) {
+    var options = document.querySelectorAll('#recipient-list option');
+    var hiddenInput = document.querySelector('input[name="recipient"]');
+    for (var i = 0; i < options.length; i++) {
+        if (options[i].value === selectedText) {
+            hiddenInput.value = options[i].dataset.id;
+            return;
+        }
+    }
+    hiddenInput.value = '';
+}
+</script>
+{% endblock %}

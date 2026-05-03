@@ -1,0 +1,279 @@
+{% extends "library/base.html" %}
+{% load static %}
+
+{% block title %}{{ category_name }} – Library – {{ site_config.school_name }}{% endblock %}
+{% block meta_description %}{{ category_description|truncatewords:30 }}{% endblock %}
+{% block og_title %}{{ category_name }} – {{ site_config.school_name }} Library{% endblock %}
+{% block og_description %}{{ category_description|truncatewords:30 }}{% endblock %}
+
+{% block content %}
+
+{# ── Hero ── #}
+<section class="bg-[#0d0d1a] relative overflow-hidden" aria-labelledby="cat-heading">
+  <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+    <div class="absolute -top-16 -left-16 w-72 h-72 rounded-full bg-gospel-700/20 blur-3xl"></div>
+    <div class="absolute bottom-0 right-0 w-64 h-64 rounded-full bg-gold-500/10 blur-3xl"></div>
+  </div>
+  <div class="mb-container relative z-10 py-12 md:py-16">
+    <p class="mb-font-ui text-gold-400 text-xs font-semibold tracking-widest uppercase mb-2">Library</p>
+    <h1 id="cat-heading" class="mb-font-heading text-white text-3xl md:text-4xl font-bold mb-3">{{ category_name }}</h1>
+    {% if category_description %}
+    <p class="mb-font-body text-neutral-300 text-base md:text-lg max-w-xl leading-relaxed">{{ category_description }}</p>
+    {% endif %}
+    <p class="mb-font-ui text-neutral-400 text-sm mt-3">
+      <span>{{ total_count }} item{{ total_count|pluralize }}</span>
+    </p>
+  </div>
+</section>
+
+{# ── Sticky filter bar ── #}
+<div class="border-b border-neutral-200 bg-white sticky top-16 md:top-[68px] z-30 shadow-sm">
+  <div class="mb-container">
+
+    {# Breadcrumb #}
+    <nav class="flex items-center gap-2 mb-font-ui text-xs text-neutral-500 py-2.5 border-b border-neutral-100"
+         aria-label="Breadcrumb">
+      <a href="{% url 'library:home' %}" class="hover:text-gospel-600 transition-colors">Home</a>
+      <svg class="w-3 h-3 text-neutral-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      <a href="{% url 'library:home' %}" class="hover:text-gospel-600 transition-colors">Library</a>
+      <svg class="w-3 h-3 text-neutral-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      <span class="text-gospel-600 font-semibold" aria-current="page">{{ category_name }}</span>
+    </nav>
+
+    {# Filter & search row #}
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3 py-3">
+
+      {# ── Subcategory slider with arrow buttons ── #}
+      <div class="flex-1 min-w-0 relative" id="sub-slider-wrap">
+
+        {# Left arrow — hidden when at start #}
+        <button id="sub-prev"
+                class="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 flex items-center justify-center bg-white border border-neutral-200 rounded-full shadow-sm text-neutral-500 hover:text-gospel-600 hover:border-gospel-300 transition-all hidden"
+                aria-label="Scroll subcategories left">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </button>
+
+        {# Scrollable pill track #}
+        <div id="sub-track"
+             class="flex items-center gap-2 overflow-x-auto scroll-smooth"
+             style="scrollbar-width:none;-ms-overflow-style:none;"
+             role="tablist"
+             aria-label="Filter by subcategory">
+
+          <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}sub=all"
+             role="tab"
+             aria-selected="{% if not active_sub or active_sub == 'all' %}true{% else %}false{% endif %}"
+             class="mb-font-ui text-xs font-semibold px-3 py-1.5 rounded-full whitespace-nowrap transition-colors shrink-0
+                    {% if not active_sub or active_sub == 'all' %}bg-gospel-600 text-white{% else %}bg-neutral-100 text-neutral-600 hover:bg-neutral-200{% endif %}">
+            All <span class="{% if not active_sub or active_sub == 'all' %}opacity-70{% else %}opacity-60{% endif %} font-normal">({{ total_count }})</span>
+          </a>
+
+          {% for sub in subcategories %}
+          <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}sub={{ sub.slug }}"
+             role="tab"
+             aria-selected="{% if active_sub == sub.slug %}true{% else %}false{% endif %}"
+             class="mb-font-ui text-xs font-semibold px-3 py-1.5 rounded-full whitespace-nowrap transition-colors shrink-0
+                    {% if active_sub == sub.slug %}bg-gospel-600 text-white{% else %}bg-neutral-100 text-neutral-600 hover:bg-neutral-200{% endif %}">
+            {{ sub.name }} <span class="{% if active_sub == sub.slug %}opacity-70{% else %}opacity-60{% endif %} font-normal">({{ sub.count }})</span>
+          </a>
+          {% endfor %}
+        </div>
+
+        {# Right arrow — hidden when at end #}
+        <button id="sub-next"
+                class="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 flex items-center justify-center bg-white border border-neutral-200 rounded-full shadow-sm text-neutral-500 hover:text-gospel-600 hover:border-gospel-300 transition-all hidden"
+                aria-label="Scroll subcategories right">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </div>
+
+      {# Search within category #}
+      <form method="get" class="flex gap-2 shrink-0" role="search" aria-label="Filter within {{ category_name }}">
+        {% if active_sub and active_sub != 'all' %}<input type="hidden" name="sub" value="{{ active_sub }}">{% endif %}
+        <div class="relative">
+          <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+          </svg>
+          <label for="cat-search-input" class="sr-only">Search within {{ category_name }}</label>
+          <input id="cat-search-input"
+                 type="search" name="q" value="{{ request.GET.q }}" placeholder="Filter…"
+                 class="pl-8 pr-3 py-1.5 rounded-lg border border-neutral-200 bg-neutral-50 mb-font-ui text-xs focus:outline-none focus:ring-2 focus:ring-gospel-400 w-36 sm:w-44 md:w-52 transition">
+        </div>
+        <button type="submit"
+                class="px-3 py-1.5 bg-gospel-600 text-white rounded-lg mb-font-ui text-xs font-semibold hover:bg-gospel-700 transition-colors">
+          Go
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{# ── Main content ── #}
+<main class="bg-white py-8 md:py-12" id="main-content">
+  <div class="mb-container">
+
+    {% if not groups %}
+    {# Empty state #}
+    <div class="text-center py-20">
+      <svg class="w-12 h-12 text-neutral-300 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+      </svg>
+      <p class="mb-font-heading text-neutral-400 text-lg">No results found</p>
+      <p class="mb-font-body text-neutral-400 text-sm mt-1">Try a different search term or clear the filter.</p>
+      <a href="{% url 'library:category' category_slug %}"
+         class="inline-block mt-4 mb-font-ui text-sm text-gospel-600 hover:underline font-semibold">
+        Clear filters →
+      </a>
+    </div>
+
+    {% else %}
+    {# ── Flat catalogue list — no wasted grid columns per-subcategory ── #}
+    <div class="divide-y divide-neutral-100 border border-neutral-200 rounded-2xl overflow-hidden">
+      {% for group in groups %}
+        {% for item in group.items %}
+        <a href="{% url 'library:detail' item.slug %}"
+           class="group flex items-center gap-3 sm:gap-4 px-4 py-3.5 sm:py-4 bg-white hover:bg-gospel-50/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gospel-500"
+           aria-label="{{ item.title }}{% if item.author %} by {{ item.author }}{% endif %}">
+
+          {# Thumbnail / file icon #}
+          <div class="shrink-0 w-10 h-12 sm:w-12 sm:h-14 rounded-lg bg-gradient-to-br from-gospel-50 to-neutral-100 border border-neutral-100 flex items-center justify-center overflow-hidden" aria-hidden="true">
+            {% if item.cover_image %}
+              <img src="{{ item.cover_image.url }}" alt="" class="w-full h-full object-cover" loading="lazy">
+            {% elif item.file_type == 'pdf' %}
+              <svg class="w-5 h-5 text-red-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+            {% elif item.file_type == 'epub' %}
+              <svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253"/></svg>
+            {% elif item.file_type == 'docx' or item.file_type == 'doc' %}
+              <svg class="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            {% else %}
+              <svg class="w-5 h-5 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+            {% endif %}
+          </div>
+
+          {# Main text #}
+          <div class="flex-1 min-w-0">
+            <div class="flex flex-wrap items-center gap-1.5 mb-0.5">
+              <span class="mb-font-ui text-[10px] font-semibold bg-gospel-50 text-gospel-600 border border-gospel-100 rounded-full px-2 py-0.5 uppercase tracking-wider">{{ group.name }}</span>
+              {% if item.featured %}
+              <span class="mb-font-ui text-[10px] font-semibold bg-gold-100 text-gold-700 rounded-full px-2 py-0.5 uppercase tracking-wider">★ Featured</span>
+              {% endif %}
+              {% if item.access == 'members' %}
+              <span class="mb-font-ui text-[10px] font-semibold bg-gospel-600 text-white rounded-full px-2 py-0.5 uppercase tracking-wider">Members</span>
+              {% endif %}
+            </div>
+            <h3 class="mb-font-heading text-[#1a1a2e] text-sm sm:text-base font-semibold leading-snug group-hover:text-gospel-700 transition-colors line-clamp-1">
+              {{ item.title }}
+            </h3>
+            {% if item.author %}
+            <p class="mb-font-body text-neutral-500 text-xs mt-0.5 line-clamp-1">
+              {{ item.author }}{% if item.year %} · {{ item.year }}{% endif %}
+            </p>
+            {% endif %}
+          </div>
+
+          {# Right meta — hidden on xs, visible sm+ #}
+          <div class="hidden sm:flex flex-col items-end gap-1 shrink-0 text-right" aria-hidden="true">
+            <span class="mb-font-ui text-[10px] text-neutral-400 uppercase">{{ item.file_type|default:"—" }}{% if item.file_size_display %} · {{ item.file_size_display }}{% endif %}</span>
+            <div class="flex gap-1.5">
+              {% if item.allow_download and item.has_file %}
+              <span title="Downloadable"><svg class="w-3 h-3 text-gospel-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></span>
+              {% endif %}
+              {% if item.allow_read_online and item.has_file %}
+              <span title="Read online"><svg class="w-3 h-3 text-gospel-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg></span>
+              {% endif %}
+              {% if item.has_external_url %}
+              <span title="External link"><svg class="w-3 h-3 text-gospel-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></span>
+              {% endif %}
+            </div>
+          </div>
+
+          {# Chevron #}
+          <svg class="w-4 h-4 text-neutral-300 group-hover:text-gospel-400 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </a>
+        {% endfor %}
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {# ── Pagination ── #}
+    {% if page_obj.has_other_pages %}
+    <nav class="mt-12 flex items-center justify-center gap-1" aria-label="Pagination">
+      {% if page_obj.has_previous %}
+      <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if active_sub and active_sub != 'all' %}sub={{ active_sub }}&{% endif %}page={{ page_obj.previous_page_number }}"
+         class="w-9 h-9 flex items-center justify-center rounded-lg border border-neutral-200 hover:bg-neutral-50 mb-font-ui text-sm text-neutral-600 transition-colors"
+         aria-label="Previous page">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      </a>
+      {% endif %}
+
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <span class="w-9 h-9 flex items-center justify-center rounded-lg bg-gospel-600 text-white mb-font-ui text-sm font-semibold" aria-current="page">{{ num }}</span>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if active_sub and active_sub != 'all' %}sub={{ active_sub }}&{% endif %}page={{ num }}"
+           class="w-9 h-9 flex items-center justify-center rounded-lg border border-neutral-200 hover:bg-neutral-50 mb-font-ui text-sm text-neutral-600 transition-colors"
+           aria-label="Page {{ num }}">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+      <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if active_sub and active_sub != 'all' %}sub={{ active_sub }}&{% endif %}page={{ page_obj.next_page_number }}"
+         class="w-9 h-9 flex items-center justify-center rounded-lg border border-neutral-200 hover:bg-neutral-50 mb-font-ui text-sm text-neutral-600 transition-colors"
+         aria-label="Next page">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </a>
+      {% endif %}
+    </nav>
+    {% endif %}
+
+  </div>
+</main>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  'use strict';
+
+  // ── Subcategory slider arrows ─────────────────────────────
+  var track = document.getElementById('sub-track');
+  var prev  = document.getElementById('sub-prev');
+  var next  = document.getElementById('sub-next');
+
+  if (!track || !prev || !next) return;
+
+  function updateArrows() {
+    var atStart = track.scrollLeft <= 4;
+    var atEnd   = track.scrollLeft + track.clientWidth >= track.scrollWidth - 4;
+    prev.classList.toggle('hidden', atStart);
+    next.classList.toggle('hidden', atEnd);
+    // Also add left/right padding so content doesn't hide behind arrows
+    track.style.paddingLeft  = atStart ? '0'     : '2rem';
+    track.style.paddingRight = atEnd   ? '0'     : '2rem';
+  }
+
+  prev.addEventListener('click', function () {
+    track.scrollBy({ left: -200, behavior: 'smooth' });
+  });
+  next.addEventListener('click', function () {
+    track.scrollBy({ left: 200, behavior: 'smooth' });
+  });
+  track.addEventListener('scroll', updateArrows, { passive: true });
+
+  // Scroll active pill into view on load
+  var active = track.querySelector('[aria-selected="true"]');
+  if (active) {
+    active.scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'center' });
+  }
+
+  // Initial state check (run after layout)
+  requestAnimationFrame(updateArrows);
+  window.addEventListener('resize', updateArrows, { passive: true });
+})();
+</script>
+{% endblock %}

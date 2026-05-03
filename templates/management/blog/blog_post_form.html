@@ -1,0 +1,267 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}{{ action }} Blog Post - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <div class="flex items-center gap-3 mb-2">
+        <a href="{% url 'management:blog_posts_list' %}" 
+           class="text-gray-600 hover:text-gray-900 transition-colors">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <h1 class="text-3xl font-bold text-gray-900 font-display">{{ action }} Blog Post</h1>
+    </div>
+    <p class="text-gray-600">Fill in the details below to {{ action|lower }} a blog post</p>
+</div>
+
+<form method="POST" enctype="multipart/form-data" class="space-y-6">
+    {% csrf_token %}
+    
+    <!-- Basic Information -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <i class="fas fa-info-circle text-primary-600"></i>
+            Basic Information
+        </h2>
+        
+        <div class="grid grid-cols-1 gap-6">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Title <span class="text-red-500">*</span>
+                </label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.title.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Subtitle
+                </label>
+                {{ form.subtitle }}
+                {% if form.subtitle.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.subtitle.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Excerpt <span class="text-red-500">*</span>
+                </label>
+                {{ form.excerpt }}
+                <p class="text-sm text-gray-500 mt-1">Short summary that appears in post previews (max 500 characters)</p>
+                {% if form.excerpt.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.excerpt.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Content <span class="text-red-500">*</span>
+                </label>
+                {{ form.content }}
+                <p class="text-sm text-gray-500 mt-1">Full post content. You can use HTML for formatting.</p>
+                {% if form.content.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.content.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Categorization -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <i class="fas fa-tags text-primary-600"></i>
+            Categorization
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Category <span class="text-red-500">*</span>
+                </label>
+                {{ form.category }}
+                {% if form.category.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.category.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Tags
+                </label>
+                {{ form.tags_text }}
+                <p class="text-sm text-gray-500 mt-1">Enter tags separated by commas</p>
+                {% if form.tags_text.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.tags_text.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Author Information -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <i class="fas fa-user text-primary-600"></i>
+            Author Information
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Author Name <span class="text-red-500">*</span>
+                </label>
+                {{ form.author_name }}
+                {% if form.author_name.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.author_name.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Author Title
+                </label>
+                {{ form.author_title }}
+                {% if form.author_title.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.author_title.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Featured Image -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <i class="fas fa-image text-primary-600"></i>
+            Featured Image
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Upload Image
+                </label>
+                {{ form.featured_image }}
+                <p class="text-sm text-gray-500 mt-1">Recommended size: 1200x630px</p>
+                {% if post.featured_image %}
+                <div class="mt-3">
+                    <img src="{{ post.featured_image.url }}" alt="Current image" class="w-48 h-auto rounded-lg border border-gray-300">
+                    <p class="text-sm text-gray-500 mt-1">Current image</p>
+                </div>
+                {% endif %}
+                {% if form.featured_image.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.featured_image.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Image Alt Text
+                </label>
+                {{ form.featured_image_alt }}
+                <p class="text-sm text-gray-500 mt-1">Describe the image for accessibility</p>
+                {% if form.featured_image_alt.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.featured_image_alt.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Publishing Settings -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <i class="fas fa-calendar text-primary-600"></i>
+            Publishing Settings
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Status <span class="text-red-500">*</span>
+                </label>
+                {{ form.status }}
+                {% if form.status.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.status.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Publish Date <span class="text-red-500">*</span>
+                </label>
+                {{ form.publish_date }}
+                {% if form.publish_date.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.publish_date.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Read Time (minutes)
+                </label>
+                {{ form.read_time }}
+                {% if form.read_time.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.read_time.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="mt-6">
+            <label class="flex items-center gap-3">
+                {{ form.is_featured }}
+                <span class="text-sm font-semibold text-gray-700">
+                    Mark as Featured Post
+                </span>
+            </label>
+            <p class="text-sm text-gray-500 ml-8">Featured posts appear at the top of the blog page</p>
+        </div>
+    </div>
+    
+    <!-- SEO Settings -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <i class="fas fa-search text-primary-600"></i>
+            SEO Settings
+        </h2>
+        
+        <div class="grid grid-cols-1 gap-6">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Meta Description
+                </label>
+                {{ form.meta_description }}
+                <p class="text-sm text-gray-500 mt-1">Brief description for search engines (max 160 characters)</p>
+                {% if form.meta_description.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.meta_description.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Meta Keywords
+                </label>
+                {{ form.meta_keywords }}
+                <p class="text-sm text-gray-500 mt-1">Keywords for SEO (comma-separated)</p>
+                {% if form.meta_keywords.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.meta_keywords.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="flex gap-4">
+        <button type="submit" 
+                class="px-8 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold hover:shadow-xl transition-all duration-300">
+            <i class="fas fa-save mr-2"></i>
+            {{ action }} Post
+        </button>
+        <a href="{% url 'management:blog_posts_list' %}" 
+           class="px-8 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
+            Cancel
+        </a>
+    </div>
+</form>
+{% endblock %}

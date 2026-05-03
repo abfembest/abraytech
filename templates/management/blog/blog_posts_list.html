@@ -1,0 +1,209 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Blog Posts - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 font-display">Blog Posts</h1>
+            <p class="text-gray-600 mt-1">Manage all blog posts and articles</p>
+        </div>
+        <a href="{% url 'management:blog_post_create' %}" 
+           class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold hover:shadow-xl transition-all duration-300">
+            <i class="fas fa-plus"></i>
+            Add New Post
+        </a>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-600 mb-1">Total Posts</p>
+                <p class="text-2xl font-bold text-gray-900">{{ posts.count }}</p>
+            </div>
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-newspaper text-blue-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-600 mb-1">Published</p>
+                <p class="text-2xl font-bold text-green-600">{{ posts|length }}</p>
+            </div>
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-600 mb-1">Drafts</p>
+                <p class="text-2xl font-bold text-orange-600">0</p>
+            </div>
+            <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-edit text-orange-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-600 mb-1">Featured</p>
+                <p class="text-2xl font-bold text-purple-600">0</p>
+            </div>
+            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-star text-purple-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Posts Table -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="p-6 border-b border-gray-200">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="flex-1 max-w-md">
+                <input type="search" placeholder="Search posts..." 
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+            </div>
+            <div class="flex gap-3">
+                <select class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white">
+                    <option value="">All Status</option>
+                    <option value="published">Published</option>
+                    <option value="draft">Draft</option>
+                    <option value="archived">Archived</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Post</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Category</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Author</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Views</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Published</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for post in posts %}
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-4">
+                            {% if post.featured_image %}
+                            <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" 
+                                 class="w-16 h-16 rounded-lg object-cover">
+                            {% else %}
+                            <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-image text-gray-400"></i>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <p class="font-semibold text-gray-900">{{ post.title|truncatechars:50 }}</p>
+                                {% if post.is_featured %}
+                                <span class="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-semibold mt-1">
+                                    <i class="fas fa-star"></i> Featured
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if post.category %}
+                        <span class="px-3 py-1 bg-{{ post.category.color }}-100 text-{{ post.category.color }}-700 rounded-full text-sm font-semibold">
+                            {{ post.category.name }}
+                        </span>
+                        {% else %}
+                        <span class="text-gray-400">No category</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">
+                        <p class="text-sm text-gray-900">{{ post.author_name }}</p>
+                        {% if post.author_title %}
+                        <p class="text-xs text-gray-500">{{ post.author_title }}</p>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if post.status == 'published' %}
+                        <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
+                            <i class="fas fa-check-circle"></i> Published
+                        </span>
+                        {% elif post.status == 'draft' %}
+                        <span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-semibold">
+                            <i class="fas fa-edit"></i> Draft
+                        </span>
+                        {% else %}
+                        <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-semibold">
+                            <i class="fas fa-archive"></i> Archived
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-2 text-gray-600">
+                            <i class="fas fa-eye"></i>
+                            <span class="font-semibold">{{ post.views_count }}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-600">
+                        {{ post.publish_date|date:"M d, Y" }}
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-2">
+                            <a href="{% url 'eduweb:blog_detail' post.slug %}" target="_blank"
+                               class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" 
+                               title="View Post">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'management:blog_post_edit' post.pk %}" 
+                               class="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors" 
+                               title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form method="POST" action="{% url 'management:blog_post_delete' post.pk %}" 
+                                  onsubmit="return confirm('Are you sure you want to delete this post?');" 
+                                  class="inline">
+                                {% csrf_token %}
+                                <button type="submit" 
+                                        class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" 
+                                        title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="px-6 py-12 text-center">
+                        <div class="flex flex-col items-center gap-3">
+                            <i class="fas fa-newspaper text-gray-300 text-5xl"></i>
+                            <p class="text-gray-500 text-lg">No blog posts found</p>
+                            <a href="{% url 'management:blog_post_create' %}" 
+                               class="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+                                Create Your First Post
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

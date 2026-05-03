@@ -1,0 +1,973 @@
+{% extends 'management/base.html' %}
+
+{% block title %}Broadcast Center - MIU Portal{% endblock %}
+{% block breadcrumb %}Broadcast Center{% endblock %}
+
+{% block content %}
+<div class="p-6">
+    <!-- Page Header -->
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 font-display">Broadcast Center</h1>
+            <p class="text-gray-600 mt-1">Send bulk emails to filtered recipients</p>
+        </div>
+        <a href="{% url 'management:broadcast_create' %}" 
+           class="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all shadow-lg hover:shadow-xl">
+            <i class="fas fa-plus mr-2"></i>
+            Create Broadcast
+        </a>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <!-- Total Broadcasts -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Broadcasts</p>
+                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ broadcasts.count }}</p>
+                </div>
+                <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-bullhorn text-primary-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sent -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Sent</p>
+                    <p class="text-2xl font-bold text-green-600 mt-1">{{ sent_count }}</p>
+                </div>
+                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Draft -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Drafts</p>
+                    <p class="text-2xl font-bold text-yellow-600 mt-1">{{ draft_count }}</p>
+                </div>
+                <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-file-alt text-yellow-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Failed -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Failed</p>
+                    <p class="text-2xl font-bold text-red-600 mt-1">{{ failed_count }}</p>
+                </div>
+                <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-exclamation-circle text-red-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Broadcasts Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-xl font-bold text-gray-900 font-display">All Broadcasts</h2>
+        </div>
+
+        <div class="overflow-x-auto p-5">
+            <table id="broadcastsTable" class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Subject</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Filter Type</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Recipients</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Created</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for broadcast in broadcasts %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-envelope text-gray-400 mr-3"></i>
+                                <div>
+                                    <p class="font-medium text-gray-900">{{ broadcast.subject }}</p>
+                                    <p class="text-sm text-gray-500">By {{ broadcast.created_by.get_full_name|default:broadcast.created_by.username }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                <i class="fas fa-filter mr-1"></i>
+                                {{ broadcast.get_filter_type_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-users text-gray-400 mr-2"></i>
+                                <span class="font-medium text-gray-900">{{ broadcast.recipient_count }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if broadcast.status == 'sent' %}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <i class="fas fa-check-circle mr-1"></i>
+                                Sent
+                            </span>
+                            {% elif broadcast.status == 'draft' %}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                <i class="fas fa-file-alt mr-1"></i>
+                                Draft
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                <i class="fas fa-exclamation-circle mr-1"></i>
+                                Failed
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900">{{ broadcast.created_at|date:"M d, Y" }}</div>
+                            <div class="text-xs text-gray-500">{{ broadcast.created_at|time:"g:i A" }}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center space-x-2">
+                                <button onclick="openViewModal({{ broadcast.id }})" 
+                                   class="inline-flex items-center px-3 py-1.5 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-all"
+                                   title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                {% if broadcast.status == 'draft' %}
+                                <a href="{% url 'management:broadcast_edit' broadcast.slug %}" 
+                                   class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-all"
+                                   title="Edit Broadcast">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button onclick="openSendModal('{{ broadcast.slug }}', '{{ broadcast.subject }}', {{ broadcast.recipient_count }})" 
+                                   class="inline-flex items-center px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-all"
+                                   title="Send Broadcast">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                                {% endif %}
+                                <button onclick="openDeleteModal('{{ broadcast.slug }}', '{{ broadcast.subject }}', {{ broadcast.recipient_count }})" 
+                                   class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-all"
+                                   title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- View Details Modal - Enhanced -->
+<div id="viewModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+        <!-- Modal Header -->
+        <div class="bg-gradient-to-r from-primary-500 to-secondary-500 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-2xl font-bold text-white flex items-center">
+                        <i class="fas fa-bullhorn mr-3"></i>
+                        Broadcast Details
+                    </h3>
+                    <p class="text-primary-100 text-sm mt-1">Complete broadcast information and analytics</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button id="viewModalEditBtn" onclick="editFromModal()" 
+                            class="hidden px-4 py-2 bg-white text-primary-600 rounded-lg hover:bg-gray-100 transition-all font-medium shadow-lg">
+                        <i class="fas fa-edit mr-2"></i>
+                        Edit
+                    </button>
+                    <button onclick="closeViewModal()" class="text-white hover:text-gray-200 transition-colors">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-6 space-y-6">
+            <!-- Quick Stats Bar -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-blue-600 uppercase">Status</p>
+                            <div id="viewStatusQuick" class="mt-1"></div>
+                        </div>
+                        <div class="w-10 h-10 bg-blue-200 rounded-full flex items-center justify-center">
+                            <i id="viewStatusIcon" class="text-blue-600 text-lg"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-green-600 uppercase">Recipients</p>
+                            <p id="viewRecipientCountQuick" class="text-2xl font-bold text-green-900 mt-1">0</p>
+                        </div>
+                        <div class="w-10 h-10 bg-green-200 rounded-full flex items-center justify-center">
+                            <i class="fas fa-users text-green-600 text-lg"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-purple-600 uppercase">Filter Type</p>
+                            <p id="viewFilterTypeQuick" class="text-sm font-bold text-purple-900 mt-1">-</p>
+                        </div>
+                        <div class="w-10 h-10 bg-purple-200 rounded-full flex items-center justify-center">
+                            <i class="fas fa-filter text-purple-600 text-lg"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-orange-600 uppercase">Created</p>
+                            <p id="viewCreatedAtQuick" class="text-xs font-bold text-orange-900 mt-1">-</p>
+                        </div>
+                        <div class="w-10 h-10 bg-orange-200 rounded-full flex items-center justify-center">
+                            <i class="fas fa-clock text-orange-600 text-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Sections -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Left Column -->
+                <div class="space-y-6">
+                    <!-- Subject & Message Card -->
+                    <div class="bg-white border-2 border-gray-200 rounded-xl overflow-hidden">
+                        <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                            <h4 class="font-bold text-gray-900 flex items-center">
+                                <i class="fas fa-envelope-open-text text-primary-600 mr-2"></i>
+                                Email Content
+                            </h4>
+                        </div>
+                        <div class="p-4 space-y-4">
+                            <div>
+                                <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Subject Line</label>
+                                <p id="viewSubject" class="text-lg font-bold text-gray-900 mt-1"></p>
+                            </div>
+                            <div>
+                                <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Message Body</label>
+                                <div id="viewMessage" class="mt-2 p-4 bg-gray-50 rounded-lg border border-gray-200 text-gray-700 text-sm whitespace-pre-wrap max-h-64 overflow-y-auto"></div>
+                                <div class="mt-2 flex items-center justify-between text-xs text-gray-500">
+                                    <span id="viewMessageLength">0 characters</span>
+                                    <span id="viewMessageWords">0 words</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter Configuration Card -->
+                    <div class="bg-white border-2 border-gray-200 rounded-xl overflow-hidden">
+                        <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                            <h4 class="font-bold text-gray-900 flex items-center">
+                                <i class="fas fa-sliders-h text-blue-600 mr-2"></i>
+                                Filter Configuration
+                            </h4>
+                        </div>
+                        <div class="p-4 space-y-4">
+                            <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                                <div>
+                                    <p class="text-xs font-semibold text-blue-600 uppercase">Selected Filter</p>
+                                    <p id="viewFilterType" class="text-lg font-bold text-blue-900 mt-1"></p>
+                                </div>
+                                <i class="fas fa-filter text-blue-400 text-2xl"></i>
+                            </div>
+                            
+                            <!-- Filter Values -->
+                            <div id="viewFilterValues" class="hidden">
+                                <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-2">
+                                    Applied Filters
+                                </label>
+                                <div id="viewFilterValuesList" class="flex flex-wrap gap-2"></div>
+                            </div>
+                            
+                            <!-- All Users Notice -->
+                            <div id="viewAllUsersNotice" class="hidden bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
+                                <p class="text-sm text-blue-800">
+                                    <i class="fas fa-globe mr-2"></i>
+                                    Targeting all active users in the system
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="space-y-6">
+                    <!-- Recipients Table Card -->
+                    <div class="bg-white border-2 border-gray-200 rounded-xl overflow-hidden">
+                        <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h4 class="font-bold text-gray-900 flex items-center">
+                                    <i class="fas fa-users text-green-600 mr-2"></i>
+                                    Recipient List
+                                    <span id="viewRecipientBadge" class="ml-2 px-2 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full">0</span>
+                                </h4>
+                                <button onclick="copyEmails()" class="text-xs text-blue-600 hover:text-blue-800 font-semibold">
+                                    <i class="fas fa-copy mr-1"></i>Copy All
+                                </button>
+                            </div>
+                        </div>
+                        <div class="border border-gray-200 rounded-b-xl overflow-hidden">
+                            <div class="max-h-96 overflow-y-auto">
+                                <table class="w-full">
+                                    <thead class="bg-gray-100 sticky top-0">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase w-16">#</th>
+                                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Email Address</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="viewRecipientsList" class="divide-y divide-gray-200 bg-white">
+                                        <!-- Populated via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Metadata Card -->
+                    <div class="bg-white border-2 border-gray-200 rounded-xl overflow-hidden">
+                        <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                            <h4 class="font-bold text-gray-900 flex items-center">
+                                <i class="fas fa-info-circle text-gray-600 mr-2"></i>
+                                Broadcast Metadata
+                            </h4>
+                        </div>
+                        <div class="p-4 space-y-3">
+                            <div class="flex items-start p-3 bg-gray-50 rounded-lg">
+                                <i class="fas fa-user text-gray-400 mt-1 mr-3"></i>
+                                <div class="flex-1">
+                                    <p class="text-xs font-semibold text-gray-500 uppercase">Created By</p>
+                                    <p id="viewCreatedBy" class="text-sm font-bold text-gray-900 mt-1"></p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start p-3 bg-gray-50 rounded-lg">
+                                <i class="fas fa-calendar-plus text-gray-400 mt-1 mr-3"></i>
+                                <div class="flex-1">
+                                    <p class="text-xs font-semibold text-gray-500 uppercase">Created At</p>
+                                    <p id="viewCreatedAt" class="text-sm font-bold text-gray-900 mt-1"></p>
+                                </div>
+                            </div>
+                            
+                            <div id="viewSentAtContainer" class="hidden flex items-start p-3 bg-green-50 rounded-lg border border-green-200">
+                                <i class="fas fa-paper-plane text-green-600 mt-1 mr-3"></i>
+                                <div class="flex-1">
+                                    <p class="text-xs font-semibold text-green-600 uppercase">Sent At</p>
+                                    <p id="viewSentAt" class="text-sm font-bold text-green-900 mt-1"></p>
+                                </div>
+                            </div>
+                            
+                            <div id="viewSlugContainer" class="flex items-start p-3 bg-gray-50 rounded-lg">
+                                <i class="fas fa-hashtag text-gray-400 mt-1 mr-3"></i>
+                                <div class="flex-1">
+                                    <p class="text-xs font-semibold text-gray-500 uppercase">Broadcast ID</p>
+                                    <p id="viewSlug" class="text-xs font-mono text-gray-700 mt-1"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Message (Full Width) -->
+            <div id="viewErrorContainer" class="hidden">
+                <div class="bg-red-50 border-2 border-red-200 rounded-xl overflow-hidden">
+                    <div class="bg-red-100 px-4 py-3 border-b border-red-200">
+                        <h4 class="font-bold text-red-900 flex items-center">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            Error Details
+                        </h4>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-start">
+                            <i class="fas fa-bug text-red-500 text-xl mt-1 mr-3"></i>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-red-900">Error Message</p>
+                                <p id="viewError" class="text-sm text-red-700 mt-2 font-mono bg-red-100 p-3 rounded"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons Footer -->
+            <div class="flex items-center justify-between pt-4 border-t-2 border-gray-200">
+                <button onclick="closeViewModal()" 
+                        class="px-6 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all font-medium">
+                    <i class="fas fa-times mr-2"></i>
+                    Close
+                </button>
+                <div id="viewModalActions" class="flex space-x-3">
+                    <!-- Action buttons populated via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Send Confirmation Modal -->
+<div id="sendModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="bg-gradient-to-r from-green-500 to-emerald-500 p-6">
+            <h3 class="text-2xl font-bold text-white flex items-center">
+                <i class="fas fa-paper-plane mr-3"></i>
+                Send Broadcast
+            </h3>
+        </div>
+        
+        <div class="p-6">
+            <!-- Warning -->
+            <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg mb-6">
+                <div class="flex items-start">
+                    <i class="fas fa-exclamation-triangle text-yellow-500 text-xl mr-3 mt-1"></i>
+                    <div>
+                        <p class="text-sm font-medium text-yellow-900">Important: Review Before Sending</p>
+                        <p class="text-sm text-yellow-700 mt-1">
+                            This will send emails to <strong id="sendRecipientCount"></strong> recipient(s). 
+                            This action cannot be undone.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Broadcast Info -->
+            <div class="mb-6">
+                <h4 class="font-semibold text-gray-900 mb-2">Subject:</h4>
+                <p id="sendSubject" class="text-gray-700 p-3 bg-gray-50 rounded-lg"></p>
+            </div>
+
+            <!-- Confirmation -->
+            <form id="sendForm">
+                {% csrf_token %}
+                <div class="mb-6">
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" id="confirmSend" 
+                               class="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-2 focus:ring-green-500">
+                        <span class="text-sm font-medium text-gray-700">
+                            I confirm I want to send this broadcast to all recipients
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+                    <button type="button" 
+                            onclick="closeSendModal()"
+                            class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all font-medium">
+                        <i class="fas fa-times mr-2"></i>
+                        Cancel
+                    </button>
+                    <button type="button" 
+                            id="sendButton"
+                            onclick="submitSend()"
+                            disabled
+                            class="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all shadow-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-paper-plane mr-2"></i>
+                        Send Now
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="bg-gradient-to-r from-red-500 to-rose-500 p-6">
+            <h3 class="text-2xl font-bold text-white flex items-center">
+                <i class="fas fa-trash-alt mr-3"></i>
+                Delete Broadcast
+            </h3>
+        </div>
+        
+        <div class="p-6">
+            <!-- Warning -->
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg mb-6">
+                <div class="flex items-start">
+                    <i class="fas fa-exclamation-triangle text-red-500 text-xl mr-3 mt-1"></i>
+                    <div>
+                        <p class="text-sm font-medium text-red-900">Warning: Permanent Action</p>
+                        <p class="text-sm text-red-700 mt-1">
+                            This will permanently delete the broadcast. This action cannot be undone.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Broadcast Info -->
+            <div class="mb-6 space-y-3">
+                <div>
+                    <h4 class="font-semibold text-gray-900 text-sm">Subject:</h4>
+                    <p id="deleteSubject" class="text-gray-700 p-3 bg-gray-50 rounded-lg mt-1"></p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-900 text-sm">Recipients:</h4>
+                    <p id="deleteRecipientCount" class="text-gray-700 p-3 bg-gray-50 rounded-lg mt-1"></p>
+                </div>
+            </div>
+
+            <!-- Confirmation -->
+            <form id="deleteForm">
+                {% csrf_token %}
+                <div class="mb-6">
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" id="confirmDelete" 
+                               class="w-5 h-5 text-red-600 border-gray-300 rounded focus:ring-2 focus:ring-red-500">
+                        <span class="text-sm font-medium text-gray-700">
+                            I understand this action cannot be undone
+                        </span>
+                    </label>
+                </div>
+
+                <div class="mb-6">
+                    <label for="confirmText" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Type "DELETE" to confirm
+                    </label>
+                    <input type="text" 
+                           id="confirmText" 
+                           required
+                           placeholder="Type DELETE in capital letters"
+                           class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+                    <button type="button" 
+                            onclick="closeDeleteModal()"
+                            class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all font-medium">
+                        <i class="fas fa-times mr-2"></i>
+                        Cancel
+                    </button>
+                    <button type="button" 
+                            id="deleteButton"
+                            onclick="submitDelete()"
+                            disabled
+                            class="px-8 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all shadow-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-trash-alt mr-2"></i>
+                        Delete Broadcast
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Store broadcast data for modals
+const broadcastsData = {
+    {% for broadcast in broadcasts %}
+    {{ broadcast.id }}: {
+        id: {{ broadcast.id }},
+        slug: '{{ broadcast.slug }}',
+        subject: '{{ broadcast.subject|escapejs }}',
+        message: `{{ broadcast.message|escapejs }}`,
+        status: '{{ broadcast.status }}',
+        filterType: '{{ broadcast.get_filter_type_display }}',
+        filterValues: {{ broadcast.filter_values|safe }},
+        recipientCount: {{ broadcast.recipient_count }},
+        recipientEmails: {{ broadcast.recipient_emails|safe }},
+        createdBy: '{{ broadcast.created_by.get_full_name|default:broadcast.created_by.username|escapejs }}',
+        createdAt: '{{ broadcast.created_at|date:"M d, Y g:i A" }}',
+        sentAt: '{{ broadcast.sent_at|date:"M d, Y g:i A"|default:"" }}',
+        error: '{{ broadcast.error_message|escapejs }}'
+    },
+    {% endfor %}
+};
+
+// DataTables initialization
+$(document).ready(function() {
+    $('#broadcastsTable').DataTable({
+        responsive: true,
+        pageLength: 25,
+        order: [[4, 'desc']],
+        language: {
+            search: "_INPUT_",
+            searchPlaceholder: "Search broadcasts..."
+        },
+        dom: '<"flex flex-col sm:flex-row justify-between items-center mb-4 gap-4"lf>rtip',
+        buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
+    });
+});
+
+// View Modal Functions
+let currentViewSlug = '';
+let currentBroadcastEmails = [];
+
+function openViewModal(broadcastId) {
+    const broadcast = broadcastsData[broadcastId];
+    if (!broadcast) return;
+
+    // Store current data
+    currentViewSlug = broadcast.slug;
+    currentBroadcastEmails = broadcast.recipientEmails;
+
+    // Quick Stats
+    document.getElementById('viewStatusQuick').innerHTML = getStatusBadge(broadcast.status);
+    document.getElementById('viewRecipientCountQuick').textContent = broadcast.recipientCount;
+    document.getElementById('viewFilterTypeQuick').textContent = broadcast.filterType;
+    document.getElementById('viewCreatedAtQuick').textContent = new Date(broadcast.createdAt).toLocaleDateString();
+    
+    // Status icon
+    const statusIcon = document.getElementById('viewStatusIcon');
+    if (broadcast.status === 'sent') {
+        statusIcon.className = 'fas fa-check-circle text-blue-600 text-lg';
+    } else if (broadcast.status === 'draft') {
+        statusIcon.className = 'fas fa-file-alt text-blue-600 text-lg';
+    } else {
+        statusIcon.className = 'fas fa-exclamation-circle text-blue-600 text-lg';
+    }
+
+    // Email Content
+    document.getElementById('viewSubject').textContent = broadcast.subject;
+    document.getElementById('viewMessage').textContent = broadcast.message;
+    
+    // Message stats
+    const messageLength = broadcast.message.length;
+    const wordCount = broadcast.message.trim().split(/\s+/).length;
+    document.getElementById('viewMessageLength').textContent = `${messageLength} characters`;
+    document.getElementById('viewMessageWords').textContent = `${wordCount} words`;
+
+    // Filter Info
+    document.getElementById('viewFilterType').textContent = broadcast.filterType;
+    document.getElementById('viewRecipientBadge').textContent = broadcast.recipientCount;
+
+    // Show/hide edit button based on status
+    const editBtn = document.getElementById('viewModalEditBtn');
+    if (broadcast.status === 'draft') {
+        editBtn.classList.remove('hidden');
+    } else {
+        editBtn.classList.add('hidden');
+    }
+
+    // Filter Values or All Users Notice
+    const filterValuesDiv = document.getElementById('viewFilterValues');
+    const filterValuesList = document.getElementById('viewFilterValuesList');
+    const allUsersNotice = document.getElementById('viewAllUsersNotice');
+    
+    if (broadcast.filterType === 'All Users') {
+        filterValuesDiv.classList.add('hidden');
+        allUsersNotice.classList.remove('hidden');
+    } else if (Object.keys(broadcast.filterValues).length > 0) {
+        filterValuesDiv.classList.remove('hidden');
+        allUsersNotice.classList.add('hidden');
+        filterValuesList.innerHTML = '';
+        
+        for (const [key, values] of Object.entries(broadcast.filterValues)) {
+            if (Array.isArray(values)) {
+                values.forEach(value => {
+                    const badge = document.createElement('span');
+                    badge.className = 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200';
+                    badge.innerHTML = `<i class="fas fa-tag mr-1.5"></i>${value}`;
+                    filterValuesList.appendChild(badge);
+                });
+            }
+        }
+    } else {
+        filterValuesDiv.classList.add('hidden');
+        allUsersNotice.classList.add('hidden');
+    }
+
+    // Recipients Table
+    const recipientsList = document.getElementById('viewRecipientsList');
+    recipientsList.innerHTML = '';
+    
+    if (broadcast.recipientEmails.length > 0) {
+        broadcast.recipientEmails.forEach((email, index) => {
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-50 transition-colors';
+            row.innerHTML = `
+                <td class="px-4 py-3 text-sm font-semibold text-gray-500">${index + 1}</td>
+                <td class="px-4 py-3">
+                    <div class="flex items-center">
+                        <i class="fas fa-envelope text-gray-400 mr-2 text-xs"></i>
+                        <span class="text-sm text-gray-900">${email}</span>
+                    </div>
+                </td>
+            `;
+            recipientsList.appendChild(row);
+        });
+    } else {
+        recipientsList.innerHTML = '<tr><td colspan="2" class="px-4 py-8 text-center text-gray-500 text-sm">No recipients found</td></tr>';
+    }
+
+    // Metadata
+    document.getElementById('viewCreatedBy').textContent = broadcast.createdBy;
+    document.getElementById('viewCreatedAt').textContent = broadcast.createdAt;
+    document.getElementById('viewSlug').textContent = broadcast.slug;
+
+    // Sent At
+    const sentAtContainer = document.getElementById('viewSentAtContainer');
+    if (broadcast.sentAt) {
+        sentAtContainer.classList.remove('hidden');
+        document.getElementById('viewSentAt').textContent = broadcast.sentAt;
+    } else {
+        sentAtContainer.classList.add('hidden');
+    }
+
+    // Error Message
+    const errorContainer = document.getElementById('viewErrorContainer');
+    if (broadcast.error && broadcast.status === 'failed') {
+        errorContainer.classList.remove('hidden');
+        document.getElementById('viewError').textContent = broadcast.error;
+    } else {
+        errorContainer.classList.add('hidden');
+    }
+
+    // Action buttons in footer
+    const actionsDiv = document.getElementById('viewModalActions');
+    actionsDiv.innerHTML = '';
+    
+    if (broadcast.status === 'draft') {
+        actionsDiv.innerHTML = `
+            <button onclick="editFromModal()" 
+                    class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-medium shadow-lg">
+                <i class="fas fa-edit mr-2"></i>
+                Edit
+            </button>
+            <button onclick="closeViewModal(); openSendModal('${broadcast.slug}', '${broadcast.subject.replace(/'/g, "\\'")}', ${broadcast.recipientCount})" 
+                    class="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all font-medium shadow-lg">
+                <i class="fas fa-paper-plane mr-2"></i>
+                Send Now
+            </button>
+        `;
+    }
+
+    document.getElementById('viewModal').classList.remove('hidden');
+}
+
+function closeViewModal() {
+    document.getElementById('viewModal').classList.add('hidden');
+    currentViewSlug = '';
+    currentBroadcastEmails = [];
+}
+
+function editFromModal() {
+    if (currentViewSlug) {
+        window.location.href = "{% url 'management:broadcast_edit' 'SLUG_PLACEHOLDER' %}".replace('SLUG_PLACEHOLDER', currentViewSlug);
+    }
+}
+
+function copyEmails() {
+    if (currentBroadcastEmails.length === 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'No Recipients',
+            text: 'There are no email addresses to copy.',
+            timer: 2000
+        });
+        return;
+    }
+    
+    const emailString = currentBroadcastEmails.join(', ');
+    
+    // Copy to clipboard
+    navigator.clipboard.writeText(emailString).then(() => {
+        Swal.fire({
+            icon: 'success',
+            title: 'Copied!',
+            text: `${currentBroadcastEmails.length} email addresses copied to clipboard.`,
+            timer: 2000,
+            showConfirmButton: false
+        });
+    }).catch(err => {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = emailString;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        Swal.fire({
+            icon: 'success',
+            title: 'Copied!',
+            text: `${currentBroadcastEmails.length} email addresses copied to clipboard.`,
+            timer: 2000,
+            showConfirmButton: false
+        });
+    });
+}
+
+function getStatusBadge(status) {
+    const badges = {
+        'sent': '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"><i class="fas fa-check-circle mr-1"></i>Sent</span>',
+        'draft': '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><i class="fas fa-file-alt mr-1"></i>Draft</span>',
+        'failed': '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800"><i class="fas fa-exclamation-circle mr-1"></i>Failed</span>'
+    };
+    return badges[status] || '';
+}
+
+// Send Modal Functions
+let currentSendSlug = '';
+
+function openSendModal(slug, subject, recipientCount) {
+    currentSendSlug = slug;
+    document.getElementById('sendSubject').textContent = subject;
+    document.getElementById('sendRecipientCount').textContent = recipientCount;
+    document.getElementById('sendModal').classList.remove('hidden');
+    document.getElementById('confirmSend').checked = false;
+    document.getElementById('sendButton').disabled = true;
+}
+
+function closeSendModal() {
+    document.getElementById('sendModal').classList.add('hidden');
+    currentSendSlug = '';
+}
+
+document.getElementById('confirmSend').addEventListener('change', function() {
+    document.getElementById('sendButton').disabled = !this.checked;
+});
+
+function submitSend() {
+    Swal.fire({
+        title: 'Send Broadcast?',
+        text: 'This action cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#16a34a',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Yes, Send Now',
+        cancelButtonText: 'Cancel',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Sending...',
+                html: 'Please wait while we send your broadcast.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{% url 'management:broadcast_send' 'SLUG_PLACEHOLDER' %}".replace('SLUG_PLACEHOLDER', currentSendSlug);
+            
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+
+// Delete Modal Functions
+let currentDeleteSlug = '';
+
+function openDeleteModal(slug, subject, recipientCount) {
+    currentDeleteSlug = slug;
+    document.getElementById('deleteSubject').textContent = subject;
+    document.getElementById('deleteRecipientCount').textContent = recipientCount + ' recipient(s)';
+    document.getElementById('deleteModal').classList.remove('hidden');
+    document.getElementById('confirmDelete').checked = false;
+    document.getElementById('confirmText').value = '';
+    document.getElementById('deleteButton').disabled = true;
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+    currentDeleteSlug = '';
+}
+
+function validateDeleteForm() {
+    const isChecked = document.getElementById('confirmDelete').checked;
+    const isTextValid = document.getElementById('confirmText').value === 'DELETE';
+    document.getElementById('deleteButton').disabled = !(isChecked && isTextValid);
+}
+
+document.getElementById('confirmDelete').addEventListener('change', validateDeleteForm);
+document.getElementById('confirmText').addEventListener('input', validateDeleteForm);
+
+function submitDelete() {
+    Swal.fire({
+        title: 'Are you absolutely sure?',
+        text: 'This action cannot be reversed!',
+        icon: 'error',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Yes, Delete It',
+        cancelButtonText: 'Cancel',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Deleting...',
+                html: 'Please wait while we delete the broadcast.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{% url 'management:broadcast_delete' 'SLUG_PLACEHOLDER' %}".replace('SLUG_PLACEHOLDER', currentDeleteSlug);
+            
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+
+// Close modals on ESC key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeViewModal();
+        closeSendModal();
+        closeDeleteModal();
+    }
+});
+
+// Close modals on background click
+document.getElementById('viewModal').addEventListener('click', function(e) {
+    if (e.target === this) closeViewModal();
+});
+
+document.getElementById('sendModal').addEventListener('click', function(e) {
+    if (e.target === this) closeSendModal();
+});
+
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+});
+</script>
+{% endblock %}

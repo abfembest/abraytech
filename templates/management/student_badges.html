@@ -1,0 +1,268 @@
+{% extends 'management/base.html' %}
+{% block title %}Student Badges - Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-full">
+
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Student Badges</h1>
+    <p class="text-sm text-gray-500 mt-0.5">Assign and manage badges awarded to students</p>
+  </div>  
+
+  <div class="flex flex-col lg:flex-row gap-6 items-start">
+
+    <div class="w-full min-w-0 lg:flex-1">
+
+      <form method="get" class="mb-4">
+        <div class="flex gap-2 max-w-md">
+          <label for="search" class="sr-only">Search student badges</label>
+          <input id="search" name="search" type="search"
+                 value="{{ request.GET.search|default:'' }}"
+                 placeholder="Search student or badge…"
+                 class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                        focus:ring-2 focus:ring-primary-500 focus:outline-none">
+          <button type="submit"
+                  class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 border border-gray-300
+                         rounded-lg text-sm font-medium transition-colors">
+            Search
+          </button>
+          {% if request.GET.search %}
+            <a href="{% url 'management:student_badges_list' %}"
+               class="px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                      text-gray-500 hover:bg-gray-50 transition-colors">
+              Clear
+            </a>
+          {% endif %}
+        </div>
+      </form>
+
+      <div class="bg-white rounded-xl shadow border border-gray-200 overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">Student</th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">Badge</th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide hidden sm:table-cell">Awarded By</th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide hidden md:table-cell">Date</th>
+              <th scope="col" class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wide">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            {% for sb in student_badges %}
+            <tr class="hover:bg-gray-50 transition-colors">
+
+              <td class="px-4 py-3">
+                <p class="font-medium text-gray-900 whitespace-nowrap">
+                  {{ sb.student.get_full_name|default:sb.student.username }}
+                </p>
+                <p class="text-xs text-gray-400">@{{ sb.student.username }}</p>
+                {% if sb.student.profile.program %}
+                  <p class="text-xs text-gray-400 mt-0.5">{{ sb.student.profile.program.name }}</p>
+                {% endif %}
+              </td>
+
+              <td class="px-4 py-3">
+                <div class="flex items-center gap-2 whitespace-nowrap">
+                  <div class="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center shrink-0">
+                    <i class="fas fa-{{ sb.badge.icon }} text-primary-600 text-xs" aria-hidden="true"></i>
+                  </div>
+                  <span class="font-medium text-gray-800">{{ sb.badge.name }}</span>
+                </div>
+                {% if sb.reason %}
+                  <p class="text-xs text-gray-400 mt-0.5 truncate max-w-[160px]">{{ sb.reason }}</p>
+                {% endif %}
+              </td>
+
+              <td class="px-4 py-3 text-sm text-gray-600 hidden sm:table-cell whitespace-nowrap">
+                {{ sb.awarded_by.get_full_name|default:sb.awarded_by.username }}
+              </td>
+
+              <td class="px-4 py-3 text-xs text-gray-500 hidden md:table-cell whitespace-nowrap">
+                {{ sb.awarded_at|date:"M d, Y" }}
+              </td>
+
+              <td class="px-4 py-3 text-right whitespace-nowrap">
+                <form method="post"
+                      action="{% url 'management:student_badge_delete' sb.pk %}"
+                      class="inline"
+                      onsubmit="return confirm('Revoke {{ sb.badge.name|escapejs }} from {{ sb.student.get_full_name|default:sb.student.username|escapejs }}?');">
+                  {% csrf_token %}
+                  <button type="submit"
+                          class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs
+                                 font-medium text-red-500 hover:bg-red-50 rounded-lg
+                                 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400"
+                          aria-label="Revoke {{ sb.badge.name }} from {{ sb.student.get_full_name|default:sb.student.username }}">
+                    <i class="fas fa-ban" aria-hidden="true"></i>
+                    <span class="hidden sm:inline">Revoke</span>
+                  </button>
+                </form>
+              </td>
+
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="px-6 py-14 text-center text-gray-400">
+                <i class="fas fa-medal text-4xl mb-3 block opacity-30" aria-hidden="true"></i>
+                {% if request.GET.search %}No badge assignments match your search.
+                {% else %}No badges assigned yet.{% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if student_badges.has_other_pages %}
+      <nav aria-label="Pagination" class="mt-4 flex flex-wrap justify-center gap-1">
+        {% if student_badges.has_previous %}
+          <a href="?page={{ student_badges.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+             class="px-3 py-2 rounded-lg border border-gray-300 text-sm hover:bg-gray-50 transition-colors">
+            &laquo; Prev
+          </a>
+        {% endif %}
+        {% for num in student_badges.paginator.page_range %}
+          {% if student_badges.number == num %}
+            <span class="px-3 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium">{{ num }}</span>
+          {% elif num > student_badges.number|add:"-3" and num < student_badges.number|add:"3" %}
+            <a href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+               class="px-3 py-2 rounded-lg border border-gray-300 text-sm hover:bg-gray-50 transition-colors">
+              {{ num }}
+            </a>
+          {% endif %}
+        {% endfor %}
+        {% if student_badges.has_next %}
+          <a href="?page={{ student_badges.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+             class="px-3 py-2 rounded-lg border border-gray-300 text-sm hover:bg-gray-50 transition-colors">
+            Next &raquo;
+          </a>
+        {% endif %}
+      </nav>
+      {% endif %}
+
+    </div>
+
+    <div class="w-full lg:w-80 xl:w-96 shrink-0 lg:sticky lg:top-4">
+      <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
+
+        <div class="px-5 py-4 bg-gray-50 border-b border-gray-100">
+          <h2 class="text-base font-semibold text-gray-800">Assign Badge</h2>
+          <p class="text-xs text-gray-500 mt-0.5">Award a badge to a student</p>
+        </div>
+
+        <form method="post"
+              action="{% url 'management:student_badge_assign' %}"
+              class="p-5 space-y-4"
+              novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div role="alert" class="px-3 py-2.5 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs">
+              {{ form.non_field_errors }}
+            </div>
+          {% endif %}
+
+          <!-- Student datalist (students only) -->
+          <div>
+            <label for="sb-student-input"
+                   class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+              Student <span class="text-red-500">*</span>
+            </label>
+            <input id="sb-student-input"
+                   type="text"
+                   autocomplete="off"
+                   placeholder="Type student name or username…"
+                   list="sb-student-datalist"
+                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                          focus:ring-2 focus:ring-primary-500 focus:outline-none">
+            <input type="hidden" id="sb-student-id" name="student">
+            <datalist id="sb-student-datalist">
+              {% for s in students %}
+                <option data-id="{{ s.pk }}" value="{{ s.get_full_name|default:s.username }} — @{{ s.username }}"></option>
+              {% endfor %}
+            </datalist>
+            {% if form.student.errors %}
+              <p class="mt-1 text-xs text-red-600" role="alert">{{ form.student.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Badge datalist -->
+          <div>
+            <label for="sb-badge-input"
+                   class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+              Badge <span class="text-red-500">*</span>
+            </label>
+            <input id="sb-badge-input"
+                   type="text"
+                   autocomplete="off"
+                   placeholder="Type badge name…"
+                   list="sb-badge-datalist"
+                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                          focus:ring-2 focus:ring-primary-500 focus:outline-none">
+            <input type="hidden" id="sb-badge-id" name="badge">
+            <datalist id="sb-badge-datalist">
+              {% for b in badges %}
+                <option data-id="{{ b.pk }}" value="{{ b.name }}"></option>
+              {% endfor %}
+            </datalist>
+            {% if form.badge.errors %}
+              <p class="mt-1 text-xs text-red-600" role="alert">{{ form.badge.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Reason -->
+          <div>
+            <label for="{{ form.reason.id_for_label }}"
+                   class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+              Reason <span class="text-gray-400 font-normal normal-case text-xs">(optional)</span>
+            </label>
+            {{ form.reason }}
+            {% if form.reason.errors %}
+              <p class="mt-1 text-xs text-red-600" role="alert">{{ form.reason.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <div class="pt-2 border-t border-gray-100">
+            <button type="submit"
+                    class="w-full px-4 py-2.5 bg-primary-600 hover:bg-primary-700
+                           text-white text-sm font-semibold rounded-lg transition-colors
+                           focus:outline-none focus:ring-2 focus:ring-primary-500">
+              Assign Badge
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  function wireDatalist(textInputId, hiddenInputId, datalistId) {
+    var textInput   = document.getElementById(textInputId);
+    var hiddenInput = document.getElementById(hiddenInputId);
+    if (!textInput || !hiddenInput) return;
+    textInput.addEventListener('change', function () {
+      var list  = document.getElementById(datalistId);
+      var val   = textInput.value.trim();
+      var found = false;
+      for (var i = 0; i < list.options.length; i++) {
+        if (list.options[i].value === val) {
+          hiddenInput.value = list.options[i].getAttribute('data-id');
+          found = true;
+          break;
+        }
+      }
+      if (!found) hiddenInput.value = '';
+    });
+  }
+
+  wireDatalist('sb-student-input', 'sb-student-id', 'sb-student-datalist');
+  wireDatalist('sb-badge-input',   'sb-badge-id',   'sb-badge-datalist');
+
+}());
+</script>
+{% endblock %}

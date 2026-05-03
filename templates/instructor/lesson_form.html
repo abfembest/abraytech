@@ -1,0 +1,277 @@
+{% extends 'management/base.html' %}
+{% load static %}
+{% block title %}{% if lesson %}Edit Lesson{% else %}Create Lesson{% endif %} - Instructor{% endblock %}
+
+{% block content %}
+<div class="max-w-12xl mx-auto px-2 sm:px-0">
+
+    <!-- Breadcrumb -->
+    <nav class="flex mb-4 sm:mb-6 overflow-x-auto" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center whitespace-nowrap text-xs sm:text-sm space-x-1">
+            <li><a href="{% url 'instructor:course_list' %}" class="text-gray-600 hover:text-primary-600 inline-flex items-center"><i class="fas fa-book mr-1"></i>Courses</a></li>
+            <li><i class="fas fa-chevron-right text-gray-400 mx-1.5 text-xs"></i><a href="{% url 'instructor:course_edit' course.slug %}" class="text-gray-600 hover:text-primary-600 truncate max-w-[100px] sm:max-w-none">{{ course.title|truncatewords:5 }}</a></li>
+            <li><i class="fas fa-chevron-right text-gray-400 mx-1.5 text-xs"></i><a href="{% url 'instructor:lesson_list' course.slug %}" class="text-gray-600 hover:text-primary-600">Lessons</a></li>
+            <li><i class="fas fa-chevron-right text-gray-400 mx-1.5 text-xs"></i><span class="text-gray-500">{% if lesson %}Edit{% else %}Create{% endif %}</span></li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="mb-6 sm:mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 font-display">
+                    {% if lesson %}Edit Lesson{% else %}Create New Lesson{% endif %}
+                </h1>
+                <p class="text-sm sm:text-base text-gray-600 mt-1">
+                    {% if lesson %}Update lesson information and content{% else %}Add a new lesson to your course{% endif %}
+                </p>
+            </div>
+            <a href="{% url 'instructor:course_manage' course.slug %}"
+               class="inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-white border-2 border-primary-600 text-primary-600 text-sm font-medium rounded-lg hover:bg-primary-50 transition-all whitespace-nowrap">
+                <i class="fas fa-th-large mr-2"></i>Manage Course
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Form -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="p-4 sm:p-6 space-y-5 sm:space-y-6">
+
+                <!-- Basic Information -->
+                <div>
+                    <h2 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 pb-2 border-b border-gray-200">Basic Information</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+
+                        <div class="sm:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Lesson Title *</label>
+                            {{ form.title }}
+                            {% if form.title.errors %}<p class="mt-1 text-xs sm:text-sm text-red-600">{{ form.title.errors }}</p>{% endif %}
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Lesson Type *</label>
+                            {{ form.lesson_type }}
+                            {% if form.lesson_type.errors %}<p class="mt-1 text-xs sm:text-sm text-red-600">{{ form.lesson_type.errors }}</p>{% endif %}
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Section *</label>
+                            {{ form.section }}
+                            <p class="mt-1 text-xs sm:text-sm text-gray-500">Lessons must belong to a section — <a href="{% url 'instructor:section_create' course.slug %}" class="text-primary-600 hover:underline">create a section first</a> if none exist.</p>
+                            {% if form.section.errors %}<p class="mt-1 text-xs sm:text-sm text-red-600">{{ form.section.errors }}</p>{% endif %}
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Display Order</label>
+                            {{ form.display_order }}
+                            <p class="mt-1 text-xs sm:text-sm text-gray-500">Order of appearance (0 = first)</p>
+                        </div>
+
+                        <div class="flex items-center">
+                            <label class="flex items-center cursor-pointer gap-2 mt-2 sm:mt-4">
+                                {{ form.is_preview }}
+                                <span class="text-xs sm:text-sm font-medium text-gray-700">Free Preview (allow non-enrolled students to view)</span>
+                            </label>
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
+                            {{ form.description }}
+                            <p class="mt-1 text-xs sm:text-sm text-gray-500">Brief overview of what students will learn</p>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Video Content -->
+                <div id="video-fields" class="hidden">
+                    <h2 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 pb-2 border-b border-gray-200 flex items-center">
+                        <i class="fas fa-video text-purple-600 mr-2"></i>Video Content
+                    </h2>
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mb-4">
+                        <p class="text-xs sm:text-sm text-blue-800">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <strong>Choose one option:</strong> Either provide a video URL (YouTube/Vimeo) <strong>OR</strong> upload a video file. Do not use both.
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                        <div class="bg-white border-2 border-gray-200 rounded-lg p-3 sm:p-4">
+                            <div class="flex items-center mb-2 sm:mb-3">
+                                <i class="fas fa-code text-purple-600 mr-2"></i>
+                                <h3 class="font-semibold text-gray-900 text-sm sm:text-base">Option 1: Embed Code</h3>
+                            </div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Video Embed Code (YouTube / Vimeo / any platform)</label>
+                            {{ form.video_url }}
+                            <p class="mt-1.5 text-xs sm:text-sm text-gray-500">Paste the full &lt;iframe&gt; embed code from YouTube, Vimeo, or any platform</p>
+                        </div>
+                        <div class="bg-white border-2 border-gray-200 rounded-lg p-3 sm:p-4">
+                            <div class="flex items-center mb-2 sm:mb-3">
+                                <i class="fas fa-upload text-purple-600 mr-2"></i>
+                                <h3 class="font-semibold text-gray-900 text-sm sm:text-base">Option 2: Upload Video</h3>
+                            </div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Video File</label>
+                            {{ form.video_file }}
+                            {% if lesson and lesson.video_file %}
+                            <div class="mt-2 sm:mt-3 p-2 sm:p-3 bg-green-50 rounded-lg border border-green-200">
+                                <p class="text-xs sm:text-sm text-green-800 flex items-center">
+                                    <i class="fas fa-check-circle mr-2"></i>Current: <strong class="ml-1">{{ lesson.video_file.name|slice:"7:" }}</strong>
+                                </p>
+                            </div>
+                            {% endif %}
+                            <p class="mt-1.5 text-xs sm:text-sm text-gray-500">Upload MP4, WebM, OGG, AVI, or MOV (Max: 500MB)</p>
+                        </div>
+                    </div>
+                    <div class="mt-3 sm:mt-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Duration (minutes)</label>
+                        <div class="max-w-xs">{{ form.video_duration_minutes }}</div>
+                        <p class="mt-1 text-xs sm:text-sm text-gray-500">Approximate video length for progress tracking</p>
+                    </div>
+                </div>
+
+                <!-- Text Content -->
+                <div id="text-fields" class="hidden">
+                    <h2 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 pb-2 border-b border-gray-200 flex items-center">
+                        <i class="fas fa-file-alt text-blue-600 mr-2"></i>Text Content
+                    </h2>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Content</label>
+                        {{ form.content }}
+                        <p class="mt-1 text-xs sm:text-sm text-gray-500">Rich text content for text-based lessons</p>
+                    </div>
+                </div>
+
+                <!-- File Content -->
+                <div id="file-fields" class="hidden">
+                    <h2 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 pb-2 border-b border-gray-200 flex items-center">
+                        <i class="fas fa-file text-gray-600 mr-2"></i>File Attachment
+                    </h2>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Upload File</label>
+                        {{ form.file }}
+                        {% if lesson and lesson.file %}
+                        <div class="mt-2 sm:mt-3 p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <p class="text-xs sm:text-sm text-gray-600">Current file:
+                                <a href="{{ lesson.file.url }}" target="_blank" class="text-primary-600 hover:text-primary-700 font-medium break-all">{{ lesson.file.name|slice:"7:" }}</a>
+                            </p>
+                        </div>
+                        {% endif %}
+                        <p class="mt-1 text-xs sm:text-sm text-gray-500">PDF, Word, PowerPoint, or other downloadable materials</p>
+                    </div>
+                </div>
+
+                <!-- Quiz Info -->
+                <div id="quiz-fields" class="hidden">
+                    <div class="bg-green-50 border border-green-200 rounded-xl p-4 sm:p-6">
+                        <div class="flex items-start gap-3 sm:gap-4">
+                            <i class="fas fa-question-circle text-2xl sm:text-3xl text-green-600 flex-shrink-0"></i>
+                            <div>
+                                <h3 class="text-base sm:text-lg font-semibold text-green-900 mb-1.5 sm:mb-2">Quiz Lesson</h3>
+                                <p class="text-sm text-green-800 mb-2 sm:mb-3">After creating this lesson, you'll be able to add quiz questions and configure settings.</p>
+                                {% if lesson %}
+                                <a href="{% url 'instructor:quiz_list' course.slug lesson.id %}"
+                                   class="inline-flex items-center px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-xs sm:text-sm font-medium">
+                                    <i class="fas fa-question-circle mr-2"></i>Manage Quizzes
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assignment Info -->
+                <div id="assignment-fields" class="hidden">
+                    <div class="bg-orange-50 border border-orange-200 rounded-xl p-4 sm:p-6">
+                        <div class="flex items-start gap-3 sm:gap-4">
+                            <i class="fas fa-tasks text-2xl sm:text-3xl text-orange-600 flex-shrink-0"></i>
+                            <div>
+                                <h3 class="text-base sm:text-lg font-semibold text-orange-900 mb-1.5 sm:mb-2">Assignment Lesson</h3>
+                                <p class="text-sm text-orange-800 mb-2 sm:mb-3">After creating this lesson, you'll be able to add assignment details and configure submission settings.</p>
+                                {% if lesson %}
+                                <a href="{% url 'instructor:assignment_list' course.slug lesson.id %}"
+                                   class="inline-flex items-center px-3 sm:px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-xs sm:text-sm font-medium">
+                                    <i class="fas fa-tasks mr-2"></i>Manage Assignments
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Form Actions -->
+            <div class="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-t border-gray-200 rounded-b-xl">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3">
+                    <a href="{% url 'instructor:lesson_list' course.slug %}"
+                       class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-center text-sm font-medium">
+                        Cancel
+                    </a>
+                    <button type="submit"
+                            class="px-5 sm:px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 shadow-sm hover:shadow-md transition-all font-medium text-sm">
+                        <i class="fas fa-save mr-1.5"></i>Save Lesson
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tips -->
+    <div class="mt-6 sm:mt-8 bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6">
+        <div class="flex items-start gap-3 sm:gap-4">
+            <i class="fas fa-lightbulb text-2xl sm:text-3xl text-blue-600 flex-shrink-0"></i>
+            <div>
+                <h3 class="text-base sm:text-lg font-semibold text-blue-900 mb-2">Tips for Creating Lessons</h3>
+                <ul class="space-y-1.5 sm:space-y-2 text-blue-800 text-xs sm:text-sm">
+                    <li class="flex items-start gap-2"><i class="fas fa-check-circle text-blue-600 mt-0.5 flex-shrink-0"></i><span><strong>Video lessons:</strong> Keep videos under 15 minutes for better engagement</span></li>
+                    <li class="flex items-start gap-2"><i class="fas fa-check-circle text-blue-600 mt-0.5 flex-shrink-0"></i><span><strong>Text lessons:</strong> Use clear headings and break content into digestible sections</span></li>
+                    <li class="flex items-start gap-2"><i class="fas fa-check-circle text-blue-600 mt-0.5 flex-shrink-0"></i><span><strong>Preview:</strong> Enable preview on introductory lessons to attract students</span></li>
+                    <li class="flex items-start gap-2"><i class="fas fa-check-circle text-blue-600 mt-0.5 flex-shrink-0"></i><span><strong>Mix formats:</strong> Combine videos, text, and quizzes for varied learning</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    input[type="text"], input[type="number"], textarea, select {
+        @apply w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors text-sm;
+    }
+    input[type="checkbox"] { @apply w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500; }
+    input[type="file"] { @apply w-full text-xs sm:text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const lessonTypeField = document.querySelector('[name="lesson_type"]');
+    const videoFields = document.getElementById('video-fields');
+    const textFields = document.getElementById('text-fields');
+    const fileFields = document.getElementById('file-fields');
+    const quizFields = document.getElementById('quiz-fields');
+    const assignmentFields = document.getElementById('assignment-fields');
+
+    function updateFieldsVisibility() {
+        const selectedType = lessonTypeField.value;
+        videoFields.classList.add('hidden');
+        textFields.classList.add('hidden');
+        fileFields.classList.add('hidden');
+        quizFields.classList.add('hidden');
+        assignmentFields.classList.add('hidden');
+        switch(selectedType) {
+            case 'video': videoFields.classList.remove('hidden'); break;
+            case 'text': textFields.classList.remove('hidden'); break;
+            case 'file': fileFields.classList.remove('hidden'); break;
+            case 'quiz': quizFields.classList.remove('hidden'); break;
+            case 'assignment': assignmentFields.classList.remove('hidden'); break;
+        }
+    }
+    updateFieldsVisibility();
+    lessonTypeField.addEventListener('change', updateFieldsVisibility);
+});
+</script>
+{% endblock %}

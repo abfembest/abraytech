@@ -1,0 +1,633 @@
+{% extends "management/base.html" %}
+{% load static %}
+
+{% block title %}{{ course.title }} - Course Details | {{site_config.school_short_name}} Student Portal{% endblock %}
+
+{% block meta_description %}{{ course.short_description|truncatewords:30 }}{% endblock %}
+
+{% block breadcrumb %}Courses{% endblock %}
+{% block breadcrumb_title %}{{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-12xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-5 lg:py-6">
+
+  <!-- Breadcrumb (page-level, below topbar) -->
+  <nav class="mb-3 sm:mb-4" aria-label="Breadcrumb">
+    <ol class="flex items-center flex-wrap gap-x-1.5 gap-y-1 text-xs sm:text-sm"
+        itemscope itemtype="https://schema.org/BreadcrumbList">
+
+      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" class="flex-shrink-0">
+        <a href="{% url 'students:dashboard' %}" itemprop="item"
+           class="text-gray-500 hover:text-primary-600 transition-colors">
+          <span itemprop="name">Dashboard</span>
+        </a>
+        <meta itemprop="position" content="1">
+      </li>
+
+      <li class="text-gray-300 flex-shrink-0" aria-hidden="true">
+        <i class="fas fa-chevron-right text-[10px]"></i>
+      </li>
+
+      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" class="flex-shrink-0">
+        <a href="{% url 'students:course_catalog' %}" itemprop="item"
+           class="text-gray-500 hover:text-primary-600 transition-colors">
+          <span itemprop="name">Courses</span>
+        </a>
+        <meta itemprop="position" content="2">
+      </li>
+
+      <li class="text-gray-300 flex-shrink-0" aria-hidden="true">
+        <i class="fas fa-chevron-right text-[10px]"></i>
+      </li>
+
+      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" class="min-w-0">
+        <span itemprop="name"
+              class="block text-gray-800 font-medium truncate max-w-[140px] xs:max-w-[200px] sm:max-w-[280px] md:max-w-[380px] lg:max-w-none"
+              title="{{ course.title }}">
+          {{ course.title }}
+        </span>
+        <meta itemprop="position" content="3">
+      </li>
+
+    </ol>
+  </nav>
+
+  <!-- Course Schema Markup -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Course",
+    "name": "{{ course.title|escapejs }}",
+    "description": "{{ course.short_description|escapejs }}",
+    "provider": {
+      "@type": "Organization",
+      "name": "MIU",
+      "sameAs": "{{ request.scheme }}://{{ request.get_host }}"
+    },
+    "instructor": {
+      "@type": "Person",
+      "name": "{{ course.instructor_name|escapejs }}"
+    }
+    {% if course.average_rating %}
+    ,"aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "{{ course.average_rating }}",
+      "bestRating": "5"
+    }
+    {% endif %}
+    ,"hasCourseInstance": {
+      "@type": "CourseInstance",
+      "courseMode": "online",
+      "courseWorkload": "PT{{ course.duration_hours }}H"
+    }
+  }
+  </script>
+
+  <!-- ── Layout: single column on mobile → 3-col grid on large screens ── -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-7 xl:gap-8">
+
+    <!-- ════════════════════════════════════════
+         MAIN CONTENT  (left/centre column)
+    ════════════════════════════════════════ -->
+    <main class="lg:col-span-2 space-y-4 sm:space-y-5 lg:space-y-6">
+
+      <!-- ── Course Header Card ── -->
+      <article class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+               itemscope itemtype="https://schema.org/Course">
+
+        <!-- Thumbnail / Hero -->
+        <div class="relative h-56 xs:h-64 sm:h-72 md:h-80 lg:h-72 xl:h-80
+                    bg-gradient-to-br from-primary-500 to-secondary-500">
+          {% if course.thumbnail %}
+          <img src="{{ course.thumbnail.url }}"
+               alt="{{ course.title }}"
+               itemprop="image"
+               class="w-full h-full object-cover"
+               loading="lazy">
+          {% else %}
+          <div class="w-full h-full flex items-center justify-center"
+               role="img" aria-label="Course placeholder image">
+            <i class="fas fa-book text-white text-5xl sm:text-6xl md:text-7xl opacity-40"
+               aria-hidden="true"></i>
+          </div>
+          {% endif %}
+
+
+        </div>
+
+        <!-- Header Body -->
+        <div class="p-4 sm:p-6 lg:p-7 xl:p-8">
+
+          <!-- Category + Difficulty badges -->
+          <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4">
+            {% if course.academic_course %}
+            <span class="inline-flex items-center px-2.5 py-0.5 sm:px-3 sm:py-1
+                         bg-blue-100 text-blue-700 rounded-full
+                         text-xs sm:text-sm font-medium"
+                  itemprop="courseCategory">
+              <i class="fas fa-tag mr-1.5 text-[10px] sm:text-xs" aria-hidden="true"></i>
+              {{ course.academic_course.get_course_type_display }}
+            </span>
+            {% endif %}
+
+            <span class="inline-flex items-center px-2.5 py-0.5 sm:px-3 sm:py-1
+                         rounded-full text-xs sm:text-sm font-medium
+                         {% if course.difficulty_level == '1' %}bg-green-100 text-green-700
+                         {% elif course.difficulty_level == '2' %}bg-teal-100 text-teal-700
+                         {% elif course.difficulty_level == '3' %}bg-blue-100 text-blue-700
+                         {% elif course.difficulty_level == '4' %}bg-indigo-100 text-indigo-700
+                         {% elif course.difficulty_level == '5' %}bg-yellow-100 text-yellow-700
+                         {% elif course.difficulty_level == '6' %}bg-orange-100 text-orange-700
+                         {% elif course.difficulty_level == '7' %}bg-red-100 text-red-700
+                         {% else %}bg-purple-100 text-purple-700{% endif %}"
+                  itemprop="educationalLevel">
+              <i class="fas fa-layer-group mr-1.5 text-[10px] sm:text-xs" aria-hidden="true"></i>
+              {{ course.get_difficulty_level_display }}
+            </span>
+
+            {% if enrollment %}
+            <span class="inline-flex items-center gap-1 sm:gap-1.5
+                         px-2.5 py-0.5 sm:px-3 sm:py-1
+                         bg-green-500 text-white rounded-full
+                         text-xs sm:text-sm font-semibold">
+              <i class="fas fa-check-circle text-[10px] sm:text-xs" aria-hidden="true"></i>
+              Enrolled
+            </span>
+            {% endif %}
+          </div>
+
+          <!-- Course Title -->
+          <h1 class="text-xl xs:text-2xl sm:text-3xl lg:text-2xl xl:text-3xl
+                     font-bold text-gray-900 mb-2 sm:mb-3 leading-tight"
+              itemprop="name">
+            {{ course.title }}
+          </h1>
+
+          <!-- Short Description -->
+          <p class="text-sm sm:text-base lg:text-sm xl:text-base
+                    text-gray-600 mb-4 sm:mb-5 leading-relaxed"
+             itemprop="description">
+            {{ course.short_description }}
+          </p>
+
+          <!-- Instructor -->
+          <div class="flex items-center mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-gray-100"
+               itemprop="instructor" itemscope itemtype="https://schema.org/Person">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 lg:w-11 lg:h-11 xl:w-12 xl:h-12
+                        rounded-full bg-gray-100 flex items-center justify-center
+                        mr-3 flex-shrink-0 overflow-hidden border border-gray-200">
+              {% if course.instructor.profile.avatar %}
+              <img src="{{ course.instructor.profile.avatar.url }}"
+                   alt="{{ course.instructor_name }}"
+                   itemprop="image"
+                   class="w-full h-full object-cover"
+                   loading="lazy">
+              {% else %}
+              <i class="fas fa-user-tie text-gray-500 text-lg sm:text-xl" aria-hidden="true"></i>
+              {% endif %}
+            </div>
+            <div class="min-w-0">
+              <p class="text-xs text-gray-500 mb-0.5 uppercase tracking-wide">Instructor</p>
+              <p class="font-semibold text-sm sm:text-base text-gray-900 truncate"
+                 itemprop="name">
+                {{ course.instructor_name }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Stats row -->
+          <div class="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-2 xl:gap-4"
+               role="group" aria-label="Course statistics">
+            <div class="text-center p-2.5 sm:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+              <i class="fas fa-clock text-primary-600 text-base sm:text-xl lg:text-lg xl:text-xl mb-1" aria-hidden="true"></i>
+              <p class="text-[10px] sm:text-xs text-gray-500 mb-0.5">Duration</p>
+              <p class="text-sm sm:text-base font-bold text-gray-900" itemprop="timeRequired">
+                {{ course.duration_hours }}<span class="text-xs font-normal text-gray-500"> hrs</span>
+              </p>
+            </div>
+            <div class="text-center p-2.5 sm:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+              <i class="fas fa-users text-primary-600 text-base sm:text-xl lg:text-lg xl:text-xl mb-1" aria-hidden="true"></i>
+              <p class="text-[10px] sm:text-xs text-gray-500 mb-0.5">Students</p>
+              <p class="text-sm sm:text-base font-bold text-gray-900">
+                {{ course.total_enrollments|default:0 }}
+              </p>
+            </div>
+            <div class="text-center p-2.5 sm:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+              <i class="fas fa-star text-yellow-400 text-base sm:text-xl lg:text-lg xl:text-xl mb-1" aria-hidden="true"></i>
+              <p class="text-[10px] sm:text-xs text-gray-500 mb-0.5">Rating</p>
+              <p class="text-sm sm:text-base font-bold text-gray-900">
+                {{ course.average_rating|default:"—"|floatformat:1 }}
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </article>
+
+      <!-- ── Mobile-only: Enrollment / Progress CTA ── -->
+      <!-- Appears between header and description on mobile; hidden on lg+ (sidebar takes over) -->
+      <div class="lg:hidden bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+        {% if enrollment %}
+        <!-- Progress -->
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs sm:text-sm font-medium text-gray-700">Your Progress</span>
+            <span class="text-lg sm:text-xl font-bold text-primary-600">
+              {{ enrollment.progress_percentage|floatformat:0 }}%
+            </span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden"
+               role="progressbar"
+               aria-valuenow="{{ enrollment.progress_percentage|floatformat:0 }}"
+               aria-valuemin="0" aria-valuemax="100">
+            <div class="bg-gradient-to-r from-primary-500 to-primary-600 h-2.5 rounded-full transition-all duration-500"
+                 style="width: {{ enrollment.progress_percentage }}%"></div>
+          </div>
+          <p class="text-[11px] sm:text-xs text-gray-500 mt-1.5">
+            {{ enrollment.completed_lessons_count|default:0 }} of {{ course.lessons.count }} lessons completed
+          </p>
+        </div>
+
+        {% if enrollment.next_lesson %}
+        <a href="{% url 'students:lesson_view' course.slug enrollment.next_lesson.slug %}"
+           class="flex items-center justify-center w-full px-4 py-2.5 sm:py-3
+                  bg-primary-600 hover:bg-primary-700 text-white rounded-lg
+                  font-semibold text-sm sm:text-base transition-all shadow-md hover:shadow-lg mb-3">
+          <i class="fas fa-play-circle mr-2" aria-hidden="true"></i>
+          Continue Learning
+        </a>
+        {% elif sections and sections.0.filtered_lessons %}
+        <a href="{% url 'students:lesson_view' course.slug sections.0.filtered_lessons.0.slug %}"
+           class="flex items-center justify-center w-full px-4 py-2.5 sm:py-3
+                  bg-primary-600 hover:bg-primary-700 text-white rounded-lg
+                  font-semibold text-sm sm:text-base transition-all shadow-md hover:shadow-lg mb-3">
+          <i class="fas fa-play-circle mr-2" aria-hidden="true"></i>
+          Start Learning
+        </a>
+        {% endif %}
+
+        <div class="text-center text-xs sm:text-sm text-gray-600 bg-green-50 border border-green-200 rounded-lg py-2">
+          <i class="fas fa-check-circle text-green-500 mr-1.5" aria-hidden="true"></i>
+          Enrolled on {{ enrollment.enrolled_at|date:"M d, Y" }}
+        </div>
+
+        {% else %}
+        <!-- Enroll CTA -->
+        {% if can_enroll %}
+        <div class="text-center mb-3">
+          <span class="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs sm:text-sm font-semibold">
+            Free Enrollment
+          </span>
+        </div>
+        <form method="post" action="{% url 'students:enroll_course' course.slug %}">
+          {% csrf_token %}
+          <button type="submit"
+                  class="w-full px-4 py-2.5 sm:py-3 bg-primary-600 hover:bg-primary-700
+                         text-white rounded-lg font-semibold text-sm sm:text-base
+                         transition-all shadow-md hover:shadow-lg"
+                  aria-label="Enroll in {{ course.title }}">
+            <i class="fas fa-user-plus mr-2" aria-hidden="true"></i>
+            Enroll Now — It's Free
+          </button>
+        </form>
+        {% else %}
+        <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-center">
+          <i class="fas fa-lock text-amber-500 text-xl mb-2 block" aria-hidden="true"></i>
+          <p class="text-xs sm:text-sm font-semibold text-amber-800 mb-1">Registration Required</p>
+          <p class="text-xs text-amber-700 leading-relaxed">{{ enroll_blocked_reason }}</p>
+          <a href="{% url 'students:my_courses' %}"
+             class="mt-3 inline-flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600
+                    text-white rounded-lg font-semibold text-xs transition-all">
+            <i class="fas fa-calendar-check text-xs"></i>
+            Go to My Courses
+          </a>
+        </div>
+        {% endif %}
+        {% endif %}
+      </div>
+
+      <!-- ── About This Course ── -->
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 lg:p-7 xl:p-8">
+        <h2 class="text-base sm:text-xl lg:text-lg xl:text-xl font-bold text-gray-900 mb-3 sm:mb-5
+                   flex items-center gap-2">
+          <i class="fas fa-info-circle text-primary-600 text-sm sm:text-base" aria-hidden="true"></i>
+          About This Course
+        </h2>
+        <div class="prose prose-sm sm:prose max-w-none text-gray-700 leading-relaxed
+                    text-sm sm:text-base">
+          {{ course.description|linebreaks }}
+        </div>
+      </section>
+
+      <!-- ── What You'll Learn ── -->
+      {% if course.learning_objectives %}
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 lg:p-7 xl:p-8">
+        <h2 class="text-base sm:text-xl lg:text-lg xl:text-xl font-bold text-gray-900 mb-3 sm:mb-5
+                   flex items-center gap-2">
+          <i class="fas fa-bullseye text-primary-600 text-sm sm:text-base" aria-hidden="true"></i>
+          What You'll Learn
+        </h2>
+        <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3" role="list">
+          {% for objective in course.learning_objectives %}
+          <li class="flex items-start gap-2 sm:gap-3 group">
+            <i class="fas fa-check-circle text-green-500 mt-0.5 flex-shrink-0
+                      text-sm sm:text-base group-hover:scale-110 transition-transform"
+               aria-hidden="true"></i>
+            <span class="text-xs sm:text-sm lg:text-sm xl:text-base text-gray-700 leading-relaxed">
+              {{ objective }}
+            </span>
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+
+      <!-- ── Course Curriculum ── -->
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 lg:p-7 xl:p-8">
+        <div class="flex items-center justify-between mb-3 sm:mb-5">
+          <h2 class="text-base sm:text-xl lg:text-lg xl:text-xl font-bold text-gray-900
+                     flex items-center gap-2">
+            <i class="fas fa-list-alt text-primary-600 text-sm sm:text-base" aria-hidden="true"></i>
+            Course Curriculum
+          </h2>
+          {% if sections %}
+          <span class="text-xs sm:text-sm text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
+            {{ sections|length }} section{{ sections|length|pluralize }}
+          </span>
+          {% endif %}
+        </div>
+
+        {% if sections %}
+        <div class="space-y-2 sm:space-y-3">
+          {% for section in sections %}
+          <div class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-sm transition-shadow">
+
+            <!-- Section Header -->
+            <div class="bg-gray-50 px-3 sm:px-5 py-2.5 sm:py-3.5
+                        flex items-center justify-between
+                        hover:bg-gray-100 transition-colors">
+              <h3 class="font-semibold text-xs sm:text-sm lg:text-sm xl:text-base
+                         text-gray-900 flex items-center gap-2 min-w-0">
+                <i class="fas fa-folder text-primary-600 flex-shrink-0 text-xs sm:text-sm"
+                   aria-hidden="true"></i>
+                <span class="truncate">{{ section.title }}</span>
+              </h3>
+              <span class="text-[10px] sm:text-xs text-gray-500 bg-white
+                           px-2 py-0.5 sm:px-3 sm:py-1 rounded-full ml-2 flex-shrink-0
+                           border border-gray-100">
+                {{ section.filtered_lessons|length }}
+                lesson{{ section.filtered_lessons|length|pluralize }}
+              </span>
+            </div>
+
+            <!-- Lesson List -->
+            {% if section.filtered_lessons %}
+            <div class="divide-y divide-gray-100">
+              {% for lesson in section.filtered_lessons %}
+              <div class="px-3 sm:px-5 py-2.5 sm:py-3.5
+                          flex items-center justify-between
+                          hover:bg-gray-50 transition-colors group">
+
+                <!-- Lesson info -->
+                <div class="flex items-center flex-1 min-w-0 mr-2 sm:mr-3 gap-2 sm:gap-3">
+                  <i class="fas flex-shrink-0 text-sm sm:text-base
+                     {% if lesson.lesson_type == 'video' %}fa-play-circle text-blue-500
+                     {% elif lesson.lesson_type == 'text' %}fa-file-alt text-green-500
+                     {% elif lesson.lesson_type == 'quiz' %}fa-question-circle text-purple-500
+                     {% else %}fa-file text-gray-400{% endif %}
+                     group-hover:scale-110 transition-transform"
+                     aria-hidden="true"></i>
+                  <div class="flex-1 min-w-0">
+                    <p class="font-medium text-xs sm:text-sm text-gray-900 truncate">
+                      {{ lesson.title }}
+                    </p>
+                    {% if lesson.video_duration_minutes %}
+                    <p class="text-[10px] sm:text-xs text-gray-400 mt-0.5">
+                      <i class="far fa-clock mr-1" aria-hidden="true"></i>
+                      {{ lesson.video_duration_minutes }} min
+                    </p>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <!-- Action button -->
+                <div class="flex-shrink-0">
+                  {% if enrollment %}
+                  <a href="{% url 'students:lesson_view' course.slug lesson.slug %}"
+                     class="inline-flex items-center gap-1 sm:gap-1.5
+                            px-2.5 py-1 sm:px-3 sm:py-1.5
+                            bg-primary-600 hover:bg-primary-700 text-white
+                            rounded-lg font-medium text-[10px] sm:text-xs
+                            transition-all"
+                     aria-label="View lesson: {{ lesson.title }}">
+                    View
+                    <i class="fas fa-arrow-right text-[9px] sm:text-[10px]" aria-hidden="true"></i>
+                  </a>
+                  {% elif lesson.is_preview %}
+                  <a href="{% url 'students:lesson_view' course.slug lesson.slug %}"
+                     class="inline-flex items-center gap-1 sm:gap-1.5
+                            px-2.5 py-1 sm:px-3 sm:py-1.5
+                            bg-blue-50 hover:bg-blue-100 text-blue-600
+                            rounded-lg font-medium text-[10px] sm:text-xs
+                            transition-all"
+                     aria-label="Preview lesson: {{ lesson.title }}">
+                    <i class="fas fa-eye text-[9px] sm:text-[10px]" aria-hidden="true"></i>
+                    Preview
+                  </a>
+                  {% else %}
+                  <span class="inline-flex items-center gap-1
+                               px-2.5 py-1 sm:px-3 sm:py-1.5
+                               bg-gray-100 text-gray-400 rounded-lg
+                               text-[10px] sm:text-xs"
+                        aria-label="Lesson locked">
+                    <i class="fas fa-lock text-[9px] sm:text-[10px]" aria-hidden="true"></i>
+                    <span class="hidden sm:inline">Locked</span>
+                  </span>
+                  {% endif %}
+                </div>
+
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+
+          </div>
+          {% endfor %}
+        </div>
+
+        {% else %}
+        <div class="text-center py-8 sm:py-12 text-gray-500">
+          <i class="fas fa-inbox text-3xl sm:text-5xl text-gray-200 mb-3" aria-hidden="true"></i>
+          <p class="text-sm sm:text-base">Course content will be available soon.</p>
+        </div>
+        {% endif %}
+      </section>
+
+      <!-- ── Review Widget ── -->
+      {% include "students/course_review_widget.html" %}
+
+    </main>
+
+    <!-- ════════════════════════════════════════
+         SIDEBAR  (right column, lg+)
+         Hidden on mobile (handled by mobile CTA above)
+    ════════════════════════════════════════ -->
+    <aside class="hidden lg:block space-y-4 xl:space-y-5">
+
+      <!-- Enrollment / Progress Card -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 xl:p-6
+                  lg:sticky lg:top-24"
+           role="complementary"
+           aria-label="Course enrollment information">
+
+        {% if enrollment %}
+        <!-- ── Enrolled View ── -->
+        <div class="mb-4 xl:mb-5">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs xl:text-sm font-medium text-gray-700">Your Progress</span>
+            <span class="text-xl xl:text-2xl font-bold text-primary-600">
+              {{ enrollment.progress_percentage|floatformat:0 }}%
+            </span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden"
+               role="progressbar"
+               aria-valuenow="{{ enrollment.progress_percentage|floatformat:0 }}"
+               aria-valuemin="0" aria-valuemax="100">
+            <div class="bg-gradient-to-r from-primary-500 to-primary-600
+                        h-2.5 rounded-full transition-all duration-500"
+                 style="width: {{ enrollment.progress_percentage }}%"></div>
+          </div>
+          <p class="text-[10px] xl:text-xs text-gray-500 mt-1.5">
+            {{ enrollment.completed_lessons_count|default:0 }} of
+            {{ course.lessons.count }} lessons completed
+          </p>
+        </div>
+
+        {% if enrollment.next_lesson %}
+        <a href="{% url 'students:lesson_view' course.slug enrollment.next_lesson.slug %}"
+           class="flex items-center justify-center w-full px-4 py-2.5 xl:py-3
+                  bg-primary-600 hover:bg-primary-700 text-white rounded-lg
+                  font-semibold text-sm xl:text-base transition-all
+                  shadow-md hover:shadow-lg mb-3">
+          <i class="fas fa-play-circle mr-2" aria-hidden="true"></i>
+          Continue Learning
+        </a>
+        {% elif sections and sections.0.filtered_lessons %}
+        <a href="{% url 'students:lesson_view' course.slug sections.0.filtered_lessons.0.slug %}"
+           class="flex items-center justify-center w-full px-4 py-2.5 xl:py-3
+                  bg-primary-600 hover:bg-primary-700 text-white rounded-lg
+                  font-semibold text-sm xl:text-base transition-all
+                  shadow-md hover:shadow-lg mb-3">
+          <i class="fas fa-play-circle mr-2" aria-hidden="true"></i>
+          Start Learning
+        </a>
+        {% else %}
+        <button disabled
+                class="flex items-center justify-center w-full px-4 py-2.5 xl:py-3
+                       bg-gray-300 text-white rounded-lg font-semibold
+                       text-sm xl:text-base cursor-not-allowed mb-3">
+          <i class="fas fa-lock mr-2" aria-hidden="true"></i>
+          No Lessons Available
+        </button>
+        {% endif %}
+
+        <div class="text-center text-[11px] xl:text-xs text-gray-600
+                    bg-green-50 border border-green-200 rounded-lg py-2">
+          <i class="fas fa-check-circle text-green-500 mr-1.5" aria-hidden="true"></i>
+          Enrolled {{ enrollment.enrolled_at|date:"M d, Y" }}
+        </div>
+
+        {% else %}
+        <!-- ── Not Enrolled View ── -->
+        {% if can_enroll %}
+        <div class="text-center mb-3 xl:mb-4">
+          <span class="inline-block px-3 py-1 bg-green-100 text-green-700
+                       rounded-full text-xs xl:text-sm font-semibold">
+            Free Enrollment
+          </span>
+        </div>
+        <form method="post" action="{% url 'students:enroll_course' course.slug %}" class="mb-4">
+          {% csrf_token %}
+          <button type="submit"
+                  class="w-full px-4 py-2.5 xl:py-3 bg-primary-600 hover:bg-primary-700
+                         text-white rounded-lg font-semibold text-sm xl:text-base
+                         transition-all shadow-md hover:shadow-lg"
+                  aria-label="Enroll in {{ course.title }}">
+            <i class="fas fa-user-plus mr-2" aria-hidden="true"></i>
+            Enroll Now
+          </button>
+        </form>
+        {% else %}
+        <div class="rounded-lg border border-amber-200 bg-amber-50 p-3 xl:p-4 mb-4 text-center">
+          <i class="fas fa-lock text-amber-500 text-lg xl:text-xl mb-2 block" aria-hidden="true"></i>
+          <p class="text-xs xl:text-sm font-semibold text-amber-800 mb-1">Registration Required</p>
+          <p class="text-xs text-amber-700 leading-relaxed mb-3">{{ enroll_blocked_reason }}</p>
+          <a href="{% url 'students:my_courses' %}"
+             class="inline-flex items-center gap-1.5 px-3 py-2 bg-amber-500 hover:bg-amber-600
+                    text-white rounded-lg font-semibold text-xs transition-all">
+            <i class="fas fa-calendar-check text-xs"></i>
+            Go to My Courses
+          </a>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        <!-- Course Features -->
+        <div class="pt-3 xl:pt-4 border-t border-gray-100 space-y-2 xl:space-y-3">
+          <h3 class="text-xs xl:text-sm font-semibold text-gray-800 mb-2">This course includes:</h3>
+
+          <div class="flex items-center text-xs xl:text-sm text-gray-600 gap-2.5">
+            <i class="fas fa-language w-4 text-primary-600 flex-shrink-0" aria-hidden="true"></i>
+            Language: {{ course.language }}
+          </div>
+          {% if course.has_certificate %}
+          <div class="flex items-center text-xs xl:text-sm text-gray-600 gap-2.5">
+            <i class="fas fa-certificate w-4 text-primary-600 flex-shrink-0" aria-hidden="true"></i>
+            Certificate of completion
+          </div>
+          {% endif %}
+          <div class="flex items-center text-xs xl:text-sm text-gray-600 gap-2.5">
+            <i class="fas fa-mobile-alt w-4 text-primary-600 flex-shrink-0" aria-hidden="true"></i>
+            Mobile &amp; desktop access
+          </div>
+          <div class="flex items-center text-xs xl:text-sm text-gray-600 gap-2.5">
+            <i class="fas fa-infinity w-4 text-primary-600 flex-shrink-0" aria-hidden="true"></i>
+            Lifetime access
+          </div>
+          <div class="flex items-center text-xs xl:text-sm text-gray-600 gap-2.5">
+            <i class="fas fa-closed-captioning w-4 text-primary-600 flex-shrink-0" aria-hidden="true"></i>
+            Subtitles available
+          </div>
+        </div>
+      </div>
+
+      <!-- Course Stats Card -->
+      <div class="bg-gradient-to-br from-primary-50 to-secondary-50
+                  rounded-xl border border-primary-200 p-4 xl:p-5">
+        <h3 class="text-xs xl:text-sm font-semibold text-gray-900 mb-3">Course Statistics</h3>
+        <div class="space-y-2 xl:space-y-2.5">
+          <div class="flex items-center justify-between text-xs xl:text-sm">
+            <span class="text-gray-600">Total Lessons</span>
+            <span class="font-bold text-gray-900">{{ course.lessons.count }}</span>
+          </div>
+          <div class="flex items-center justify-between text-xs xl:text-sm">
+            <span class="text-gray-600">Enrolled Students</span>
+            <span class="font-bold text-gray-900">{{ course.total_enrollments|default:0 }}</span>
+          </div>
+          <div class="flex items-center justify-between text-xs xl:text-sm">
+            <span class="text-gray-600">Average Rating</span>
+            <span class="font-bold text-gray-900">
+              {{ course.average_rating|default:"N/A"|floatformat:1 }}
+            </span>
+          </div>
+          <div class="flex items-center justify-between text-xs xl:text-sm">
+            <span class="text-gray-600">Duration</span>
+            <span class="font-bold text-gray-900">{{ course.duration_hours }} hrs</span>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+  </div>
+</div>
+{% endblock %}

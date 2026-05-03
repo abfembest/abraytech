@@ -1,0 +1,213 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}{{ program.name }} - MIU Admin{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <a href="{% url 'management:programs_list' %}" class="text-primary-600 hover:text-primary-700 font-medium flex items-center mb-4">
+        <i class="fas fa-arrow-left mr-2"></i>Back to Programs
+    </a>
+    <h1 class="text-3xl font-bold text-gray-800 font-display">{{ program.name }}</h1>
+    <p class="text-gray-600 mt-2">{{ program.department.name }} • {{ program.code }}</p>
+</div>
+
+<!-- Program Header Stats -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="text-sm text-gray-600 mb-1">Degree Level</div>
+        <div class="text-2xl font-bold text-gray-800">{{ program.get_degree_level_display }}</div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="text-sm text-gray-600 mb-1">Duration</div>
+        <div class="text-2xl font-bold text-gray-800">{{ program.duration_years }} years</div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="text-sm text-gray-600 mb-1">Credit Units</div>
+        <div class="text-2xl font-bold text-gray-800">{{ program.credits_required }}</div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="text-sm text-gray-600 mb-1">Status</div>
+        <div class="text-lg font-bold">
+            <span class="inline-block px-3 py-1 rounded-full text-sm font-medium {% if program.is_active %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                {% if program.is_active %}Active{% else %}Inactive{% endif %}
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left Column - Program Details -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Overview -->
+        {% if program.description %}
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-align-left mr-2 text-primary-600"></i>
+                Program Description
+            </h2>
+            <div class="text-gray-700 prose prose-sm max-w-none">
+                {{ program.description|linebreaks }}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Learning Outcomes -->
+        {% if program.learning_outcomes %}
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-list-check mr-2 text-primary-600"></i>
+                Learning Outcomes
+            </h2>
+            <ul class="space-y-2">
+                {% for outcome in program.learning_outcomes %}
+                <li class="flex items-start">
+                    <i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>
+                    <span class="text-gray-700">{{ outcome }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        <!-- Entry Requirements -->
+        {% if program.entry_requirements %}
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-file-alt mr-2 text-primary-600"></i>
+                Entry Requirements
+            </h2>
+            <ul class="space-y-2">
+                {% for requirement in program.entry_requirements %}
+                <li class="text-gray-700">
+                    <i class="fas fa-check-circle text-blue-600 mr-2"></i>
+                    {{ requirement }}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        <!-- Recent Applications -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-file-alt mr-2 text-primary-600"></i>
+                Recent Applications
+            </h2>
+            
+            {% if applications %}
+            <div class="space-y-3">
+                {% for app in applications %}
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div>
+                        <p class="font-semibold text-gray-800">{{ app.get_full_name }}</p>
+                        <p class="text-sm text-gray-600">{{ app.application_id }}</p>
+                    </div>
+                    <span class="inline-block px-3 py-1 rounded-full text-xs font-medium {% if app.status == 'approved' %}bg-green-100 text-green-800{% elif app.status == 'rejected' %}bg-red-100 text-red-800{% elif app.status == 'under_review' %}bg-yellow-100 text-yellow-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                        {{ app.get_status_display }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            <a href="{% url 'management:applications_list' %}?program={{ program.id }}" class="block mt-4 text-primary-600 hover:text-primary-700 font-medium text-center">
+                View All Applications →
+            </a>
+            {% else %}
+            <p class="text-gray-600">No applications for this program yet.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Right Column - Quick Actions & Info -->
+    <div class="space-y-6">
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">Quick Actions</h2>
+            <div class="space-y-2">
+                <a href="{% url 'management:program_edit' program.id %}" class="block w-full px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-center font-medium">
+                    <i class="fas fa-edit mr-2"></i>Edit Program
+                </a>
+                <a href="{% url 'management:applications_list' %}?program={{ program.id }}" class="block w-full px-4 py-2.5 border-2 border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 transition-colors text-center font-medium">
+                    <i class="fas fa-file-alt mr-2"></i>View Applications
+                </a>
+                <button onclick="if(confirm('Are you sure you want to delete this program?')) { window.location='{% url 'management:program_delete' program.id %}'; }" class="block w-full px-4 py-2.5 border-2 border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-center font-medium">
+                    <i class="fas fa-trash mr-2"></i>Delete Program
+                </button>
+            </div>
+        </div>
+        
+        <!-- Program Information -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">Information</h2>
+            
+            <div class="space-y-4">
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Faculty</p>
+                    <a href="{% url 'management:faculties_list' %}" class="text-primary-600 hover:text-primary-700 font-medium">
+                        {{ program.department.faculty.name }}
+                    </a>
+                </div>
+                
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Department</p>
+                    <a href="{% url 'management:departments_list' %}" class="text-primary-600 hover:text-primary-700 font-medium">
+                        {{ program.department.name }}
+                    </a>
+                </div>
+                
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Program Code</p>
+                    <p class="font-mono text-gray-800">{{ program.code }}</p>
+                </div>
+                
+                {% if program.available_study_modes %}
+                <div>
+                    <p class="text-sm text-gray-600 mb-2">Study Modes</p>
+                    <div class="flex flex-wrap gap-2">
+                        {% for mode in program.available_study_modes %}
+                        <span class="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full font-medium">
+                            {{ mode|title }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if program.max_students %}
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Max Students per Intake</p>
+                    <p class="font-semibold text-gray-800">{{ program.max_students }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Statistics -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">Statistics</h2>
+            
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-700">Total Applications</span>
+                    <span class="text-2xl font-bold text-primary-600">{{ intakes|length }}</span>
+                </div>
+                
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-700">Active Intakes</span>
+                    <span class="text-2xl font-bold text-green-600">{{ intakes|length }}</span>
+                </div>
+                
+                <div class="pt-3 border-t border-gray-200">
+                    <p class="text-sm text-gray-600">Created: {{ program.created_at|date:"M d, Y" }}</p>
+                    <p class="text-sm text-gray-600">Updated: {{ program.updated_at|date:"M d, Y" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

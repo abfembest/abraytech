@@ -1,0 +1,409 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Campus Life at MIU - Student Experience | Modern International University{% endblock %}
+
+{% block extra_css %}
+<meta name="description" content="Experience vibrant campus life at MIU. Discover student organizations, athletics, housing, dining, events, and activities that make MIU a great place to learn and grow.">
+<meta name="keywords" content="campus life, student life, student organizations, campus events, MIU campus, student activities, college experience">
+{% endblock %}
+
+{% block content %}
+
+<!-- ===== HERO ===== -->
+<section class="relative bg-gradient-to-br from-primary-950 via-purple-900 to-pink-900 text-white py-24 lg:py-32 overflow-hidden">
+    <div class="absolute inset-0 opacity-10 pointer-events-none">
+        <div class="absolute top-20 left-10 w-64 h-64 bg-purple-300 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-20 right-10 w-96 h-96 bg-pink-300 rounded-full blur-3xl"></div>
+    </div>
+
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="max-w-4xl">
+            <nav class="flex mb-8 text-sm font-['Inter']" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-2">
+                    <li><a href="{% url 'eduweb:index' %}" class="text-purple-200 hover:text-white transition-colors">Home</a></li>
+                    <li><i data-lucide="chevron-right" class="w-4 h-4 text-purple-300"></i></li>
+                    <li><span class="text-white font-medium">Campus Life</span></li>
+                </ol>
+            </nav>
+
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-500 rounded-2xl flex items-center justify-center shadow-xl flex-shrink-0">
+                    <i data-lucide="heart" class="w-8 h-8 text-white"></i>
+                </div>
+                <div>
+                    <p class="text-purple-200 text-sm font-medium mb-1 font-['Inter']">Student Experience</p>
+                    <h1 class="text-4xl lg:text-6xl font-bold font-['Poppins']">Campus Life</h1>
+                </div>
+            </div>
+
+            <p class="text-xl text-purple-100 mb-8 leading-relaxed max-w-3xl font-['Inter']">
+                Experience a vibrant campus community where learning extends beyond the classroom through engaging activities, diverse organizations, and lifelong friendships.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== CAMPUS STATS ===== -->
+<section class="py-16 bg-gradient-to-br from-purple-50 to-pink-50">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-4 gap-8">
+            <div class="bg-white rounded-2xl p-6 shadow-lg text-center transform hover:scale-105 transition-transform duration-300">
+                <div class="w-14 h-14 bg-gradient-to-br from-primary-600 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="users" class="w-7 h-7 text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2 font-['Poppins']">200+</h3>
+                <p class="text-gray-600 font-['Inter']">Student Organizations</p>
+            </div>
+            <div class="bg-white rounded-2xl p-6 shadow-lg text-center transform hover:scale-105 transition-transform duration-300">
+                <div class="w-14 h-14 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="trophy" class="w-7 h-7 text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2 font-['Poppins']">25</h3>
+                <p class="text-gray-600 font-['Inter']">NCAA Sports Teams</p>
+            </div>
+            <div class="bg-white rounded-2xl p-6 shadow-lg text-center transform hover:scale-105 transition-transform duration-300">
+                <div class="w-14 h-14 bg-gradient-to-br from-pink-600 to-rose-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="calendar" class="w-7 h-7 text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2 font-['Poppins']">500+</h3>
+                <p class="text-gray-600 font-['Inter']">Annual Events</p>
+            </div>
+            <div class="bg-white rounded-2xl p-6 shadow-lg text-center transform hover:scale-105 transition-transform duration-300">
+                <div class="w-14 h-14 bg-gradient-to-br from-rose-600 to-red-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="globe" class="w-7 h-7 text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2 font-['Poppins']">85+</h3>
+                <p class="text-gray-600 font-['Inter']">Countries Represented</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== STUDENT ORGANIZATIONS ===== -->
+<section class="py-20 bg-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <div class="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-4 py-2 rounded-full text-sm font-semibold mb-4 font-['Inter']">
+                <i data-lucide="users" class="w-4 h-4"></i>
+                Get Involved
+            </div>
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-950 mb-4 font-['Poppins']">Student Organizations</h2>
+            <div class="h-1 w-24 bg-gradient-to-r from-primary-950 to-purple-500 mx-auto mb-6"></div>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto font-['Inter']">
+                Join over 200 student organizations and find your community at MIU.
+            </p>
+        </div>
+
+        <div class="max-w-6xl mx-auto grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100 text-center hover:shadow-xl transition-shadow duration-300">
+                <div class="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="book-open" class="w-7 h-7 text-white"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2 font-['Poppins']">Academic Clubs</h3>
+                <p class="text-sm text-gray-600 mb-4 font-['Inter']">45+ clubs related to majors and academic interests</p>
+                <a href="#" class="text-blue-600 font-semibold text-sm hover:underline font-['Inter']">Explore Clubs</a>
+            </div>
+
+            <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100 text-center hover:shadow-xl transition-shadow duration-300">
+                <div class="w-14 h-14 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="globe" class="w-7 h-7 text-white"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2 font-['Poppins']">Cultural Groups</h3>
+                <p class="text-sm text-gray-600 mb-4 font-['Inter']">30+ organizations celebrating diversity</p>
+                <a href="#" class="text-purple-600 font-semibold text-sm hover:underline font-['Inter']">Learn More</a>
+            </div>
+
+            <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100 text-center hover:shadow-xl transition-shadow duration-300">
+                <div class="w-14 h-14 bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="hand-heart" class="w-7 h-7 text-white"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2 font-['Poppins']">Service & Volunteering</h3>
+                <p class="text-sm text-gray-600 mb-4 font-['Inter']">25+ organizations giving back</p>
+                <a href="#" class="text-green-600 font-semibold text-sm hover:underline font-['Inter']">Get Involved</a>
+            </div>
+
+            <div class="bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-100 text-center hover:shadow-xl transition-shadow duration-300">
+                <div class="w-14 h-14 bg-gradient-to-br from-orange-600 to-amber-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="palette" class="w-7 h-7 text-white"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2 font-['Poppins']">Arts & Media</h3>
+                <p class="text-sm text-gray-600 mb-4 font-['Inter']">20+ creative and performing arts groups</p>
+                <a href="#" class="text-orange-600 font-semibold text-sm hover:underline font-['Inter']">Discover More</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== ATHLETICS & RECREATION ===== -->
+<section class="py-20 bg-gradient-to-br from-gray-50 to-purple-50">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <div class="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-4 py-2 rounded-full text-sm font-semibold mb-4 font-['Inter']">
+                <i data-lucide="trophy" class="w-4 h-4"></i>
+                Stay Active
+            </div>
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-950 mb-4 font-['Poppins']">Athletics & Recreation</h2>
+            <div class="h-1 w-24 bg-gradient-to-r from-primary-950 to-purple-500 mx-auto mb-6"></div>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto font-['Inter']">
+                Stay active with NCAA Division I sports and state-of-the-art recreation facilities.
+            </p>
+        </div>
+
+        <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 mb-12">
+            <!-- Varsity Sports -->
+            <div class="bg-white rounded-2xl p-8 shadow-lg border border-purple-100">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-12 h-12 bg-primary-950 rounded-xl flex items-center justify-center">
+                        <i data-lucide="trophy" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 font-['Poppins']">Varsity Sports</h3>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="check" class="w-4 h-4 text-primary-600"></i>
+                        <span class="text-sm text-gray-700 font-['Inter']">Basketball</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="check" class="w-4 h-4 text-primary-600"></i>
+                        <span class="text-sm text-gray-700 font-['Inter']">Soccer</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="check" class="w-4 h-4 text-primary-600"></i>
+                        <span class="text-sm text-gray-700 font-['Inter']">Swimming</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="check" class="w-4 h-4 text-primary-600"></i>
+                        <span class="text-sm text-gray-700 font-['Inter']">Track & Field</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="check" class="w-4 h-4 text-primary-600"></i>
+                        <span class="text-sm text-gray-700 font-['Inter']">Volleyball</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="check" class="w-4 h-4 text-primary-600"></i>
+                        <span class="text-sm text-gray-700 font-['Inter']">Tennis</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="check" class="w-4 h-4 text-primary-600"></i>
+                        <span class="text-sm text-gray-700 font-['Inter']">Baseball</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="check" class="w-4 h-4 text-primary-600"></i>
+                        <span class="text-sm text-gray-700 font-['Inter']">Softball</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recreation Facilities -->
+            <div class="bg-white rounded-2xl p-8 shadow-lg border border-purple-100">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center">
+                        <i data-lucide="dumbbell" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 font-['Poppins']">Recreation Center</h3>
+                </div>
+                <ul class="space-y-3">
+                    <li class="flex items-start gap-2 text-gray-700">
+                        <i data-lucide="check-circle" class="w-5 h-5 text-purple-600 mt-0.5"></i>
+                        <span class="font-['Inter']">50,000 sq ft fitness center</span>
+                    </li>
+                    <li class="flex items-start gap-2 text-gray-700">
+                        <i data-lucide="check-circle" class="w-5 h-5 text-purple-600 mt-0.5"></i>
+                        <span class="font-['Inter']">Olympic-size swimming pool</span>
+                    </li>
+                    <li class="flex items-start gap-2 text-gray-700">
+                        <i data-lucide="check-circle" class="w-5 h-5 text-purple-600 mt-0.5"></i>
+                        <span class="font-['Inter']">Indoor & outdoor courts</span>
+                    </li>
+                    <li class="flex items-start gap-2 text-gray-700">
+                        <i data-lucide="check-circle" class="w-5 h-5 text-purple-600 mt-0.5"></i>
+                        <span class="font-['Inter']">Rock climbing wall</span>
+                    </li>
+                    <li class="flex items-start gap-2 text-gray-700">
+                        <i data-lucide="check-circle" class="w-5 h-5 text-purple-600 mt-0.5"></i>
+                        <span class="font-['Inter']">Group fitness classes</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== HOUSING & DINING ===== -->
+<section class="py-20 bg-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <div class="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-4 py-2 rounded-full text-sm font-semibold mb-4 font-['Inter']">
+                <i data-lucide="home" class="w-4 h-4"></i>
+                Live & Dine
+            </div>
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-950 mb-4 font-['Poppins']">Housing & Dining</h2>
+            <div class="h-1 w-24 bg-gradient-to-r from-primary-950 to-purple-500 mx-auto mb-6"></div>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto font-['Inter']">
+                Modern, comfortable living spaces and delicious dining options on campus.
+            </p>
+        </div>
+
+        <div class="max-w-6xl mx-auto grid md:grid-cols-3 gap-8">
+            <!-- Residence Halls -->
+            <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-8 border border-purple-100 hover:shadow-xl transition-shadow">
+                <div class="w-14 h-14 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center mb-6">
+                    <i data-lucide="home" class="w-7 h-7 text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-3 font-['Poppins']">Residence Halls</h3>
+                <ul class="space-y-2 mb-6">
+                    <li class="text-sm text-gray-700 font-['Inter']">• Traditional & suite-style rooms</li>
+                    <li class="text-sm text-gray-700 font-['Inter']">• High-speed WiFi</li>
+                    <li class="text-sm text-gray-700 font-['Inter']">• Study lounges</li>
+                    <li class="text-sm text-gray-700 font-['Inter']">• 24/7 security</li>
+                </ul>
+                <a href="#" class="inline-flex items-center gap-2 text-purple-600 font-semibold hover:gap-3 transition-all font-['Inter']">
+                    Explore Housing
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+            </div>
+
+            <!-- Apartments -->
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-100 hover:shadow-xl transition-shadow">
+                <div class="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center mb-6">
+                    <i data-lucide="building" class="w-7 h-7 text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-3 font-['Poppins']">Campus Apartments</h3>
+                <ul class="space-y-2 mb-6">
+                    <li class="text-sm text-gray-700 font-['Inter']">• 1-4 bedroom options</li>
+                    <li class="text-sm text-gray-700 font-['Inter']">• Full kitchens</li>
+                    <li class="text-sm text-gray-700 font-['Inter']">• Living & dining areas</li>
+                    <li class="text-sm text-gray-700 font-['Inter']">• On-site parking</li>
+                </ul>
+                <a href="#" class="inline-flex items-center gap-2 text-blue-600 font-semibold hover:gap-3 transition-all font-['Inter']">
+                    View Apartments
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+            </div>
+
+            <!-- Dining -->
+            <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 border border-green-100 hover:shadow-xl transition-shadow">
+                <div class="w-14 h-14 bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl flex items-center justify-center mb-6">
+                    <i data-lucide="utensils" class="w-7 h-7 text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-3 font-['Poppins']">Dining Options</h3>
+                <ul class="space-y-2 mb-6">
+                    <li class="text-sm text-gray-700 font-['Inter']">• 5 dining halls</li>
+                    <li class="text-sm text-gray-700 font-['Inter']">• 10+ campus cafés</li>
+                    <li class="text-sm text-gray-700 font-['Inter']">• Vegetarian & vegan options</li>
+                    <li class="text-sm text-gray-700 font-['Inter']">• Meal plans available</li>
+                </ul>
+                <a href="#" class="inline-flex items-center gap-2 text-green-600 font-semibold hover:gap-3 transition-all font-['Inter']">
+                    See Dining
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== EVENTS & TRADITIONS ===== -->
+<section class="py-20 bg-gradient-to-br from-gray-50 to-purple-50">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <div class="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-4 py-2 rounded-full text-sm font-semibold mb-4 font-['Inter']">
+                <i data-lucide="sparkles" class="w-4 h-4"></i>
+                Make Memories
+            </div>
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-950 mb-4 font-['Poppins']">Events & Traditions</h2>
+            <div class="h-1 w-24 bg-gradient-to-r from-primary-950 to-purple-500 mx-auto mb-6"></div>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto font-['Inter']">
+                Create lasting memories through campus events and cherished traditions.
+            </p>
+        </div>
+
+        <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-purple-100 hover:shadow-xl transition-shadow">
+                <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3 font-['Poppins']">
+                    <i data-lucide="star" class="w-6 h-6 text-amber-500"></i>
+                    Annual Events
+                </h3>
+                <ul class="space-y-3">
+                    <li class="flex items-start gap-2 text-gray-700">
+                        <i data-lucide="calendar" class="w-5 h-5 text-primary-600 mt-0.5"></i>
+                        <div>
+                            <span class="font-semibold font-['Inter']">Homecoming Week</span>
+                            <p class="text-sm text-gray-600 font-['Inter']">Alumni reunions, parade, and football game</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-2 text-gray-700">
+                        <i data-lucide="calendar" class="w-5 h-5 text-primary-600 mt-0.5"></i>
+                        <div>
+                            <span class="font-semibold font-['Inter']">Spring Festival</span>
+                            <p class="text-sm text-gray-600 font-['Inter']">Live music, food trucks, and activities</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-2 text-gray-700">
+                        <i data-lucide="calendar" class="w-5 h-5 text-primary-600 mt-0.5"></i>
+                        <div>
+                            <span class="font-semibold font-['Inter']">Culture Night</span>
+                            <p class="text-sm text-gray-600 font-['Inter']">Celebrating diversity through performances</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-purple-100 hover:shadow-xl transition-shadow">
+                <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3 font-['Poppins']">
+                    <i data-lucide="sparkles" class="w-6 h-6 text-purple-500"></i>
+                    Campus Traditions
+                </h3>
+                <ul class="space-y-3">
+                    <li class="flex items-start gap-2 text-gray-700">
+                        <i data-lucide="heart" class="w-5 h-5 text-pink-600 mt-0.5"></i>
+                        <div>
+                            <span class="font-semibold font-['Inter']">Midnight Breakfast</span>
+                            <p class="text-sm text-gray-600 font-['Inter']">Faculty serve students before finals</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-2 text-gray-700">
+                        <i data-lucide="heart" class="w-5 h-5 text-pink-600 mt-0.5"></i>
+                        <div>
+                            <span class="font-semibold font-['Inter']">Senior Week</span>
+                            <p class="text-sm text-gray-600 font-['Inter']">Special events for graduating class</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-2 text-gray-700">
+                        <i data-lucide="heart" class="w-5 h-5 text-pink-600 mt-0.5"></i>
+                        <div>
+                            <span class="font-semibold font-['Inter']">Ring Ceremony</span>
+                            <p class="text-sm text-gray-600 font-['Inter']">Juniors receive their class rings</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="py-20 bg-gradient-to-br from-primary-950 via-purple-900 to-pink-900 text-white relative overflow-hidden">
+    <div class="absolute inset-0 opacity-10 pointer-events-none">
+        <div class="absolute top-10 left-1/4 w-64 h-64 bg-purple-400 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-10 right-1/4 w-64 h-64 bg-pink-400 rounded-full blur-3xl"></div>
+    </div>
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 font-['Poppins']">Ready to Join Our Community?</h2>
+        <p class="text-xl text-purple-100 mb-10 max-w-2xl mx-auto font-['Inter']">
+            Become part of a vibrant campus where friendships flourish and memories last a lifetime.
+        </p>
+        <div class="flex flex-wrap justify-center gap-6">
+            <a href="{% url 'eduweb:apply' %}" class="px-8 py-4 bg-white text-primary-950 rounded-xl font-semibold hover:bg-purple-50 transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105 inline-flex items-center gap-2 font-['Inter']">
+                Apply Now
+                <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </a>
+            <a href="#" class="px-8 py-4 border-2 border-white text-white rounded-xl font-semibold hover:bg-white hover:text-primary-950 transition-all duration-300 inline-flex items-center gap-2 font-['Inter']">
+                Schedule a Campus Tour
+                <i data-lucide="map" class="w-5 h-5"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

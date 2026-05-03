@@ -1,0 +1,524 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="{{ site_config.theme_color|default:'#06b6d4' }}">
+
+  {% block meta_tags %}
+  <meta name="description" content="{{ site_config.meta_description|default:'ABrayTech — UK & Nigeria-based tech training and digital transformation platform. Master AI, cybersecurity, full-stack development, and grow your business online.' }}">
+  <meta name="keywords" content="{{ site_config.meta_keywords|default:'ABrayTech, tech training, AI courses, cybersecurity, full-stack development, digital marketing, online presence, Nigeria, UK' }}">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="{{ site_config.school_name|default:'ABrayTech Limited' }}">
+  {% endblock %}
+
+  {% block og_tags %}
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{{ site_config.school_name|default:'ABrayTech Limited' }} – Build In-Demand Tech Skills">
+  <meta property="og:description" content="{{ site_config.meta_description|default:'Career-focused training in AI, cybersecurity, full-stack dev & business digitalization.' }}">
+  <meta property="og:image" content="{% if site_config.og_image %}{{ site_config.og_image.url }}{% else %}{% static 'images/og-image.jpg' %}{% endif %}">
+  <meta property="og:url" content="{{ request.build_absolute_uri }}">
+  {% endblock %}
+
+  {% block twitter_tags %}
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ site_config.school_name|default:'ABrayTech Limited' }}">
+  <meta name="twitter:description" content="{{ site_config.meta_description|default:'Career-focused tech training & digital transformation.' }}">
+  <meta name="twitter:image" content="{% if site_config.og_image %}{{ site_config.og_image.url }}{% else %}{% static 'images/og-image.jpg' %}{% endif %}">
+  {% endblock %}
+
+  <title>{% block title %}ABrayTech Limited – Build In-Demand Tech Skills{% endblock %}</title>
+
+  <!-- Favicon -->
+  {% if site_config.favicon %}
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ site_config.favicon.url }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ site_config.favicon.url }}">
+  {% else %}
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon.png' %}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'apple-touch-icon.png' %}">
+  {% endif %}
+
+  {% block canonical %}<link rel="canonical" href="{{ request.build_absolute_uri }}">{% endblock %}
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="{% static 'output.css' %}">  
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  {% block structured_data %}{% endblock %}
+  {% block extra_css %}{% endblock %}
+</head>
+
+<body class="text-gray-900 bg-white antialiased">
+
+  <!-- Skip link -->
+  <a href="#main-content"
+     class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-6 focus:py-3 focus:bg-cyan-500 focus:text-white focus:rounded-lg focus:font-semibold focus:shadow-lg">
+    Skip to main content
+  </a>
+
+  <!-- ═══════════════════════════════════════════
+       NAVIGATION
+  ═══════════════════════════════════════════ -->
+  <header id="site-header"
+          class="fixed top-0 left-0 right-0 z-50 glass-effect border-b border-gray-100 transition-all duration-300"
+          role="banner">
+    <nav class="container mx-auto px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
+      <div class="flex items-center justify-between h-18 lg:h-20">
+
+        <!-- Logo -->
+        <a href="{% url 'eduweb:index' %}"
+           class="flex items-center gap-3 group focus:outline-none focus:ring-2 focus:ring-cyan-500 rounded-lg"
+           aria-label="{{ site_config.school_name|default:'ABrayTech Limited' }} Home">
+          {% if site_config.logo %}
+          <img src="{{ site_config.logo.url }}" alt="{{ site_config.school_short_name|default:'ABrayTech' }} Logo"
+               class="h-12 w-auto object-contain" loading="eager" width="140" height="48">
+          {% else %}
+          <div class="flex items-center gap-2">
+            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-700 flex items-center justify-center">
+              <span class="text-white font-heading font-bold text-sm">AB</span>
+            </div>
+            <span class="font-heading font-bold text-navy-800 text-lg">{{ site_config.school_short_name|default:"ABrayTech" }}</span>
+          </div>
+          {% endif %}
+        </a>
+
+        <!-- Right side: nav links + CTA + hamburger -->
+        <div class="flex items-center gap-3">
+
+          <!-- Desktop nav links -->
+          <div class="hidden lg:flex items-center gap-1">
+
+            <a href="{% url 'eduweb:index' %}"
+               class="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-500
+                      {% if request.resolver_match.url_name == 'index' %}text-cyan-600 bg-cyan-50{% else %}text-gray-700 hover:text-cyan-600 hover:bg-cyan-50{% endif %}">
+              Home
+            </a>
+
+            <a href="{% url 'eduweb:about' %}"
+               class="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-500
+                      {% if request.resolver_match.url_name == 'about' %}text-cyan-600 bg-cyan-50{% else %}text-gray-700 hover:text-cyan-600 hover:bg-cyan-50{% endif %}">
+              About
+            </a>
+
+            <!-- Services dropdown -->
+            <div class="relative nav-dropdown-trigger">
+              <button class="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-gray-700 hover:text-cyan-600 hover:bg-cyan-50"
+                      aria-haspopup="true" aria-expanded="false">
+                Services
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+              </button>
+              <div class="nav-dropdown absolute top-full left-0 mt-2 w-60 bg-white rounded-xl shadow-2xl border border-gray-100 z-50" role="menu">
+                <div class="p-2">
+                  {% for faculty in all_faculties %}
+                  <a href="{% url 'eduweb:faculty_detail' faculty.slug %}"
+                     class="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-cyan-50 transition-colors group/item" role="menuitem">
+                    <i data-lucide="{{ faculty.icon }}" class="w-4 h-4 text-cyan-600 flex-shrink-0"></i>
+                    <span class="text-sm font-medium text-gray-700 group-hover/item:text-cyan-700">{{ faculty.name }}</span>
+                  </a>
+                  {% empty %}
+                  <p class="text-sm text-gray-500 px-4 py-2">Services listed soon.</p>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Courses dropdown -->
+            <div class="relative nav-dropdown-trigger">
+              <button class="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-gray-700 hover:text-cyan-600 hover:bg-cyan-50"
+                      aria-haspopup="true" aria-expanded="false">
+                Courses
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+              </button>
+              <div class="nav-dropdown absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 max-h-80 overflow-y-auto" role="menu">
+                <div class="p-2">
+                  {% for course in all_courses %}
+                  <a href="{% url 'eduweb:program_detail' course.slug %}"
+                     class="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-cyan-50 transition-colors group/item" role="menuitem">
+                    <i data-lucide="{{ course.icon|default:'code-2' }}" class="w-4 h-4 text-cyan-600 flex-shrink-0"></i>
+                    <span class="text-sm font-medium text-gray-700 group-hover/item:text-cyan-700">{{ course.name }}</span>
+                  </a>
+                  {% empty %}
+                  <p class="text-sm text-gray-500 px-4 py-2">Courses coming soon.</p>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+
+            <a href="{% url 'eduweb:products' %}"
+               class="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-500
+                      {% if request.resolver_match.url_name == 'products' %}text-cyan-600 bg-cyan-50{% else %}text-gray-700 hover:text-cyan-600 hover:bg-cyan-50{% endif %}">
+              Our Work
+            </a>
+
+            <a href="{% url 'eduweb:index' %}#contact"
+               class="px-4 py-2 rounded-lg text-sm font-semibold text-gray-700 hover:text-cyan-600 hover:bg-cyan-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+              Contact
+            </a>
+          </div>
+
+          <!-- CTA buttons -->
+          <a href="{% url 'eduweb:apply' %}"
+             class="hidden sm:inline-flex btn-primary text-sm py-2.5 px-5 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+            <i data-lucide="zap" class="w-4 h-4"></i> Start Learning
+          </a>
+
+          {% if user.is_authenticated %}
+          <a href="{% url 'eduweb:dashboard' %}"
+             class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg bg-navy-800 text-cyan-300 text-sm font-semibold hover:bg-navy-700 transition-all focus:outline-none focus:ring-2 focus:ring-cyan-500">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+          </a>
+          {% endif %}
+
+          <!-- Hamburger -->
+          <button id="mobileMenuBtn"
+                  class="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  aria-label="Toggle menu" aria-expanded="false">
+            <i data-lucide="menu" class="w-5 h-5 text-gray-700" id="menuIcon"></i>
+          </button>
+
+        </div>
+
+      </div>
+
+      <!-- Mobile menu -->
+      <div id="mobileMenu" class="lg:hidden hidden bg-white border-t border-gray-100 animate-slide-down">
+        <div class="py-4 space-y-1 px-2">
+
+          <a href="{% url 'eduweb:index' %}"
+             class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if request.resolver_match.url_name == 'index' %}bg-cyan-50 text-cyan-700 font-semibold{% else %}text-gray-700 hover:bg-cyan-50 hover:text-cyan-700{% endif %} focus:outline-none focus:ring-2 focus:ring-cyan-500">
+            <i data-lucide="home" class="w-4 h-4"></i>
+            <span class="text-sm font-medium">Home</span>
+          </a>
+
+          <a href="{% url 'eduweb:about' %}"
+             class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if request.resolver_match.url_name == 'about' %}bg-cyan-50 text-cyan-700 font-semibold{% else %}text-gray-700 hover:bg-cyan-50 hover:text-cyan-700{% endif %} focus:outline-none focus:ring-2 focus:ring-cyan-500">
+            <i data-lucide="info" class="w-4 h-4"></i>
+            <span class="text-sm font-medium">About</span>
+          </a>
+
+          <!-- Mobile Services -->
+          <div>
+            <button class="w-full flex items-center justify-between px-4 py-3 rounded-lg text-gray-700 hover:bg-cyan-50 hover:text-cyan-700 transition-all focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    id="mobileServicesBtn" aria-expanded="false">
+              <div class="flex items-center gap-3">
+                <i data-lucide="layers" class="w-4 h-4"></i>
+                <span class="text-sm font-medium">Services</span>
+              </div>
+              <i data-lucide="chevron-down" class="w-4 h-4 transition-transform" id="servicesChevron"></i>
+            </button>
+            <div id="mobileServicesMenu" class="hidden bg-cyan-50 py-2 mt-1 rounded-lg space-y-1">
+              {% for faculty in all_faculties %}
+              <a href="{% url 'eduweb:faculty_detail' faculty.slug %}"
+                 class="flex items-center gap-3 px-10 py-2 text-sm text-gray-600 hover:text-cyan-700 hover:bg-white rounded-lg mx-2 transition-all focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                <i data-lucide="{{ faculty.icon }}" class="w-3.5 h-3.5"></i>{{ faculty.name }}
+              </a>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Mobile Courses -->
+          <div>
+            <button class="w-full flex items-center justify-between px-4 py-3 rounded-lg text-gray-700 hover:bg-cyan-50 hover:text-cyan-700 transition-all focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    id="mobileCoursesBtn" aria-expanded="false">
+              <div class="flex items-center gap-3">
+                <i data-lucide="book-open" class="w-4 h-4"></i>
+                <span class="text-sm font-medium">Courses</span>
+              </div>
+              <i data-lucide="chevron-down" class="w-4 h-4 transition-transform" id="coursesChevron"></i>
+            </button>
+            <div id="mobileCoursesMenu" class="hidden bg-cyan-50 py-2 mt-1 rounded-lg space-y-1">
+              {% for course in all_courses %}
+              <a href="{% url 'eduweb:program_detail' course.slug %}"
+                 class="flex items-center gap-3 px-10 py-2 text-sm text-gray-600 hover:text-cyan-700 hover:bg-white rounded-lg mx-2 transition-all focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                <i data-lucide="{{ course.icon|default:'code-2' }}" class="w-3.5 h-3.5"></i>{{ course.name }}
+              </a>
+              {% endfor %}
+            </div>
+          </div>
+
+          <a href="{% url 'eduweb:products' %}"
+             class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-cyan-50 hover:text-cyan-700 transition-all text-sm font-medium focus:outline-none focus:ring-2 focus:ring-cyan-500">
+            <i data-lucide="briefcase" class="w-4 h-4"></i> Our Work
+          </a>
+
+          <a href="#contact"
+             class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-cyan-50 hover:text-cyan-700 transition-all text-sm font-medium focus:outline-none focus:ring-2 focus:ring-cyan-500">
+            <i data-lucide="mail" class="w-4 h-4"></i> Contact
+          </a>
+
+          <div class="pt-3 px-4">
+            <a href="{% url 'eduweb:apply' %}" class="btn-primary w-full justify-center">
+              <i data-lucide="zap" class="w-4 h-4"></i> Start Learning
+            </a>
+          </div>
+
+          {% if user.is_authenticated %}
+          <div class="px-4 pb-2">
+            <a href="{% url 'eduweb:dashboard' %}"
+               class="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-navy-800 text-cyan-300 text-sm font-semibold hover:bg-navy-700 transition-all focus:outline-none focus:ring-2 focus:ring-cyan-500">
+              <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+            </a>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+    </nav>
+  </header>
+  <!-- / NAVIGATION -->
+
+  <main id="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- ═══════════════════════════════════════════
+       FOOTER
+  ═══════════════════════════════════════════ -->
+  <footer class="section-dark" role="contentinfo">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20">
+
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-14">
+
+        <!-- Brand col -->
+        <div class="lg:col-span-1">
+          {% if site_config.logo %}
+          <img src="{{ site_config.logo.url }}" alt="{{ site_config.school_short_name|default:'ABrayTech' }} Logo"
+               class="h-12 w-auto object-contain mb-5 brightness-0 invert" loading="lazy">
+          {% else %}
+          <div class="flex items-center gap-2 mb-5">
+            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-700 flex items-center justify-center">
+              <span class="text-white font-heading font-bold text-sm">AB</span>
+            </div>
+            <span class="font-heading font-bold text-white text-lg">{{ site_config.school_short_name|default:"ABrayTech" }}</span>
+          </div>
+          {% endif %}
+          <p class="text-navy-300 text-sm leading-relaxed mb-6">
+            {{ site_config.footer_description|default:"Practical tech training &amp; digital transformation for individuals and businesses across the UK &amp; Nigeria." }}
+          </p>
+          <!-- Social links -->
+          <div class="flex flex-wrap gap-2">
+            {% if site_config.facebook %}
+            <a href="{{ site_config.facebook }}" target="_blank" rel="noopener"
+               class="w-9 h-9 rounded-lg bg-white/8 hover:bg-cyan-600 flex items-center justify-center text-navy-300 hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-cyan-400"
+               aria-label="Facebook">
+              <svg class="brand-icon-sm" viewBox="0 0 24 24"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.791-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.272h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
+            </a>
+            {% endif %}
+            {% if site_config.twitter %}
+            <a href="{{ site_config.twitter }}" target="_blank" rel="noopener"
+               class="w-9 h-9 rounded-lg bg-white/8 hover:bg-cyan-600 flex items-center justify-center text-navy-300 hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-cyan-400"
+               aria-label="X / Twitter">
+              <svg class="brand-icon-sm" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </a>
+            {% endif %}
+            {% if site_config.linkedin %}
+            <a href="{{ site_config.linkedin }}" target="_blank" rel="noopener"
+               class="w-9 h-9 rounded-lg bg-white/8 hover:bg-blue-700 flex items-center justify-center text-navy-300 hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-cyan-400"
+               aria-label="LinkedIn">
+              <svg class="brand-icon-sm" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            </a>
+            {% endif %}
+            {% if site_config.youtube %}
+            <a href="{{ site_config.youtube }}" target="_blank" rel="noopener"
+               class="w-9 h-9 rounded-lg bg-white/8 hover:bg-red-600 flex items-center justify-center text-navy-300 hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-cyan-400"
+               aria-label="YouTube">
+              <svg class="brand-icon-sm" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+            </a>
+            {% endif %}
+            {% if site_config.instagram %}
+            <a href="{{ site_config.instagram }}" target="_blank" rel="noopener"
+               class="w-9 h-9 rounded-lg bg-white/8 hover:bg-pink-600 flex items-center justify-center text-navy-300 hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-cyan-400"
+               aria-label="Instagram">
+              <svg class="brand-icon-sm" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+            </a>
+            {% endif %}
+            {% if site_config.whatsapp %}
+            <a href="https://wa.me/{{ site_config.whatsapp }}" target="_blank" rel="noopener"
+               class="w-9 h-9 rounded-lg bg-white/8 hover:bg-green-600 flex items-center justify-center text-navy-300 hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-cyan-400"
+               aria-label="WhatsApp">
+              <i data-lucide="message-circle" class="w-4 h-4"></i>
+            </a>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Services col -->
+        <div>
+          <h4 class="font-heading font-bold text-white text-sm uppercase tracking-widest mb-5">Services</h4>
+          <ul class="space-y-2.5">
+            {% for faculty in all_faculties %}
+            <li>
+              <a href="{% url 'eduweb:faculty_detail' faculty.slug %}"
+                 class="text-navy-300 hover:text-cyan-400 text-sm transition-colors focus:outline-none focus:text-cyan-400">
+                {{ faculty.name }}
+              </a>
+            </li>
+            {% empty %}
+            <li class="text-navy-300 text-sm">AI Training</li>
+            <li class="text-navy-300 text-sm">Cybersecurity</li>
+            <li class="text-navy-300 text-sm">Full-Stack Dev</li>
+            <li class="text-navy-300 text-sm">Business Digitalization</li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <!-- Quick links col -->
+        <div>
+          <h4 class="font-heading font-bold text-white text-sm uppercase tracking-widest mb-5">Quick Links</h4>
+          <ul class="space-y-2.5">
+            <li><a href="{% url 'eduweb:index' %}" class="text-navy-300 hover:text-cyan-400 text-sm transition-colors focus:outline-none focus:text-cyan-400">Home</a></li>
+            <li><a href="{% url 'eduweb:about' %}" class="text-navy-300 hover:text-cyan-400 text-sm transition-colors focus:outline-none focus:text-cyan-400">About Us</a></li>
+            <li><a href="{% url 'eduweb:all_programs' %}" class="text-navy-300 hover:text-cyan-400 text-sm transition-colors focus:outline-none focus:text-cyan-400">All Courses</a></li>
+            <li><a href="{% url 'eduweb:products' %}" class="text-navy-300 hover:text-cyan-400 text-sm transition-colors focus:outline-none focus:text-cyan-400">Our Work</a></li>
+            <li><a href="{% url 'eduweb:apply' %}" class="text-navy-300 hover:text-cyan-400 text-sm transition-colors focus:outline-none focus:text-cyan-400">Apply Now</a></li>
+            <li><a href="#contact" class="text-navy-300 hover:text-cyan-400 text-sm transition-colors focus:outline-none focus:text-cyan-400">Contact</a></li>
+          </ul>
+        </div>
+
+        <!-- Contact col -->
+        <div>
+          <h4 class="font-heading font-bold text-white text-sm uppercase tracking-widest mb-5">Contact</h4>
+          <ul class="space-y-3">
+            {% if site_config.address_uk %}
+            <li class="flex items-start gap-2.5 text-sm text-navy-300">
+              <i data-lucide="map-pin" class="w-4 h-4 text-cyan-500 flex-shrink-0 mt-0.5"></i>
+              <span>{{ site_config.address_uk }}</span>
+            </li>
+            {% endif %}
+            {% if site_config.address_ng %}
+            <li class="flex items-start gap-2.5 text-sm text-navy-300">
+              <i data-lucide="map-pin" class="w-4 h-4 text-lime-400 flex-shrink-0 mt-0.5"></i>
+              <span>{{ site_config.address_ng }}</span>
+            </li>
+            {% endif %}
+            {% if site_config.email %}
+            <li>
+              <a href="mailto:{{ site_config.email }}"
+                 class="flex items-center gap-2.5 text-sm text-navy-300 hover:text-cyan-400 transition-colors focus:outline-none focus:text-cyan-400">
+                <i data-lucide="mail" class="w-4 h-4 text-cyan-500 flex-shrink-0"></i>
+                {{ site_config.email }}
+              </a>
+            </li>
+            {% endif %}
+            {% if site_config.phone_primary %}
+            <li>
+              <a href="tel:{{ site_config.phone_primary }}"
+                 class="flex items-center gap-2.5 text-sm text-navy-300 hover:text-cyan-400 transition-colors focus:outline-none focus:text-cyan-400">
+                <i data-lucide="phone" class="w-4 h-4 text-cyan-500 flex-shrink-0"></i>
+                {{ site_config.phone_primary }}
+              </a>
+            </li>
+            {% endif %}
+            {% if site_config.phone_ng_primary %}
+            <li>
+              <a href="tel:{{ site_config.phone_ng_primary }}"
+                 class="flex items-center gap-2.5 text-sm text-navy-300 hover:text-cyan-400 transition-colors focus:outline-none focus:text-cyan-400">
+                <i data-lucide="phone" class="w-4 h-4 text-lime-400 flex-shrink-0"></i>
+                {{ site_config.phone_ng_primary }} <span class="text-xs ml-1 text-navy-400">(NG)</span>
+              </a>
+            </li>
+            {% endif %}
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Bottom bar -->
+      <div class="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="text-navy-400 text-sm text-center sm:text-left">
+          &copy; {{ site_config.copyright_year|default:"2025" }} {{ site_config.school_name|default:"ABrayTech Limited" }}. All rights reserved.
+        </p>
+        <div class="flex flex-wrap items-center justify-center gap-4 text-navy-400 text-xs">
+          <a href="{ url 'eduweb:privacy_policy' %}" class="hover:text-cyan-400 transition-colors focus:outline-none focus:text-cyan-400">Privacy Policy</a>
+          <a href="{ url 'eduweb:terms' %}" class="hover:text-cyan-400 transition-colors focus:outline-none focus:text-cyan-400">Terms of Use</a>
+          {% if site_config.email %}
+          <a href="mailto:{{ site_config.email }}"
+             class="flex items-center gap-1 hover:text-cyan-400 transition-colors focus:outline-none focus:text-cyan-400">
+            <i data-lucide="mail" class="w-3.5 h-3.5"></i>{{ site_config.email }}
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+  </footer>
+  <!-- / FOOTER -->
+
+  <script src="{% static 'js/main.js' %}"></script>
+
+  {% block extra_js %}{% endblock %}
+
+  <!-- Toasts -->
+  {% if messages %}
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      {% for message in messages %}
+      Swal.mixin({ toast:true, position:'top-end', showConfirmButton:false, timer:4000, timerProgressBar:true,
+        didOpen:(t)=>{ t.addEventListener('mouseenter',Swal.stopTimer); t.addEventListener('mouseleave',Swal.resumeTimer); }
+      }).fire({
+        icon: '{% if message.tags == "error" or message.tags == "danger" %}error{% elif message.tags == "warning" %}warning{% elif message.tags == "success" %}success{% else %}info{% endif %}',
+        title: '{{ message|escapejs }}'
+      });
+      {% endfor %}
+    });
+  </script>
+  {% endif %}
+
+  <script>
+    window.showToast = function(type, message) {
+      Swal.mixin({ toast:true, position:'top-end', showConfirmButton:false, timer:4000, timerProgressBar:true,
+        didOpen:(t)=>{ t.addEventListener('mouseenter',Swal.stopTimer); t.addEventListener('mouseleave',Swal.resumeTimer); }
+      }).fire({ icon:type, title:message });
+    };
+
+    // Mobile menu toggle
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu    = document.getElementById('mobileMenu');
+    const menuIcon      = document.getElementById('menuIcon');
+    if (mobileMenuBtn && mobileMenu) {
+      mobileMenuBtn.addEventListener('click', () => {
+        const open = mobileMenu.classList.toggle('hidden');
+        mobileMenuBtn.setAttribute('aria-expanded', String(!open));
+        if (menuIcon) menuIcon.setAttribute('data-lucide', open ? 'menu' : 'x');
+        lucide.createIcons();
+      });
+    }
+
+    // Mobile sub-menus
+    function mobileToggle(btnId, menuId, chevronId) {
+      const btn = document.getElementById(btnId);
+      const menu = document.getElementById(menuId);
+      const chev = document.getElementById(chevronId);
+      if (!btn || !menu) return;
+      btn.addEventListener('click', () => {
+        const open = menu.classList.toggle('hidden');
+        btn.setAttribute('aria-expanded', String(!open));
+        if (chev) chev.style.transform = open ? '' : 'rotate(180deg)';
+      });
+    }
+    mobileToggle('mobileServicesBtn','mobileServicesMenu','servicesChevron');
+    mobileToggle('mobileCoursesBtn', 'mobileCoursesMenu', 'coursesChevron');
+
+    // Nav scroll shadow
+    const header = document.getElementById('site-header');
+    if (header) {
+      window.addEventListener('scroll', () => {
+        header.classList.toggle('scrolled', window.scrollY > 20);
+      }, { passive: true });
+    }
+
+    lucide.createIcons();
+  </script>
+
+  {% comment %} {% include 'chatbot/chatbot.html' %} {% endcomment %}
+
+</body>
+</html>

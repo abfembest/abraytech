@@ -1,0 +1,254 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% comment %} exam_list.html — Admin Exam Management List {% endcomment %}
+
+{% block title %}Exam Management{% endblock %}
+{% block breadcrumb %}Exam Management{% endblock %}
+{% block breadcrumb_title %}Exam Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-tab-active  { background: var(--color-primary-600,#3a56d4); color:#fff; border-color:var(--color-primary-600,#3a56d4); }
+    .status-tab-default { background:#fff; color:#4b5563; border-color:#d1d5db; }
+    .status-tab-default:hover { border-color:var(--color-primary-400,#60a5fa); color:var(--color-primary-700,#1d4ed8); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-full space-y-6 px-4 sm:px-6 lg:px-8">
+
+    {% comment %} Page Header {% endcomment %}
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl sm:text-3xl xl:text-4xl font-bold text-gray-900 font-heading flex items-center gap-3">
+                <span class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-500 text-white shadow shrink-0">
+                    <i class="fas fa-file-alt text-lg"></i>
+                </span>
+                Exam Management
+            </h1>
+            <p class="text-base text-gray-500 mt-1 ml-14 lg:ml-16">Approve, publish and monitor all exams across the institution.</p>
+        </div>
+    </div>
+
+    {% comment %} Status Tab Bar {% endcomment %}
+    <div class="flex flex-wrap gap-2">
+        {% for key, label in STATUS_CHOICES %}
+        <a href="?status={{ key }}{% if search %}&q={{ search }}{% endif %}"
+           class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold border transition-all
+                  {% if status_filter == key %}status-tab-active{% else %}status-tab-default{% endif %}">
+            {{ label }}
+            <span class="inline-flex items-center justify-center min-w-[1.4rem] h-5 px-1.5 rounded-full text-xs font-bold
+                         {% if status_filter == key %}bg-white/25 text-white{% else %}bg-gray-100 text-gray-500{% endif %}">
+                {% comment %} {{ status_counts }} {% endcomment %}
+                {% if key == 'draft' %}{{ status_counts.draft }}
+                {% elif key == 'submitted' %}{{ status_counts.submitted }}
+                {% elif key == 'approved' %}{{ status_counts.approved }}
+                {% elif key == 'rejected' %}{{ status_counts.rejected }}
+                {% elif key == 'published' %}{{ status_counts.published }}
+                {% elif key == 'cancelled' %}{{ status_counts.cancelled }}
+                {% else %}0{% endif %}
+            </span>
+        </a>
+        {% endfor %}
+        {% if status_filter %}
+        <a href="?" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 transition-all">
+            <i class="fas fa-times text-xs"></i> Clear filter
+        </a>
+        {% endif %}
+    </div>
+
+    {% comment %} Search & Filter {% endcomment %}
+    <form method="get" class="flex flex-col sm:flex-row gap-3">
+        <input type="hidden" name="status" value="{{ status_filter }}">
+        <div class="relative flex-1">
+            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            <input type="text" name="q" value="{{ search }}"
+                   placeholder="Search title, reference code, or course…"
+                   class="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl text-base
+                          focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white transition">
+        </div>
+        <select name="session" class="px-4 py-3 border border-gray-300 rounded-xl text-base bg-white
+                                      focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition sm:w-56">
+            <option value="">All Sessions</option>
+            {% for s in sessions %}
+            <option value="{{ s.pk }}" {% if session_id == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-base font-semibold transition-colors shadow-sm shrink-0">
+            <i class="fas fa-filter mr-2"></i> Filter
+        </button>
+    </form>
+
+    {% comment %} Exams Table {% endcomment %}
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-base min-w-[640px]">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-200">
+                        <th class="text-left px-5 py-4 font-semibold text-gray-500 text-sm uppercase tracking-wider whitespace-nowrap">Ref / Title</th>
+                        <th class="text-left px-5 py-4 font-semibold text-gray-500 text-sm uppercase tracking-wider whitespace-nowrap hidden md:table-cell">LMS Course</th>
+                        <th class="text-left px-5 py-4 font-semibold text-gray-500 text-sm uppercase tracking-wider whitespace-nowrap hidden lg:table-cell">Academic Link</th>
+                        <th class="text-left px-5 py-4 font-semibold text-gray-500 text-sm uppercase tracking-wider whitespace-nowrap">Date / Time</th>
+                        <th class="text-left px-5 py-4 font-semibold text-gray-500 text-sm uppercase tracking-wider whitespace-nowrap">Status</th>
+                        <th class="text-right px-5 py-4 font-semibold text-gray-500 text-sm uppercase tracking-wider whitespace-nowrap">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for exam in page_obj %}
+                    <tr class="hover:bg-gray-50/60 transition-colors group {% if not exam.is_active %}opacity-60{% endif %}">
+
+                        {% comment %} Ref / Title {% endcomment %}
+                        <td class="px-5 py-4 max-w-[240px]">
+                            <div class="flex items-start gap-3">
+                                <div class="w-9 h-9 rounded-lg bg-primary-50 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-primary-100 transition-colors">
+                                    <i class="fas fa-file-alt text-primary-500"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="font-mono text-xs font-semibold text-gray-400 tracking-wide mb-0.5 whitespace-nowrap">{{ exam.reference_code }}</div>
+                                    <div class="font-semibold text-gray-900 text-base leading-snug truncate">{{ exam.title }}</div>
+                                    <div class="text-sm text-gray-400 mt-0.5 whitespace-nowrap">{{ exam.get_exam_type_display }}</div>
+                                    {% if not exam.is_active %}
+                                    <span class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 text-xs font-bold bg-gray-200 text-gray-600 rounded-full">
+                                        <i class="fas fa-ban text-[9px]"></i> Inactive
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+
+                        {% comment %} LMS Course — exam.course is FK to LMSCourse {% endcomment %}
+                        <td class="px-5 py-4 hidden md:table-cell max-w-[180px]">
+                            <span class="text-base text-gray-700 font-medium truncate block">{{ exam.course.title }}</span>
+                            {% if exam.course.session %}
+                            <span class="text-xs text-gray-400 whitespace-nowrap">{{ exam.course.session.name }}</span>
+                            {% endif %}
+                        </td>
+
+                        {% comment %} Academic Link — derived via exam.course.academic_course (NOT exam.academic_session) {% endcomment %}
+                        <td class="px-5 py-4 hidden lg:table-cell">
+                            {% if exam.course.academic_course %}
+                            <span class="inline-flex items-center gap-1.5 text-sm px-2.5 py-1 bg-primary-50 text-primary-700 border border-primary-100 rounded-full font-semibold whitespace-nowrap">
+                                <i class="fas fa-link text-xs"></i>{{ exam.course.academic_course.code }}
+                            </span>
+                            {% else %}
+                            <span class="text-sm text-gray-400 italic">Standalone</span>
+                            {% endif %}
+                        </td>
+
+                        {% comment %} Date / Time — uses start_datetime & end_datetime (DateTimeFields) {% endcomment %}
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            <div class="text-base font-semibold text-gray-800">{{ exam.start_datetime|date:"d M Y" }}</div>
+                            <div class="text-sm text-gray-400 mt-0.5 tabular-nums">
+                                <i class="fas fa-clock mr-1 opacity-60"></i>{{ exam.start_datetime|time:"H:i" }} – {{ exam.end_datetime|time:"H:i" }}
+                            </div>
+                            <div class="text-xs text-gray-400 mt-0.5">{{ exam.duration_minutes }} min</div>
+                        </td>
+
+                        {% comment %} Status {% endcomment %}
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            <div class="flex flex-col gap-1.5">
+                                {% if exam.status == 'draft' %}
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 text-sm font-semibold bg-gray-100 text-gray-600 rounded-full w-fit">
+                                    <span class="w-2 h-2 rounded-full bg-gray-400 shrink-0"></span>Draft
+                                </span>
+                                {% elif exam.status == 'submitted' %}
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 text-sm font-semibold bg-yellow-100 text-yellow-700 rounded-full w-fit">
+                                    <span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse shrink-0"></span>Submitted
+                                </span>
+                                {% elif exam.status == 'approved' %}
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 text-sm font-semibold bg-blue-100 text-blue-700 rounded-full w-fit">
+                                    <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>Approved
+                                </span>
+                                {% elif exam.status == 'rejected' %}
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 text-sm font-semibold bg-red-100 text-red-700 rounded-full w-fit">
+                                    <span class="w-2 h-2 rounded-full bg-red-500 shrink-0"></span>Rejected
+                                </span>
+                                {% elif exam.status == 'published' %}
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 text-sm font-semibold bg-green-100 text-green-700 rounded-full w-fit">
+                                    <span class="w-2 h-2 rounded-full bg-green-500 shrink-0"></span>Published
+                                </span>
+                                {% elif exam.status == 'cancelled' %}
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 text-sm font-semibold bg-gray-200 text-gray-500 rounded-full w-fit">
+                                    <span class="w-2 h-2 rounded-full bg-gray-400 shrink-0"></span>Cancelled
+                                </span>
+                                {% endif %}
+                                {% comment %} has_clash is a computed @property — checks overlapping published exams {% endcomment %}
+                                {% if exam.has_clash %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold bg-red-600 text-white rounded-full w-fit">
+                                    <i class="fas fa-exclamation-triangle text-[10px]"></i> CLASH
+                                </span>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        {% comment %} Actions {% endcomment %}
+                        <td class="px-5 py-4 text-right">
+                            <div class="flex items-center justify-end gap-2 flex-nowrap">
+                                <a href="{% url 'management:admin_exam_detail' exam.slug %}"
+                                   class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors shadow-sm whitespace-nowrap">
+                                    <i class="fas fa-eye text-xs"></i> View
+                                </a>
+                                <form method="post" action="{% url 'management:admin_exam_toggle_active' exam.slug %}" class="inline">
+                                    {% csrf_token %}
+                                    {% if exam.is_active %}
+                                    <button type="submit"
+                                            class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-lg transition-colors whitespace-nowrap"
+                                            onclick="return confirm('Deactivate exam {{ exam.reference_code }}?')">
+                                        <i class="fas fa-ban text-xs"></i> Deactivate
+                                    </button>
+                                    {% else %}
+                                    <button type="submit"
+                                            class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 rounded-lg transition-colors whitespace-nowrap">
+                                        <i class="fas fa-check-circle text-xs"></i> Activate
+                                    </button>
+                                    {% endif %}
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-5 py-20 text-center">
+                            <div class="flex flex-col items-center gap-4">
+                                <div class="w-16 h-16 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-center">
+                                    <i class="fas fa-file-alt text-3xl text-gray-300"></i>
+                                </div>
+                                <p class="text-gray-600 font-semibold text-lg">No exams found</p>
+                                <p class="text-gray-400 text-base">Try adjusting your filters or search query.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% comment %} Pagination {% endcomment %}
+        {% if page_obj.has_other_pages %}
+        <div class="px-5 py-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <p class="text-base text-gray-500">
+                Page <span class="font-semibold text-gray-700">{{ page_obj.number }}</span>
+                of <span class="font-semibold text-gray-700">{{ page_obj.paginator.num_pages }}</span>
+                &nbsp;·&nbsp; {{ page_obj.paginator.count }} total
+            </p>
+            <div class="flex gap-2">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if search %}&q={{ search }}{% endif %}"
+                   class="px-4 py-2 text-sm font-semibold border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700">
+                    <i class="fas fa-chevron-left mr-1 text-xs"></i> Prev
+                </a>
+                {% endif %}
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if search %}&q={{ search }}{% endif %}"
+                   class="px-4 py-2 text-sm font-semibold bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+                    Next <i class="fas fa-chevron-right ml-1 text-xs"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

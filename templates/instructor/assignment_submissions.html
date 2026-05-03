@@ -1,0 +1,201 @@
+{% extends 'management/base.html' %}
+{% block title %}Submissions - {{ assignment.title }}{% endblock %}
+
+{% block content %}
+<div class="px-2 sm:px-0">
+
+    <!-- Breadcrumb -->
+    <nav class="flex mb-4 sm:mb-6 overflow-x-auto" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center whitespace-nowrap text-xs sm:text-sm space-x-1">
+            <li><a href="{% url 'instructor:course_list' %}" class="text-gray-600 hover:text-primary-600"><i class="fas fa-book mr-1"></i>Courses</a></li>
+            <li><i class="fas fa-chevron-right text-gray-400 mx-1.5 text-xs"></i><a href="{% url 'instructor:lesson_list' course.slug %}" class="text-gray-600 hover:text-primary-600">{{ course.title }}</a></li>
+            <li><i class="fas fa-chevron-right text-gray-400 mx-1.5 text-xs"></i><a href="{% url 'instructor:assignment_list' course.slug assignment.lesson.slug %}" class="text-gray-600 hover:text-primary-600">{{ assignment.lesson.title }}</a></li>
+            <li><i class="fas fa-chevron-right text-gray-400 mx-1.5 text-xs"></i><span class="text-gray-500">Submissions</span></li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="mb-6 sm:mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 font-display">Assignment Submissions</h1>
+                <p class="text-sm sm:text-base text-gray-600 mt-1">{{ assignment.title }}</p>
+            </div>
+            <a href="{% url 'instructor:assignment_edit' course.slug assignment.lesson.slug assignment.slug %}"
+               class="inline-flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium whitespace-nowrap">
+                <i class="fas fa-edit mr-2"></i> Edit Assignment
+            </a>
+        </div>
+    </div>
+
+    <!-- Info Card -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-4 sm:mb-6">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+            <div>
+                <p class="text-xs sm:text-sm text-gray-600 mb-1">Total Submissions</p>
+                <p class="text-xl sm:text-2xl font-bold text-gray-900">{{ submissions.count }}</p>
+            </div>
+            <div>
+                <p class="text-xs sm:text-sm text-gray-600 mb-1">Max Score</p>
+                <p class="text-xl sm:text-2xl font-bold text-gray-900">{{ assignment.max_score }}</p>
+            </div>
+            <div>
+                <p class="text-xs sm:text-sm text-gray-600 mb-1">Passing Score</p>
+                <p class="text-xl sm:text-2xl font-bold text-gray-900">{{ assignment.passing_score }}</p>
+            </div>
+            <div>
+                <p class="text-xs sm:text-sm text-gray-600 mb-1">Due Date</p>
+                <p class="text-sm sm:text-base font-semibold text-gray-900">{{ assignment.due_date|date:"M d, Y H:i" }}</p>
+                {% if assignment.is_overdue %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-red-100 text-red-800 mt-1">
+                    <i class="fas fa-exclamation-circle mr-1"></i> Overdue
+                </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if submissions %}
+    <!-- Table — scrollable on small screens -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-4 sm:mb-6">
+        <div class="overflow-x-auto">
+            <table class="min-w-full min-w-[600px] divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
+                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
+                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for submission in submissions %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-4 sm:px-6 py-3 sm:py-4">
+                            <div class="flex items-center gap-2 sm:gap-3">
+                                <div class="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary-100 flex items-center justify-center">
+                                    <span class="text-primary-600 font-medium text-xs sm:text-sm">
+                                        {{ submission.student.get_full_name|slice:":1"|upper }}{{ submission.student.last_name|slice:":1"|upper }}
+                                    </span>
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="text-xs sm:text-sm font-medium text-gray-900 truncate max-w-[100px] sm:max-w-none">{{ submission.student.get_full_name }}</div>
+                                    <div class="text-xs text-gray-500 truncate max-w-[100px] sm:max-w-none">{{ submission.student.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-4 sm:px-6 py-3 sm:py-4">
+                            <div class="text-xs sm:text-sm text-gray-900">{{ submission.submitted_at|date:"M d, Y" }}</div>
+                            <div class="text-xs text-gray-500">{{ submission.submitted_at|time:"H:i" }}</div>
+                            {% if submission.is_late %}
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 mt-0.5">Late</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 sm:px-6 py-3 sm:py-4">
+                            {% if submission.score is not None %}
+                            <div class="text-xs sm:text-sm font-semibold text-gray-900">{{ submission.score }} / {{ assignment.max_score }}</div>
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium {% if submission.score >= assignment.passing_score %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                {% if submission.score >= assignment.passing_score %}Passed{% else %}Failed{% endif %}
+                            </span>
+                            {% else %}
+                            <span class="text-xs sm:text-sm text-gray-500">Not graded</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 sm:px-6 py-3 sm:py-4">
+                            {% if submission.status == 'submitted' %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                <i class="fas fa-clock mr-1"></i> Pending
+                            </span>
+                            {% elif submission.status == 'graded' %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <i class="fas fa-check-circle mr-1"></i> Graded
+                            </span>
+                            {% elif submission.status == 'returned' %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                <i class="fas fa-redo mr-1"></i> Returned
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{{ submission.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium">
+                            <div class="flex items-center gap-2">
+                                <a href="{% url 'instructor:grade_submission' course.slug submission.id %}" class="text-primary-600 hover:text-primary-900">
+                                    <i class="fas fa-edit mr-0.5"></i> Grade
+                                </a>
+                                {% if submission.attachment %}
+                                <a href="{{ submission.attachment.url }}" target="_blank" class="text-gray-600 hover:text-gray-900">
+                                    <i class="fas fa-download mr-0.5"></i> File
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Bottom Stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+            <div class="flex items-center gap-3 sm:gap-4">
+                <div class="flex-shrink-0 bg-blue-100 rounded-lg p-2 sm:p-3">
+                    <i class="fas fa-clock text-lg sm:text-2xl text-blue-600"></i>
+                </div>
+                <div>
+                    <p class="text-xs sm:text-sm text-gray-600">Pending Review</p>
+                    <p class="text-xl sm:text-2xl font-bold text-gray-900">{{ pending_count }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+            <div class="flex items-center gap-3 sm:gap-4">
+                <div class="flex-shrink-0 bg-green-100 rounded-lg p-2 sm:p-3">
+                    <i class="fas fa-check-circle text-lg sm:text-2xl text-green-600"></i>
+                </div>
+                <div>
+                    <p class="text-xs sm:text-sm text-gray-600">Graded</p>
+                    <p class="text-xl sm:text-2xl font-bold text-gray-900">{{ graded_count }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+            <div class="flex items-center gap-3 sm:gap-4">
+                <div class="flex-shrink-0 bg-yellow-100 rounded-lg p-2 sm:p-3">
+                    <i class="fas fa-exclamation-triangle text-lg sm:text-2xl text-yellow-600"></i>
+                </div>
+                <div>
+                    <p class="text-xs sm:text-sm text-gray-600">Late Submissions</p>
+                    <p class="text-xl sm:text-2xl font-bold text-gray-900">{{ late_count }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 sm:p-12 text-center">
+        <div class="max-w-md mx-auto">
+            <div class="w-16 h-16 sm:w-24 sm:h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                <i class="fas fa-inbox text-3xl sm:text-5xl text-blue-500"></i>
+            </div>
+            <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">No Submissions Yet</h3>
+            <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">Students haven't submitted any work for this assignment yet.</p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
+                <a href="{% url 'instructor:assignment_list' course.slug assignment.lesson.slug %}"
+                   class="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors text-center">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Assignments
+                </a>
+                <a href="{% url 'instructor:assignment_edit' course.slug assignment.lesson.slug assignment.slug %}"
+                   class="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 shadow-sm hover:shadow-md transition-all text-center">
+                    <i class="fas fa-edit mr-2"></i> Edit Assignment
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

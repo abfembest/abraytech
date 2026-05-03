@@ -1,0 +1,681 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}All Programs – MIU | Browse Faculties, Departments & Programs{% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="Browse all academic programs at Melchisedec International University — undergraduate, postgraduate, masters, PhD, diploma and certificate programs across all faculties.">
+<meta name="keywords" content="MIU programs, university courses, undergraduate, postgraduate, masters, PhD, diploma, certificate, MIU faculties, academic programs">
+<meta name="robots" content="index, follow">
+<meta name="author" content="Melchisedec International University">
+{% endblock %}
+
+{% block og_tags %}
+<meta property="og:title" content="All Programs – MIU | Browse Faculties, Departments & Programs">
+<meta property="og:description" content="Explore all academic programs at MIU organized by faculty and department. Find your perfect program.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="All Programs – Melchisedec International University">
+{% endblock %}
+
+{% block content %}
+<style>
+/* ── Utilities ───────────────────────────────── */
+.sb-hide{scrollbar-width:none;-ms-overflow-style:none}
+.sb-hide::-webkit-scrollbar{display:none}
+
+/* ── Degree colour tokens ────────────────────── */
+.deg-phd          {--dc:#dc2626;--dl:#fef2f2}
+.deg-masters      {--dc:#2563eb;--dl:#eff6ff}
+.deg-postgraduate {--dc:#7c3aed;--dl:#f5f3ff}
+.deg-undergraduate{--dc:#059669;--dl:#ecfdf5}
+.deg-diploma      {--dc:#d97706;--dl:#fffbeb}
+.deg-certificate  {--dc:#0891b2;--dl:#ecfeff}
+.deg-default      {--dc:#6b7280;--dl:#f9fafb}
+
+/* ── Program row (list mode) ─────────────────── */
+.prog-row{
+  display:flex;align-items:center;gap:.75rem;
+  padding:.6875rem 1rem;
+  border-radius:.5rem;
+  background:#fff;
+  border:1.5px solid #f1f5f9;
+  text-decoration:none;color:inherit;
+  transition:border-color .15s,box-shadow .15s,transform .15s;
+}
+.prog-row:hover{
+  border-color:rgba(132,3,132,.3);
+  box-shadow:0 2px 12px rgba(132,3,132,.08);
+  transform:translateX(3px);
+}
+.prog-row:focus-visible{outline:2px solid #840384;outline-offset:2px}
+
+/* Colour dot */
+.prog-row .cdot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--dc,#9ca3af);flex-shrink:0;
+}
+/* Badge */
+.prog-row .cbadge{
+  display:inline-flex;align-items:center;
+  padding:.175rem .5rem;border-radius:.3rem;
+  font-size:.6rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  background:var(--dl,#f9fafb);color:var(--dc,#6b7280);
+  white-space:nowrap;flex-shrink:0;
+}
+/* Arrow circle */
+.prog-row .carrow{
+  width:1.625rem;height:1.625rem;border-radius:.375rem;
+  display:flex;align-items:center;justify-content:center;
+  background:#f1f5f9;flex-shrink:0;
+  transition:background .15s;color:#6b7280;
+}
+.prog-row:hover .carrow{background:#840384;color:#fff}
+
+/* ── Grid (card) mode override ───────────────── */
+.prog-grid{display:flex;flex-direction:column;gap:.4rem}
+.prog-grid.is-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:.75rem;
+}
+.prog-grid.is-grid .prog-row{
+  flex-direction:column;align-items:flex-start;gap:.5rem;
+  padding:.875rem;transform:none!important;
+}
+.prog-grid.is-grid .prog-row:hover{transform:translateY(-2px)!important}
+.prog-grid.is-grid .row-right{display:none}
+
+/* ── Sidebar nav links ───────────────────────── */
+.snav-link{
+  display:flex;align-items:center;gap:.5rem;
+  padding:.45rem .75rem;border-radius:.4rem;
+  font-size:.78rem;font-weight:600;
+  color:#6b7280;position:relative;
+  transition:all .15s;
+}
+.snav-link:hover{background:#f3f0fb;color:#840384}
+.snav-link.active{background:#f3f0fb;color:#840384}
+.snav-link.active::before{
+  content:'';position:absolute;left:0;top:25%;bottom:25%;
+  width:3px;border-radius:2px;background:#840384;
+}
+
+/* ── Filter pills ────────────────────────────── */
+.fpill{
+  padding:.3rem .875rem;border-radius:9999px;
+  font-size:.72rem;font-weight:600;
+  border:1.5px solid rgba(255,255,255,.2);
+  color:rgba(255,255,255,.6);background:transparent;
+  cursor:pointer;transition:all .15s;
+}
+.fpill:hover{background:rgba(255,255,255,.12);color:#fff}
+.fpill.on{background:#f59e0b;border-color:#f59e0b;color:#1c1917;font-weight:700}
+
+/* ── Sticky toolbar ──────────────────────────── */
+#toolbar{
+  position:sticky;top:0;z-index:40;
+  background:rgba(255,255,255,.97);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid #e5e7eb;
+  box-shadow:0 1px 4px rgba(0,0,0,.05);
+}
+
+/* ── View toggle ─────────────────────────────── */
+.vtbtn{
+  width:1.875rem;height:1.875rem;border-radius:.4rem;
+  display:flex;align-items:center;justify-content:center;
+  color:#9ca3af;transition:all .15s;
+}
+.vtbtn:hover{background:#f3f4f6;color:#374151}
+.vtbtn.on{background:#840384;color:#fff}
+
+/* ── Faculty header ──────────────────────────── */
+.fac-hdr{background:linear-gradient(135deg,#0f0b1e 0%,#1d0540 55%,#35005a 100%)}
+
+/* ── Scroll margin ───────────────────────────── */
+.fac-section{scroll-margin-top:56px}
+
+/* ── Mobile sidebar ──────────────────────────── */
+#mob-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.45);z-index:50;
+}
+#mob-overlay.show{display:block}
+#mob-panel{
+  position:fixed;top:0;left:0;bottom:0;width:272px;
+  background:#fff;z-index:51;overflow-y:auto;padding:1.25rem;
+  transform:translateX(-100%);transition:transform .25s ease;
+  box-shadow:4px 0 24px rgba(0,0,0,.12);
+}
+#mob-panel.open{transform:translateX(0)}
+
+/* ── Reduced motion ──────────────────────────── */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none!important;animation:none!important}
+}
+</style>
+
+<!-- ═══ HERO ══════════════════════════════════════ -->
+<header role="banner" aria-label="Programs directory"
+        class="relative overflow-hidden"
+        style="background:linear-gradient(135deg,#0f0b1e 0%,#2a0855 45%,#47005c 100%)">
+
+  <!-- Ambient glow -->
+  <div aria-hidden="true" class="pointer-events-none absolute inset-0">
+    <div class="absolute -top-16 left-1/4 w-96 h-96 rounded-full blur-3xl opacity-40"
+         style="background:radial-gradient(#840384,transparent)"></div>
+    <div class="absolute bottom-0 right-1/4 w-80 h-80 rounded-full blur-3xl opacity-25"
+         style="background:radial-gradient(#f59e0b,transparent)"></div>
+  </div>
+  <!-- Grain -->
+  <div aria-hidden="true" class="pointer-events-none absolute inset-0 opacity-[.04]"
+       style="background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22><filter id=%22n%22><feTurbulence baseFrequency=%220.8%22 numOctaves=%224%22 stitchTiles=%22stitch%22/></filter><rect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/></svg>')"></div>
+
+  <div class="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 pt-28 sm:pt-32 pb-10 sm:pb-12">
+    <div class="max-w-2xl mx-auto text-center">
+
+      <div class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[.08] px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[.1em] text-white/65 mb-5 backdrop-blur-sm">
+        <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-amber-400" aria-hidden="true"></i>
+        Academic Catalogue — MIU
+      </div>
+
+      <h1 class="font-['Poppins',sans-serif] font-black text-white text-3xl sm:text-4xl lg:text-[2.6rem] leading-[1.18] mb-3">
+        All Programs &amp; Faculties
+      </h1>
+      <p class="text-white/55 text-sm sm:text-base leading-relaxed mb-8 max-w-lg mx-auto">
+        Search, filter by degree level, and find your perfect program across every faculty and department.
+      </p>
+
+      <!-- Search -->
+      <div class="relative max-w-xl mx-auto mb-5" role="search">
+        <label for="programSearch" class="sr-only">Search programs, departments or faculties</label>
+        <i data-lucide="search" aria-hidden="true"
+           class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40"></i>
+        <input id="programSearch" type="search" autocomplete="off" spellcheck="false"
+               placeholder="Search programs, departments, faculties…"
+               class="w-full pl-11 pr-14 py-3.5 rounded-xl text-sm text-white placeholder-white/40 focus:outline-none"
+               style="background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.18);backdrop-filter:blur(10px);transition:background .2s,border-color .2s"
+               onfocus="this.style.background='rgba(255,255,255,.16)';this.style.borderColor='#f59e0b';this.style.boxShadow='0 0 0 3px rgba(245,158,11,.2)'"
+               onblur="this.style.background='rgba(255,255,255,.1)';this.style.borderColor='rgba(255,255,255,.18)';this.style.boxShadow='none'"
+               aria-label="Search programs, departments or faculties">
+        <kbd aria-hidden="true"
+             class="hidden sm:flex absolute right-3.5 top-1/2 -translate-y-1/2 items-center gap-0.5 rounded border border-white/20 px-1.5 py-0.5 font-mono text-[10px] text-white/30 pointer-events-none">
+          ⌘K
+        </kbd>
+      </div>
+
+      <!-- Degree filters -->
+      <div id="degreeFilters" role="group" aria-label="Filter by degree level"
+           class="flex flex-wrap gap-2 justify-center">
+        <button class="fpill on" data-filter="all">All Levels</button>
+        <button class="fpill" data-filter="certificate">Certificate</button>
+        <button class="fpill" data-filter="diploma">Diploma</button>
+        <button class="fpill" data-filter="undergraduate">Undergraduate</button>
+        <button class="fpill" data-filter="postgraduate">Postgraduate</button>
+        <button class="fpill" data-filter="masters">Masters</button>
+        <button class="fpill" data-filter="phd">PhD</button>
+      </div>
+
+    </div>
+  </div>
+</header>
+
+<!-- ═══ TOOLBAR ═══════════════════════════════════ -->
+<div id="toolbar" role="toolbar" aria-label="Listing controls">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="h-[52px] flex items-center justify-between gap-4">
+
+      <div class="flex items-center gap-3 min-w-0">
+        <!-- Mobile sidebar trigger -->
+        <button id="mob-open-btn"
+                class="lg:hidden flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-primary-950 border border-gray-200 hover:border-primary-200 rounded-lg px-2.5 py-1.5 transition-all focus:outline-none focus:ring-2 focus:ring-primary-300"
+                aria-controls="mob-panel" aria-expanded="false" aria-haspopup="true">
+          <i data-lucide="layout-list" class="w-3.5 h-3.5" aria-hidden="true"></i>
+          Faculties
+        </button>
+        <!-- Live results count -->
+        <p id="resultsCount" class="text-xs text-gray-500 truncate"
+           aria-live="polite" aria-atomic="true"></p>
+      </div>
+
+      <!-- View toggle -->
+      <div class="flex items-center gap-1 flex-shrink-0" role="group" aria-label="Toggle view layout">
+        <button id="btn-list" class="vtbtn on" aria-pressed="true" aria-label="List view" title="List view">
+          <i data-lucide="align-justify" class="w-4 h-4" aria-hidden="true"></i>
+        </button>
+        <button id="btn-grid" class="vtbtn" aria-pressed="false" aria-label="Grid view" title="Grid view">
+          <i data-lucide="grid-2x2" class="w-4 h-4" aria-hidden="true"></i>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MOBILE SIDEBAR ═══════════════════════════ -->
+<div id="mob-overlay" aria-hidden="true" role="presentation"></div>
+<nav id="mob-panel" aria-label="Faculty navigation">
+  <div class="flex items-center justify-between mb-5">
+    <span class="text-[10px] font-black uppercase tracking-[.12em] text-gray-400">Faculties</span>
+    <button id="mob-close-btn"
+            class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300"
+            aria-label="Close navigation">
+      <i data-lucide="x" class="w-4 h-4" aria-hidden="true"></i>
+    </button>
+  </div>
+  {% for faculty in faculties %}
+  <a href="#faculty-{{ faculty.slug }}"
+     class="snav-link mob-snav mb-0.5 block"
+     data-faculty="{{ faculty.slug }}">
+    <i data-lucide="{{ faculty.icon }}" class="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true"></i>
+    {{ faculty.name }}
+  </a>
+  {% endfor %}
+  <div class="mt-6 pt-5 border-t border-gray-100 space-y-2">
+    <a href="{% url 'eduweb:apply' %}"
+       class="flex items-center justify-center gap-2 w-full rounded-lg py-2.5 text-sm font-bold text-white hover:opacity-90 transition-all focus:outline-none focus:ring-2 focus:ring-purple-400"
+       style="background:#840384">
+      <i data-lucide="send" class="w-4 h-4" aria-hidden="true"></i> Apply Now
+    </a>
+    <a href="{% url 'eduweb:admission_requirement' %}"
+       class="flex items-center justify-center gap-2 w-full rounded-lg py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:text-primary-950 transition-all focus:outline-none focus:ring-2 focus:ring-gray-300">
+      <i data-lucide="file-text" class="w-4 h-4" aria-hidden="true"></i> Requirements
+    </a>
+  </div>
+</nav>
+
+<!-- ═══ BODY ══════════════════════════════════════ -->
+<div class="bg-slate-50 min-h-screen">
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
+<div class="flex gap-8 items-start">
+
+  <!-- ── Desktop sidebar ──────────────────────── -->
+  <aside class="hidden lg:flex w-52 xl:w-60 flex-shrink-0 flex-col sticky top-[56px] max-h-[calc(100vh-56px)] overflow-y-auto sb-hide"
+         aria-label="Faculty navigation">
+
+    <p class="text-[10px] font-black uppercase tracking-[.12em] text-gray-400 px-3 mb-2">Faculties</p>
+
+    <nav id="deskFacultyNav" aria-label="Jump to faculty">
+      {% for faculty in faculties %}
+      <a href="#faculty-{{ faculty.slug }}"
+         class="snav-link desk-snav mb-0.5"
+         data-faculty="{{ faculty.slug }}">
+        <i data-lucide="{{ faculty.icon }}" class="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true"></i>
+        <span>{{ faculty.name }}</span>
+      </a>
+      {% endfor %}
+    </nav>
+
+    <!-- Stats + actions -->
+    <div class="mt-5 rounded-xl border border-gray-200 bg-white p-4">
+      <p class="text-[10px] font-black uppercase tracking-[.12em] text-gray-400 mb-3">Stats</p>
+      <dl class="space-y-2 mb-4">
+        <div class="flex justify-between">
+          <dt class="text-xs text-gray-500">Faculties</dt>
+          <dd class="text-xs font-bold text-gray-800">{{ faculties|length }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-xs text-gray-500">Total programs</dt>
+          <dd class="text-xs font-bold text-gray-800" id="totalCount">—</dd>
+        </div>
+        <div class="flex justify-between" id="filteredRow" style="display:none">
+          <dt class="text-xs text-gray-500">Matching</dt>
+          <dd class="text-xs font-bold text-purple-700" id="filteredCount">0</dd>
+        </div>
+      </dl>
+      <a href="{% url 'eduweb:apply' %}"
+         class="flex items-center justify-center gap-1.5 w-full rounded-lg py-2.5 text-xs font-bold text-white hover:opacity-90 transition-all mb-1.5 focus:outline-none focus:ring-2 focus:ring-purple-400"
+         style="background:#840384">
+        <i data-lucide="send" class="w-3.5 h-3.5" aria-hidden="true"></i> Apply Now
+      </a>
+      <a href="{% url 'eduweb:admission_requirement' %}"
+         class="flex items-center justify-center gap-1.5 w-full rounded-lg py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-primary-950 transition-all focus:outline-none focus:ring-2 focus:ring-gray-300">
+        <i data-lucide="file-text" class="w-3.5 h-3.5" aria-hidden="true"></i> Requirements
+      </a>
+    </div>
+
+  </aside>
+
+  <!-- ── Main content ──────────────────────────── -->
+  <main class="flex-1 min-w-0" id="programs-content" aria-label="Programs listing">
+
+    <!-- No results -->
+    <div id="noResults" class="hidden text-center py-20 bg-white rounded-2xl border border-gray-100"
+         role="status" aria-live="polite">
+      <div class="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+        <i data-lucide="search-x" class="w-7 h-7 text-gray-300" aria-hidden="true"></i>
+      </div>
+      <h2 class="text-base font-bold text-gray-500 mb-1 font-['Poppins',sans-serif]">No programs found</h2>
+      <p class="text-sm text-gray-400 mb-4">Try different keywords or remove a filter.</p>
+      <button onclick="resetSearch()"
+              class="text-sm font-semibold text-purple-700 hover:underline focus:outline-none focus:underline">
+        Clear all filters
+      </button>
+    </div>
+
+    {% for faculty in faculties %}
+    <!-- ══ FACULTY SECTION ══════════════════════ -->
+    <section id="faculty-{{ faculty.slug }}"
+             class="fac-section faculty-section mb-8"
+             data-faculty-name="{{ faculty.name|lower }}"
+             aria-labelledby="fh-{{ faculty.slug }}">
+
+      <!-- Top accent stripe — unique hue per faculty via forloop counter -->
+      {% with h=forloop.counter0 %}
+      <div aria-hidden="true" class="h-[3px] w-full rounded-t-xl"
+           style="background:linear-gradient(90deg,
+             hsl({{ h|add:2 }}70deg,78%,40%) 0%,
+             hsl({{ h|add:3 }}30deg,85%,58%) 100%)">
+      </div>
+      {% endwith %}
+
+      <!-- Faculty header bar -->
+      <div class="fac-hdr px-5 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex items-center gap-3.5">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+               style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18)">
+            <i data-lucide="{{ faculty.icon }}" class="w-5 h-5 text-white" aria-hidden="true"></i>
+          </div>
+          <div>
+            <h2 id="fh-{{ faculty.slug }}"
+                class="font-['Poppins',sans-serif] font-black text-white text-base sm:text-[1.05rem] leading-tight">
+              {{ faculty.name }}
+            </h2>
+            {% if faculty.tagline %}
+            <p class="text-white/50 text-xs mt-0.5 line-clamp-1">{{ faculty.tagline }}</p>
+            {% endif %}
+          </div>
+        </div>
+        <div class="flex items-center gap-2 flex-shrink-0">
+          {% if faculty.code %}
+          <span class="font-mono text-xs px-2.5 py-1 rounded-lg text-white/55"
+                style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12)">
+            {{ faculty.code }}
+          </span>
+          {% endif %}
+          <a href="{% url 'eduweb:faculty_detail' faculty.slug %}"
+             class="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold text-white transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-white/50"
+             style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2)"
+             aria-label="View {{ faculty.name }} faculty page">
+            <i data-lucide="external-link" class="w-3.5 h-3.5" aria-hidden="true"></i>
+            Faculty Page
+          </a>
+        </div>
+      </div>
+
+      <!-- Departments -->
+      <div class="rounded-b-xl border border-t-0 border-gray-200 bg-white overflow-hidden divide-y divide-gray-100">
+
+        {% for department in faculty.departments.all %}
+        {% if department.is_active %}
+        <div class="department-block px-4 sm:px-5 py-5"
+             data-dept-name="{{ department.name|lower }}">
+
+          <!-- Dept label -->
+          <div class="flex items-center gap-2.5 mb-3.5">
+            <div class="w-1.5 h-1.5 rounded-full bg-[#840384] flex-shrink-0" aria-hidden="true"></div>
+            <h3 class="font-['Poppins',sans-serif] font-bold text-gray-800 text-sm">{{ department.name }}</h3>
+            {% if department.code %}
+            <span class="font-mono text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded tracking-widest uppercase">
+              {{ department.code }}
+            </span>
+            {% endif %}
+            <div class="flex-1 h-px bg-gray-100" aria-hidden="true"></div>
+            <span class="text-[11px] text-gray-400 flex-shrink-0 tabular-nums">
+              {{ department.programs.all|length }} prog{% if department.programs.all|length != 1 %}s{% endif %}
+            </span>
+          </div>
+
+          <!-- Programs -->
+          <div class="prog-grid pl-3 sm:pl-4" role="list">
+            {% for program in department.programs.all %}
+            {% if program.is_active %}
+            <a href="{% url 'eduweb:program_detail' program.slug %}"
+               class="prog-row program-card
+                 {% if program.degree_level == 'phd' %}deg-phd
+                 {% elif program.degree_level == 'masters' %}deg-masters
+                 {% elif program.degree_level == 'postgraduate' %}deg-postgraduate
+                 {% elif program.degree_level == 'undergraduate' %}deg-undergraduate
+                 {% elif program.degree_level == 'diploma' %}deg-diploma
+                 {% elif program.degree_level == 'certificate' %}deg-certificate
+                 {% else %}deg-default{% endif %}"
+               role="listitem"
+               data-program-name="{{ program.name|lower }}"
+               data-degree="{{ program.degree_level }}"
+               aria-label="{{ program.name }}, {{ program.get_degree_level_display }}{% if program.duration_years %}, {{ program.duration_years }} year{% if program.duration_years != 1 %}s{% endif %}{% endif %}">
+
+              <!-- Dot -->
+              <div class="cdot" aria-hidden="true"></div>
+
+              <!-- Name + meta -->
+              <div class="flex-1 min-w-0">
+                <div class="flex flex-wrap items-center gap-1.5 mb-0.5">
+                  <span class="font-['Poppins',sans-serif] font-semibold text-gray-900 text-sm leading-snug">
+                    {{ program.name }}
+                  </span>
+                  {% if program.is_featured %}
+                  <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200">
+                    <i data-lucide="star" class="w-2.5 h-2.5 fill-current" aria-hidden="true"></i>
+                    Featured
+                  </span>
+                  {% endif %}
+                </div>
+                <div class="flex flex-wrap items-center gap-2 mt-0.5">
+                  <span class="cbadge">{{ program.get_degree_level_display }}</span>
+                  {% if program.duration_years %}
+                  <span class="inline-flex items-center gap-1 text-[11px] text-gray-400">
+                    <i data-lucide="clock" class="w-3 h-3" aria-hidden="true"></i>
+                    {{ program.duration_years }} yr{% if program.duration_years != 1 %}s{% endif %}
+                  </span>
+                  {% endif %}
+                  {% if program.credits_required %}
+                  <span class="inline-flex items-center gap-1 text-[11px] text-gray-400">
+                    <i data-lucide="book" class="w-3 h-3" aria-hidden="true"></i>
+                    {{ program.credits_required }} cr
+                  </span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Right side (hidden in card mode) -->
+              <div class="row-right flex items-center gap-2 flex-shrink-0">
+                {% if program.code %}
+                <span class="hidden sm:block font-mono text-[11px] text-gray-400 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded">
+                  {{ program.code }}
+                </span>
+                {% endif %}
+                <div class="carrow" aria-hidden="true">
+                  <i data-lucide="arrow-right" class="w-3.5 h-3.5" aria-hidden="true"></i>
+                </div>
+              </div>
+
+            </a>
+            {% endif %}
+            {% empty %}
+            <p class="text-xs text-gray-400 italic py-2 pl-1">No active programs in this department yet.</p>
+            {% endfor %}
+          </div>
+
+        </div>
+        {% endif %}
+        {% empty %}
+        <div class="px-6 py-10 text-center">
+          <i data-lucide="folder-open" class="w-8 h-8 text-gray-300 mx-auto mb-2" aria-hidden="true"></i>
+          <p class="text-sm text-gray-400">No departments found for this faculty.</p>
+        </div>
+        {% endfor %}
+
+      </div>
+
+    </section>
+    {% empty %}
+    <div class="text-center py-20 bg-white rounded-2xl border border-gray-100">
+      <i data-lucide="building" class="w-12 h-12 text-gray-300 mx-auto mb-4" aria-hidden="true"></i>
+      <h2 class="text-lg font-bold text-gray-400 font-['Poppins',sans-serif]">No faculties available yet.</h2>
+    </div>
+    {% endfor %}
+
+  </main><!-- /main -->
+</div><!-- /flex -->
+</div><!-- /container -->
+</div><!-- /bg -->
+
+<!-- Structured data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "All Academic Programs – Melchisedec International University",
+  "description": "Browse all programs at MIU across faculties and departments",
+  "url": "{{ request.build_absolute_uri }}"
+}
+</script>
+
+<script>
+(function(){
+'use strict';
+
+/* ── DOM refs ─────────────────────────────────── */
+const search       = document.getElementById('programSearch');
+const filterBtns   = document.querySelectorAll('.fpill');
+const countEl      = document.getElementById('resultsCount');
+const noResults    = document.getElementById('noResults');
+const totalEl      = document.getElementById('totalCount');
+const filteredRow  = document.getElementById('filteredRow');
+const filteredEl   = document.getElementById('filteredCount');
+const btnList      = document.getElementById('btn-list');
+const btnGrid      = document.getElementById('btn-grid');
+const mobOpenBtn   = document.getElementById('mob-open-btn');
+const mobPanel     = document.getElementById('mob-panel');
+const mobOverlay   = document.getElementById('mob-overlay');
+const mobCloseBtn  = document.getElementById('mob-close-btn');
+
+let activeFilter = 'all';
+let searchTerm   = '';
+
+/* ── Total count ──────────────────────────────── */
+const allCards = document.querySelectorAll('.program-card');
+if (totalEl) totalEl.textContent = allCards.length;
+
+/* ── Filter + search ──────────────────────────── */
+function run(){
+  let vis = 0;
+
+  allCards.forEach(c=>{
+    const name  = c.dataset.programName || '';
+    const deg   = c.dataset.degree || '';
+    const dept  = c.closest('.department-block');
+    const fac   = c.closest('.faculty-section');
+    const dn    = dept ? dept.dataset.deptName || '' : '';
+    const fn    = fac  ? fac.dataset.facultyName || '' : '';
+    const ok    = (!searchTerm || name.includes(searchTerm) || dn.includes(searchTerm) || fn.includes(searchTerm))
+                  && (activeFilter==='all' || deg===activeFilter);
+    c.classList.toggle('hidden', !ok);
+    if(ok) vis++;
+  });
+
+  document.querySelectorAll('.department-block').forEach(d=>{
+    d.style.display = d.querySelectorAll('.program-card:not(.hidden)').length ? '' : 'none';
+  });
+  document.querySelectorAll('.faculty-section').forEach(s=>{
+    s.style.display = Array.from(s.querySelectorAll('.department-block'))
+      .some(d=>d.style.display!=='none') ? '' : 'none';
+  });
+
+  const filtered = searchTerm || activeFilter !== 'all';
+  countEl.textContent = filtered
+    ? `${vis} of ${allCards.length} programs`
+    : `${allCards.length} program${allCards.length!==1?'s':''}`;
+  if(filteredRow) filteredRow.style.display = filtered ? '' : 'none';
+  if(filteredEl)  filteredEl.textContent = vis;
+  noResults.classList.toggle('hidden', vis>0);
+}
+
+window.resetSearch = function(){
+  search.value = '';
+  searchTerm = '';
+  activeFilter = 'all';
+  filterBtns.forEach(b=>b.classList.remove('on'));
+  filterBtns[0]?.classList.add('on');
+  run();
+};
+
+/* ── Events: search ───────────────────────────── */
+search.addEventListener('input', function(){ searchTerm=this.value.toLowerCase().trim(); run(); });
+document.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key==='k'){ e.preventDefault(); search.focus(); search.select(); }
+  if(e.key==='Escape'){ if(document.activeElement===search) search.blur(); closeMob(); }
+});
+
+/* ── Events: filters ──────────────────────────── */
+filterBtns.forEach(b=>b.addEventListener('click',function(){
+  filterBtns.forEach(x=>x.classList.remove('on'));
+  this.classList.add('on');
+  activeFilter=this.dataset.filter;
+  run();
+}));
+
+/* ── Events: view toggle ──────────────────────── */
+btnList.addEventListener('click',()=>setView(false));
+btnGrid.addEventListener('click',()=>setView(true));
+function setView(grid){
+  btnList.classList.toggle('on',!grid);
+  btnList.setAttribute('aria-pressed',String(!grid));
+  btnGrid.classList.toggle('on',grid);
+  btnGrid.setAttribute('aria-pressed',String(grid));
+  document.querySelectorAll('.prog-grid').forEach(g=>g.classList.toggle('is-grid',grid));
+}
+
+/* ── Events: mobile sidebar ───────────────────── */
+function openMob(){
+  mobPanel.classList.add('open');
+  mobOverlay.classList.add('show');
+  mobOverlay.setAttribute('aria-hidden','false');
+  mobOpenBtn.setAttribute('aria-expanded','true');
+}
+function closeMob(){
+  mobPanel.classList.remove('open');
+  mobOverlay.classList.remove('show');
+  mobOverlay.setAttribute('aria-hidden','true');
+  mobOpenBtn.setAttribute('aria-expanded','false');
+}
+mobOpenBtn.addEventListener('click', openMob);
+mobCloseBtn.addEventListener('click', closeMob);
+mobOverlay.addEventListener('click', closeMob);
+
+/* ── Smooth scroll & close mobile on nav click ── */
+document.querySelectorAll('.desk-snav, .mob-snav').forEach(link=>{
+  link.addEventListener('click',e=>{
+    e.preventDefault();
+    closeMob();
+    const t = document.querySelector(link.getAttribute('href'));
+    if(t) window.scrollTo({top: t.getBoundingClientRect().top + window.scrollY - 64, behavior:'smooth'});
+  });
+});
+
+/* ── Intersection observer → active nav link ─── */
+const allNavLinks = document.querySelectorAll('.desk-snav, .mob-snav');
+const io = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const slug = e.target.id.replace('faculty-','');
+      allNavLinks.forEach(l=>{
+        const on = l.dataset.faculty===slug;
+        l.classList.toggle('active',on);
+        l.setAttribute('aria-current', on ? 'location' : 'false');
+      });
+    }
+  });
+},{rootMargin:'-60px 0px -60% 0px'});
+document.querySelectorAll('.faculty-section').forEach(s=>io.observe(s));
+
+/* ── Init ─────────────────────────────────────── */
+run();
+lucide.createIcons();
+
+})();
+</script>
+
+{% endblock %}

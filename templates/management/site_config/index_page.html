@@ -1,0 +1,250 @@
+{% extends 'management/base.html' %}
+{% load static %}
+{% block title %}Home Page Settings — MIU Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+    <span class="text-gray-400">Site Content</span>
+    <i class="fas fa-chevron-right text-xs"></i>
+    <span class="text-gray-800 font-medium">Home Page</span>
+  </nav>
+
+  <!-- Page header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Home Page Settings</h1>
+      <p class="text-gray-500 mt-1 text-sm">Hero slides, promo video, and campus map for index.html.</p>
+    </div>
+    {% comment %} <a href="{% url 'eduweb:index' %}" target="_blank"
+       class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-medium flex-shrink-0">
+      <i class="fas fa-external-link-alt"></i> Preview Home
+    </a> {% endcomment %}
+  </div>
+
+  {% if form.errors %}
+  <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 flex items-start gap-3">
+    <i class="fas fa-exclamation-circle mt-0.5 flex-shrink-0"></i>
+    <div>
+      <p class="font-semibold mb-1">Please fix the errors below before saving.</p>
+      {% for field in form %}{% for error in field.errors %}
+      <p>{{ field.label }}: {{ error }}</p>
+      {% endfor %}{% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" class="space-y-6">
+    {% csrf_token %}
+
+    <!-- ── HERO SLIDE 1 ── -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="w-7 h-7 rounded-lg bg-primary-600 text-white text-xs font-bold flex items-center justify-center">1</span>
+          <div>
+            <h2 class="font-semibold text-gray-800">Hero Slide 1</h2>
+            <p class="text-xs text-gray-500">Main background. If both image and video are set, video takes priority.</p>
+          </div>
+        </div>
+        {% if site.hero_slide_1_image or site.hero_slide_1_video %}
+        <span class="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-semibold flex-shrink-0">
+          <i class="fas fa-check mr-1"></i>Set
+        </span>
+        {% else %}
+        <span class="text-xs bg-gray-100 text-gray-500 px-2.5 py-1 rounded-full font-semibold flex-shrink-0">Empty</span>
+        {% endif %}
+      </div>
+      {% if site.hero_slide_1_image %}
+      <div class="relative h-28 overflow-hidden">
+        <img src="{{ site.hero_slide_1_image.url }}" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+        <span class="absolute bottom-2 left-4 text-white text-xs font-semibold">Current image</span>
+      </div>
+      {% endif %}
+      <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ form.hero_slide_1_image.label }}</label>
+          {{ form.hero_slide_1_image }}
+          <p class="text-xs text-gray-400 mt-1">{{ form.hero_slide_1_image.help_text }}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ form.hero_slide_1_video.label }}</label>
+          {{ form.hero_slide_1_video }}
+          <p class="text-xs text-gray-400 mt-1">{{ form.hero_slide_1_video.help_text }}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ form.hero_slide_1_alt.label }}</label>
+          {{ form.hero_slide_1_alt }}
+          <p class="text-xs text-gray-400 mt-1">Accessibility label for screen readers.</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ form.hero_slide_1_duration.label }}</label>
+          {{ form.hero_slide_1_duration }}
+          <p class="text-xs text-gray-400 mt-1">{{ form.hero_slide_1_duration.help_text }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── HERO SLIDE 2 ── -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="w-7 h-7 rounded-lg bg-purple-600 text-white text-xs font-bold flex items-center justify-center">2</span>
+          <div>
+            <h2 class="font-semibold text-gray-800">Hero Slide 2</h2>
+            <p class="text-xs text-gray-500">Optional second slide. Leave blank to show only slide 1.</p>
+          </div>
+        </div>
+        {% if site.hero_slide_2_image or site.hero_slide_2_video %}
+        <span class="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-semibold flex-shrink-0">
+          <i class="fas fa-check mr-1"></i>Set
+        </span>
+        {% else %}
+        <span class="text-xs bg-gray-100 text-gray-500 px-2.5 py-1 rounded-full font-semibold flex-shrink-0">Empty</span>
+        {% endif %}
+      </div>
+      {% if site.hero_slide_2_image %}
+      <div class="relative h-28 overflow-hidden">
+        <img src="{{ site.hero_slide_2_image.url }}" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+        <span class="absolute bottom-2 left-4 text-white text-xs font-semibold">Current image</span>
+      </div>
+      {% endif %}
+      <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ form.hero_slide_2_image.label }}</label>
+          {{ form.hero_slide_2_image }}
+          <p class="text-xs text-gray-400 mt-1">{{ form.hero_slide_2_image.help_text }}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ form.hero_slide_2_video.label }}</label>
+          {{ form.hero_slide_2_video }}
+          <p class="text-xs text-gray-400 mt-1">{{ form.hero_slide_2_video.help_text }}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ form.hero_slide_2_alt.label }}</label>
+          {{ form.hero_slide_2_alt }}
+          <p class="text-xs text-gray-400 mt-1">Accessibility label for screen readers.</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ form.hero_slide_2_duration.label }}</label>
+          {{ form.hero_slide_2_duration }}
+          <p class="text-xs text-gray-400 mt-1">Seconds this slide stays visible.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── HERO SLIDE 3 ── -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="w-7 h-7 rounded-lg bg-orange-500 text-white text-xs font-bold flex items-center justify-center">3</span>
+          <div>
+            <h2 class="font-semibold text-gray-800">Hero Slide 3</h2>
+            <p class="text-xs text-gray-500">Optional third slide. Leave blank to skip.</p>
+          </div>
+        </div>
+        {% if site.hero_slide_3_image or site.hero_slide_3_video %}
+        <span class="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-semibold flex-shrink-0">
+          <i class="fas fa-check mr-1"></i>Set
+        </span>
+        {% else %}
+        <span class="text-xs bg-gray-100 text-gray-500 px-2.5 py-1 rounded-full font-semibold flex-shrink-0">Empty</span>
+        {% endif %}
+      </div>
+      {% if site.hero_slide_3_image %}
+      <div class="relative h-28 overflow-hidden">
+        <img src="{{ site.hero_slide_3_image.url }}" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+        <span class="absolute bottom-2 left-4 text-white text-xs font-semibold">Current image</span>
+      </div>
+      {% endif %}
+      <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ form.hero_slide_3_image.label }}</label>
+          {{ form.hero_slide_3_image }}
+          <p class="text-xs text-gray-400 mt-1">{{ form.hero_slide_3_image.help_text }}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ form.hero_slide_3_video.label }}</label>
+          {{ form.hero_slide_3_video }}
+          <p class="text-xs text-gray-400 mt-1">{{ form.hero_slide_3_video.help_text }}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ form.hero_slide_3_alt.label }}</label>
+          {{ form.hero_slide_3_alt }}
+          <p class="text-xs text-gray-400 mt-1">Accessibility label for screen readers.</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ form.hero_slide_3_duration.label }}</label>
+          {{ form.hero_slide_3_duration }}
+          <p class="text-xs text-gray-400 mt-1">Seconds this slide stays visible.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PROMO VIDEO ── -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gray-50 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800"><i class="fas fa-play-circle text-red-500 mr-2"></i>Promo Video</h2>
+        <p class="text-xs text-gray-500 mt-0.5">Shown in the About MIU section on the home page and Who We Are on the About page.</p>
+      </div>
+      <div class="p-6">
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ form.promo_video_url.label }}</label>
+        {{ form.promo_video_url }}
+        <p class="text-xs text-gray-400 mt-1">{{ form.promo_video_url.help_text }}</p>
+        {% if site.promo_video_url %}
+        <div class="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700 flex items-center gap-2">
+          <i class="fas fa-check-circle"></i> Embed code is set — video will display on the home page.
+        </div>
+        {% else %}
+        <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700 flex items-center gap-2">
+          <i class="fas fa-exclamation-triangle"></i> No embed code set — a fallback YouTube video will display instead.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- ── CAMPUS MAP ── -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gray-50 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800"><i class="fas fa-map-marked-alt text-teal-500 mr-2"></i>Campus Map</h2>
+        <p class="text-xs text-gray-500 mt-0.5">Embedded Google Map shown in the campus map section on the home page.</p>
+      </div>
+      <div class="p-6 space-y-5">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ form.campus_map_embed_url.label }}</label>
+          {{ form.campus_map_embed_url }}
+          <p class="text-xs text-gray-400 mt-1">{{ form.campus_map_embed_url.help_text }}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ form.campus_map_address.label }}</label>
+          {{ form.campus_map_address }}
+          <p class="text-xs text-gray-400 mt-1">{{ form.campus_map_address.help_text }}</p>
+        </div>
+        {% if site.campus_map_embed_url %}
+        <div class="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700 flex items-center gap-2">
+          <i class="fas fa-check-circle"></i> Map embed code is set.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- ── SAVE BAR ── -->
+    <div class="flex flex-col sm:flex-row justify-end gap-3">
+      <a href="{% url 'management:dashboard' %}"
+         class="px-5 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-medium text-center">
+        Cancel
+      </a>
+      <button type="submit"
+              class="px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium shadow-sm inline-flex items-center gap-2">
+        <i class="fas fa-save"></i> Save Home Page Settings
+      </button>
+    </div>
+
+  </form>
+</div>
+{% endblock %}

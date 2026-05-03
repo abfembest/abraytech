@@ -1,0 +1,237 @@
+{% extends "management/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - {{site_config.school_short_name}} Student Portal{% endblock %}
+
+{% block extra_meta %}
+<meta name="description" content="Join community discussions with fellow students and instructors. Share knowledge, ask questions, and collaborate.">
+<meta name="keywords" content="student community, discussion forum, learning community, peer collaboration">
+{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+
+    <!-- Page Header -->
+    <div class="mb-5 sm:mb-8 flex flex-col xs:flex-row xs:items-center xs:justify-between gap-3 sm:gap-4">
+        <div>
+            <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
+                Community Discussions
+            </h1>
+            <p class="text-gray-500 mt-1 text-xs sm:text-sm md:text-base">
+                Connect with fellow students and instructors
+            </p>
+        </div>
+        <a href="{% url 'students:create_thread' %}"
+           class="inline-flex items-center justify-center gap-2
+                  px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3
+                  bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all
+                  font-semibold text-xs sm:text-sm flex-shrink-0
+                  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+           aria-label="Create new discussion thread">
+            <i class="fas fa-plus" aria-hidden="true"></i>
+            New Discussion
+        </a>
+    </div>
+
+    <!-- Filters & Search Bar -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 mb-4 sm:mb-6">
+        <div class="flex flex-col gap-3 sm:gap-4">
+
+            <!-- Search row -->
+            <form method="get" class="flex gap-2 sm:gap-3" role="search">
+                <label for="search-discussions" class="sr-only">Search discussions</label>
+                <input type="text"
+                       id="search-discussions"
+                       name="q"
+                       value="{{ search_query|default:'' }}"
+                       placeholder="Search discussions…"
+                       class="flex-1 min-w-0 px-3 py-2 sm:px-4 sm:py-2.5 border border-gray-300 rounded-lg
+                              text-xs sm:text-sm
+                              focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                              placeholder-gray-400 transition"
+                       aria-label="Search discussions">
+                <button type="submit"
+                        class="inline-flex items-center justify-center px-3 py-2 sm:px-5 sm:py-2.5
+                               bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors
+                               focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 flex-shrink-0"
+                        aria-label="Search">
+                    <i class="fas fa-search text-xs sm:text-sm" aria-hidden="true"></i>
+                </button>
+            </form>
+
+            <!-- Filter tabs — scrollable on very small screens -->
+            <div class="flex gap-2 overflow-x-auto pb-0.5 scrollbar-none -mx-1 px-1"
+                 role="tablist"
+                 aria-label="Discussion filters">
+                <a href="?filter=all{% if search_query %}&q={{ search_query }}{% endif %}"
+                   class="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg whitespace-nowrap
+                          text-xs sm:text-sm font-medium transition-colors flex-shrink-0
+                          {% if filter_type == 'all' %}bg-primary-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}"
+                   role="tab"
+                   {% if filter_type == 'all' %}aria-selected="true"{% endif %}>
+                    All
+                </a>
+                <a href="?filter=my_courses{% if search_query %}&q={{ search_query }}{% endif %}"
+                   class="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg whitespace-nowrap
+                          text-xs sm:text-sm font-medium transition-colors flex-shrink-0
+                          {% if filter_type == 'my_courses' %}bg-primary-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}"
+                   role="tab"
+                   {% if filter_type == 'my_courses' %}aria-selected="true"{% endif %}>
+                    My Courses
+                </a>
+                <a href="?filter=my_posts{% if search_query %}&q={{ search_query }}{% endif %}"
+                   class="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg whitespace-nowrap
+                          text-xs sm:text-sm font-medium transition-colors flex-shrink-0
+                          {% if filter_type == 'my_posts' %}bg-primary-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}"
+                   role="tab"
+                   {% if filter_type == 'my_posts' %}aria-selected="true"{% endif %}>
+                    My Posts
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thread List -->
+    {% if threads %}
+    <div class="space-y-2 sm:space-y-3" role="list" aria-label="Discussion threads">
+        {% for thread in threads %}
+        <article class="bg-white rounded-xl shadow-sm border border-gray-200
+                        p-3 sm:p-4 md:p-5 lg:p-6
+                        hover:shadow-md transition-all duration-200"
+                 role="listitem">
+            <div class="flex items-start gap-3 sm:gap-4">
+
+                <!-- Avatar — hidden on xs, visible sm+ -->
+                <div class="hidden xs:flex flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12
+                            rounded-full bg-primary-100 items-center justify-center"
+                     aria-hidden="true">
+                    <i class="fas fa-user text-primary-600 text-sm sm:text-base md:text-xl"></i>
+                </div>
+
+                <!-- Content -->
+                <div class="flex-1 min-w-0">
+
+                    <!-- Title + course badge -->
+                    <div class="flex flex-col gap-1 xs:flex-row xs:items-start xs:justify-between xs:gap-2 sm:gap-3 mb-1.5 sm:mb-2">
+                        <h2 class="text-sm sm:text-base md:text-lg font-bold text-gray-900 leading-snug">
+                            <a href="{% url 'students:thread_detail' thread.id %}"
+                               class="hover:text-primary-600 focus:outline-none focus:underline transition-colors">
+                                {% if thread.is_pinned %}
+                                <i class="fas fa-thumbtack text-primary-600 mr-1.5 text-xs sm:text-sm" aria-label="Pinned"></i>
+                                {% endif %}
+                                {{ thread.title }}
+                            </a>
+                        </h2>
+                        {% if thread.course %}
+                        <span class="inline-flex self-start flex-shrink-0 px-2 py-0.5 sm:px-3 sm:py-1
+                                     bg-blue-100 text-blue-700 rounded-full text-xs font-medium whitespace-nowrap">
+                            {{ thread.course.title|truncatewords:3 }}
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Excerpt -->
+                    <p class="text-gray-600 text-xs sm:text-sm leading-relaxed mb-2 sm:mb-3 line-clamp-2">
+                        {{ thread.content|truncatewords:25 }}
+                    </p>
+
+                    <!-- Meta row — wraps gracefully on small screens -->
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-gray-500">
+                        <span class="flex items-center gap-1">
+                            <i class="fas fa-user" aria-hidden="true"></i>
+                            <span class="sr-only">Author:</span>
+                            <span class="truncate max-w-[100px] sm:max-w-none">
+                                {{ thread.author.get_full_name|default:thread.author.username }}
+                            </span>
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <i class="fas fa-clock" aria-hidden="true"></i>
+                            <time datetime="{{ thread.created_at|date:'c' }}">
+                                {{ thread.created_at|timesince }} ago
+                            </time>
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <i class="fas fa-comment" aria-hidden="true"></i>
+                            <span class="sr-only">Replies:</span>
+                            {{ thread.reply_count|default:0 }}
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <i class="fas fa-eye" aria-hidden="true"></i>
+                            <span class="sr-only">Views:</span>
+                            {{ thread.views|default:0 }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if threads.has_other_pages %}
+    <nav class="mt-5 sm:mt-6 flex justify-center" aria-label="Pagination">
+        <div class="flex flex-wrap justify-center gap-1.5 sm:gap-2">
+
+            {% if threads.has_previous %}
+            <a href="?page={{ threads.previous_page_number }}&filter={{ filter_type }}{% if search_query %}&q={{ search_query }}{% endif %}"
+               class="px-3 py-1.5 sm:px-4 sm:py-2 bg-white border border-gray-300 rounded-lg text-xs sm:text-sm
+                      hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+               aria-label="Previous page">
+                ← Prev
+            </a>
+            {% endif %}
+
+            {% for num in threads.paginator.page_range %}
+                {% if num == threads.number %}
+                <span class="px-3 py-1.5 sm:px-4 sm:py-2 bg-primary-600 text-white rounded-lg text-xs sm:text-sm font-semibold"
+                      aria-current="page">
+                    {{ num }}
+                </span>
+                {% elif num > threads.number|add:'-3' and num < threads.number|add:'3' %}
+                <a href="?page={{ num }}&filter={{ filter_type }}{% if search_query %}&q={{ search_query }}{% endif %}"
+                   class="px-3 py-1.5 sm:px-4 sm:py-2 bg-white border border-gray-300 rounded-lg text-xs sm:text-sm
+                          hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+                   aria-label="Page {{ num }}">
+                    {{ num }}
+                </a>
+                {% endif %}
+            {% endfor %}
+
+            {% if threads.has_next %}
+            <a href="?page={{ threads.next_page_number }}&filter={{ filter_type }}{% if search_query %}&q={{ search_query }}{% endif %}"
+               class="px-3 py-1.5 sm:px-4 sm:py-2 bg-white border border-gray-300 rounded-lg text-xs sm:text-sm
+                      hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+               aria-label="Next page">
+                Next →
+            </a>
+            {% endif %}
+
+        </div>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <!-- Empty state -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 sm:p-12">
+        <div class="text-center max-w-sm mx-auto">
+            <i class="fas fa-comments text-4xl sm:text-5xl md:text-6xl text-gray-300 mb-3 sm:mb-4 block" aria-hidden="true"></i>
+            <h3 class="text-base sm:text-lg md:text-xl font-semibold text-gray-900 mb-1.5 sm:mb-2">
+                No discussions yet
+            </h3>
+            <p class="text-gray-500 text-xs sm:text-sm md:text-base mb-4 sm:mb-6">
+                Start a discussion to connect with the community
+            </p>
+            <a href="{% url 'students:create_thread' %}"
+               class="inline-flex items-center gap-2 px-4 py-2 sm:px-6 sm:py-3
+                      bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors
+                      text-xs sm:text-sm font-semibold
+                      focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                <i class="fas fa-plus" aria-hidden="true"></i>
+                Create First Discussion
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

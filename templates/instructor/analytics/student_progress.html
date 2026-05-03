@@ -1,0 +1,711 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Student Progress - Analytics{% endblock %}
+
+{% block meta_description %}
+Track student performance and progress across all your courses with detailed analytics.
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ── Base font ── */
+    .sp-page { font-family: 'Inter', system-ui, sans-serif; }
+
+    /* ── Form controls ── */
+    .sp-input {
+        border: 1px solid #D1D5DB;
+        border-radius: 0.5rem;
+        padding: 0.5rem 0.875rem;
+        font-size: 0.875rem;
+        outline: none;
+        transition: border-color .2s, box-shadow .2s;
+        background: #fff;
+        color: #111827;
+        width: 100%;
+    }
+    .sp-input:focus {
+        border-color: #4a6bff;
+        box-shadow: 0 0 0 3px rgba(74,107,255,.12);
+    }
+    .sp-select {
+        border: 1px solid #D1D5DB;
+        border-radius: 0.5rem;
+        padding: 0.5rem 2.25rem 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        outline: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        appearance: none;
+        transition: border-color .2s, box-shadow .2s;
+        background-color: #fff;
+        color: #111827;
+    }
+    .sp-select:focus {
+        border-color: #4a6bff;
+        box-shadow: 0 0 0 3px rgba(74,107,255,.12);
+    }
+
+    /* ── Progress bar ── */
+    .progress-track {
+        background: #E5E7EB;
+        border-radius: 9999px;
+        height: 6px;
+        overflow: hidden;
+        width: 100%;
+    }
+    .progress-fill {
+        height: 100%;
+        border-radius: 9999px;
+        transition: width .4s ease;
+    }
+    .progress-fill.high   { background: #16a34a; }
+    .progress-fill.medium { background: #4a6bff; }
+    .progress-fill.low    { background: #dc2626; }
+
+    /* ── Desktop table ── */
+    .sp-table { width: 100%; border-collapse: collapse; }
+    .sp-table thead th {
+        background: #F9FAFB;
+        padding: 0.75rem 1.25rem;
+        text-align: left;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: #6B7280;
+        border-bottom: 1px solid #E5E7EB;
+        white-space: nowrap;
+        cursor: pointer;
+        user-select: none;
+        position: relative;
+    }
+    .sp-table thead th.center { text-align: center; }
+    .sp-table thead th .sort-icon {
+        display: inline-block;
+        margin-left: 4px;
+        opacity: .4;
+        font-size: .65rem;
+        vertical-align: middle;
+    }
+    .sp-table thead th.sorted-asc .sort-icon,
+    .sp-table thead th.sorted-desc .sort-icon { opacity: .9; color: #4a6bff; }
+
+    .sp-table tbody tr {
+        border-bottom: 1px solid #F3F4F6;
+        transition: background .15s;
+    }
+    .sp-table tbody tr:last-child { border-bottom: none; }
+    .sp-table tbody tr:hover { background: #F9FAFB; }
+    .sp-table tbody td {
+        padding: 0.875rem 1.25rem;
+        font-size: 0.875rem;
+        color: #374151;
+        vertical-align: middle;
+    }
+    .sp-table tbody td.center { text-align: center; }
+
+    /* ── Mobile cards ── */
+    .student-card {
+        background: #fff;
+        border: 1px solid #E5E7EB;
+        border-radius: 0.875rem;
+        padding: 1rem;
+        transition: box-shadow .2s;
+    }
+    .student-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.07); }
+
+    /* ── Badges ── */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 0.2rem 0.65rem;
+        border-radius: 9999px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .badge-active    { background: #DBEAFE; color: #1D4ED8; }
+    .badge-completed { background: #DCFCE7; color: #166534; }
+    .badge-default   { background: #F3F4F6; color: #374151; }
+
+    /* ── Pagination ── */
+    .sp-page-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 2rem;
+        height: 2rem;
+        padding: 0 0.5rem;
+        border: 1px solid #E5E7EB;
+        border-radius: 0.5rem;
+        font-size: 0.8rem;
+        color: #374151;
+        background: #fff;
+        cursor: pointer;
+        transition: all .15s;
+        font-weight: 500;
+    }
+    .sp-page-btn:hover:not(:disabled) { background: #F3F4F6; border-color: #D1D5DB; }
+    .sp-page-btn.active { background: #4a6bff; border-color: #4a6bff; color: #fff; }
+    .sp-page-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* ── Avatar ── */
+    .avatar {
+        width: 2.25rem; height: 2.25rem;
+        border-radius: 9999px;
+        background: #EEF2FF;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #4a6bff;
+    }
+
+    /* ── View link ── */
+    .view-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #4a6bff;
+        text-decoration: none;
+        padding: 0.35rem 0.75rem;
+        border-radius: 0.45rem;
+        border: 1px solid #C7D2FE;
+        background: #EEF2FF;
+        transition: all .15s;
+        white-space: nowrap;
+    }
+    .view-link:hover { background: #4a6bff; color: #fff; border-color: #4a6bff; }
+
+    /* ── Responsive show/hide ── */
+    @media (max-width: 767px) {
+        .desktop-table { display: none !important; }
+    }
+    @media (min-width: 768px) {
+        .mobile-cards { display: none !important; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sp-page">
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE HEADER
+══════════════════════════════════════════════════════ -->
+<header class="mb-6 sm:mb-8">
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
+                Student Progress Tracking
+            </h1>
+            <p class="text-sm sm:text-base text-gray-500 mt-1 sm:mt-2">
+                Monitor individual student performance and identify areas for improvement
+            </p>
+        </div>
+    </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════════
+     FILTER
+══════════════════════════════════════════════════════ -->
+<section class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-6 mb-6">
+    <form method="get" class="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-end" aria-label="Filter students">
+        <div class="flex-1">
+            <label for="courseFilter" class="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5">
+                Filter by Course
+            </label>
+            <select name="course" id="courseFilter" onchange="this.form.submit()" class="sp-select w-full">
+                <option value="">All Courses</option>
+                {% for course in courses %}
+                <option value="{{ course.id }}"
+                        {% if selected_course and selected_course.id == course.id %}selected{% endif %}>
+                    {{ course.title }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <button type="submit"
+                    class="w-full sm:w-auto inline-flex items-center justify-center gap-2
+                           px-5 py-2.5 bg-primary-600 text-white text-sm font-semibold
+                           rounded-lg hover:bg-primary-700 transition-colors">
+                <i class="fas fa-filter text-xs" aria-hidden="true"></i>
+                Apply Filter
+            </button>
+        </div>
+    </form>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     SUMMARY CARDS
+══════════════════════════════════════════════════════ -->
+<section class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8" aria-label="Performance summary">
+
+    <article class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 sm:p-6 flex items-center gap-4 sm:block">
+        <div class="w-11 h-11 sm:w-12 sm:h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0 sm:mb-4">
+            <i class="fas fa-users text-xl sm:text-2xl text-blue-500" aria-hidden="true"></i>
+        </div>
+        <div>
+            <p class="text-2xl sm:text-3xl font-bold text-gray-900">{{ total_students }}</p>
+            <p class="text-xs sm:text-sm font-medium text-gray-500 mt-0.5">Total Students</p>
+        </div>
+    </article>
+
+    <article class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 sm:p-6 flex items-center gap-4 sm:block">
+        <div class="w-11 h-11 sm:w-12 sm:h-12 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0 sm:mb-4">
+            <i class="fas fa-exclamation-triangle text-xl sm:text-2xl text-red-500" aria-hidden="true"></i>
+        </div>
+        <div>
+            <p class="text-2xl sm:text-3xl font-bold text-gray-900">{{ struggling_students }}</p>
+            <p class="text-xs sm:text-sm font-medium text-gray-500 mt-0.5">Needs Attention</p>
+            <p class="text-xs text-gray-400 mt-0.5">&lt;30% progress</p>
+        </div>
+    </article>
+
+    <article class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 sm:p-6 flex items-center gap-4 sm:block">
+        <div class="w-11 h-11 sm:w-12 sm:h-12 bg-green-50 rounded-xl flex items-center justify-center flex-shrink-0 sm:mb-4">
+            <i class="fas fa-trophy text-xl sm:text-2xl text-green-500" aria-hidden="true"></i>
+        </div>
+        <div>
+            <p class="text-2xl sm:text-3xl font-bold text-gray-900">{{ high_performers }}</p>
+            <p class="text-xs sm:text-sm font-medium text-gray-500 mt-0.5">High Performers</p>
+            <p class="text-xs text-gray-400 mt-0.5">≥80% progress</p>
+        </div>
+    </article>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     STUDENT DETAILS TABLE / CARDS
+══════════════════════════════════════════════════════ -->
+<section class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+
+    <!-- Section header + controls -->
+    <div class="px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-100
+                flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+            <h2 class="text-base sm:text-lg font-bold text-gray-900">Student Details</h2>
+            <p class="text-xs sm:text-sm text-gray-500 mt-0.5">Individual progress and performance metrics</p>
+        </div>
+        <!-- Search + per-page -->
+        <div class="flex flex-col xs:flex-row gap-2 sm:gap-3 sm:items-center w-full sm:w-auto">
+            <div class="flex items-center gap-2">
+                <label for="spPerPage" class="text-xs text-gray-500 whitespace-nowrap">Show</label>
+                <select id="spPerPage" class="sp-select" style="width:80px;"
+                        onchange="spTable.setPerPage(this.value)">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                </select>
+                <span class="text-xs text-gray-500 whitespace-nowrap">per page</span>
+            </div>
+            <div class="relative flex-1 sm:w-56">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none" aria-hidden="true"></i>
+                <input type="text"
+                       id="spSearch"
+                       placeholder="Search students…"
+                       class="sp-input pl-8"
+                       oninput="spTable.search(this.value)"
+                       aria-label="Search students">
+            </div>
+        </div>
+    </div>
+
+    {% if enrollments %}
+
+    <!-- ────────────────────────────────────────────
+         DESKTOP TABLE  (md+)
+    ──────────────────────────────────────────── -->
+    <div class="desktop-table overflow-x-auto">
+        <table class="sp-table" id="desktopTable" role="table" aria-label="Student progress data">
+            <thead>
+                <tr>
+                    <th onclick="spTable.sort(0)" data-col="0">
+                        Student <span class="sort-icon"><i class="fas fa-sort"></i></span>
+                    </th>
+                    <th onclick="spTable.sort(1)" data-col="1">
+                        Course <span class="sort-icon"><i class="fas fa-sort"></i></span>
+                    </th>
+                    <th class="center" onclick="spTable.sort(2)" data-col="2" style="min-width:140px;">
+                        Progress <span class="sort-icon"><i class="fas fa-sort"></i></span>
+                    </th>
+                    <th class="center" onclick="spTable.sort(3)" data-col="3">
+                        Lessons <span class="sort-icon"><i class="fas fa-sort"></i></span>
+                    </th>
+                    <th class="center" onclick="spTable.sort(4)" data-col="4">
+                        Avg Quiz <span class="sort-icon"><i class="fas fa-sort"></i></span>
+                    </th>
+                    <th class="center" onclick="spTable.sort(5)" data-col="5">
+                        Status <span class="sort-icon"><i class="fas fa-sort"></i></span>
+                    </th>
+                    <th class="center" style="min-width:120px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for enrollment in enrollments %}
+                <tr class="sp-row"
+                    data-student="{{ enrollment.student.get_full_name|lower }}"
+                    data-course="{{ enrollment.course.title|lower }}"
+                    data-progress="{{ enrollment.progress_percentage }}"
+                    data-lessons="{{ enrollment.completed_lessons }}"
+                    data-quiz="{{ enrollment.avg_quiz_score|default:0 }}"
+                    data-status="{{ enrollment.status }}">
+
+                    <!-- Student -->
+                    <td>
+                        <div class="flex items-center gap-3">
+                            <div class="avatar">
+                                {{ enrollment.student.first_name.0|upper }}{{ enrollment.student.last_name.0|upper }}
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-gray-900 leading-tight">
+                                    {{ enrollment.student.get_full_name }}
+                                </p>
+                                <p class="text-xs text-gray-400 truncate" style="max-width:180px;">
+                                    {{ enrollment.student.email }}
+                                </p>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Course -->
+                    <td>
+                        <p class="text-sm text-gray-800 leading-snug" style="max-width:200px;">
+                            {{ enrollment.course.title }}
+                        </p>
+                    </td>
+
+                    <!-- Progress -->
+                    <td class="center">
+                        <div class="flex flex-col items-center gap-1.5 px-2">
+                            <div class="progress-track" style="min-width:100px;">
+                                <div class="progress-fill
+                                    {% if enrollment.progress_percentage >= 80 %}high
+                                    {% elif enrollment.progress_percentage >= 30 %}medium
+                                    {% else %}low{% endif %}"
+                                     style="width:{{ enrollment.progress_percentage }}%"
+                                     role="progressbar"
+                                     aria-valuenow="{{ enrollment.progress_percentage }}"
+                                     aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <span class="text-xs font-bold
+                                {% if enrollment.progress_percentage >= 80 %}text-green-600
+                                {% elif enrollment.progress_percentage >= 30 %}text-blue-600
+                                {% else %}text-red-500{% endif %}">
+                                {{ enrollment.progress_percentage }}%
+                            </span>
+                        </div>
+                    </td>
+
+                    <!-- Lessons -->
+                    <td class="center">
+                        <span class="text-sm font-medium text-gray-800">
+                            {{ enrollment.completed_lessons }}<span class="text-gray-400">/</span>{{ enrollment.total_lessons }}
+                        </span>
+                    </td>
+
+                    <!-- Quiz Score -->
+                    <td class="center">
+                        {% if enrollment.avg_quiz_score %}
+                        <span class="text-sm font-bold text-gray-900">{{ enrollment.avg_quiz_score|floatformat:0 }}%</span>
+                        {% else %}
+                        <span class="text-xs text-gray-400 italic">N/A</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Status -->
+                    <td class="center">
+                        {% if enrollment.status == 'active' %}
+                        <span class="badge badge-active">
+                            <i class="fas fa-circle" style="font-size:5px;" aria-hidden="true"></i> Active
+                        </span>
+                        {% elif enrollment.status == 'completed' %}
+                        <span class="badge badge-completed">
+                            <i class="fas fa-check-circle" style="font-size:9px;" aria-hidden="true"></i> Completed
+                        </span>
+                        {% else %}
+                        <span class="badge badge-default">{{ enrollment.status|title }}</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Actions -->
+                    <td class="center">
+                        <a href="{% url 'instructor:student_progress' enrollment.course.slug enrollment.student.id %}"
+                           class="view-link"
+                           aria-label="View {{ enrollment.student.get_full_name }}'s progress">
+                            <i class="fas fa-eye" style="font-size:11px;" aria-hidden="true"></i>
+                            View Details
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ────────────────────────────────────────────
+         MOBILE CARDS  (below md)
+    ──────────────────────────────────────────── -->
+    <div class="mobile-cards p-3 space-y-3" id="mobileCardList">
+        {% for enrollment in enrollments %}
+        <div class="student-card sp-row"
+             data-student="{{ enrollment.student.get_full_name|lower }}"
+             data-course="{{ enrollment.course.title|lower }}"
+             data-progress="{{ enrollment.progress_percentage }}"
+             data-lessons="{{ enrollment.completed_lessons }}"
+             data-quiz="{{ enrollment.avg_quiz_score|default:0 }}"
+             data-status="{{ enrollment.status }}">
+
+            <!-- Card top: avatar + name + status badge -->
+            <div class="flex items-center justify-between mb-3 pb-3 border-b border-gray-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="avatar" style="width:2.5rem;height:2.5rem;font-size:.8rem;">
+                        {{ enrollment.student.first_name.0|upper }}{{ enrollment.student.last_name.0|upper }}
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-900 leading-tight">
+                            {{ enrollment.student.get_full_name }}
+                        </p>
+                        <p class="text-xs text-gray-400 truncate" style="max-width:160px;">
+                            {{ enrollment.student.email }}
+                        </p>
+                    </div>
+                </div>
+                {% if enrollment.status == 'active' %}
+                <span class="badge badge-active"><i class="fas fa-circle" style="font-size:5px;"></i> Active</span>
+                {% elif enrollment.status == 'completed' %}
+                <span class="badge badge-completed"><i class="fas fa-check-circle" style="font-size:9px;"></i> Done</span>
+                {% else %}
+                <span class="badge badge-default">{{ enrollment.status|title }}</span>
+                {% endif %}
+            </div>
+
+            <!-- Course name -->
+            <p class="text-xs text-gray-400 uppercase font-semibold tracking-wide mb-0.5">Course</p>
+            <p class="text-sm font-medium text-gray-800 mb-3">{{ enrollment.course.title }}</p>
+
+            <!-- Progress -->
+            <div class="mb-3">
+                <div class="flex items-center justify-between mb-1.5">
+                    <p class="text-xs text-gray-400 uppercase font-semibold tracking-wide">Progress</p>
+                    <span class="text-xs font-bold
+                        {% if enrollment.progress_percentage >= 80 %}text-green-600
+                        {% elif enrollment.progress_percentage >= 30 %}text-blue-600
+                        {% else %}text-red-500{% endif %}">
+                        {{ enrollment.progress_percentage }}%
+                    </span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill
+                        {% if enrollment.progress_percentage >= 80 %}high
+                        {% elif enrollment.progress_percentage >= 30 %}medium
+                        {% else %}low{% endif %}"
+                         style="width:{{ enrollment.progress_percentage }}%"
+                         role="progressbar"
+                         aria-valuenow="{{ enrollment.progress_percentage }}"
+                         aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>
+
+            <!-- Stats row -->
+            <div class="grid grid-cols-2 gap-2 mb-3">
+                <div class="bg-gray-50 rounded-lg p-2.5 text-center">
+                    <p class="text-xs text-gray-400 mb-0.5">Lessons Done</p>
+                    <p class="text-sm font-bold text-gray-800">
+                        {{ enrollment.completed_lessons }}<span class="text-gray-400 font-normal">/{{ enrollment.total_lessons }}</span>
+                    </p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-2.5 text-center">
+                    <p class="text-xs text-gray-400 mb-0.5">Avg Quiz</p>
+                    <p class="text-sm font-bold text-gray-800">
+                        {% if enrollment.avg_quiz_score %}{{ enrollment.avg_quiz_score|floatformat:0 }}%{% else %}<span class="text-gray-400 font-normal text-xs italic">N/A</span>{% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Action button -->
+            <a href="{% url 'instructor:student_progress' enrollment.course.slug enrollment.student.id %}"
+               class="view-link w-full justify-center"
+               aria-label="View {{ enrollment.student.get_full_name }}'s progress">
+                <i class="fas fa-eye" style="font-size:11px;" aria-hidden="true"></i>
+                View Full Details
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- ────────────────────────────────────────────
+         PAGINATION + INFO
+    ──────────────────────────────────────────── -->
+    <div class="px-4 sm:px-6 py-4 border-t border-gray-100
+                flex flex-col sm:flex-row items-center justify-between gap-3">
+        <p class="text-xs sm:text-sm text-gray-500" id="spInfo">—</p>
+        <div class="flex items-center gap-1.5 flex-wrap justify-center" id="spPagination"></div>
+    </div>
+
+    {% else %}
+    <!-- Empty state -->
+    <div class="py-16 text-center px-6">
+        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-user-graduate text-3xl sm:text-4xl text-gray-300" aria-hidden="true"></i>
+        </div>
+        <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-1">No Students Yet</h3>
+        <p class="text-sm text-gray-500 max-w-xs mx-auto">
+            Students will appear here once they enroll in your courses.
+        </p>
+    </div>
+    {% endif %}
+
+</section>
+</div><!-- end .sp-page -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ─────────────────────────────────────────────────────────
+   Lightweight client-side controller: search, sort, paginate
+   Works on both desktop <tr class="sp-row"> rows and
+   mobile <div class="sp-row"> cards simultaneously.
+───────────────────────────────────────────────────────── */
+const spTable = (() => {
+    let allRows     = [];
+    let filtered    = [];
+    let currentPage = 1;
+    let perPage     = 10;
+    let sortCol     = 2;   // default: progress (descending)
+    let sortDir     = -1;
+    let searchQuery = '';
+
+    const infoEl  = document.getElementById('spInfo');
+    const paginEl = document.getElementById('spPagination');
+
+    function init() {
+        allRows = Array.from(document.querySelectorAll('.sp-row'));
+        applyFilters();
+    }
+
+    function search(q) {
+        searchQuery = q.toLowerCase().trim();
+        currentPage = 1;
+        applyFilters();
+    }
+
+    function setPerPage(n) {
+        perPage     = parseInt(n, 10);
+        currentPage = 1;
+        applyFilters();
+    }
+
+    function sort(col) {
+        sortDir = (sortCol === col) ? sortDir * -1 : -1;
+        sortCol = col;
+        updateSortHeaders();
+        currentPage = 1;
+        applyFilters();
+    }
+
+    function updateSortHeaders() {
+        document.querySelectorAll('#desktopTable thead th').forEach((th, i) => {
+            th.classList.remove('sorted-asc', 'sorted-desc');
+            const icon = th.querySelector('.sort-icon i');
+            if (!icon) return;
+            if (i === sortCol) {
+                th.classList.add(sortDir === 1 ? 'sorted-asc' : 'sorted-desc');
+                icon.className = sortDir === 1 ? 'fas fa-sort-up' : 'fas fa-sort-down';
+            } else {
+                icon.className = 'fas fa-sort';
+            }
+        });
+    }
+
+    function getColValue(row, col) {
+        const keys = ['student', 'course', 'progress', 'lessons', 'quiz', 'status'];
+        const key  = keys[col];
+        if (!key) return '';
+        const v = row.dataset[key] || '';
+        const n = parseFloat(v);
+        return isNaN(n) ? v.toLowerCase() : n;
+    }
+
+    function applyFilters() {
+        filtered = allRows.filter(row => {
+            if (!searchQuery) return true;
+            const haystack = (row.dataset.student || '') + ' ' + (row.dataset.course || '');
+            return haystack.includes(searchQuery);
+        });
+
+        filtered.sort((a, b) => {
+            const va = getColValue(a, sortCol);
+            const vb = getColValue(b, sortCol);
+            if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * sortDir;
+            return String(va).localeCompare(String(vb)) * sortDir;
+        });
+
+        renderPage();
+    }
+
+    function renderPage() {
+        const total   = filtered.length;
+        const pages   = Math.max(1, Math.ceil(total / perPage));
+        currentPage   = Math.min(currentPage, pages);
+        const start   = (currentPage - 1) * perPage;
+        const end     = Math.min(start + perPage, total);
+        const visible = new Set(filtered.slice(start, end));
+
+        allRows.forEach(row => {
+            row.style.display = visible.has(row) ? '' : 'none';
+        });
+
+        infoEl.textContent = total === 0
+            ? 'No matching students found'
+            : `Showing ${start + 1}–${end} of ${total} student${total !== 1 ? 's' : ''}`;
+
+        renderPagination(pages);
+    }
+
+    function renderPagination(pages) {
+        paginEl.innerHTML = '';
+
+        const mkBtn = (html, page, disabled, active) => {
+            const b = document.createElement('button');
+            b.className = 'sp-page-btn' + (active ? ' active' : '');
+            b.innerHTML = html;
+            b.disabled  = disabled;
+            if (!disabled && !active) b.onclick = () => { currentPage = page; renderPage(); };
+            return b;
+        };
+
+        const dots = () => {
+            const s = document.createElement('span');
+            s.textContent = '…';
+            s.className   = 'text-gray-400 text-sm px-1 select-none';
+            return s;
+        };
+
+        paginEl.appendChild(mkBtn('&laquo;', currentPage - 1, currentPage === 1, false));
+
+        let lo = Math.max(1, currentPage - 2);
+        let hi = Math.min(pages, currentPage + 2);
+        if (hi - lo < 4) {
+            lo === 1 ? (hi = Math.min(pages, 5)) : (lo = Math.max(1, hi - 4));
+        }
+
+        if (lo > 1) { paginEl.appendChild(mkBtn('1', 1, false, false)); if (lo > 2) paginEl.appendChild(dots()); }
+        for (let p = lo; p <= hi; p++) paginEl.appendChild(mkBtn(p, p, false, p === currentPage));
+        if (hi < pages) { if (hi < pages - 1) paginEl.appendChild(dots()); paginEl.appendChild(mkBtn(pages, pages, false, false)); }
+
+        paginEl.appendChild(mkBtn('&raquo;', currentPage + 1, currentPage === pages, false));
+    }
+
+    return { init, search, setPerPage, sort };
+})();
+
+document.addEventListener('DOMContentLoaded', () => spTable.init());
+</script>
+{% endblock %}

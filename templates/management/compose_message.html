@@ -1,0 +1,147 @@
+{% extends "management/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - {{ site_config.school_short_name }} Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-screen-2xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+
+    <!-- Header -->
+    <div class="mb-5 sm:mb-7 flex items-center gap-3">
+        <a href="{% url 'management:admin_inbox' %}"
+           class="inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-lg border border-gray-200
+                  text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all flex-shrink-0"
+           aria-label="Back to Inbox">
+            <i class="fas fa-arrow-left text-sm" aria-hidden="true"></i>
+        </a>
+        <div>
+            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">Compose Message</h1>
+            <p class="text-xs sm:text-sm text-gray-500 mt-0.5">Send a message to any user on the platform</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 sm:gap-6">
+
+        <!-- Compose Form -->
+        <div class="xl:col-span-2">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+
+                <!-- Form Header -->
+                <div class="px-5 sm:px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-primary-blue-100 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-pen-to-square text-primary-blue-600 text-sm" aria-hidden="true"></i>
+                    </div>
+                    <h2 class="text-sm sm:text-base font-semibold text-gray-900">New Message</h2>
+                </div>
+
+                <div class="px-5 sm:px-6 py-5 sm:py-6">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Recipient -->
+                        <div class="mb-5">
+                            <label for="id_recipient" class="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5">
+                                Recipient <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.recipient }}
+                            {% if form.recipient.errors %}
+                            <p class="mt-1 text-xs text-red-600">{{ form.recipient.errors.0 }}</p>
+                            {% endif %}
+                            <p class="mt-1 text-xs text-gray-400">Select the user you want to message. Role is shown in brackets.</p>
+                        </div>
+
+                        <!-- Subject -->
+                        <div class="mb-5">
+                            <label for="id_subject" class="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5">
+                                Subject <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.subject }}
+                            {% if form.subject.errors %}
+                            <p class="mt-1 text-xs text-red-600">{{ form.subject.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Body -->
+                        <div class="mb-6">
+                            <label for="id_body" class="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5">
+                                Message <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.body }}
+                            {% if form.body.errors %}
+                            <p class="mt-1 text-xs text-red-600">{{ form.body.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-4 border-t border-gray-100">
+                            <button type="submit"
+                                    class="inline-flex items-center justify-center gap-2 px-5 py-2.5
+                                           bg-primary-blue-500 hover:bg-primary-blue-600 text-white
+                                           text-sm font-semibold rounded-lg shadow-sm transition-all
+                                           focus:outline-none focus:ring-2 focus:ring-primary-blue-500 focus:ring-offset-2">
+                                <i class="fas fa-paper-plane text-sm" aria-hidden="true"></i>
+                                Send Message
+                            </button>
+                            <a href="{% url 'management:admin_inbox' %}"
+                               class="inline-flex items-center justify-center gap-2 px-5 py-2.5 border border-gray-300
+                                      text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-all">
+                                <i class="fas fa-times text-sm" aria-hidden="true"></i>
+                                Cancel
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tips Sidebar -->
+        <div class="xl:col-span-1 space-y-4">
+
+            <!-- Tips -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100">
+                    <h3 class="text-sm font-semibold text-gray-900">Messaging Tips</h3>
+                </div>
+                <div class="px-5 py-4 space-y-3">
+                    <div class="flex items-start gap-2.5">
+                        <div class="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <i class="fas fa-check text-blue-600 text-[9px]" aria-hidden="true"></i>
+                        </div>
+                        <p class="text-xs text-gray-600 leading-relaxed">Recipients receive an in-app notification and an email when you send a message.</p>
+                    </div>
+                    <div class="flex items-start gap-2.5">
+                        <div class="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <i class="fas fa-check text-blue-600 text-[9px]" aria-hidden="true"></i>
+                        </div>
+                        <p class="text-xs text-gray-600 leading-relaxed">Use the subject to clearly describe what the message is about.</p>
+                    </div>
+                    <div class="flex items-start gap-2.5">
+                        <div class="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <i class="fas fa-check text-blue-600 text-[9px]" aria-hidden="true"></i>
+                        </div>
+                        <p class="text-xs text-gray-600 leading-relaxed">All messages and replies are saved in your inbox for future reference.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="bg-gradient-to-br from-primary-blue-500 to-secondary-700 rounded-xl p-5 text-white">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center">
+                        <i class="fas fa-inbox text-white text-sm" aria-hidden="true"></i>
+                    </div>
+                    <h3 class="font-semibold text-sm">Go to Inbox</h3>
+                </div>
+                <p class="text-xs text-white/70 mb-4 leading-relaxed">View all your received and sent messages.</p>
+                <a href="{% url 'management:admin_inbox' %}"
+                   class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30
+                          text-white text-xs font-semibold rounded-lg transition-all">
+                    <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i> Back to Inbox
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

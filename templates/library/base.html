@@ -1,0 +1,285 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{% block meta_description %}{{ site_config.tagline|default:'Digital Library — theological books, periodicals and references.' }}{% endblock %}">
+  <meta name="theme-color" content="{{ site_config.theme_color|default:'#840384' }}">
+
+  {# Open Graph #}
+  <meta property="og:type"        content="website">
+  <meta property="og:site_name"   content="{{ site_config.school_name }}">
+  <meta property="og:title"       content="{% block og_title %}Library – {{ site_config.school_name }}{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}{{ site_config.tagline }}{% endblock %}">
+  <meta property="og:url"         content="{{ request.build_absolute_uri }}">
+  {% if site_config.og_image %}
+  <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ site_config.og_image.url }}">
+  {% endif %}
+
+  {# Twitter Card #}
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:title"       content="{% block twitter_title %}Library – {{ site_config.school_name }}{% endblock %}">
+  <meta name="twitter:description" content="{% block twitter_description %}{{ site_config.tagline }}{% endblock %}">
+
+  {# Canonical #}
+  <link rel="canonical" href="{{ request.build_absolute_uri }}">
+
+  <title>{% block title %}Library – {{ site_config.school_name }}{% endblock %}</title>
+
+  {% if site_config.favicon %}
+  <link rel="icon" href="{{ site_config.favicon.url }}" type="image/x-icon">
+  {% endif %}
+
+  {# Fonts — preconnect first for speed #}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,700&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  {# Main compiled CSS (Tailwind + melbac tokens) #}
+  <link rel="stylesheet" href="{% static 'css/melbac.css' %}">
+
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body class="bg-white text-neutral-800 antialiased overflow-x-hidden">
+
+  <header id="mb-header" class="fixed inset-x-0 top-0 z-50 bg-white border-b border-neutral-200 transition-shadow duration-300">
+    <div class="mb-container flex items-center justify-between h-16 md:h-[68px]">
+
+      {# Logo #}
+      <a href="{% url 'eduweb:index' %}"
+         class="flex items-center gap-3 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gospel-500 rounded-md"
+         aria-label="{{ site_config.school_name|default:'Home' }}">
+        {% if site_config.logo %}
+          <img src="{{ site_config.logo.url }}" alt="{{ site_config.school_name }}" class="h-10 md:h-12 w-auto object-contain">
+        {% else %}
+          <span class="hidden md:inline mb-font-heading text-gospel-700 font-bold text-lg leading-tight">
+            {{ site_config.school_name|default:"Library" }}
+          </span>
+          <span class="md:hidden mb-font-heading text-gospel-700 font-bold text-base leading-tight">
+            {{ site_config.school_short_name|default:"Library" }}
+          </span>
+        {% endif %}
+      </a>
+
+      {# Desktop nav — Library + dynamic categories + Search #}
+      <nav class="hidden md:flex items-center gap-1" aria-label="Primary navigation">
+        <a href="{% url 'library:home' %}"
+           class="mb-font-ui text-sm font-medium px-3 py-2 rounded-lg transition-colors {% if request.resolver_match.url_name == 'home' %}bg-gospel-600 text-white{% else %}text-neutral-700 hover:text-gospel-700 hover:bg-gospel-50{% endif %}">
+          Library
+        </a>
+
+        {# Dynamic category links from DB — no hardcoded slugs #}
+        {% for cat in nav_categories %}
+        <a href="{% url 'library:category' cat.slug %}"
+           class="mb-font-ui text-sm font-medium px-3 py-2 rounded-lg transition-colors {% if request.resolver_match.kwargs.category_slug == cat.slug %}bg-gospel-600 text-white{% else %}text-neutral-700 hover:text-gospel-700 hover:bg-gospel-50{% endif %}">
+          {{ cat.name }}
+        </a>
+        {% endfor %}
+
+        <a href="{% url 'library:search' %}"
+           class="mb-font-ui text-sm font-medium px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5 {% if request.resolver_match.url_name == 'search' %}bg-gospel-600 text-white{% else %}text-neutral-700 hover:text-gospel-700 hover:bg-gospel-50{% endif %}"
+           aria-label="Search library">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+          </svg>
+          Search
+        </a>
+        {% block extra_nav %}{% endblock %}
+      </nav>
+
+      {# Right side: mobile search icon + hamburger #}
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a href="{% url 'library:search' %}"
+           class="md:hidden w-9 h-9 flex items-center justify-center rounded-lg text-neutral-500 hover:text-gospel-600 hover:bg-gospel-50 transition-colors"
+           aria-label="Search library">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+          </svg>
+        </a>
+
+        {# Hamburger — mobile only #}
+        <button id="mb-menu-toggle"
+                class="md:hidden w-9 h-9 flex flex-col items-center justify-center gap-1.5 rounded-lg hover:bg-neutral-100 transition-colors"
+                aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mb-mobile-menu">
+          <span class="block w-5 h-0.5 bg-neutral-700 transition-transform duration-300" id="hb-line1"></span>
+          <span class="block w-5 h-0.5 bg-neutral-700 transition-opacity duration-300"   id="hb-line2"></span>
+          <span class="block w-5 h-0.5 bg-neutral-700 transition-transform duration-300" id="hb-line3"></span>
+        </button>
+      </div>
+    </div>
+
+    {# Mobile menu drawer #}
+    <div id="mb-mobile-menu"
+         class="md:hidden border-t border-neutral-100 bg-white overflow-hidden"
+         style="max-height:0;opacity:0;transition:max-height 0.35s cubic-bezier(0.4,0,0.2,1),opacity 0.25s ease;"
+         aria-hidden="true">
+      <nav class="mb-container py-4 space-y-1" aria-label="Mobile navigation">
+        <a href="{% url 'library:home' %}"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-xl mb-font-ui text-sm font-medium {% if request.resolver_match.url_name == 'home' %}bg-gospel-50 text-gospel-700{% else %}text-neutral-700 hover:bg-neutral-100{% endif %} transition-colors">
+          <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          Library Home
+        </a>
+
+        {# Dynamic category links — no hardcoded slugs #}
+        {% if nav_categories %}
+        <div class="pt-2 pb-1">
+          <p class="px-3 mb-font-ui text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1">Browse</p>
+          {% for cat in nav_categories %}
+          <a href="{% url 'library:category' cat.slug %}"
+             class="flex items-center justify-between px-3 py-2 rounded-xl mb-font-ui text-sm {% if request.resolver_match.kwargs.category_slug == cat.slug %}text-gospel-700 bg-gospel-50 font-semibold{% else %}text-neutral-600 hover:bg-neutral-100 hover:text-gospel-700{% endif %} transition-colors">
+            <span>{{ cat.name }}</span>
+            <span class="text-neutral-400 text-xs font-normal">{{ cat.count }}</span>
+          </a>
+          {% endfor %}
+          <a href="{% url 'library:search' %}"
+             class="flex items-center gap-3 px-3 py-2 rounded-xl mb-font-ui text-sm {% if request.resolver_match.url_name == 'search' %}text-gospel-700 bg-gospel-50 font-semibold{% else %}text-neutral-600 hover:bg-neutral-100 hover:text-gospel-700{% endif %} transition-colors">
+            Search
+          </a>
+        </div>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  {# Push content below fixed header #}
+  <div class="pt-16 md:pt-[68px]">
+    {% block content %}{% endblock %}
+  </div>
+
+  <footer class="bg-[#2d0035] text-white">
+
+    {# Top section #}
+    <div class="mb-footer-container py-12 md:py-16 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 lg:gap-12 border-b border-white/10">
+
+      {# Brand column #}
+      <div class="lg:col-span-2">
+        {% if site_config.logo_dark %}
+        <img src="{{ site_config.logo_dark.url }}" alt="{{ site_config.school_name }}" class="mb-footer-logo-img-el mb-4">
+        {% elif site_config.logo %}
+        <img src="{{ site_config.logo.url }}" alt="{{ site_config.school_name }}" class="mb-footer-logo-img-el mb-4">
+        {% else %}
+        <p class="mb-font-heading text-white text-2xl font-bold mb-4">{{ site_config.school_name }}</p>
+        {% endif %}
+        {% if site_config.tagline %}
+        <p class="mb-font-body text-white/70 text-base leading-relaxed max-w-sm">{{ site_config.tagline }}</p>
+        {% endif %}
+      </div>
+
+      {# Library quick links — dynamic, no hardcoded category slugs #}
+      <div>
+        <h3 class="mb-font-ui text-[11px] font-bold text-gold-400 uppercase tracking-widest mb-4">Library</h3>
+        <ul class="space-y-2.5" role="list">
+          <li><a href="{% url 'library:home' %}" class="mb-font-ui text-sm text-white/70 hover:text-white transition-colors">Library Home</a></li>
+          {% for cat in nav_categories %}
+          <li><a href="{% url 'library:category' cat.slug %}" class="mb-font-ui text-sm text-white/70 hover:text-white transition-colors">{{ cat.name }}</a></li>
+          {% endfor %}
+          <li><a href="{% url 'library:search' %}" class="mb-font-ui text-sm text-white/70 hover:text-white transition-colors">Search</a></li>
+        </ul>
+      </div>
+
+      {# Contact #}
+      <div>
+        <h3 class="mb-font-ui text-[11px] font-bold text-gold-400 uppercase tracking-widest mb-4">Contact</h3>
+        <ul class="space-y-2.5" role="list">
+          {% if site_config.email %}
+          <li>
+            <a href="mailto:{{ site_config.email }}" class="mb-font-ui text-sm text-white/70 hover:text-white transition-colors flex items-center gap-2">
+              <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              {{ site_config.email }}
+            </a>
+          </li>
+          {% endif %}
+          {% if site_config.phone_primary %}
+          <li>
+            <a href="tel:{{ site_config.phone_primary }}" class="mb-font-ui text-sm text-white/70 hover:text-white transition-colors flex items-center gap-2">
+              <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+              {{ site_config.phone_primary }}
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+
+    {# Bottom bar #}
+    <div class="mb-footer-container py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <p class="mb-font-ui text-xs text-white/40 text-center sm:text-left">
+        &copy; {% now "Y" %} {{ site_config.school_name|default:"Melchisedec" }}. All rights reserved.
+      </p>
+      <div class="flex items-center gap-4">
+        <a href="{% url 'library:home' %}" class="mb-font-ui text-xs text-white/40 hover:text-white/70 transition-colors">Library</a>
+        <a href="{% url 'library:search' %}" class="mb-font-ui text-xs text-white/40 hover:text-white/70 transition-colors">Search</a>
+        {% if request.user.is_authenticated %}
+        <a href="{% url 'eduweb:logout' %}" class="mb-font-ui text-xs text-white/40 hover:text-white/70 transition-colors">Logout</a>
+        {% else %}
+        <a href="{% url 'eduweb:auth_page' %}" class="mb-font-ui text-xs text-white/40 hover:text-white/70 transition-colors">Login</a>
+        {% endif %}
+      </div>
+    </div>
+  </footer>
+
+  <script>
+  (function () {
+    'use strict';
+
+    // ── Scroll shadow on header ──────────────────────────────
+    var header = document.getElementById('mb-header');
+    if (header) {
+      var onScroll = function () {
+        header.classList.toggle('scrolled', window.scrollY > 10);
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    }
+
+    // ── Mobile hamburger ─────────────────────────────────────
+    var toggle = document.getElementById('mb-menu-toggle');
+    var menu   = document.getElementById('mb-mobile-menu');
+    var line1  = document.getElementById('hb-line1');
+    var line2  = document.getElementById('hb-line2');
+    var line3  = document.getElementById('hb-line3');
+    var open   = false;
+
+    function setMenu(state) {
+      open = state;
+      toggle.setAttribute('aria-expanded', String(state));
+      menu.setAttribute('aria-hidden', String(!state));
+      menu.style.maxHeight = state ? '720px' : '0';
+      menu.style.opacity   = state ? '1'     : '0';
+      if (line1) line1.style.transform  = state ? 'translateY(8px) rotate(45deg)'  : '';
+      if (line2) line2.style.opacity    = state ? '0' : '1';
+      if (line3) line3.style.transform  = state ? 'translateY(-8px) rotate(-45deg)' : '';
+    }
+
+    if (toggle && menu) {
+      toggle.addEventListener('click', function () { setMenu(!open); });
+      document.addEventListener('click', function (e) {
+        if (open && !menu.contains(e.target) && !toggle.contains(e.target)) setMenu(false);
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && open) setMenu(false);
+      });
+    }
+
+    // ── Scroll-reveal ─────────────────────────────────────────
+    if ('IntersectionObserver' in window) {
+      var revealObs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            revealObs.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1 });
+      document.querySelectorAll('.mb-reveal').forEach(function (el) {
+        revealObs.observe(el);
+      });
+    }
+  })();
+  </script>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

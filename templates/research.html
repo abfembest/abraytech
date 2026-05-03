@@ -1,0 +1,344 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Research at MIU - Innovation & Discovery | Modern International University{% endblock %}
+
+{% block extra_css %}
+<meta name="description" content="Explore groundbreaking research at MIU. Discover our research centers, funded projects, faculty publications, and opportunities for students to engage in cutting-edge research.">
+<meta name="keywords" content="university research, research centers, scientific research, innovation, MIU research, research funding, faculty research">
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="relative bg-gradient-to-br from-primary-950 via-purple-900 to-indigo-900 text-white py-24 lg:py-32 overflow-hidden">
+    <div class="absolute inset-0 opacity-10">
+        <div class="absolute top-20 left-10 w-64 h-64 bg-purple-300 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-20 right-10 w-96 h-96 bg-indigo-300 rounded-full blur-3xl"></div>
+    </div>
+    
+    <div class="container mx-auto relative z-10">
+        <div class="max-w-4xl">
+            <nav class="flex mb-8 text-sm" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-2">
+                    <li><a href="{% url 'eduweb:index' %}" class="text-purple-200 hover:text-white transition-colors">Home</a></li>
+                    <li><i data-lucide="chevron-right" class="w-4 h-4 text-purple-300"></i></li>
+                    <li><span class="text-white font-medium">Research</span></li>
+                </ol>
+            </nav>
+
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-500 rounded-2xl flex items-center justify-center shadow-xl">
+                    <i data-lucide="flask-conical" class="w-8 h-8 text-white"></i>
+                </div>
+                <div>
+                    <p class="text-purple-200 text-sm font-medium mb-1">Discovery & Innovation</p>
+                    <h1 class="text-4xl lg:text-6xl font-bold font-display">Research at MIU</h1>
+                </div>
+            </div>
+            
+            <p class="text-xl text-purple-100 mb-8 leading-relaxed max-w-3xl">
+                Driving innovation through groundbreaking research that addresses global challenges and advances human knowledge across all disciplines.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Research Stats -->
+<section class="py-16 bg-gradient-to-br from-purple-50 to-pink-50">
+    <div class="container mx-auto">
+        <div class="grid md:grid-cols-4 gap-8">
+            <div class="bg-white rounded-2xl p-6 shadow-lg text-center transform hover:scale-105 transition-transform duration-300">
+                <div class="w-14 h-14 bg-gradient-to-br from-primary-600 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="dollar-sign" class="w-7 h-7 text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">$45M+</h3>
+                <p class="text-gray-600">Annual Research Funding</p>
+            </div>
+            <div class="bg-white rounded-2xl p-6 shadow-lg text-center transform hover:scale-105 transition-transform duration-300">
+                <div class="w-14 h-14 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="file-text" class="w-7 h-7 text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">1,200+</h3>
+                <p class="text-gray-600">Publications Annually</p>
+            </div>
+            <div class="bg-white rounded-2xl p-6 shadow-lg text-center transform hover:scale-105 transition-transform duration-300">
+                <div class="w-14 h-14 bg-gradient-to-br from-pink-600 to-rose-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="building" class="w-7 h-7 text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">35+</h3>
+                <p class="text-gray-600">Research Centers</p>
+            </div>
+            <div class="bg-white rounded-2xl p-6 shadow-lg text-center transform hover:scale-105 transition-transform duration-300">
+                <div class="w-14 h-14 bg-gradient-to-br from-rose-600 to-red-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="users" class="w-7 h-7 text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">500+</h3>
+                <p class="text-gray-600">Active Researchers</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Research Areas -->
+<section class="py-20 bg-white">
+    <div class="container mx-auto">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-primary-950 mb-4 font-display">Research Areas</h2>
+            <div class="h-1 w-24 bg-gradient-to-r from-primary-950 to-purple-500 mx-auto mb-6"></div>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Our research spans diverse fields, addressing critical challenges and advancing knowledge.
+            </p>
+        </div>
+
+        <div class="max-w-6xl mx-auto grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Artificial Intelligence -->
+            <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-8 border border-purple-100 hover:shadow-xl transition-shadow duration-300">
+                <div class="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center mb-6">
+                    <i data-lucide="brain" class="w-7 h-7 text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-3">Artificial Intelligence</h3>
+                <p class="text-gray-700 mb-4">Machine learning, neural networks, natural language processing, and computer vision applications.</p>
+                <a href="#" class="inline-flex items-center gap-2 text-primary-950 font-semibold hover:gap-3 transition-all">
+                    Learn More
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+            </div>
+
+            <!-- Biotechnology -->
+            <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 border border-green-100 hover:shadow-xl transition-shadow duration-300">
+                <div class="w-14 h-14 bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl flex items-center justify-center mb-6">
+                    <i data-lucide="dna" class="w-7 h-7 text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-3">Biotechnology</h3>
+                <p class="text-gray-700 mb-4">Genetic engineering, drug development, biomedical devices, and regenerative medicine.</p>
+                <a href="#" class="inline-flex items-center gap-2 text-green-700 font-semibold hover:gap-3 transition-all">
+                    Learn More
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+            </div>
+
+            <!-- Climate Science -->
+            <div class="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-2xl p-8 border border-teal-100 hover:shadow-xl transition-shadow duration-300">
+                <div class="w-14 h-14 bg-gradient-to-br from-teal-600 to-cyan-600 rounded-xl flex items-center justify-center mb-6">
+                    <i data-lucide="cloud-rain" class="w-7 h-7 text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-3">Climate Science</h3>
+                <p class="text-gray-700 mb-4">Environmental monitoring, renewable energy, sustainability, and climate change mitigation.</p>
+                <a href="#" class="inline-flex items-center gap-2 text-teal-700 font-semibold hover:gap-3 transition-all">
+                    Learn More
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+            </div>
+
+            <!-- Quantum Computing -->
+            <div class="bg-gradient-to-br from-violet-50 to-purple-50 rounded-2xl p-8 border border-violet-100 hover:shadow-xl transition-shadow duration-300">
+                <div class="w-14 h-14 bg-gradient-to-br from-violet-600 to-purple-600 rounded-xl flex items-center justify-center mb-6">
+                    <i data-lucide="atom" class="w-7 h-7 text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-3">Quantum Computing</h3>
+                <p class="text-gray-700 mb-4">Quantum algorithms, cryptography, quantum sensing, and computational physics.</p>
+                <a href="#" class="inline-flex items-center gap-2 text-violet-700 font-semibold hover:gap-3 transition-all">
+                    Learn More
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+            </div>
+
+            <!-- Neuroscience -->
+            <div class="bg-gradient-to-br from-rose-50 to-pink-50 rounded-2xl p-8 border border-rose-100 hover:shadow-xl transition-shadow duration-300">
+                <div class="w-14 h-14 bg-gradient-to-br from-rose-600 to-pink-600 rounded-xl flex items-center justify-center mb-6">
+                    <i data-lucide="activity" class="w-7 h-7 text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-3">Neuroscience</h3>
+                <p class="text-gray-700 mb-4">Brain mapping, cognitive science, neurological disorders, and brain-computer interfaces.</p>
+                <a href="#" class="inline-flex items-center gap-2 text-rose-700 font-semibold hover:gap-3 transition-all">
+                    Learn More
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+            </div>
+
+            <!-- Materials Science -->
+            <div class="bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl p-8 border border-orange-100 hover:shadow-xl transition-shadow duration-300">
+                <div class="w-14 h-14 bg-gradient-to-br from-orange-600 to-amber-600 rounded-xl flex items-center justify-center mb-6">
+                    <i data-lucide="gem" class="w-7 h-7 text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-3">Materials Science</h3>
+                <p class="text-gray-700 mb-4">Nanomaterials, advanced composites, smart materials, and energy storage solutions.</p>
+                <a href="#" class="inline-flex items-center gap-2 text-orange-700 font-semibold hover:gap-3 transition-all">
+                    Learn More
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Research Projects -->
+<section class="py-20 bg-gradient-to-br from-gray-50 to-purple-50">
+    <div class="container mx-auto">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-primary-950 mb-4 font-display">Featured Research Projects</h2>
+            <div class="h-1 w-24 bg-gradient-to-r from-primary-950 to-purple-500 mx-auto mb-6"></div>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Highlighting groundbreaking research making real-world impact.
+            </p>
+        </div>
+
+        <div class="max-w-6xl mx-auto space-y-8">
+            <!-- Project 1 -->
+            <div class="bg-white rounded-2xl p-8 shadow-lg border border-purple-100 hover:shadow-xl transition-shadow duration-300">
+                <div class="flex flex-col md:flex-row gap-6">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="px-4 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">AI & Machine Learning</span>
+                            <span class="text-sm text-gray-500">$2.5M Funding</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-3">AI-Powered Disease Detection System</h3>
+                        <p class="text-gray-700 mb-4">Developing advanced machine learning models for early detection of cancer and cardiovascular diseases using medical imaging and patient data.</p>
+                        <div class="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="user" class="w-4 h-4"></i>
+                                <span>Dr. Sarah Johnson</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="calendar" class="w-4 h-4"></i>
+                                <span>2023-2026</span>
+                            </div>
+                        </div>
+                        <a href="#" class="inline-flex items-center gap-2 text-primary-950 font-semibold hover:gap-3 transition-all">
+                            Read More
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+                    <div class="w-full md:w-48 h-48 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center">
+                        <i data-lucide="microscope" class="w-20 h-20 text-blue-600"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project 2 -->
+            <div class="bg-white rounded-2xl p-8 shadow-lg border border-purple-100 hover:shadow-xl transition-shadow duration-300">
+                <div class="flex flex-col md:flex-row gap-6">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="px-4 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">Sustainability</span>
+                            <span class="text-sm text-gray-500">$1.8M Funding</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-3">Next-Generation Solar Energy Storage</h3>
+                        <p class="text-gray-700 mb-4">Creating innovative battery technologies for efficient solar energy storage, making renewable energy more accessible and reliable for communities worldwide.</p>
+                        <div class="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="user" class="w-4 h-4"></i>
+                                <span>Dr. Michael Chen</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="calendar" class="w-4 h-4"></i>
+                                <span>2024-2027</span>
+                            </div>
+                        </div>
+                        <a href="#" class="inline-flex items-center gap-2 text-green-700 font-semibold hover:gap-3 transition-all">
+                            Read More
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+                    <div class="w-full md:w-48 h-48 bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl flex items-center justify-center">
+                        <i data-lucide="zap" class="w-20 h-20 text-green-600"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project 3 -->
+            <div class="bg-white rounded-2xl p-8 shadow-lg border border-purple-100 hover:shadow-xl transition-shadow duration-300">
+                <div class="flex flex-col md:flex-row gap-6">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="px-4 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">Quantum Research</span>
+                            <span class="text-sm text-gray-500">$3.2M Funding</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-3">Quantum Cryptography for Secure Communications</h3>
+                        <p class="text-gray-700 mb-4">Pioneering quantum key distribution systems to create unhackable communication networks for government and financial institutions.</p>
+                        <div class="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="user" class="w-4 h-4"></i>
+                                <span>Dr. Elena Rodriguez</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="calendar" class="w-4 h-4"></i>
+                                <span>2024-2028</span>
+                            </div>
+                        </div>
+                        <a href="#" class="inline-flex items-center gap-2 text-purple-700 font-semibold hover:gap-3 transition-all">
+                            Read More
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+                    <div class="w-full md:w-48 h-48 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl flex items-center justify-center">
+                        <i data-lucide="shield" class="w-20 h-20 text-purple-600"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Research Centers -->
+<section class="py-20 bg-white">
+    <div class="container mx-auto">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-primary-950 mb-4 font-display">Research Centers & Institutes</h2>
+            <div class="h-1 w-24 bg-gradient-to-r from-primary-950 to-purple-500 mx-auto mb-6"></div>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                World-class facilities dedicated to advancing knowledge and innovation.
+            </p>
+        </div>
+
+        <div class="max-w-6xl mx-auto grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Center for AI Research</h3>
+                <p class="text-sm text-gray-600">Advanced machine learning and cognitive computing</p>
+            </div>
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Institute for Biomedical Innovation</h3>
+                <p class="text-sm text-gray-600">Drug discovery and medical device development</p>
+            </div>
+            <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Sustainability Research Center</h3>
+                <p class="text-sm text-gray-600">Climate solutions and renewable energy</p>
+            </div>
+            <div class="bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-100">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Materials Science Lab</h3>
+                <p class="text-sm text-gray-600">Nanomaterials and advanced composites</p>
+            </div>
+            <div class="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-2xl p-6 border border-teal-100">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Data Science Institute</h3>
+                <p class="text-sm text-gray-600">Big data analytics and visualization</p>
+            </div>
+            <div class="bg-gradient-to-br from-rose-50 to-pink-50 rounded-2xl p-6 border border-rose-100">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Neuroscience Research Center</h3>
+                <p class="text-sm text-gray-600">Brain research and cognitive studies</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% comment %} <!-- Get Involved -->
+<section class="py-20 bg-gradient-to-br from-primary-950 via-purple-900 to-indigo-900 text-white">
+    <div class="container mx-auto text-center">
+        <h2 class="text-4xl font-bold mb-6 font-display">Get Involved in Research</h2>
+        <p class="text-xl text-purple-100 mb-10 max-w-2xl mx-auto">
+            Join our vibrant research community and contribute to discoveries that shape the future.
+        </p>
+        <div class="flex flex-wrap justify-center gap-6">
+            <a href="{% url 'eduweb:apply' %}" class="px-8 py-4 bg-white text-primary-950 rounded-xl font-semibold hover:bg-purple-50 transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105 inline-flex items-center gap-2">
+                Apply for Research Programs
+                <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </a>
+            <a href="#contact" class="px-8 py-4 border-2 border-white text-white rounded-xl font-semibold hover:bg-white hover:text-primary-950 transition-all duration-300 inline-flex items-center gap-2">
+                Contact Research Office
+                <i data-lucide="mail" class="w-5 h-5"></i>
+            </a>
+        </div>
+    </div>
+</section> {% endcomment %}
+
+{% endblock %}

@@ -1,0 +1,257 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Reviews & Ratings - Analytics{% endblock %}
+
+{% block meta_description %}
+Analyze course reviews and ratings to understand student feedback and improve your courses.
+{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<header class="mb-6 sm:mb-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 font-display leading-tight">
+                Reviews &amp; Ratings
+            </h1>
+            <p class="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">
+                Understand student feedback and satisfaction
+            </p>
+        </div>
+    </div>
+</header>
+
+<!-- Filter Section -->
+<section class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
+    <form method="get" class="flex flex-col sm:flex-row gap-3 sm:gap-4" aria-label="Filter reviews">
+        <div class="flex-1 min-w-0">
+            <label for="courseFilter" class="block text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+                Filter by Course
+            </label>
+            <select name="course"
+                    id="courseFilter"
+                    onchange="this.form.submit()"
+                    class="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg
+                           focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+                           text-sm sm:text-base">
+                <option value="">All Courses</option>
+                {% for course in courses %}
+                <option value="{{ course.id }}" {% if selected_course.id == course.id %}selected{% endif %}>
+                    {{ course.title }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+</section>
+
+<!-- Rating Overview -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+
+    <!-- Average Rating Card -->
+    <article class="lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8 text-center
+                    flex flex-row lg:flex-col items-center lg:items-center gap-4 lg:gap-0">
+        <div class="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-yellow-100 rounded-full flex items-center justify-center
+                    flex-shrink-0 lg:mx-auto lg:mb-4">
+            <i class="fas fa-star text-2xl sm:text-3xl lg:text-4xl text-yellow-500" aria-hidden="true"></i>
+        </div>
+        <div class="flex flex-col items-start lg:items-center">
+            <div class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-1 lg:mb-2">{{ avg_rating }}</div>
+            <div class="flex items-center gap-0.5 mb-1 lg:mb-2">
+                {% for i in "12345" %}
+                    {% if forloop.counter <= avg_rating|floatformat:0 %}
+                    <i class="fas fa-star text-yellow-400 text-base sm:text-lg lg:text-xl" aria-hidden="true"></i>
+                    {% else %}
+                    <i class="far fa-star text-yellow-400 text-base sm:text-lg lg:text-xl" aria-hidden="true"></i>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <p class="text-xs sm:text-sm text-gray-600">Based on {{ total_reviews }} review{{ total_reviews|pluralize }}</p>
+        </div>
+    </article>
+
+    <!-- Rating Distribution -->
+    <article class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+        <h2 class="text-base sm:text-lg font-bold text-gray-900 mb-4 sm:mb-6">Rating Distribution</h2>
+        <div class="space-y-2.5 sm:space-y-3">
+            {% for rating, count in rating_distribution.items reversed %}
+            <div class="flex items-center gap-2 sm:gap-0">
+                <div class="flex items-center w-12 sm:w-16 md:w-20 flex-shrink-0">
+                    <span class="text-xs sm:text-sm font-medium text-gray-700 mr-1 sm:mr-2">{{ rating }}</span>
+                    <i class="fas fa-star text-yellow-400 text-xs sm:text-sm" aria-hidden="true"></i>
+                </div>
+                <div class="flex-1 mx-2 sm:mx-4">
+                    <div class="w-full bg-gray-200 rounded-full h-2 sm:h-3">
+                        {% widthratio count total_reviews 100 as percentage %}
+                        <div class="bg-yellow-400 h-2 sm:h-3 rounded-full transition-all"
+                             style="width: {{ percentage }}%"
+                             role="progressbar"
+                             aria-valuenow="{{ percentage }}"
+                             aria-valuemin="0"
+                             aria-valuemax="100"></div>
+                    </div>
+                </div>
+                <div class="w-8 sm:w-12 md:w-16 text-right flex-shrink-0">
+                    <span class="text-xs sm:text-sm font-semibold text-gray-900">{{ count }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </article>
+</section>
+
+<!-- Course Ratings Breakdown -->
+<section class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
+    <header class="mb-4 sm:mb-6">
+        <h2 class="text-lg sm:text-xl font-bold text-gray-900">Course Ratings Breakdown</h2>
+        <p class="text-gray-600 text-xs sm:text-sm mt-1">Average rating per course</p>
+    </header>
+
+    {% if course_ratings %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        {% for course in course_ratings %}
+        <div class="p-3 sm:p-4 border border-gray-200 rounded-lg hover:border-primary-300 transition-colors">
+            <div class="flex items-start justify-between mb-2 sm:mb-3 gap-2">
+                <div class="flex-1 min-w-0">
+                    <h3 class="font-semibold text-gray-900 mb-1 text-sm sm:text-base truncate">{{ course.title }}</h3>
+                    <p class="text-xs text-gray-500">{{ course.review_count }} review{{ course.review_count|pluralize }}</p>
+                </div>
+                <div class="flex items-center bg-yellow-50 px-2 py-1 rounded-lg flex-shrink-0">
+                    <i class="fas fa-star text-yellow-500 text-xs sm:text-sm mr-1" aria-hidden="true"></i>
+                    <span class="text-xs sm:text-sm font-bold text-gray-900">{{ course.avg_rating|floatformat:1 }}</span>
+                </div>
+            </div>
+            <a href="?course={{ course.id }}"
+               class="text-xs sm:text-sm text-primary-600 hover:text-primary-700 font-medium">
+                View Reviews →
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-6 sm:py-8">
+        <p class="text-sm text-gray-500">No course ratings available yet</p>
+    </div>
+    {% endif %}
+</section>
+
+<!-- Rating Trend Chart -->
+<section class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
+    <header class="mb-4 sm:mb-6">
+        <h2 class="text-lg sm:text-xl font-bold text-gray-900">Rating Trends</h2>
+        <p class="text-gray-600 text-xs sm:text-sm mt-1">Monthly average ratings over time</p>
+    </header>
+    <div class="h-56 sm:h-64 md:h-72 lg:h-80">
+        <canvas id="ratingTrendChart" aria-label="Rating trends chart" role="img"></canvas>
+    </div>
+</section>
+
+<!-- Recent Reviews -->
+<section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <header class="p-4 sm:p-6 border-b border-gray-200">
+        <h2 class="text-lg sm:text-xl font-bold text-gray-900">Recent Reviews</h2>
+        <p class="text-gray-600 text-xs sm:text-sm mt-1">Latest student feedback</p>
+    </header>
+
+    {% if reviews %}
+    <div class="divide-y divide-gray-200">
+        {% for review in reviews %}
+        <article class="p-4 sm:p-6 hover:bg-gray-50 transition-colors">
+            <div class="flex flex-col xs:flex-row xs:items-start xs:justify-between gap-3 mb-3">
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span class="text-xs sm:text-sm font-semibold text-primary-700">
+                            {{ review.student.first_name.0|upper }}{{ review.student.last_name.0|upper }}
+                        </span>
+                    </div>
+                    <div>
+                        <p class="text-xs sm:text-sm font-semibold text-gray-900">{{ review.student.get_full_name }}</p>
+                        <p class="text-xs text-gray-500">{{ review.created_at|timesince }} ago</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-0.5 self-start xs:self-auto">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= review.rating %}
+                        <i class="fas fa-star text-yellow-400 text-xs sm:text-sm" aria-hidden="true"></i>
+                        {% else %}
+                        <i class="far fa-star text-yellow-400 text-xs sm:text-sm" aria-hidden="true"></i>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="mb-2">
+                <span class="inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium
+                             bg-primary-100 text-primary-800 max-w-full truncate">
+                    {{ review.course.title }}
+                </span>
+            </div>
+
+            {% if review.review_text %}
+            <p class="text-gray-700 text-xs sm:text-sm leading-relaxed">{{ review.review_text }}</p>
+            {% else %}
+            <p class="text-gray-500 text-xs sm:text-sm italic">No review text provided</p>
+            {% endif %}
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="p-8 sm:p-12 text-center">
+        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-star text-3xl sm:text-4xl text-gray-400" aria-hidden="true"></i>
+        </div>
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-2">No Reviews Yet</h3>
+        <p class="text-sm sm:text-base text-gray-600">Reviews from students will appear here</p>
+    </div>
+    {% endif %}
+</section>
+
+<!-- Chart.js Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const monthlyData = {{ monthly_reviews|safe }};
+
+    const ctx = document.getElementById('ratingTrendChart');
+    if (ctx && monthlyData.length > 0) {
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: monthlyData.map(d => new Date(d.month).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })),
+                datasets: [{
+                    label: 'Average Rating',
+                    data: monthlyData.map(d => d.avg),
+                    borderColor: '#fbbf24',
+                    backgroundColor: 'rgba(251, 191, 36, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 0,
+                        max: 5,
+                        ticks: { stepSize: 1 }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 0,
+                            maxTicksLimit: window.innerWidth < 480 ? 4 : window.innerWidth < 768 ? 6 : 12
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

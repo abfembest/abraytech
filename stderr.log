@@ -1,0 +1,31 @@
+Invalid HTTP_HOST header: 'miuedu.com'. You may need to add 'miuedu.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/home/miuenecd/virtualenv/DigitalCampus/3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/miuenecd/virtualenv/DigitalCampus/3.12/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/miuenecd/virtualenv/DigitalCampus/3.12/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/miuenecd/virtualenv/DigitalCampus/3.12/lib/python3.12/site-packages/django/http/request.py", line 205, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'miuedu.com'. You may need to add 'miuedu.com' to ALLOWED_HOSTS.
+Invalid HTTP_HOST header: 'miuedu.com'. You may need to add 'miuedu.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/home/miuenecd/virtualenv/DigitalCampus/3.12/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/miuenecd/virtualenv/DigitalCampus/3.12/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/miuenecd/virtualenv/DigitalCampus/3.12/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/miuenecd/virtualenv/DigitalCampus/3.12/lib/python3.12/site-packages/django/http/request.py", line 205, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'miuedu.com'. You may need to add 'miuedu.com' to ALLOWED_HOSTS.
+Not Found: /static/favicon.png
+Not Found: /wp-content/uploads/2018/05/Post-Blog-Estas-son-las-5-mejores-ciudades-para-estudiar-ingl\xe9s-en-los-EE.UU_-1024x1024.jpg/wp-content/uploads/2018/05/Post-Blog-Estas-son-las-5-mejores-ciudades-para-estudiar-ingl%C3%A9s-en-los-EE.UU_-1024x1024.jpg
+Not Found: /wp-content/uploads/2018/05/Post-Blog-Estas-son-las-5-mejores-ciudades-para-estudiar-ingl\xe9s-en-los-EE.UU_-637x478.jpg/wp-content/uploads/2018/05/Post-Blog-Estas-son-las-5-mejores-ciudades-para-estudiar-ingl%C3%A9s-en-los-EE.UU_-637x478.jpg

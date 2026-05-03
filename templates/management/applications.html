@@ -1,0 +1,296 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Applications — MIU Admin Portal{% endblock %}
+{% block meta_description %}View and manage all course applications{% endblock %}
+
+{% block content %}
+<div class="max-w-full px-4 sm:px-6 lg:px-8">
+
+  {% comment %} Page header {% endcomment %}
+  <div class="mb-6">
+    <h1 class="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 font-display">Course Applications</h1>
+    <p class="text-md text-gray-500 mt-1">Review and manage all submitted applications</p>
+  </div>
+
+  {% comment %} Filter and Search {% endcomment %}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
+    <form method="get" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+      <div>
+        <label for="search" class="block text-md font-medium text-gray-700 mb-1">Search</label>
+        <input type="search" id="search" name="search" value="{{ request.GET.search }}"
+          placeholder="Name, email, ID…"
+          class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+      </div>
+
+      <div>
+        <label for="status" class="block text-md font-medium text-gray-700 mb-1">Status</label>
+        <select id="status" name="status"
+          class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white">
+          <option value="">All Statuses</option>
+          <option value="pending_payment"      {% if request.GET.status == 'pending_payment' %}selected{% endif %}>Pending Payment</option>
+          <option value="payment_complete"     {% if request.GET.status == 'payment_complete' %}selected{% endif %}>Payment Complete</option>
+          <option value="documents_uploaded"   {% if request.GET.status == 'documents_uploaded' %}selected{% endif %}>Docs Uploaded</option>
+          <option value="under_review"         {% if request.GET.status == 'under_review' %}selected{% endif %}>Under Review</option>
+          <option value="approved"             {% if request.GET.status == 'approved' %}selected{% endif %}>Approved</option>
+          <option value="rejected"             {% if request.GET.status == 'rejected' %}selected{% endif %}>Rejected</option>
+          <option value="withdrawn"            {% if request.GET.status == 'withdrawn' %}selected{% endif %}>Withdrawn</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="program" class="block text-md font-medium text-gray-700 mb-1">Program</label>
+        <select id="program" name="program"
+          class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white">
+          <option value="">All Programs</option>
+          {% for program_code, program_name in programs %}
+          <option value="{{ program_code }}" {% if request.GET.program == program_code %}selected{% endif %}>{{ program_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="flex items-end gap-2">
+        <button type="submit"
+          class="flex-1 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold text-md flex items-center justify-center gap-2">
+          <i class="fas fa-search" aria-hidden="true"></i> Filter
+        </button>
+        <a href="{% url 'management:applications_list' %}"
+          class="px-4 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors"
+          title="Clear filters" aria-label="Clear all filters">
+          <i class="fas fa-redo" aria-hidden="true"></i>
+        </a>
+      </div>
+
+    </form>
+  </div>
+
+  {% comment %} Applications Table {% endcomment %}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+
+    <div class="px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <h2 class="text-lg font-bold text-gray-800 font-display">
+        All Applications
+        <span class="text-md font-normal text-gray-400 ml-1">({{ applications.paginator.count }} total)</span>
+      </h2>
+      <div id="datatableButtons" class="flex flex-wrap gap-2"></div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table id="applicationsTable" class="w-full min-w-[700px]">
+        <thead class="bg-gray-50 border-b border-gray-200">
+          <tr>
+            <th scope="col" class="py-3.5 px-5 text-left w-10">
+              <input type="checkbox" id="selectAll"
+                class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                aria-label="Select all applications">
+            </th>
+            <th scope="col" class="py-3.5 px-5 text-left text-md font-semibold text-gray-700 whitespace-nowrap">Application ID</th>
+            <th scope="col" class="py-3.5 px-5 text-left text-md font-semibold text-gray-700">Applicant</th>
+            <th scope="col" class="py-3.5 px-5 text-left text-md font-semibold text-gray-700">Program</th>
+            <th scope="col" class="py-3.5 px-5 text-left text-md font-semibold text-gray-700 whitespace-nowrap">Date Applied</th>
+            <th scope="col" class="py-3.5 px-5 text-left text-md font-semibold text-gray-700">Status</th>
+            <th scope="col" class="py-3.5 px-5 text-left text-md font-semibold text-gray-700">Action</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+
+          {% for application in applications %}
+          <tr class="hover:bg-gray-50 transition-colors">
+
+            {% comment %} Checkbox {% endcomment %}
+            <td class="py-4 px-5">
+              <input type="checkbox" class="application-checkbox rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                value="{{ application.id }}" aria-label="Select application {{ application.application_id }}">
+            </td>
+
+            {% comment %} Application ID {% endcomment %}
+            <td class="py-4 px-5 whitespace-nowrap">
+              <span class="font-mono text-md font-semibold text-primary-600">{{ application.application_id }}</span>
+            </td>
+
+            {% comment %} Applicant {% endcomment %}
+            <td class="py-4 px-5">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full bg-primary-100 text-primary-600 font-bold flex items-center justify-center flex-shrink-0 text-md select-none">
+                  {{ application.first_name|slice:":1" }}{{ application.last_name|slice:":1" }}
+                </div>
+                <div class="min-w-0">
+                  <p class="text-md font-semibold text-gray-800 truncate">{{ application.get_full_name }}</p>
+                  <p class="text-md text-gray-500 truncate">{{ application.email }}</p>
+                </div>
+              </div>
+            </td>
+
+            {% comment %} Program — correct fields: program.name and program.get_degree_level_display {% endcomment %}
+            <td class="py-4 px-5">
+              <p class="text-md font-semibold text-gray-800 whitespace-nowrap">{{ application.program.name|default:"—" }}</p>
+              <p class="text-md text-gray-500 whitespace-nowrap">{{ application.program.get_degree_level_display|default:"—" }}</p>
+            </td>
+
+            {% comment %} Date Applied {% endcomment %}
+            <td class="py-4 px-5 whitespace-nowrap">
+              <p class="text-md font-semibold text-gray-800">{{ application.created_at|date:"M d, Y" }}</p>
+              <p class="text-md text-gray-500">{{ application.created_at|date:"g:i A" }}</p>
+            </td>
+
+            {% comment %} Status — all spans properly closed; correct status values from model {% endcomment %}
+            <td class="py-4 px-5 whitespace-nowrap">
+              {% if application.status == 'approved' %}
+                {% if application.can_access_student_portal %}
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-md font-medium bg-purple-100 text-purple-800">
+                    <i class="fas fa-graduation-cap" aria-hidden="true"></i> Enrolled
+                  </span>
+                {% elif application.admission_accepted %}
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-md font-medium bg-blue-100 text-blue-800">
+                    <i class="fas fa-clock" aria-hidden="true"></i> Pending Dept
+                  </span>
+                {% else %}
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-md font-medium bg-green-100 text-green-800">
+                    <i class="fas fa-check-circle" aria-hidden="true"></i> Approved
+                  </span>
+                {% endif %}
+              {% elif application.status == 'under_review' %}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-md font-medium bg-yellow-100 text-yellow-800">
+                  <i class="fas fa-clock" aria-hidden="true"></i> Under Review
+                </span>
+              {% elif application.status == 'rejected' %}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-md font-medium bg-red-100 text-red-800">
+                  <i class="fas fa-times-circle" aria-hidden="true"></i> Rejected
+                </span>
+              {% elif application.status == 'documents_uploaded' %}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-md font-medium bg-indigo-100 text-indigo-800">
+                  <i class="fas fa-upload" aria-hidden="true"></i> Docs Uploaded
+                </span>
+              {% elif application.status == 'payment_complete' %}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-md font-medium bg-teal-100 text-teal-800">
+                  <i class="fas fa-credit-card" aria-hidden="true"></i> Payment Complete
+                </span>
+              {% elif application.status == 'withdrawn' %}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-md font-medium bg-gray-100 text-gray-600">
+                  <i class="fas fa-minus-circle" aria-hidden="true"></i> Withdrawn
+                </span>
+              {% else %}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-md font-medium bg-gray-100 text-gray-700">
+                  <i class="fas fa-info-circle" aria-hidden="true"></i> {{ application.get_status_display }}
+                </span>
+              {% endif %}
+            </td>
+
+            {% comment %} Action {% endcomment %}
+            <td class="py-4 px-5">
+              <a href="{% url 'management:application_detail' application.application_id %}"
+                class="inline-flex items-center gap-1.5 px-3 py-2 text-md text-primary-600 hover:text-primary-800 hover:bg-primary-50 rounded-lg transition-colors font-medium"
+                title="View details" aria-label="View application {{ application.application_id }}">
+                <i class="fas fa-eye" aria-hidden="true"></i>
+                <span class="hidden sm:inline">View</span>
+              </a>
+            </td>
+
+          </tr>
+          {% empty %}
+          <tr class="empty-row">
+            <td colspan="7" class="py-16 px-6 text-center">
+              <i class="fas fa-inbox text-gray-300 text-5xl mb-4 block" aria-hidden="true"></i>
+              <p class="text-lg font-semibold text-gray-600">No applications found</p>
+              <p class="text-md text-gray-400 mt-1">Try adjusting your filters or search criteria</p>
+            </td>
+          </tr>
+          {% endfor %}
+
+        </tbody>
+      </table>
+    </div>
+
+    {% comment %} Pagination {% endcomment %}
+    {% if applications.has_other_pages %}
+    <div class="px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p class="text-md text-gray-500">
+        Showing <span class="font-semibold text-gray-700">{{ applications.start_index }}</span>
+        to <span class="font-semibold text-gray-700">{{ applications.end_index }}</span>
+        of <span class="font-semibold text-gray-700">{{ applications.paginator.count }}</span> results
+      </p>
+      <nav class="flex items-center gap-1.5" aria-label="Pagination">
+        {% if applications.has_previous %}
+        <a href="?page={{ applications.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+          class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-md text-gray-600"
+          aria-label="Previous page">
+          <i class="fas fa-chevron-left" aria-hidden="true"></i>
+        </a>
+        {% endif %}
+
+        {% for num in applications.paginator.page_range %}
+          {% if applications.number == num %}
+            <span class="px-4 py-2 bg-primary-600 text-white rounded-lg text-md font-semibold">{{ num }}</span>
+          {% elif num > applications.number|add:'-3' and num < applications.number|add:'3' %}
+            <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+              class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-md text-gray-600">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+
+        {% if applications.has_next %}
+        <a href="?page={{ applications.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+          class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-md text-gray-600"
+          aria-label="Next page">
+          <i class="fas fa-chevron-right" aria-hidden="true"></i>
+        </a>
+        {% endif %}
+      </nav>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const tableBody = document.querySelector('#applicationsTable tbody');
+  const hasRows = tableBody && tableBody.querySelectorAll('tr:not(.empty-row)').length > 0;
+
+  if (hasRows && typeof $.fn.DataTable !== 'undefined') {
+    $('#applicationsTable').DataTable({
+      responsive: true,
+      searching: false,
+      paging: false,
+      info: false,
+      order: [[4, 'desc']],
+      columnDefs: [
+        { orderable: false, targets: [0, 6] }
+      ],
+      dom: 'Bfrtip',
+      buttons: [
+        {
+          extend: 'csv',
+          text: '<i class="fas fa-file-csv mr-2"></i>Export CSV',
+          className: 'px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-md font-medium',
+          exportOptions: { columns: [1, 2, 3, 4, 5] }
+        }
+      ],
+      initComplete: function () {
+        this.api().buttons().container().appendTo('#datatableButtons');
+      }
+    });
+  } else {
+    const btn = document.getElementById('datatableButtons');
+    if (btn) btn.style.display = 'none';
+  }
+
+  {% comment %} Select-all checkbox {% endcomment %}
+  const selectAll = document.getElementById('selectAll');
+  if (selectAll) {
+    selectAll.addEventListener('change', function () {
+      document.querySelectorAll('.application-checkbox').forEach(cb => cb.checked = this.checked);
+    });
+    document.querySelectorAll('.application-checkbox').forEach(cb => {
+      cb.addEventListener('change', function () {
+        const all = document.querySelectorAll('.application-checkbox');
+        selectAll.checked = [...all].every(c => c.checked);
+        selectAll.indeterminate = !selectAll.checked && [...all].some(c => c.checked);
+      });
+    });
+  }
+});
+</script>
+{% endblock %}

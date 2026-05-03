@@ -1,0 +1,384 @@
+{% extends 'management/base.html' %}
+{% block title %}Certificates - Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-full">
+
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Certificates</h1>
+      <p class="text-sm text-gray-500 mt-0.5">Issue and manage student completion certificates</p>
+    </div>
+  </div>
+
+  <div class="flex flex-col lg:flex-row gap-6 items-start">
+
+    {% comment %} TABLE COLUMN {% endcomment %}
+    <div class="w-full min-w-0 lg:flex-1">
+
+      <form method="get" class="mb-4">
+        <div class="flex gap-2 max-w-md">
+          <label for="search" class="sr-only">Search certificates</label>
+          <input id="search" name="search" type="search"
+                 value="{{ request.GET.search|default:'' }}"
+                 placeholder="Search student or course…"
+                 class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                        focus:ring-2 focus:ring-primary-500 focus:outline-none">
+          <button type="submit"
+                  class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 border border-gray-300
+                         rounded-lg text-sm font-medium transition-colors">
+            Search
+          </button>
+          {% if request.GET.search %}
+            <a href="{% url 'management:certificates_list' %}"
+               class="px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                      text-gray-500 hover:bg-gray-50 transition-colors">
+              Clear
+            </a>
+          {% endif %}
+        </div>
+      </form>
+
+      <div class="bg-white rounded-xl shadow border border-gray-200 overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide whitespace-nowrap">Student</th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide whitespace-nowrap">Course</th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide whitespace-nowrap hidden sm:table-cell">Cert #</th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide whitespace-nowrap hidden md:table-cell">Issued</th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide whitespace-nowrap">Status</th>
+              <th scope="col" class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wide whitespace-nowrap">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            {% for cert in certificates %}
+            <tr class="hover:bg-gray-50 transition-colors">
+              <td class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">
+                <div>{{ cert.student.get_full_name|default:cert.student.username }}</div>
+                <div class="text-xs text-gray-400 font-normal">@{{ cert.student.username }}</div>
+              </td>
+              <td class="px-4 py-3 text-gray-700 max-w-[180px]">
+                <div class="truncate">{{ cert.course.title }}</div>
+                <div class="text-xs text-gray-400 font-mono">{{ cert.course.code }}</div>
+              </td>
+              <td class="px-4 py-3 font-mono text-xs text-gray-400 hidden sm:table-cell whitespace-nowrap">
+                {{ cert.certificate_id }}
+              </td>
+              <td class="px-4 py-3 text-xs text-gray-500 hidden md:table-cell whitespace-nowrap">
+                {{ cert.issued_date|date:"M d, Y" }}
+              </td>
+              <td class="px-4 py-3 whitespace-nowrap">
+                {% if cert.is_verified %}
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200 text-xs font-medium">
+                    <i class="fas fa-check-circle" aria-hidden="true"></i> Verified
+                  </span>
+                {% else %}
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-xs font-medium">
+                    <i class="fas fa-clock" aria-hidden="true"></i> Pending
+                  </span>
+                {% endif %}
+              </td>
+              <td class="px-4 py-3 text-right whitespace-nowrap">
+                <button type="button"
+                        class="btn-edit inline-flex items-center gap-1 px-2.5 py-1.5 text-xs
+                               font-medium text-primary-600 hover:bg-primary-50 rounded-lg
+                               transition-colors focus:outline-none focus:ring-2 focus:ring-primary-400"
+                        data-id="{{ cert.certificate_id }}"
+                        data-student-id="{{ cert.student.pk }}"
+                        data-student-name="{{ cert.student.get_full_name|default:cert.student.username }} ({{ cert.student.username }})"
+                        data-course-id="{{ cert.course.pk }}"
+                        data-course-name="{{ cert.course.title }} ({{ cert.course.code }})"
+                        data-completion="{{ cert.completion_date|date:'Y-m-d' }}"
+                        data-grade="{{ cert.grade }}"
+                        data-verified="{{ cert.is_verified|yesno:'true,false' }}"
+                        aria-label="Edit certificate for {{ cert.student.get_full_name|default:cert.student.username }}">
+                  <i class="fas fa-pen-to-square" aria-hidden="true"></i>
+                  <span class="hidden sm:inline">Edit</span>
+                </button>
+                <form method="post"
+                      action="{% url 'management:certificate_delete' cert.certificate_id %}"
+                      class="inline"
+                      onsubmit="return confirm('Delete this certificate? This cannot be undone.');">
+                  {% csrf_token %}
+                  <button type="submit"
+                          class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs
+                                 font-medium text-red-500 hover:bg-red-50 rounded-lg
+                                 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400"
+                          aria-label="Delete certificate for {{ cert.student.get_full_name|default:cert.student.username }}">
+                    <i class="fas fa-trash" aria-hidden="true"></i>
+                    <span class="hidden sm:inline">Delete</span>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="px-6 py-14 text-center text-gray-400">
+                <i class="fas fa-certificate text-4xl mb-3 block opacity-30" aria-hidden="true"></i>
+                {% if request.GET.search %}
+                  No certificates match your search.
+                {% else %}
+                  No certificates issued yet.
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if certificates.has_other_pages %}
+      <nav aria-label="Pagination" class="mt-4 flex flex-wrap justify-center gap-1">
+        {% if certificates.has_previous %}
+          <a href="?page={{ certificates.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+             class="px-3 py-2 rounded-lg border border-gray-300 text-sm hover:bg-gray-50 transition-colors">
+            &laquo; Prev
+          </a>
+        {% endif %}
+        {% for num in certificates.paginator.page_range %}
+          {% if certificates.number == num %}
+            <span class="px-3 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium">{{ num }}</span>
+          {% elif num > certificates.number|add:"-3" and num < certificates.number|add:"3" %}
+            <a href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+               class="px-3 py-2 rounded-lg border border-gray-300 text-sm hover:bg-gray-50 transition-colors">
+              {{ num }}
+            </a>
+          {% endif %}
+        {% endfor %}
+        {% if certificates.has_next %}
+          <a href="?page={{ certificates.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+             class="px-3 py-2 rounded-lg border border-gray-300 text-sm hover:bg-gray-50 transition-colors">
+            Next &raquo;
+          </a>
+        {% endif %}
+      </nav>
+      {% endif %}
+
+    </div>
+
+    {% comment %} FORM COLUMN — stacks below table on mobile, sits right on desktop {% endcomment %}
+    <div class="w-full lg:w-80 xl:w-96 shrink-0 lg:sticky lg:top-4">
+      <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
+
+        <div class="px-5 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+          <h2 id="form-heading" class="text-base font-semibold text-gray-800">Issue Certificate</h2>
+          <span id="form-mode-badge"
+                class="hidden text-xs font-medium px-2 py-0.5 rounded-full bg-primary-100 text-primary-700">
+            Editing
+          </span>
+        </div>
+
+        <form id="cert-form"
+              method="post"
+              enctype="multipart/form-data"
+              action="{% url 'management:certificate_create' %}"
+              class="p-5 space-y-4"
+              novalidate>
+          {% csrf_token %}
+          <input type="hidden" id="cert-id-field" name="_cert_id" value="">
+
+          {% if form.non_field_errors %}
+            <div role="alert" class="px-3 py-2.5 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs">
+              {{ form.non_field_errors }}
+            </div>
+          {% endif %}
+
+          <div>
+            <label for="id_student_search"
+                   class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+              Student <span class="text-red-500">*</span>
+            </label>
+            <input id="id_student_search"
+                   type="text"
+                   list="student-list"
+                   placeholder="Type student name…"
+                   autocomplete="off"
+                   class="w-full px-3 py-2.5 border rounded-lg text-sm
+                          focus:ring-2 focus:ring-primary-500 focus:outline-none transition-colors
+                          {% if form.student.errors %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}">
+            <datalist id="student-list">
+              {% for u in students %}
+                <option value="{{ u.get_full_name|default:u.username }} ({{ u.username }})" data-pk="{{ u.pk }}">
+              {% endfor %}
+            </datalist>
+            <input type="hidden" name="student" id="id_student" value="">
+            {% if form.student.errors %}
+              <p class="mt-1 text-xs text-red-600" role="alert">{{ form.student.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <div>
+            <label for="id_course_search"
+                   class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+              Course <span class="text-red-500">*</span>
+            </label>
+            <input id="id_course_search"
+                   type="text"
+                   list="course-list"
+                   placeholder="Type course title…"
+                   autocomplete="off"
+                   class="w-full px-3 py-2.5 border rounded-lg text-sm
+                          focus:ring-2 focus:ring-primary-500 focus:outline-none transition-colors
+                          {% if form.course.errors %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}">
+            <datalist id="course-list">
+              {% for c in courses %}
+                <option value="{{ c.title }} ({{ c.code }})" data-pk="{{ c.pk }}">
+              {% endfor %}
+            </datalist>
+            <input type="hidden" name="course" id="id_course" value="">
+            {% if form.course.errors %}
+              <p class="mt-1 text-xs text-red-600" role="alert">{{ form.course.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <div>
+            <label for="{{ form.completion_date.id_for_label }}"
+                   class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+              Completion Date <span class="text-red-500">*</span>
+            </label>
+            {{ form.completion_date }}
+            {% if form.completion_date.errors %}
+              <p class="mt-1 text-xs text-red-600" role="alert">{{ form.completion_date.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <div>
+            <label for="{{ form.grade.id_for_label }}"
+                   class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+              Grade <span class="text-gray-400 font-normal normal-case text-xs">(optional)</span>
+            </label>
+            {{ form.grade }}
+            {% if form.grade.errors %}
+              <p class="mt-1 text-xs text-red-600" role="alert">{{ form.grade.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <div>
+            <label for="{{ form.certificate_file.id_for_label }}"
+                   class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+              Certificate File <span class="text-gray-400 font-normal normal-case text-xs">(optional)</span>
+            </label>
+            {{ form.certificate_file }}
+            {% if form.certificate_file.errors %}
+              <p class="mt-1 text-xs text-red-600" role="alert">{{ form.certificate_file.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <div class="flex items-center gap-2.5 px-3 py-2.5 bg-gray-50 rounded-lg border border-gray-200">
+            {{ form.is_verified }}
+            <label for="{{ form.is_verified.id_for_label }}"
+                   class="text-sm text-gray-700 font-medium cursor-pointer select-none">
+              Mark as Verified
+            </label>
+          </div>
+
+          <div class="flex gap-2 pt-2 border-t border-gray-100">
+            <button type="submit"
+                    id="submit-btn"
+                    class="flex-1 px-4 py-2.5 bg-primary-600 hover:bg-primary-700
+                           text-white text-sm font-semibold rounded-lg transition-colors
+                           focus:outline-none focus:ring-2 focus:ring-primary-500">
+              Issue Certificate
+            </button>
+            <button type="button"
+                    id="btn-reset"
+                    class="px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                           font-medium text-gray-600 hover:bg-gray-50 transition-colors
+                           focus:outline-none focus:ring-2 focus:ring-gray-400"
+                    title="Clear form">
+              <i class="fas fa-rotate-left" aria-hidden="true"></i>
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var CREATE_URL = '{% url "management:certificate_create" %}';
+  var EDIT_BASE  = '/management/certificates/';
+
+  function linkDatalist(searchId, hiddenId, listId) {
+    var search = document.getElementById(searchId);
+    var hidden = document.getElementById(hiddenId);
+    var list   = document.getElementById(listId);
+    if (!search || !hidden || !list) return null;
+
+    function sync() {
+      var val   = search.value.trim();
+      var match = Array.from(list.options).find(function (o) { return o.value === val; });
+      hidden.value = match ? (match.getAttribute('data-pk') || '') : '';
+    }
+
+    search.addEventListener('change', sync);
+    search.addEventListener('input', sync);
+
+    return function set(pk, label) {
+      search.value = label || '';
+      hidden.value = pk    || '';
+    };
+  }
+
+  var setStudent = linkDatalist('id_student_search', 'id_student', 'student-list');
+  var setCourse  = linkDatalist('id_course_search',  'id_course',  'course-list');
+
+  var form       = document.getElementById('cert-form');
+  var heading    = document.getElementById('form-heading');
+  var badge      = document.getElementById('form-mode-badge');
+  var submitBtn  = document.getElementById('submit-btn');
+  var certIdFld  = document.getElementById('cert-id-field');
+  var formPanel  = form ? form.closest('.bg-white') : null;
+
+  function resetForm() {
+    form.action       = CREATE_URL;
+    form.reset();
+    certIdFld.value   = '';
+    heading.textContent = 'Issue Certificate';
+    submitBtn.textContent = 'Issue Certificate';
+    badge.classList.add('hidden');
+    if (setStudent) setStudent('', '');
+    if (setCourse)  setCourse('', '');
+  }
+
+  document.querySelectorAll('.btn-edit').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var d = this.dataset;
+
+      form.action      = EDIT_BASE + d.id + '/edit/';
+      certIdFld.value  = d.id;
+      heading.textContent  = 'Edit Certificate';
+      submitBtn.textContent = 'Update Certificate';
+      badge.classList.remove('hidden');
+
+      if (setStudent) setStudent(d.studentId, d.studentName);
+      if (setCourse)  setCourse(d.courseId, d.courseName);
+
+      var dateEl     = form.querySelector('[name="completion_date"]');
+      var gradeEl    = form.querySelector('[name="grade"]');
+      var verifiedEl = form.querySelector('[name="is_verified"]');
+
+      if (dateEl)     dateEl.value      = d.completion || '';
+      if (gradeEl)    gradeEl.value     = d.grade || '';
+      if (verifiedEl) verifiedEl.checked = (d.verified === 'true');
+
+      if (formPanel) {
+        formPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+  var resetBtn = document.getElementById('btn-reset');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', resetForm);
+  }
+
+}());
+</script>
+{% endblock %}

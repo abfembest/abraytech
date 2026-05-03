@@ -1,0 +1,86 @@
+{% extends "management/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - MIU Student Portal{% endblock %}
+
+{% block extra_meta %}
+<meta name="description" content="Create a new discussion thread in the community">
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
+{% block content %}
+<div class="max-w-12xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Back Button -->
+    <div class="mb-6">
+        <a href="{% url 'students:community' %}" 
+           class="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to Community
+        </a>
+    </div>
+
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Create Discussion</h1>
+        <p class="text-gray-600 mt-2">Start a new discussion with the community</p>
+    </div>
+
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+        {% for message in messages %}
+        <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200{% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Create Thread Form -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            {{ form.as_p }}
+
+            <!-- Form Actions -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
+                <a href="{% url 'students:community' %}" 
+                   class="w-full sm:w-auto px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all text-center">
+                    Cancel
+                </a>
+                <button type="submit" 
+                        class="w-full sm:w-auto px-8 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                    <i class="fas fa-paper-plane mr-2"></i>
+                    Create Discussion
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tips Section -->
+    <div class="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-6">
+        <h3 class="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+            <i class="fas fa-lightbulb"></i>
+            Tips for Creating Great Discussions
+        </h3>
+        <ul class="space-y-2 text-sm text-blue-800">
+            <li class="flex items-start gap-2">
+                <i class="fas fa-check-circle mt-1 flex-shrink-0"></i>
+                <span>Use a clear, descriptive title that summarizes your topic</span>
+            </li>
+            <li class="flex items-start gap-2">
+                <i class="fas fa-check-circle mt-1 flex-shrink-0"></i>
+                <span>Provide enough context and details in your description</span>
+            </li>
+            <li class="flex items-start gap-2">
+                <i class="fas fa-check-circle mt-1 flex-shrink-0"></i>
+                <span>Select the relevant course if your discussion is course-specific</span>
+            </li>
+            <li class="flex items-start gap-2">
+                <i class="fas fa-check-circle mt-1 flex-shrink-0"></i>
+                <span>Be respectful and constructive in your discussion</span>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

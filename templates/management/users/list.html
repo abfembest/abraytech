@@ -1,0 +1,477 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}User Management - MIU Portal{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 font-display">User Management</h1>
+            <p class="text-gray-600 mt-1">Manage system users and their roles</p>
+        </div>
+        <a href="{% url 'management:user_create' %}" 
+           class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all shadow-md hover:shadow-lg flex items-center">
+            <i class="fas fa-user-plus mr-2"></i>
+            Add New User
+        </a>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Total Users</p>
+                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.total_users }}</p>
+                </div>
+                <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-users text-primary-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Active Users</p>
+                    <p class="text-2xl font-bold text-green-600 mt-1">{{ stats.active_users }}</p>
+                </div>
+                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Staff Users</p>
+                    <p class="text-2xl font-bold text-purple-600 mt-1">{{ stats.staff_users }}</p>
+                </div>
+                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-user-shield text-purple-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Students</p>
+                    <p class="text-2xl font-bold text-blue-600 mt-1">{{ stats.students }}</p>
+                </div>
+                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-user-graduate text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Instructors</p>
+                    <p class="text-2xl font-bold text-orange-600 mt-1">{{ stats.instructors }}</p>
+                </div>
+                <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-chalkboard-teacher text-orange-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filters (Live filtering - no submit button) -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <form method="get" id="filterForm" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="md:col-span-2">
+                    {{ search_form.search }}
+                </div>
+                <div>
+                    {{ search_form.role }}
+                </div>
+                <div>
+                    {{ search_form.is_active }}
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <a href="{% url 'management:users_list' %}" 
+                   class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all">
+                    <i class="fas fa-redo mr-2"></i>
+                    Reset Filters
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Bulk Actions -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+        <form method="post" action="{% url 'management:bulk_user_action' %}" id="bulkActionForm">
+            {% csrf_token %}
+            <div class="flex items-center gap-4">
+                <label class="text-sm font-medium text-gray-700">Bulk Actions:</label>
+                <select name="action" 
+                        class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                    <option value="">Select action...</option>
+                    <option value="activate">Activate Selected</option>
+                    <option value="deactivate">Deactivate Selected</option>
+                </select>
+                <input type="hidden" name="user_ids" id="bulkUserIds">
+                <button type="submit" 
+                        class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all disabled:opacity-50"
+                        id="bulkActionBtn"
+                        disabled>
+                    Apply
+                </button>
+                <span class="text-sm text-gray-600" id="selectedCount">0 users selected</span>
+            </div>
+        </form>
+    </div>
+
+    <!-- Users Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full" id="usersTable">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-4 text-left">
+                            <input type="checkbox" id="selectAll" 
+                                   class="w-5 h-5 text-primary-600 rounded focus:ring-2 focus:ring-primary-500">
+                        </th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">User</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Email</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Role</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Joined</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for user in users %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <input type="checkbox" 
+                                   class="user-checkbox w-5 h-5 text-primary-600 rounded focus:ring-2 focus:ring-primary-500" 
+                                   value="{{ user.id }}"
+                                   {% if user.id == request.user.id %}disabled{% endif %}>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200">
+                                    {% if user.profile.avatar %}
+                                        <img src="{{ user.profile.avatar.url }}" 
+                                             alt="{{ user.get_full_name }}" 
+                                             class="w-full h-full object-cover">
+                                    {% else %}
+                                        <img src="https://ui-avatars.com/api/?name={{ user.get_full_name|urlencode }}&background=4a6bff&color=fff&size=40" 
+                                             alt="{{ user.get_full_name }}" 
+                                             class="w-full h-full object-cover">
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-900">{{ user.get_full_name|default:user.username }}</p>
+                                    <p class="text-sm text-gray-500">@{{ user.username }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <p class="text-gray-900">{{ user.email }}</p>
+                        </td>
+                        <td class="px-6 py-4">
+                            <button type="button" 
+                                    onclick="openRoleModal({{ user.id }}, '{{ user.profile.role }}')"
+                                    class="px-3 py-1 rounded-full text-sm font-medium cursor-pointer hover:opacity-80 transition
+                                        {% if user.profile.role == 'admin' %}bg-purple-100 text-purple-700
+                                        {% elif user.profile.role == 'instructor' %}bg-blue-100 text-blue-700
+                                        {% elif user.profile.role == 'student' %}bg-green-100 text-green-700
+                                        {% elif user.profile.role == 'content_manager' %}bg-yellow-100 text-yellow-700
+                                        {% elif user.profile.role == 'support' %}bg-teal-100 text-teal-700
+                                        {% elif user.profile.role == 'qa' %}bg-indigo-100 text-indigo-700
+                                        {% elif user.profile.role == 'finance' %}bg-pink-100 text-pink-700
+                                        {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                {{ user.profile.get_role_display }}
+                                <i class="fas fa-edit ml-1 text-xs"></i>
+                            </button>
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if user.is_active %}
+                                <span class="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700">
+                                    <i class="fas fa-check-circle mr-1"></i> Active
+                                </span>
+                            {% else %}
+                                <span class="px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-700">
+                                    <i class="fas fa-times-circle mr-1"></i> Inactive
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            <p class="text-gray-900">{{ user.date_joined|date:"M d, Y" }}</p>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-2">
+                                <a href="{% url 'management:user_detail' user.id %}" 
+                                   class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                   title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'management:user_edit' user.id %}" 
+                                   class="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-all"
+                                   title="Edit User">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% if user.id != request.user.id %}
+                                <button type="button"
+                                        onclick="toggleUserStatus({{ user.id }}, {{ user.is_active|lower }})"
+                                        class="p-2 {% if user.is_active %}text-orange-600 hover:bg-orange-50{% else %}text-green-600 hover:bg-green-50{% endif %} rounded-lg transition-all"
+                                        title="{% if user.is_active %}Deactivate{% else %}Activate{% endif %} User">
+                                    <i class="fas fa-{% if user.is_active %}pause{% else %}play{% endif %}-circle"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-6 py-12 text-center">
+                            <div class="flex flex-col items-center justify-center text-gray-500">
+                                <i class="fas fa-users text-4xl mb-3 text-gray-300"></i>
+                                <p class="text-lg font-medium">No users found</p>
+                                <p class="text-sm mt-1">Try adjusting your search or filters</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if users.has_other_pages %}
+        <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+            <div class="text-sm text-gray-600">
+                Showing {{ users.start_index }} to {{ users.end_index }} of {{ users.paginator.count }} users
+            </div>
+            <div class="flex gap-2">
+                {% if users.has_previous %}
+                <a href="?page={{ users.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                   class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all">
+                    Previous
+                </a>
+                {% endif %}
+                
+                <span class="px-4 py-2 bg-primary-600 text-white rounded-lg">
+                    Page {{ users.number }} of {{ users.paginator.num_pages }}
+                </span>
+                
+                {% if users.has_next %}
+                <a href="?page={{ users.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                   class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all">
+                    Next
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Role Change Modal -->
+<div id="roleModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full">
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-bold text-gray-900">Change User Role</h3>
+                <button onclick="closeRoleModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <form id="roleChangeForm" class="p-6">
+            {% csrf_token %}
+            <input type="hidden" id="roleUserId" name="user_id">
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Select New Role
+                </label>
+                <select id="roleSelect" name="role" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white">
+                    <option value="student">Student</option>
+                    <option value="instructor">Instructor</option>
+                    <option value="admin">Administrator</option>
+                    <option value="content_manager">Content Manager</option>
+                    <option value="support">Support Staff</option>
+                    <option value="qa">QA Reviewer</option>
+                    <option value="finance">Finance Manager</option>
+                </select>
+            </div>
+            
+            <div class="flex gap-3">
+                <button type="button" 
+                        onclick="closeRoleModal()"
+                        class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all">
+                    Update Role
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Live filtering - submit form on input change
+    const searchInput = document.getElementById('searchInput');
+    const roleFilter = document.getElementById('roleFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const filterForm = document.getElementById('filterForm');
+    
+    let filterTimeout;
+    
+    function submitFilters() {
+        clearTimeout(filterTimeout);
+        filterTimeout = setTimeout(() => {
+            filterForm.submit();
+        }, 500); // Delay to avoid too many requests while typing
+    }
+    
+    searchInput.addEventListener('input', submitFilters);
+    roleFilter.addEventListener('change', function() {
+        filterForm.submit();
+    });
+    statusFilter.addEventListener('change', function() {
+        filterForm.submit();
+    });
+    
+    // Bulk selection functionality
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.user-checkbox');
+    const selectedCount = document.getElementById('selectedCount');
+    const bulkActionBtn = document.getElementById('bulkActionBtn');
+    const bulkUserIds = document.getElementById('bulkUserIds');
+    const bulkActionForm = document.getElementById('bulkActionForm');
+    
+    selectAll.addEventListener('change', function() {
+        checkboxes.forEach(checkbox => {
+            if (!checkbox.disabled) {
+                checkbox.checked = selectAll.checked;
+            }
+        });
+        updateSelection();
+    });
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelection);
+    });
+    
+    function updateSelection() {
+        const selected = Array.from(checkboxes).filter(cb => cb.checked && !cb.disabled);
+        const count = selected.length;
+        
+        selectedCount.textContent = `${count} user${count !== 1 ? 's' : ''} selected`;
+        bulkActionBtn.disabled = count === 0;
+        bulkUserIds.value = selected.map(cb => cb.value).join(',');
+    }
+    
+    bulkActionForm.addEventListener('submit', function(e) {
+        const action = this.querySelector('[name="action"]').value;
+        const count = Array.from(checkboxes).filter(cb => cb.checked && !cb.disabled).length;
+        
+        if (!action) {
+            e.preventDefault();
+            alert('Please select an action');
+            return;
+        }
+        
+        if (!confirm(`Are you sure you want to ${action} ${count} user${count !== 1 ? 's' : ''}?`)) {
+            e.preventDefault();
+        }
+    });
+});
+
+// Role Modal Functions
+function openRoleModal(userId, currentRole) {
+    document.getElementById('roleUserId').value = userId;
+    document.getElementById('roleSelect').value = currentRole;
+    document.getElementById('roleModal').classList.remove('hidden');
+}
+
+function closeRoleModal() {
+    document.getElementById('roleModal').classList.add('hidden');
+}
+
+// Handle role change form submission
+document.getElementById('roleChangeForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const userId = document.getElementById('roleUserId').value;
+    const role = document.getElementById('roleSelect').value;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch(`/management/users/${userId}/change-role/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: `role=${role}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            closeRoleModal();
+            location.reload(); // Reload to show updated role
+        } else {
+            alert('Error updating role. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating role. Please try again.');
+    });
+});
+
+// Toggle user status
+function toggleUserStatus(userId, isActive) {
+    const action = isActive ? 'deactivate' : 'activate';
+    if (!confirm(`Are you sure you want to ${action} this user?`)) {
+        return;
+    }
+    
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch(`/management/users/${userId}/toggle-active/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error updating user status. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating user status. Please try again.');
+    });
+}
+
+// Close modal when clicking outside
+document.getElementById('roleModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeRoleModal();
+    }
+});
+</script>
+{% endblock %}

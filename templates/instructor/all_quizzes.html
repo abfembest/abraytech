@@ -1,0 +1,254 @@
+{% extends 'management/base.html' %}
+{% block title %}All Quizzes{% endblock %}
+
+{% block content %}
+<div class="px-2 sm:px-0">
+
+    <div class="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 font-display">All Quizzes</h1>
+            <p class="text-sm sm:text-base text-gray-600 mt-1">Manage all quizzes across your courses</p>
+        </div>
+    </div>
+
+    {% if quizzes %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+
+        <!-- Table Controls -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-6 py-4 border-b border-gray-100 bg-gray-50">
+            <!-- Search -->
+            <div class="relative w-full sm:w-72">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                    <i class="fas fa-search text-xs"></i>
+                </span>
+                <input
+                    id="quiz-search"
+                    type="text"
+                    placeholder="Search quizzes…"
+                    class="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    oninput="filterQuizTable()"
+                />
+            </div>
+            <!-- Row count -->
+            <p id="quiz-count" class="text-xs text-gray-500 whitespace-nowrap">
+                Showing <span id="quiz-visible">{{ quizzes|length }}</span> of {{ quizzes|length }} quizzes
+            </p>
+        </div>
+
+        <!-- Table -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm" id="quiz-table">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:text-gray-700 group"
+                            onclick="sortQuizTable(0, this)">
+                            <span class="flex items-center gap-1">
+                                Quiz Title
+                                <span class="sort-icon text-gray-300 group-hover:text-gray-500 transition-colors"><i class="fas fa-sort"></i></span>
+                            </span>
+                        </th>
+                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:text-gray-700 group"
+                            onclick="sortQuizTable(1, this)">
+                            <span class="flex items-center gap-1">
+                                Lesson
+                                <span class="sort-icon text-gray-300 group-hover:text-gray-500 transition-colors"><i class="fas fa-sort"></i></span>
+                            </span>
+                        </th>
+                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:text-gray-700 group hidden sm:table-cell"
+                            onclick="sortQuizTable(2, this)">
+                            <span class="flex items-center gap-1">
+                                Course
+                                <span class="sort-icon text-gray-300 group-hover:text-gray-500 transition-colors"><i class="fas fa-sort"></i></span>
+                            </span>
+                        </th>
+                        <th class="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:text-gray-700 group"
+                            onclick="sortQuizTable(3, this)">
+                            <span class="flex items-center justify-center gap-1">
+                                Questions
+                                <span class="sort-icon text-gray-300 group-hover:text-gray-500 transition-colors"><i class="fas fa-sort"></i></span>
+                            </span>
+                        </th>
+                        <th class="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:text-gray-700 group hidden md:table-cell"
+                            onclick="sortQuizTable(4, this)">
+                            <span class="flex items-center justify-center gap-1">
+                                Pass %
+                                <span class="sort-icon text-gray-300 group-hover:text-gray-500 transition-colors"><i class="fas fa-sort"></i></span>
+                            </span>
+                        </th>
+                        <th class="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                            Time Limit
+                        </th>
+                        <th class="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                            Max Attempts
+                        </th>
+                        <th class="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:text-gray-700 group"
+                            onclick="sortQuizTable(7, this)">
+                            <span class="flex items-center justify-center gap-1">
+                                Status
+                                <span class="sort-icon text-gray-300 group-hover:text-gray-500 transition-colors"><i class="fas fa-sort"></i></span>
+                            </span>
+                        </th>
+                        <th class="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100" id="quiz-tbody">
+                    {% for quiz in quizzes %}
+                    <tr class="hover:bg-yellow-50 transition-colors duration-100 quiz-row">
+                        <!-- Title -->
+                        <td class="px-4 sm:px-6 py-3 sm:py-4 font-medium text-gray-900 max-w-[180px]">
+                            <span class="block truncate" title="{{ quiz.title }}">{{ quiz.title }}</span>
+                        </td>
+                        <!-- Lesson -->
+                        <td class="px-4 sm:px-6 py-3 sm:py-4 text-gray-600 max-w-[160px]">
+                            <span class="block truncate" title="{{ quiz.lesson.title }}">{{ quiz.lesson.title }}</span>
+                        </td>
+                        <!-- Course -->
+                        <td class="px-4 sm:px-6 py-3 sm:py-4 text-gray-500 max-w-[160px] hidden sm:table-cell">
+                            <span class="block truncate" title="{{ quiz.lesson.course.title }}">{{ quiz.lesson.course.title }}</span>
+                        </td>
+                        <!-- Questions -->
+                        <td class="px-4 sm:px-6 py-3 sm:py-4 text-center">
+                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-yellow-100 text-yellow-800 font-bold text-sm">
+                                {{ quiz.questions.count }}
+                            </span>
+                        </td>
+                        <!-- Passing score -->
+                        <td class="px-4 sm:px-6 py-3 sm:py-4 text-center hidden md:table-cell">
+                            <span class="text-gray-700 font-semibold">{{ quiz.passing_score }}%</span>
+                        </td>
+                        <!-- Time limit -->
+                        <td class="px-4 sm:px-6 py-3 sm:py-4 text-center text-gray-600 hidden lg:table-cell">
+                            {% if quiz.time_limit_minutes %}{{ quiz.time_limit_minutes }} min{% else %}<span class="text-gray-400">—</span>{% endif %}
+                        </td>
+                        <!-- Max attempts -->
+                        <td class="px-4 sm:px-6 py-3 sm:py-4 text-center text-gray-600 hidden lg:table-cell">
+                            {{ quiz.max_attempts }}
+                        </td>
+                        <!-- Status -->
+                        <td class="px-4 sm:px-6 py-3 sm:py-4 text-center">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                {% if quiz.is_active %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-600{% endif %}">
+                                {% if quiz.is_active %}
+                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>Active
+                                {% else %}
+                                    <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-1.5"></span>Inactive
+                                {% endif %}
+                            </span>
+                        </td>
+                        <!-- Actions -->
+                        <td class="px-4 sm:px-6 py-3 sm:py-4 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <a href="{% url 'instructor:quiz_questions' quiz.lesson.course.slug quiz.lesson.slug quiz.slug %}"
+                                   title="Manage Questions"
+                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-xs font-medium whitespace-nowrap">
+                                    <i class="fas fa-list text-xs"></i>
+                                    <span class="hidden sm:inline">Questions</span>
+                                </a>
+                                <a href="{% url 'instructor:quiz_edit' quiz.lesson.course.slug quiz.lesson.slug quiz.slug %}"
+                                   title="Edit Quiz"
+                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-xs font-medium whitespace-nowrap">
+                                    <i class="fas fa-edit text-xs"></i>
+                                    <span class="hidden sm:inline">Edit</span>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Empty search state -->
+        <div id="quiz-empty-search" class="hidden text-center py-12 text-gray-500">
+            <i class="fas fa-search text-3xl text-gray-300 mb-3 block"></i>
+            <p class="font-medium text-gray-700">No quizzes match your search</p>
+            <p class="text-sm mt-1">Try a different keyword</p>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-4 sm:px-6 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+            <span>Total: {{ quizzes|length }} quiz{{ quizzes|length|pluralize:",zes" }}</span>
+            <span class="text-gray-400">Click column headers to sort</span>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 sm:p-12 text-center">
+        <div class="max-w-md mx-auto">
+            <div class="w-16 h-16 sm:w-24 sm:h-24 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                <i class="fas fa-question-circle text-3xl sm:text-5xl text-yellow-500"></i>
+            </div>
+            <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">No Quizzes Yet</h3>
+            <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">Create quizzes within your course lessons</p>
+            <a href="{% url 'instructor:course_list' %}"
+               class="inline-flex items-center px-5 sm:px-6 py-2.5 sm:py-3 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 shadow-sm hover:shadow-md transition-all">
+                <i class="fas fa-book mr-2"></i> Go to Courses
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+(function () {
+    let quizSortCol = -1;
+    let quizSortAsc = true;
+
+    window.filterQuizTable = function () {
+        const q = document.getElementById('quiz-search').value.toLowerCase();
+        const rows = document.querySelectorAll('#quiz-tbody .quiz-row');
+        let visible = 0;
+        rows.forEach(row => {
+            const match = row.textContent.toLowerCase().includes(q);
+            row.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+        document.getElementById('quiz-visible').textContent = visible;
+        document.getElementById('quiz-empty-search').classList.toggle('hidden', visible > 0);
+    };
+
+    window.sortQuizTable = function (colIdx, th) {
+        const tbody = document.getElementById('quiz-tbody');
+        const rows = Array.from(tbody.querySelectorAll('.quiz-row'));
+
+        if (quizSortCol === colIdx) {
+            quizSortAsc = !quizSortAsc;
+        } else {
+            quizSortCol = colIdx;
+            quizSortAsc = true;
+        }
+
+        // Reset all icons
+        document.querySelectorAll('#quiz-table thead .sort-icon').forEach(el => {
+            el.innerHTML = '<i class="fas fa-sort"></i>';
+            el.classList.remove('text-primary-600');
+            el.classList.add('text-gray-300');
+        });
+        const icon = th.querySelector('.sort-icon');
+        icon.innerHTML = quizSortAsc
+            ? '<i class="fas fa-sort-up"></i>'
+            : '<i class="fas fa-sort-down"></i>';
+        icon.classList.add('text-primary-600');
+        icon.classList.remove('text-gray-300');
+
+        rows.sort((a, b) => {
+            const cellA = a.cells[colIdx]?.textContent.trim() ?? '';
+            const cellB = b.cells[colIdx]?.textContent.trim() ?? '';
+            const numA = parseFloat(cellA);
+            const numB = parseFloat(cellB);
+            if (!isNaN(numA) && !isNaN(numB)) {
+                return quizSortAsc ? numA - numB : numB - numA;
+            }
+            return quizSortAsc
+                ? cellA.localeCompare(cellB)
+                : cellB.localeCompare(cellA);
+        });
+
+        rows.forEach(r => tbody.appendChild(r));
+    };
+})();
+</script>
+{% endblock %}

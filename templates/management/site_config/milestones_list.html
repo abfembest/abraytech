@@ -1,0 +1,152 @@
+{% extends 'management/base.html' %}
+{% load static %}
+{% block title %}History Timeline — MIU Admin{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto">
+
+  {# ── Breadcrumb ── #}
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+    <span class="text-gray-400">Site Content</span>
+    <i class="fas fa-chevron-right text-xs"></i>
+    <span class="text-gray-800 font-medium">History Timeline</span>
+  </nav>
+
+  {# ── Page header ── #}
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">History Timeline</h1>
+      <p class="text-gray-500 mt-1 text-sm">Milestones shown in the <em>Our History</em> section on the About page.</p>
+    </div>
+    <a href="{% url 'management:site_milestone_create' %}"
+       class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium shadow-sm flex-shrink-0 transition-colors">
+      <i class="fas fa-plus"></i> Add Milestone
+    </a>
+  </div>
+
+  {# ── Stats strip ── #}
+  <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="text-2xl font-bold text-primary-600">{{ milestones|length }}</div>
+      <div class="text-xs text-gray-500 mt-0.5">Total Milestones</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="text-2xl font-bold text-green-600">
+        {% with active_count=0 %}
+          {% for m in milestones %}{% if m.is_active %}{% with active_count=active_count|add:1 %}{% endwith %}{% endif %}{% endfor %}
+        {% endwith %}
+        {{ milestones|length }}
+      </div>
+      <div class="text-xs text-gray-500 mt-0.5">Active</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 col-span-2 sm:col-span-1">
+      <div class="text-2xl font-bold text-blue-600">
+        {% if milestones %}{{ milestones.0.year }}{% else %}—{% endif %}
+      </div>
+      <div class="text-xs text-gray-500 mt-0.5">Earliest Year</div>
+    </div>
+  </div>
+
+  {# ── Timeline list ── #}
+  {% if milestones %}
+  <div class="relative">
+    {# Vertical line #}
+    <div class="absolute left-7 top-0 bottom-0 w-0.5 bg-gray-200 hidden sm:block"></div>
+
+    <div class="space-y-4">
+      {% for m in milestones %}
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow sm:ml-16 relative">
+
+        {# Year badge — positioned on the timeline #}
+        <div class="hidden sm:flex absolute -left-12 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full
+                    {% if m.is_active %}bg-primary-600{% else %}bg-gray-300{% endif %}
+                    items-center justify-center shadow-sm z-10 flex-col">
+          <span class="text-white font-bold text-xs leading-none text-center">
+            {{ m.year|stringformat:"s"|slice:"2:" }}
+          </span>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4 p-5">
+
+          {# Year badge (mobile) #}
+          <div class="sm:hidden flex-shrink-0">
+            <div class="w-14 h-14 rounded-xl {% if m.is_active %}bg-primary-50 border border-primary-200{% else %}bg-gray-50 border border-gray-200{% endif %} flex flex-col items-center justify-center">
+              <span class="text-xs font-bold {% if m.is_active %}text-primary-600{% else %}text-gray-400{% endif %}">{{ m.year }}</span>
+            </div>
+          </div>
+
+          {# Content #}
+          <div class="flex-1 min-w-0">
+            <div class="flex flex-wrap items-center gap-2 mb-1">
+              {# Full year shown on desktop too, inline #}
+              <span class="hidden sm:inline text-xs font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded">{{ m.year }}</span>
+              <h3 class="font-semibold text-gray-800">{{ m.title }}</h3>
+              {% if m.is_active %}
+              <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Active</span>
+              {% else %}
+              <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">Hidden</span>
+              {% endif %}
+            </div>
+            <p class="text-sm text-gray-500 line-clamp-2">{{ m.description }}</p>
+            <p class="text-xs text-gray-400 mt-1">Display order: {{ m.display_order }}</p>
+          </div>
+
+          {# Actions #}
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <a href="{% url 'management:site_milestone_edit' m.pk %}"
+               class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
+              <i class="fas fa-edit"></i>
+            </a>
+            <button type="button"
+                    onclick="confirmDelete('{% url 'management:site_milestone_delete' m.pk %}', '{{ m.year }} — {{ m.title|escapejs }}')"
+                    class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </div>
+
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% else %}
+  {# Empty state #}
+  <div class="bg-white rounded-xl p-16 text-center shadow-sm border border-gray-200">
+    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <i class="fas fa-history text-3xl text-gray-300"></i>
+    </div>
+    <p class="font-semibold text-gray-600 mb-1">No milestones yet</p>
+    <p class="text-sm text-gray-400 mb-4">Start building your institution's history timeline.</p>
+    <a href="{% url 'management:site_milestone_create' %}"
+       class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium shadow-sm transition-colors">
+      <i class="fas fa-plus"></i> Add First Milestone
+    </a>
+  </div>
+  {% endif %}
+
+</div>
+
+<form id="deleteForm" method="post" action="" style="display:none;">{% csrf_token %}</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(url, name) {
+  Swal.fire({
+    title: 'Delete Milestone?',
+    html: `Delete <strong>${name}</strong>? This cannot be undone.`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Delete',
+    cancelButtonText: 'Cancel',
+  }).then(r => {
+    if (r.isConfirmed) {
+      document.getElementById('deleteForm').action = url;
+      document.getElementById('deleteForm').submit();
+    }
+  });
+}
+</script>
+{% endblock %}

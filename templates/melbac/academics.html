@@ -1,0 +1,463 @@
+{% extends 'melbac/base.html' %}
+{% load static %}
+
+{% block title %}Academics — Melchisedec Graduate Bible Academy (MELBAC){% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="Explore MELBAC's three faculties — Christian Education, Church Management & Administration, and Arts — offering free Bachelors, Masters and Doctoral degree programs. View the academic calendar.">
+<meta name="keywords"    content="MELBAC academics, Bible degree programs, Christian education Nigeria, free theological degrees, faculty of arts, church management">
+<meta name="robots"      content="index, follow">
+{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"WebPage",
+  "name":"Academics — MELBAC",
+  "description":"Undergraduate and graduate degree programs offered by Melchisedec Graduate Bible Academy.",
+  "url":"{{ request.build_absolute_uri }}"
+}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── PAGE HERO ─────────────────────────────────────────────────── -->
+<section class="mb-page-hero" aria-label="Academics page header">
+  <div class="mb-page-hero-pattern" aria-hidden="true"></div>
+  <div class="mb-container mb-page-hero-inner">
+    <nav aria-label="Breadcrumb">
+      <ol class="mb-breadcrumb">
+        <li><a href="{% url 'melbac:index' %}">Home</a></li>
+        <li class="mb-breadcrumb-sep" aria-hidden="true">/</li>
+        <li aria-current="page">Academics</li>
+      </ol>
+    </nav>
+    <h1>Our Academics</h1>
+    <p>MELBAC offers comprehensive undergraduate and graduate degree programs across three God-centred faculties — all completely free of charge.</p>
+  </div>
+</section>
+
+
+<!-- ── STICKY SUB-NAV ────────────────────────────────────────────── -->
+<div class="mb-subnav">
+  <div class="mb-container">
+    <nav class="mb-subnav-inner" aria-label="Faculty navigation">
+      <a href="#fce"      class="acad-tab" data-target="fce">Christian Education</a>
+      <a href="#fcma"     class="acad-tab" data-target="fcma">Church Management</a>
+      <a href="#fa"       class="acad-tab" data-target="fa">Faculty of Arts</a>
+      <a href="#calendar" class="acad-tab" data-target="calendar">Academic Calendar</a>
+    </nav>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════
+     FACULTY 1 — CHRISTIAN EDUCATION
+     ══════════════════════════════════════════════════════════════════ -->
+<section id="fce" class="mb-section mb-bg-s3 mb-faculty-section"
+         aria-labelledby="fce-heading">
+  <div class="mb-container">
+
+    <!-- Faculty header row -->
+    <div class="mb-faculty-header mb-reveal">
+      <div class="mb-faculty-bar mb-faculty-bar-1" aria-hidden="true"></div>
+      <div class="mb-faculty-meta">
+        <p class="mb-eyebrow">Faculty 01</p>
+        <h2 id="fce-heading">Faculty of Christian Education</h2>
+        <p class="mb-faculty-desc">The Faculty of Christian Education offers undergraduate and graduate degree programs and is comprised of the following departments.</p>
+        <div class="mb-dept-list">
+          <span class="mb-dept-pill"><i data-lucide="circle-dot" class="w-3 h-3 text-gospel-600" aria-hidden="true"></i>Department of Educational Administration</span>
+          <span class="mb-dept-pill"><i data-lucide="circle-dot" class="w-3 h-3 text-gospel-600" aria-hidden="true"></i>Department of Religious Studies</span>
+          <span class="mb-dept-pill"><i data-lucide="circle-dot" class="w-3 h-3 text-gospel-600" aria-hidden="true"></i>Department of Christian Counseling</span>
+          <span class="mb-dept-pill"><i data-lucide="circle-dot" class="w-3 h-3 text-gospel-600" aria-hidden="true"></i>Department of Christian Education and Ethics</span>
+        </div>
+      </div>
+      <!-- Dean card -->
+      <div class="mb-card mb-dean-card">
+        <img src="{% static 'images/dean-fce.jpg' %}"
+             alt="Dr. Boniface Uzoigwe, Dean Faculty of Christian Education"
+             class="mb-dean-img"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <div class="mb-dean-fallback" aria-hidden="true">
+          <i data-lucide="user-circle-2" class="w-10 h-10 text-gospel-300"></i>
+        </div>
+        <div>
+          <p class="mb-dean-name">Dr. Boniface Uzoigwe</p>
+          <p class="mb-dean-role">Dean</p>
+          <p class="mb-dean-faculty">Faculty of Christian Education</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Programs -->
+    <div class="mb-programs-grid">
+
+      <div class="mb-card mb-program-card mb-reveal d1">
+        <div class="mb-program-head">
+          <div class="mb-icon-wrap mb-program-icon"><i data-lucide="award" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i></div>
+          <div><span class="mb-prog-level mb-prog-b">Bachelors</span><p class="mb-prog-count">4 Programs</p></div>
+        </div>
+        <ul class="mb-prog-list" aria-label="Bachelor's programs">
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Christian Religious Studies/Ministry</li>
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Christian Educational Administration</li>
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Christian Counseling</li>
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Christian Education and Ethics</li>
+        </ul>
+      </div>
+
+      <div class="mb-card mb-program-card mb-reveal d2">
+        <div class="mb-program-head">
+          <div class="mb-icon-wrap mb-program-icon"><i data-lucide="graduation-cap" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i></div>
+          <div><span class="mb-prog-level mb-prog-m">Masters</span><p class="mb-prog-count">3 Programs</p></div>
+        </div>
+        <ul class="mb-prog-list" aria-label="Master's programs">
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Christian Educational Administration</li>
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Christian Education and Ethics</li>
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Christian Religious Studies/Ministry</li>
+        </ul>
+      </div>
+
+      <div class="mb-card mb-program-card mb-reveal d3">
+        <div class="mb-program-head">
+          <div class="mb-icon-wrap mb-program-icon"><i data-lucide="book-open-check" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i></div>
+          <div><span class="mb-prog-level mb-prog-d">Doctoral</span><p class="mb-prog-count">2 Programs</p></div>
+        </div>
+        <ul class="mb-prog-list" aria-label="Doctoral programs">
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Christian Education and Ethics</li>
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Christian Educational Administration</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════════════
+     FACULTY 2 — CHURCH MANAGEMENT & ADMINISTRATION
+     ══════════════════════════════════════════════════════════════════ -->
+<section id="fcma" class="mb-section mb-bg-s2 mb-section-divider mb-faculty-section"
+         aria-labelledby="fcma-heading">
+  <div class="mb-container">
+
+    <div class="mb-faculty-header mb-reveal">
+      <div class="mb-faculty-bar mb-faculty-bar-2" aria-hidden="true"></div>
+      <div class="mb-faculty-meta">
+        <p class="mb-eyebrow">Faculty 02</p>
+        <h2 id="fcma-heading">Faculty of Church Management &amp; Administration</h2>
+        <p class="mb-faculty-desc">The Faculty of Church Management &amp; Administration offers undergraduate and graduate degree programs and is comprised of the following departments.</p>
+        <div class="mb-dept-list">
+          <span class="mb-dept-pill"><i data-lucide="circle-dot" class="w-3 h-3 text-gospel-600" aria-hidden="true"></i>Department of Church and Intercultural Relations</span>
+          <span class="mb-dept-pill"><i data-lucide="circle-dot" class="w-3 h-3 text-gospel-600" aria-hidden="true"></i>Department of Christian Ministry</span>
+          <span class="mb-dept-pill"><i data-lucide="circle-dot" class="w-3 h-3 text-gospel-600" aria-hidden="true"></i>Department of Church Business Management</span>
+          <span class="mb-dept-pill"><i data-lucide="circle-dot" class="w-3 h-3 text-gospel-600" aria-hidden="true"></i>Department of Financial Management/Administration</span>
+          <span class="mb-dept-pill"><i data-lucide="circle-dot" class="w-3 h-3 text-gospel-600" aria-hidden="true"></i>Department of Church Management/Administration</span>
+        </div>
+      </div>
+      <div class="mb-card mb-dean-card">
+        <img src="{% static 'images/dean-fcma.jpg' %}"
+             alt="Dr. George Odjeni, Dean Faculty of Church Management & Administration"
+             class="mb-dean-img"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <div class="mb-dean-fallback" aria-hidden="true">
+          <i data-lucide="user-circle-2" class="w-10 h-10 text-gospel-300"></i>
+        </div>
+        <div>
+          <p class="mb-dean-name">Dr. George Odjeni</p>
+          <p class="mb-dean-role">Dean</p>
+          <p class="mb-dean-faculty">Faculty of Church Management</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-programs-grid">
+
+      <div class="mb-card mb-program-card mb-reveal d1">
+        <div class="mb-program-head">
+          <div class="mb-icon-wrap mb-program-icon"><i data-lucide="award" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i></div>
+          <div><span class="mb-prog-level mb-prog-b">Bachelors</span><p class="mb-prog-count">3 Programs</p></div>
+        </div>
+        <ul class="mb-prog-list" aria-label="Bachelor's programs">
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Church Financial Management &amp; Administration</li>
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Church &amp; Intercultural Relations</li>
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Church Business Management</li>
+        </ul>
+      </div>
+
+      <div class="mb-card mb-program-card mb-reveal d2">
+        <div class="mb-program-head">
+          <div class="mb-icon-wrap mb-program-icon"><i data-lucide="graduation-cap" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i></div>
+          <div><span class="mb-prog-level mb-prog-m">Masters</span><p class="mb-prog-count">3 Programs</p></div>
+        </div>
+        <ul class="mb-prog-list" aria-label="Master's programs">
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Missiology</li>
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Church Financial Management &amp; Administration</li>
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Church &amp; Intercultural Communications</li>
+        </ul>
+      </div>
+
+      <div class="mb-card mb-program-card mb-reveal d3">
+        <div class="mb-program-head">
+          <div class="mb-icon-wrap mb-program-icon"><i data-lucide="book-open-check" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i></div>
+          <div><span class="mb-prog-level mb-prog-d">Doctoral</span><p class="mb-prog-count">1 Program</p></div>
+        </div>
+        <ul class="mb-prog-list" aria-label="Doctoral programs">
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Church Management &amp; Administration</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════════════
+     FACULTY 3 — FACULTY OF ARTS
+     ══════════════════════════════════════════════════════════════════ -->
+<section id="fa" class="mb-section mb-bg-s3 mb-section-divider mb-faculty-section"
+         aria-labelledby="fa-heading">
+  <div class="mb-container">
+
+    <div class="mb-faculty-header mb-reveal">
+      <div class="mb-faculty-bar mb-faculty-bar-3" aria-hidden="true"></div>
+      <div class="mb-faculty-meta">
+        <p class="mb-eyebrow">Faculty 03</p>
+        <h2 id="fa-heading">Faculty of Arts</h2>
+        <p class="mb-faculty-desc">The Faculty of Arts offers undergraduate and graduate degree programs and is comprised of the following departments.</p>
+        <div class="mb-dept-list">
+          <span class="mb-dept-pill"><i data-lucide="circle-dot" class="w-3 h-3 text-gospel-600" aria-hidden="true"></i>Department of Prayer and Deliverance Studies</span>
+          <span class="mb-dept-pill"><i data-lucide="circle-dot" class="w-3 h-3 text-gospel-600" aria-hidden="true"></i>Department of Christian Leadership/Discipleship</span>
+          <span class="mb-dept-pill"><i data-lucide="circle-dot" class="w-3 h-3 text-gospel-600" aria-hidden="true"></i>Department of Divinity</span>
+          <span class="mb-dept-pill"><i data-lucide="circle-dot" class="w-3 h-3 text-gospel-600" aria-hidden="true"></i>Department of Missiology</span>
+          <span class="mb-dept-pill"><i data-lucide="circle-dot" class="w-3 h-3 text-gospel-600" aria-hidden="true"></i>Department of Christian Communication</span>
+          <span class="mb-dept-pill"><i data-lucide="circle-dot" class="w-3 h-3 text-gospel-600" aria-hidden="true"></i>Department of Theology</span>
+        </div>
+      </div>
+      <div class="mb-card mb-dean-card">
+        <img src="{% static 'images/dean-fa.jpg' %}"
+             alt="Dr. Titus Ehizode, Dean Faculty of Arts"
+             class="mb-dean-img"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <div class="mb-dean-fallback" aria-hidden="true">
+          <i data-lucide="user-circle-2" class="w-10 h-10 text-gospel-300"></i>
+        </div>
+        <div>
+          <p class="mb-dean-name">Dr. Titus Ehizode</p>
+          <p class="mb-dean-role">Dean</p>
+          <p class="mb-dean-faculty">Faculty of Arts</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-programs-grid">
+
+      <div class="mb-card mb-program-card mb-reveal d1">
+        <div class="mb-program-head">
+          <div class="mb-icon-wrap mb-program-icon"><i data-lucide="award" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i></div>
+          <div><span class="mb-prog-level mb-prog-b">Bachelors</span><p class="mb-prog-count">4 Programs</p></div>
+        </div>
+        <ul class="mb-prog-list" aria-label="Bachelor's programs">
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Christian Communication (Evangelism)</li>
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Intercessory Prayer &amp; Deliverance Studies</li>
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Missiology</li>
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Theology</li>
+        </ul>
+      </div>
+
+      <div class="mb-card mb-program-card mb-reveal d2">
+        <div class="mb-program-head">
+          <div class="mb-icon-wrap mb-program-icon"><i data-lucide="graduation-cap" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i></div>
+          <div><span class="mb-prog-level mb-prog-m">Masters</span><p class="mb-prog-count">2 Programs</p></div>
+        </div>
+        <ul class="mb-prog-list" aria-label="Master's programs">
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Christian Leadership and Discipleship</li>
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Theology and Pastoral Counseling</li>
+        </ul>
+      </div>
+
+      <div class="mb-card mb-program-card mb-reveal d3">
+        <div class="mb-program-head">
+          <div class="mb-icon-wrap mb-program-icon"><i data-lucide="book-open-check" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i></div>
+          <div><span class="mb-prog-level mb-prog-d">Doctoral</span><p class="mb-prog-count">4 Programs</p></div>
+        </div>
+        <ul class="mb-prog-list" aria-label="Doctoral programs">
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Theology</li>
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Christian Leadership / Discipleship</li>
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Missiology and Christian Communication</li>
+          <li class="mb-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Divinity</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ── ADMISSIONS CTA STRIP ──────────────────────────────────────── -->
+<section class="mb-bg-s4 mb-section-divider" aria-label="Admissions call to action">
+  <div class="mb-container mb-hrm-inner">
+    <div class="mb-card mb-cta-strip mb-cta-strip-tinted">
+      <div class="mb-cta-strip-inner">
+        <div class="mb-icon-wrap mb-cta-strip-icon">
+          <i data-lucide="file-check-2" class="w-5 h-5 text-gospel-600" aria-hidden="true"></i>
+        </div>
+        <div>
+          <p class="mb-cta-strip-heading">Learn About Admissions</p>
+          <p class="mb-cta-strip-sub">Ready to begin your journey? Admission is completely free of charge.</p>
+        </div>
+      </div>
+      <a href="{% url 'melbac:contact' %}" class="mb-btn mb-btn-primary">
+        <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
+        <span>Apply Now — Click Here</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ── ACADEMIC CALENDAR ─────────────────────────────────────────── -->
+<section id="calendar" class="mb-section mb-bg-s3 mb-section-divider mb-faculty-section"
+         aria-labelledby="calendar-heading">
+  <div class="mb-container">
+
+    <header class="mb-reveal">
+      <p class="mb-eyebrow">Important Dates</p>
+      <h2 id="calendar-heading">Academic Calendar</h2>
+      <div class="mb-divider"></div>
+      <p class="mb-faculty-desc">Access important dates, deadlines, and events for the academic year at a glance.</p>
+    </header>
+
+    <div class="mb-cal-grid">
+
+      <!-- Admission -->
+      <div class="mb-card mb-cal-card mb-reveal d1">
+        <div class="mb-cal-head mb-cal-head-primary">
+          <i data-lucide="calendar-check" class="w-4 h-4 text-white" aria-hidden="true"></i>
+          <h3>Admission</h3>
+        </div>
+        <table class="mb-cal-table" aria-label="Admission schedule">
+          <thead><tr><th>Period</th><th>Details</th></tr></thead>
+          <tbody>
+            <tr><td><span class="mb-cal-date">Regular Admission</span></td><td>End of August – End of October yearly</td></tr>
+            <tr><td><span class="mb-cal-date">Supplementary / Late Admission</span></td><td>Late November – Mid January yearly. Lectures for students admitted in this period begin in late January</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- First Semester -->
+      <div class="mb-card mb-cal-card mb-reveal d2">
+        <div class="mb-cal-head mb-cal-head-primary">
+          <i data-lucide="calendar" class="w-4 h-4 text-white" aria-hidden="true"></i>
+          <h3>First Semester</h3>
+        </div>
+        <table class="mb-cal-table" aria-label="First semester schedule">
+          <thead><tr><th>Date</th><th>Event</th></tr></thead>
+          <tbody>
+            <tr><td><span class="mb-cal-date">4th Week of October</span></td><td>New Student Registration, Orientation and 1 week of intensive fasting and prayers</td></tr>
+            <tr><td><span class="mb-cal-date">1st Week of November</span></td><td>Lectures begin</td></tr>
+            <tr><td><span class="mb-cal-date">2nd – 3rd Week of November</span></td><td>Preparation for Matriculation, Convocation and Annual University Seminar</td></tr>
+            <tr><td><span class="mb-cal-date">2nd Week Dec – 2nd Week Jan</span></td><td>Christmas Vacation</td></tr>
+            <tr><td><span class="mb-cal-date">2nd Week of January</span></td><td>First Semester resumes</td></tr>
+            <tr><td><span class="mb-cal-date">2nd Week of February</span></td><td>First Semester seminar</td></tr>
+            <tr><td><span class="mb-cal-date">3rd – 4th Week of March</span></td><td>First Semester Exams</td></tr>
+            <tr><td><span class="mb-cal-date">4th Week Mar / 1st Week Apr</span></td><td>First Semester Ends</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Second Semester -->
+      <div class="mb-card mb-cal-card mb-reveal d3">
+        <div class="mb-cal-head mb-cal-head-primary">
+          <i data-lucide="calendar" class="w-4 h-4 text-white" aria-hidden="true"></i>
+          <h3>Second Semester</h3>
+        </div>
+        <table class="mb-cal-table" aria-label="Second semester schedule">
+          <thead><tr><th>Date</th><th>Event</th></tr></thead>
+          <tbody>
+            <tr><td><span class="mb-cal-date">4th Week of April</span></td><td>Second Semester Begins</td></tr>
+            <tr><td><span class="mb-cal-date">1st Week of May</span></td><td>Lectures Begin</td></tr>
+            <tr><td><span class="mb-cal-date">2nd Week of June</span></td><td>Second Semester Seminar</td></tr>
+            <tr><td><span class="mb-cal-date">2nd – 3rd Week of August</span></td><td>Second Semester Exams</td></tr>
+            <tr><td><span class="mb-cal-date">3rd Week of August</span></td><td>Second Semester Ends</td></tr>
+            <tr><td><span class="mb-cal-date">3rd Week Aug – 2nd Week Nov</span></td><td>Ministerial Attachment for Diploma/Bachelors Degree Graduates</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Vacations -->
+      <div class="mb-card mb-cal-card mb-reveal d4">
+        <div class="mb-cal-head mb-cal-head-gold">
+          <i data-lucide="sun" class="w-4 h-4 text-white" aria-hidden="true"></i>
+          <h3>Vacation Periods</h3>
+        </div>
+        <table class="mb-cal-table" aria-label="Vacation periods">
+          <thead><tr><th>Period</th><th>Dates</th></tr></thead>
+          <tbody>
+            <tr><td><span class="mb-cal-date">Christmas Vacation</span></td><td>2nd week of December to 2nd week of January</td></tr>
+            <tr><td><span class="mb-cal-date">First Semester Vacation</span></td><td>4th week of March / 1st week of April to 4th week of April</td></tr>
+            <tr><td><span class="mb-cal-date">Second Semester Vacation</span></td><td>3rd week of August to 3rd week of October</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div><!-- /calendar grid -->
+
+    <!-- Library CTA -->
+    <div class="mb-reveal">
+      <div class="mb-card mb-cta-strip-library">
+        <div class="mb-cta-strip-inner">
+          <div class="mb-icon-wrap mb-cta-strip-lib-icon">
+            <i data-lucide="library" class="w-5 h-5 text-gospel-600" aria-hidden="true"></i>
+          </div>
+          <div>
+            <p class="mb-cta-strip-heading">Visit the Library</p>
+            <p class="mb-cta-strip-sub">A vast collection of books, journals, and digital resources for all students.</p>
+          </div>
+        </div>
+        <a href="#" class="mb-btn mb-btn-outline">
+          <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
+          Visit Library — Click Here
+        </a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ── FINAL CTA ─────────────────────────────────────────────────── -->
+<section class="mb-section mb-bg-cta mb-final-cta" aria-label="Apply for admission">
+  <div class="mb-container mb-final-cta-inner">
+    <h2 class="mb-reveal">Ready to Begin Your Ministry Training?</h2>
+    <p class="mb-reveal d1">Admission is completely free. No tuition fees. Apply now and join the next generation of end-time ministers.</p>
+    <div class="mb-final-cta-btns mb-reveal d2">
+      <a href="{% url 'melbac:contact' %}" class="mb-btn mb-btn-gold">
+        <i data-lucide="send" class="w-4 h-4" aria-hidden="true"></i><span>Apply For Admission</span>
+      </a>
+      <a href="{% url 'melbac:about' %}" class="mb-btn mb-btn-white-outline">
+        <i data-lucide="info" class="w-4 h-4" aria-hidden="true"></i><span>About MELBAC</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var tabs     = document.querySelectorAll('.acad-tab');
+  var sections = Array.from(tabs).map(function(t){ return document.getElementById(t.dataset.target); }).filter(Boolean);
+  function setActive() {
+    var y = window.scrollY + window.innerHeight * 0.3;
+    var active = sections[0];
+    sections.forEach(function(s){ if (s.offsetTop <= y) active = s; });
+    tabs.forEach(function(t){ t.classList.toggle('active', t.dataset.target === active.id); });
+  }
+  window.addEventListener('scroll', setActive, { passive:true });
+  setActive();
+}());
+</script>
+{% endblock %}

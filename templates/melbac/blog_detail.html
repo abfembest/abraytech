@@ -1,0 +1,242 @@
+{% extends 'melbac/base.html' %}
+{% load static %}
+
+{% block title %}{{ post.title }} — MELBAC Blog{% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="{{ post.excerpt|default:post.title }}">
+<meta name="keywords"    content="MELBAC blog, Bible teaching, Apostle John Daniel, {{ post.title }}">
+<meta name="robots"      content="index, follow">
+{% endblock %}
+
+{% block og_tags %}
+<meta property="og:type"        content="article">
+<meta property="og:title"       content="{{ post.title }} — MELBAC">
+<meta property="og:description" content="{{ post.excerpt|default:'' }}">
+<meta property="og:url"         content="{{ request.build_absolute_uri }}">
+{% if post.featured_image %}<meta property="og:image" content="{{ post.featured_image.url }}">{% endif %}
+<meta name="twitter:card"        content="summary_large_image">
+{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "{{ post.title|escapejs }}",
+  "datePublished": "{{ post.publish_date|date:'Y-m-d' }}",
+  "author": { "@type": "Person", "name": "{{ post.author_name|default:'Apostle John Daniel' }}" },
+  "publisher": { "@type": "Organization", "name": "Melchisedec Graduate Bible Academy" },
+  "url": "{{ request.build_absolute_uri }}"
+}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── PAGE HERO ──────────────────────────────────────────────────── -->
+<section class="mb-page-hero mb-post-hero" aria-label="Blog post header">
+  {% if post.featured_image %}
+  <div class="mb-post-hero-img"
+       style="background-image:url('{{ post.featured_image.url }}');"
+       aria-hidden="true"></div>
+  {% endif %}
+  <div class="mb-page-hero-pattern" aria-hidden="true"></div>
+  <div class="mb-container mb-page-hero-inner mb-post-hero-inner">
+    <nav aria-label="Breadcrumb">
+      <ol class="mb-breadcrumb">
+        <li><a href="{% url 'melbac:index' %}">Home</a></li>
+        <li class="mb-breadcrumb-sep" aria-hidden="true">/</li>
+        <li><a href="{% url 'melbac:blog' %}">Blog</a></li>
+        <li class="mb-breadcrumb-sep" aria-hidden="true">/</li>
+        <li aria-current="page">Post</li>
+      </ol>
+    </nav>
+    <div class="mb-post-hero-meta">
+      <span class="mb-badge-gold">Teaching</span>
+      <time class="mb-post-hero-date" datetime="{{ post.publish_date|date:'Y-m-d' }}">
+        {{ post.publish_date|date:"F d, Y" }}
+      </time>
+    </div>
+    <h1 class="mb-post-hero-title">{{ post.title }}</h1>
+    <p class="mb-post-hero-author">
+      <i data-lucide="user" class="w-4 h-4" aria-hidden="true"></i>
+      {{ post.author_name|default:"Apostle John Daniel" }}
+    </p>
+  </div>
+</section>
+
+
+<!-- ── POST BODY ─────────────────────────────────────────────────── -->
+<section class="mb-section mb-bg-s3" aria-label="Blog post content">
+  <div class="mb-container">
+    <div class="mb-post-layout">
+
+      <!-- ── MAIN CONTENT ── -->
+      <article class="mb-post-article" aria-label="{{ post.title }}">
+
+        <!-- Excerpt / lead paragraph -->
+        {% if post.excerpt %}
+        <p class="mb-post-lead mb-reveal">{{ post.excerpt }}</p>
+        {% endif %}
+
+        <!-- Featured image (below fold if also used in hero) -->
+        {% if post.featured_image and not post.featured_image %}
+        <figure class="mb-post-fig mb-reveal d1">
+          <img src="{{ post.featured_image.url }}"
+               alt="{{ post.featured_image_alt|default:post.title }}"
+               class="mb-post-featured-img">
+        </figure>
+        {% endif %}
+
+        <!-- Post body -->
+        <div class="mb-post-body mb-reveal d1">
+          {% if post.content %}
+            {{ post.content|safe }}
+          {% else %}
+            <!-- ── Static fallback for when no DB content is present ── -->
+            <p>This teaching has not yet been published in full. Please check back soon, or contact us for more information.</p>
+          {% endif %}
+        </div>
+
+        <!-- Share / navigate row -->
+        <div class="mb-post-actions mb-reveal d2">
+          <a href="{% url 'melbac:blog' %}" class="mb-btn mb-btn-outline mb-post-back-btn">
+            <i data-lucide="arrow-left" class="w-4 h-4" aria-hidden="true"></i>
+            <span>Back to Blog</span>
+          </a>
+          <div class="mb-post-share">
+            <span class="mb-post-share-label">Share:</span>
+            <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}"
+               target="_blank" rel="noopener noreferrer"
+               class="mb-social-btn" aria-label="Share on Facebook">
+              <i data-lucide="facebook" class="w-3.5 h-3.5" aria-hidden="true"></i>
+            </a>
+            <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri|urlencode }}&text={{ post.title|urlencode }}"
+               target="_blank" rel="noopener noreferrer"
+               class="mb-social-btn" aria-label="Share on Twitter">
+              <i data-lucide="twitter" class="w-3.5 h-3.5" aria-hidden="true"></i>
+            </a>
+            <a href="whatsapp://send?text={{ post.title|urlencode }}%20{{ request.build_absolute_uri|urlencode }}"
+               class="mb-social-btn" aria-label="Share on WhatsApp">
+              <i data-lucide="message-circle" class="w-3.5 h-3.5" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Prev / Next navigation -->
+        {% if prev_post or next_post %}
+        <nav class="mb-post-nav mb-reveal d3" aria-label="Post navigation">
+          <div class="mb-post-nav-inner">
+            {% if prev_post %}
+            <a href="{% url 'melbac:blog_detail' prev_post.slug %}" class="mb-post-nav-link mb-post-nav-prev">
+              <span class="mb-post-nav-dir">
+                <i data-lucide="chevron-left" class="w-4 h-4" aria-hidden="true"></i>
+                Previous
+              </span>
+              <span class="mb-post-nav-title">{{ prev_post.title|truncatechars:60 }}</span>
+            </a>
+            {% else %}<div></div>{% endif %}
+            {% if next_post %}
+            <a href="{% url 'melbac:blog_detail' next_post.slug %}" class="mb-post-nav-link mb-post-nav-next">
+              <span class="mb-post-nav-dir">
+                Next
+                <i data-lucide="chevron-right" class="w-4 h-4" aria-hidden="true"></i>
+              </span>
+              <span class="mb-post-nav-title">{{ next_post.title|truncatechars:60 }}</span>
+            </a>
+            {% else %}<div></div>{% endif %}
+          </div>
+        </nav>
+        {% endif %}
+
+      </article>
+
+      <!-- ── SIDEBAR ── -->
+      <aside class="mb-blog-sidebar" aria-label="Blog sidebar">
+
+        <!-- About the Author -->
+        <div class="mb-sidebar-widget mb-card mb-post-author-card" style="padding:20px;">
+          <h3 class="mb-sidebar-title">About the Author</h3>
+          <div class="mb-post-author-wrap">
+            <div class="mb-post-author-avatar" aria-hidden="true">
+              <i data-lucide="user-circle-2" class="w-8 h-8 text-gospel-400"></i>
+            </div>
+            <div>
+              <p class="mb-post-author-name">{{ post.author_name|default:"Apostle John Daniel" }}</p>
+              <p class="mb-post-author-bio">Founder &amp; President, Melchisedec Graduate Bible Academy. Anointed teacher of God's pure Word.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Posts -->
+        <div class="mb-sidebar-widget mb-card" style="padding:18px;">
+          <h3 class="mb-sidebar-title">Recent Posts</h3>
+          {% if recent_posts %}
+            {% for rpost in recent_posts %}
+            <div class="mb-sidebar-post-item">
+              <div>
+                <a href="{% url 'melbac:blog_detail' rpost.slug %}" class="mb-sidebar-post-title">{{ rpost.title }}</a>
+                <p class="mb-sidebar-post-date">{{ rpost.publish_date|date:"M d, Y" }}</p>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            {% for n in "12345"|make_list %}
+            <div class="mb-sidebar-post-item">
+              <div>
+                <a href="{% url 'melbac:blog' %}" class="mb-sidebar-post-title">
+                  {% if forloop.counter == 1 %}61: Part 1 — Due Process in Christendom
+                  {% elif forloop.counter == 2 %}60: Part 5 — Forgiveness: Conclusion
+                  {% elif forloop.counter == 3 %}58: Part 4 — Understanding Blasphemy and the Sin Unto Death
+                  {% elif forloop.counter == 4 %}57: Part 3 — Conditions for God's Forgiveness Towards Men
+                  {% else %}56: Part 2 — Steps to a Spirit of Genuine Repentance{% endif %}
+                </a>
+                <p class="mb-sidebar-post-date">
+                  {% if forloop.counter == 1 %}Feb 28, 2026
+                  {% elif forloop.counter == 2 %}Feb 21, 2026
+                  {% elif forloop.counter == 3 %}Feb 14, 2026
+                  {% elif forloop.counter == 4 %}Feb 7, 2026
+                  {% else %}Jan 31, 2026{% endif %}
+                </p>
+              </div>
+            </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+
+        <!-- Archives -->
+        <div class="mb-sidebar-widget mb-card" style="padding:18px;">
+          <h3 class="mb-sidebar-title">Archives</h3>
+          <ul class="mb-archive-list" role="list">
+            <li class="mb-archive-item"><a href="{% url 'melbac:blog' %}" class="mb-archive-link">February 2026</a><span class="mb-archive-count">4</span></li>
+            <li class="mb-archive-item"><a href="{% url 'melbac:blog' %}" class="mb-archive-link">January 2026</a><span class="mb-archive-count">4</span></li>
+            <li class="mb-archive-item"><a href="{% url 'melbac:blog' %}" class="mb-archive-link">December 2025</a><span class="mb-archive-count">3</span></li>
+            <li class="mb-archive-item"><a href="{% url 'melbac:blog' %}" class="mb-archive-link">November 2025</a><span class="mb-archive-count">5</span></li>
+            <li class="mb-archive-item"><a href="{% url 'melbac:blog' %}" class="mb-archive-link">October 2025</a><span class="mb-archive-count">7</span></li>
+            <li class="mb-archive-item"><a href="{% url 'melbac:blog' %}" class="mb-archive-link">September 2025</a><span class="mb-archive-count">5</span></li>
+            <li class="mb-archive-item"><a href="{% url 'melbac:blog' %}" class="mb-archive-link">August 2025</a><span class="mb-archive-count">7</span></li>
+            <li class="mb-archive-item"><a href="{% url 'melbac:blog' %}" class="mb-archive-link">July 2025</a><span class="mb-archive-count">4</span></li>
+          </ul>
+        </div>
+
+        <!-- Apply CTA -->
+        <div class="mb-card" style="padding:22px;background:var(--mb-primary-xlight);border-color:var(--mb-primary-light);text-align:center;">
+          <div class="mb-icon-wrap" style="width:44px;height:44px;margin:0 auto 14px;">
+            <i data-lucide="book-open" class="w-5 h-5 text-gospel-600" aria-hidden="true"></i>
+          </div>
+          <h3 style="font-family:var(--mb-font-heading);font-size:1rem;font-weight:700;color:var(--mb-text-heading);margin-bottom:8px;">Study With Us</h3>
+          <p style="font-family:var(--mb-font-body);font-size:0.875rem;color:var(--mb-text-muted);margin-bottom:16px;line-height:1.6;">Apply for admission — completely free — and go deeper in the Word.</p>
+          <a href="{% url 'melbac:admissions' %}" class="mb-btn mb-btn-primary" style="width:100%;justify-content:center;">
+            <i data-lucide="send" class="w-4 h-4" aria-hidden="true"></i>
+            <span>Apply Now</span>
+          </a>
+        </div>
+
+      </aside>
+
+    </div><!-- /post-layout -->
+  </div>
+</section>
+
+{% endblock %}

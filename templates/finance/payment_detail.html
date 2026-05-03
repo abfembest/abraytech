@@ -1,0 +1,611 @@
+{% extends 'management/base.html' %}
+{% load static humanize %}
+
+{% block title %}
+  {% if payment_type == 'application' %}Application{% else %}Fee{% endif %} Payment — {{ payment.payment_reference }} | Finance Portal
+{% endblock %}
+{% block meta_description %}View detailed payment information and transaction history{% endblock %}
+
+{% block content %}
+
+{# ─── Sticky Header ─────────────────────────────────────────────────────── #}
+<header class="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+  <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        {# Breadcrumb #}
+        <nav class="flex items-center gap-1.5 text-xs text-gray-500 mb-2" aria-label="Breadcrumb">
+          <a href="{% url 'finance:dashboard' %}" class="hover:text-indigo-600 transition-colors">Finance</a>
+          <i class="fas fa-chevron-right text-[10px]" aria-hidden="true"></i>
+          <a href="{% url 'payments:payment_management' %}" class="hover:text-indigo-600 transition-colors">Payments</a>
+          <i class="fas fa-chevron-right text-[10px]" aria-hidden="true"></i>
+          <span class="text-gray-800 font-medium font-mono">{{ payment.payment_reference }}</span>
+        </nav>
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2">
+          <i class="fas fa-file-invoice-dollar text-indigo-600" aria-hidden="true"></i>
+          Payment Details
+          {# ✅ payment_type passed from view: 'application' or 'fee' #}
+          <span class="text-sm font-normal px-2.5 py-0.5 rounded-full
+                       {% if payment_type == 'application' %}bg-indigo-100 text-indigo-700
+                       {% else %}bg-emerald-100 text-emerald-700{% endif %}">
+            {% if payment_type == 'application' %}Application Fee{% else %}Student Fee{% endif %}
+          </span>
+        </h1>
+      </div>
+
+      {# Action Buttons #}
+      <div class="flex items-center gap-3 flex-wrap self-start sm:self-auto">
+        <a href="{% url 'payments:payment_management' %}"
+           class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium
+                  border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50
+                  focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors">
+          <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>
+          Back
+        </a>
+        <button onclick="window.print()"
+                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium
+                       border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50
+                       focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors">
+          <i class="fas fa-print text-xs" aria-hidden="true"></i>
+          Print
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+{# ─── Django Messages ───────────────────────────────────────────────────── #}
+{% if messages %}
+<div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 pt-4 space-y-2">
+  {% for msg in messages %}
+  <div role="alert"
+       class="flex items-center gap-2 px-4 py-3 rounded-lg text-sm
+              {% if msg.tags == 'success' %}bg-green-50 text-green-800 border border-green-200
+              {% elif msg.tags == 'error' %}bg-red-50 text-red-800 border border-red-200
+              {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+    <i class="fas {% if msg.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"
+       aria-hidden="true"></i>
+    {{ msg }}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<main class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+  {# ── Status Banner ───────────────────────────────────────────────────── #}
+  <section aria-labelledby="status-heading">
+    <h2 id="status-heading" class="sr-only">Payment Status</h2>
+    {% if payment.status == 'success' %}
+    <div class="bg-green-50 border-l-4 border-green-500 rounded-xl p-5 flex items-center gap-4 shadow-sm">
+      <i class="fas fa-check-circle text-green-500 text-3xl flex-shrink-0" aria-hidden="true"></i>
+      <div>
+        <p class="text-base font-semibold text-green-900">Payment Successful</p>
+        <p class="text-sm text-green-700 mt-0.5">
+          This payment was successfully processed and completed
+          {% if payment.paid_at %}on {{ payment.paid_at|date:"F j, Y \a\t g:i A" }}{% endif %}.
+        </p>
+      </div>
+    </div>
+    {% elif payment.status == 'pending' %}
+    <div class="bg-amber-50 border-l-4 border-amber-500 rounded-xl p-5 flex items-center gap-4 shadow-sm">
+      <i class="fas fa-clock text-amber-500 text-3xl flex-shrink-0" aria-hidden="true"></i>
+      <div>
+        <p class="text-base font-semibold text-amber-900">Payment Pending</p>
+        <p class="text-sm text-amber-700 mt-0.5">This payment is awaiting confirmation or processing.</p>
+      </div>
+    </div>
+    {% elif payment.status == 'processing' %}
+    <div class="bg-blue-50 border-l-4 border-blue-500 rounded-xl p-5 flex items-center gap-4 shadow-sm">
+      <i class="fas fa-spinner fa-spin text-blue-500 text-3xl flex-shrink-0" aria-hidden="true"></i>
+      <div>
+        <p class="text-base font-semibold text-blue-900">Payment Processing</p>
+        <p class="text-sm text-blue-700 mt-0.5">This payment is currently being processed.</p>
+      </div>
+    </div>
+    {% elif payment.status == 'failed' %}
+    <div class="bg-red-50 border-l-4 border-red-500 rounded-xl p-5 flex items-center gap-4 shadow-sm">
+      <i class="fas fa-times-circle text-red-500 text-3xl flex-shrink-0" aria-hidden="true"></i>
+      <div>
+        <p class="text-base font-semibold text-red-900">Payment Failed</p>
+        <p class="text-sm text-red-700 mt-0.5">
+          This payment failed to process.
+          {% if payment.failure_reason %}Reason: {{ payment.failure_reason }}{% endif %}
+        </p>
+      </div>
+    </div>
+    {% elif payment.status == 'refunded' %}
+    <div class="bg-purple-50 border-l-4 border-purple-500 rounded-xl p-5 flex items-center gap-4 shadow-sm">
+      <i class="fas fa-undo text-purple-500 text-3xl flex-shrink-0" aria-hidden="true"></i>
+      <div>
+        <p class="text-base font-semibold text-purple-900">Payment Refunded</p>
+        <p class="text-sm text-purple-700 mt-0.5">
+          This payment has been refunded.
+          {% if payment.failure_reason %}Details: {{ payment.failure_reason }}{% endif %}
+        </p>
+      </div>
+    </div>
+    {% endif %}
+  </section>
+
+  {# ── Two-column layout: main (2/3) + sidebar (1/3) ──────────────────── #}
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    {# ─────────────── LEFT COLUMN — Main Details ─────────────────────── #}
+    <div class="lg:col-span-2 space-y-6">
+
+      {# ── Payment Information Card ─────────────────────────────────── #}
+      <section class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+               aria-labelledby="payment-info-heading">
+        <div class="px-6 py-4 border-b border-gray-100 bg-indigo-50 flex items-center gap-2">
+          <i class="fas fa-info-circle text-indigo-500" aria-hidden="true"></i>
+          <h2 id="payment-info-heading" class="text-base font-semibold text-indigo-900">
+            Payment Information
+          </h2>
+        </div>
+        <div class="p-6">
+          <dl class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Reference</dt>
+              <dd class="mt-1 text-sm font-mono font-semibold text-gray-900 bg-gray-50 px-2 py-1 rounded inline-block">
+                {{ payment.payment_reference }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Amount</dt>
+              <dd class="mt-1 text-2xl font-bold text-gray-900">
+                {# ✅ currency is a real field on both ApplicationPayment and FeePayment #}
+                {{ payment.currency }} {{ payment.amount|floatformat:2|intcomma }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Status</dt>
+              <dd class="mt-1">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium
+                             {% if payment.status == 'success' %}bg-green-100 text-green-700
+                             {% elif payment.status == 'pending' %}bg-amber-100 text-amber-700
+                             {% elif payment.status == 'processing' %}bg-blue-100 text-blue-700
+                             {% elif payment.status == 'failed' %}bg-red-100 text-red-700
+                             {% elif payment.status == 'refunded' %}bg-purple-100 text-purple-700
+                             {% else %}bg-gray-100 text-gray-600{% endif %}">
+                  <span class="w-1.5 h-1.5 rounded-full inline-block
+                               {% if payment.status == 'success' %}bg-green-500
+                               {% elif payment.status == 'pending' %}bg-amber-500
+                               {% elif payment.status == 'processing' %}bg-blue-500
+                               {% elif payment.status == 'failed' %}bg-red-500
+                               {% elif payment.status == 'refunded' %}bg-purple-500
+                               {% else %}bg-gray-400{% endif %}"></span>
+                  {{ payment.get_status_display }}
+                </span>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Payment Method</dt>
+              <dd class="mt-1">
+                {# ✅ payment_method exists on both ApplicationPayment and FeePayment #}
+                {% if payment.payment_method == 'card' %}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  <i class="fas fa-credit-card" aria-hidden="true"></i> Credit/Debit Card
+                </span>
+                {% elif payment.payment_method == 'paypal' %}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                  <i class="fab fa-paypal" aria-hidden="true"></i> PayPal
+                </span>
+                {% elif payment.payment_method == 'bank_transfer' %}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                  <i class="fas fa-university" aria-hidden="true"></i> Bank Transfer
+                </span>
+                {% else %}
+                <span class="text-sm text-gray-700">{{ payment.get_payment_method_display|default:"—" }}</span>
+                {% endif %}
+              </dd>
+            </div>
+            {# ✅ card_brand and card_last4 exist on both payment models #}
+            {% if payment.card_brand and payment.card_last4 %}
+            <div>
+              <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Card</dt>
+              <dd class="mt-1 text-sm text-gray-900">
+                <i class="fas fa-credit-card text-gray-400 mr-1" aria-hidden="true"></i>
+                {{ payment.card_brand }} ····{{ payment.card_last4 }}
+              </dd>
+            </div>
+            {% endif %}
+            {# ✅ gateway_payment_id exists on both payment models #}
+            {% if payment.gateway_payment_id %}
+            <div>
+              <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Gateway ID</dt>
+              <dd class="mt-1 text-xs font-mono text-gray-700 bg-gray-50 px-2 py-1 rounded break-all">
+                {{ payment.gateway_payment_id }}
+              </dd>
+            </div>
+            {% endif %}
+            <div>
+              <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Created</dt>
+              <dd class="mt-1 text-sm text-gray-900">{{ payment.created_at|date:"F j, Y" }}</dd>
+              <dd class="text-xs text-gray-400">{{ payment.created_at|date:"g:i A" }} · {{ payment.created_at|naturaltime }}</dd>
+            </div>
+            {# ✅ paid_at exists on both payment models (nullable) #}
+            {% if payment.paid_at %}
+            <div>
+              <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Paid At</dt>
+              <dd class="mt-1 text-sm text-gray-900">{{ payment.paid_at|date:"F j, Y g:i A" }}</dd>
+            </div>
+            {% endif %}
+          </dl>
+        </div>
+      </section>
+
+      {# ================================================================= #}
+      {# ── APPLICATION PAYMENT specific section ─────────────────────── #}
+      {# payment_type == 'application': payment.application (CourseApplication) #}
+      {# ================================================================= #}
+      {% if payment_type == 'application' %}
+
+        {# ── Application Details ─────────────────────────────────────── #}
+        <section class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+                 aria-labelledby="application-heading">
+          <div class="px-6 py-4 border-b border-gray-100 bg-blue-50 flex items-center gap-2">
+            <i class="fas fa-file-alt text-blue-500" aria-hidden="true"></i>
+            <h2 id="application-heading" class="text-base font-semibold text-blue-900">
+              Application Details
+            </h2>
+          </div>
+          <div class="p-6">
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Application ID</dt>
+                <dd class="mt-1 text-sm font-mono font-semibold text-gray-900">
+                  {{ payment.application.application_id }}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Application Status</dt>
+                <dd class="mt-1">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                               {% if payment.application.status == 'approved' %}bg-green-100 text-green-700
+                               {% elif payment.application.status == 'rejected' %}bg-red-100 text-red-700
+                               {% elif payment.application.status == 'under_review' %}bg-blue-100 text-blue-700
+                               {% elif payment.application.status == 'draft' %}bg-gray-100 text-gray-600
+                               {% else %}bg-amber-100 text-amber-700{% endif %}">
+                    {{ payment.application.get_status_display }}
+                  </span>
+                </dd>
+              </div>
+              <div>
+                {# ✅ CourseApplication.program → Program (has name, code) #}
+                <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Programme</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ payment.application.program.name }}</dd>
+                <dd class="text-xs text-gray-400">{{ payment.application.program.code }} · {{ payment.application.program.get_degree_level_display }}</dd>
+              </div>
+              <div>
+                {# ✅ CourseApplication.intake → CourseIntake (has intake_period, year) #}
+                <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Intake</dt>
+                <dd class="mt-1 text-sm text-gray-900 capitalize">
+                  {{ payment.application.intake.intake_period }} {{ payment.application.intake.year }}
+                </dd>
+                <dd class="text-xs text-gray-400">
+                  Starts: {{ payment.application.intake.start_date|date:"F j, Y" }}
+                </dd>
+              </div>
+              <div>
+                {# ✅ study_mode has choices on Program model, used in CourseApplication #}
+                <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Study Mode</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ payment.application.get_study_mode_display }}</dd>
+              </div>
+              {% if payment.application.submitted_at %}
+              <div>
+                <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Submitted At</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ payment.application.submitted_at|date:"F j, Y g:i A" }}</dd>
+              </div>
+              {% endif %}
+              <div>
+                {# ✅ program.department.faculty: Program → Department → Faculty #}
+                <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Faculty</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  {{ payment.application.program.department.faculty.name|default:"—" }}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Department</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  {{ payment.application.program.department.name|default:"—" }}
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+
+      {# ================================================================= #}
+      {# ── FEE PAYMENT specific section ─────────────────────────────── #}
+      {# payment_type == 'fee': payment.fee (AllRequiredPayments) #}
+      {# ================================================================= #}
+      {% elif payment_type == 'fee' %}
+
+        {# ── Fee Details ─────────────────────────────────────────────── #}
+        <section class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+                 aria-labelledby="fee-details-heading">
+          <div class="px-6 py-4 border-b border-gray-100 bg-emerald-50 flex items-center gap-2">
+            <i class="fas fa-receipt text-emerald-500" aria-hidden="true"></i>
+            <h2 id="fee-details-heading" class="text-base font-semibold text-emerald-900">
+              Fee Details
+            </h2>
+          </div>
+          <div class="p-6">
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div class="sm:col-span-2">
+                <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Fee Purpose</dt>
+                <dd class="mt-1 text-base font-semibold text-gray-900">{{ payment.fee.purpose }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Programme</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ payment.fee.program.name|default:"—" }}</dd>
+                {% if payment.fee.program %}
+                <dd class="text-xs text-gray-400">{{ payment.fee.program.code }}</dd>
+                {% endif %}
+              </div>
+              <div>
+                <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Academic Session</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ payment.fee.academic_session.name|default:"—" }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Semester</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ payment.fee.get_semester_display|default:"—" }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Payable By</dt>
+                <dd class="mt-1 text-sm text-gray-900 capitalize">{{ payment.fee.get_who_to_pay_display }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Required Amount</dt>
+                <dd class="mt-1 text-sm font-semibold text-gray-900">
+                  {{ payment.currency }} {{ payment.fee.amount|floatformat:2|intcomma }}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Due Date</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  {{ payment.fee.due_date|date:"F j, Y" }}
+                </dd>
+              </div>
+              {% if payment.fee.program %}
+              <div>
+                <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Faculty</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  {{ payment.fee.program.department.faculty.name|default:"—" }}
+                </dd>
+              </div>
+              {% endif %}
+            </dl>
+          </div>
+        </section>
+
+      {% endif %}{# end payment_type #}
+
+      {# ── Payment Metadata (JSON) — shown only if present ─────────── #}
+      {% if payment.payment_metadata %}
+      <section class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+               aria-labelledby="metadata-heading">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+          <i class="fas fa-database text-gray-400" aria-hidden="true"></i>
+          <h2 id="metadata-heading" class="text-base font-semibold text-gray-800">
+            Gateway Metadata
+          </h2>
+        </div>
+        <div class="p-6">
+          <pre class="text-xs font-mono text-gray-700 bg-gray-50 rounded-lg p-4 overflow-x-auto
+                      whitespace-pre-wrap break-all">{{ payment.payment_metadata|pprint }}</pre>
+        </div>
+      </section>
+      {% endif %}
+
+    </div>{# end left column #}
+
+    {# ─────────────── RIGHT COLUMN — Sidebar ─────────────────────────── #}
+    <div class="lg:col-span-1 space-y-6">
+
+      {# ── Payer / Student card ─────────────────────────────────────── #}
+
+      {% if payment_type == 'application' and payment.application.user %}
+        {% with user=payment.application.user %}
+        <section class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+                 aria-labelledby="applicant-user-heading">
+          <div class="px-6 py-4 border-b border-gray-100 bg-indigo-50 flex items-center gap-2">
+            <i class="fas fa-user text-indigo-500" aria-hidden="true"></i>
+            <h2 id="applicant-user-heading" class="text-base font-semibold text-indigo-900">User Account</h2>
+          </div>
+          <div class="p-6">
+            <div class="flex flex-col items-center text-center mb-5">
+              <div class="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600
+                          flex items-center justify-center mb-3 shadow">
+                <span class="text-white text-xl font-bold">
+                  {{ user.first_name|slice:":1"|default:user.username|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}
+                </span>
+              </div>
+              <p class="text-base font-semibold text-gray-900">
+                {{ user.get_full_name|default:user.username }}
+              </p>
+              <p class="text-xs text-gray-500">@{{ user.username }}</p>
+            </div>
+            <dl class="space-y-3">
+              <div>
+                <dt class="text-xs font-medium text-gray-500">Email</dt>
+                <dd class="mt-0.5 text-sm">
+                  <a href="mailto:{{ user.email }}" class="text-indigo-600 hover:text-indigo-700 transition-colors break-all">
+                    {{ user.email }}
+                  </a>
+                </dd>
+              </div>
+              {% if user.profile.phone %}
+              <div>
+                <dt class="text-xs font-medium text-gray-500">Phone</dt>
+                <dd class="mt-0.5 text-sm text-gray-900">{{ user.profile.phone }}</dd>
+              </div>
+              {% endif %}
+              <div>
+                <dt class="text-xs font-medium text-gray-500">Member Since</dt>
+                <dd class="mt-0.5 text-sm text-gray-900">{{ user.date_joined|date:"F Y" }}</dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+        {% endwith %}
+      {% endif %}
+
+      {% if payment_type == 'fee' %}
+      <section class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+               aria-labelledby="fee-user-heading">
+        <div class="px-6 py-4 border-b border-gray-100 bg-emerald-50 flex items-center gap-2">
+          <i class="fas fa-user-graduate text-emerald-500" aria-hidden="true"></i>
+          <h2 id="fee-user-heading" class="text-base font-semibold text-emerald-900">Student Account</h2>
+        </div>
+        <div class="p-6">
+          <div class="flex flex-col items-center text-center mb-5">
+            {% if payment.user.profile.avatar %}
+            <img src="{{ payment.user.profile.avatar.url }}"
+                 alt="{{ payment.user.get_full_name }}"
+                 class="w-16 h-16 rounded-full object-cover mb-3 shadow">
+            {% else %}
+            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600
+                        flex items-center justify-center mb-3 shadow">
+              <span class="text-white text-xl font-bold">
+                {{ payment.user.first_name|slice:":1"|default:payment.user.username|slice:":1"|upper }}{{ payment.user.last_name|slice:":1"|upper }}
+              </span>
+            </div>
+            {% endif %}
+            <p class="text-base font-semibold text-gray-900">
+              {{ payment.user.get_full_name|default:payment.user.username }}
+            </p>
+            <p class="text-xs text-gray-500">@{{ payment.user.username }}</p>
+            {# ✅ UserProfile.role has choices → get_role_display() #}
+            {% if payment.user.profile.role %}
+            <span class="mt-1 inline-block px-2 py-0.5 rounded-full text-xs bg-emerald-100 text-emerald-700 font-medium">
+              {{ payment.user.profile.get_role_display }}
+            </span>
+            {% endif %}
+          </div>
+          <dl class="space-y-3">
+            <div>
+              <dt class="text-xs font-medium text-gray-500">Email</dt>
+              <dd class="mt-0.5 text-sm">
+                <a href="mailto:{{ payment.user.email }}"
+                   class="text-emerald-600 hover:text-emerald-700 transition-colors break-all">
+                  {{ payment.user.email }}
+                </a>
+              </dd>
+            </div>
+            {# ✅ UserProfile.phone is a real field #}
+            {% if payment.user.profile.phone %}
+            <div>
+              <dt class="text-xs font-medium text-gray-500">Phone</dt>
+              <dd class="mt-0.5 text-sm text-gray-900">{{ payment.user.profile.phone }}</dd>
+            </div>
+            {% endif %}
+            <div>
+              <dt class="text-xs font-medium text-gray-500">Member Since</dt>
+              <dd class="mt-0.5 text-sm text-gray-900">{{ payment.user.date_joined|date:"F Y" }}</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+      {% endif %}
+
+      {# ── Applicant Personal Info (Application payments only) ─────── #}
+      {% if payment_type == 'application' %}
+      <section class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+               aria-labelledby="applicant-info-heading">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+          <i class="fas fa-id-card text-gray-400" aria-hidden="true"></i>
+          <h2 id="applicant-info-heading" class="text-base font-semibold text-gray-800">Applicant Info</h2>
+        </div>
+        <div class="p-6">
+          <dl class="space-y-3">
+            <div>
+              <dt class="text-xs font-medium text-gray-500">Full Name</dt>
+              <dd class="mt-0.5 text-sm text-gray-900">{{ payment.application.get_full_name }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium text-gray-500">Email</dt>
+              <dd class="mt-0.5 text-sm">
+                <a href="mailto:{{ payment.application.email }}"
+                   class="text-indigo-600 hover:text-indigo-700 transition-colors break-all">
+                  {{ payment.application.email }}
+                </a>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium text-gray-500">Phone</dt>
+              <dd class="mt-0.5 text-sm text-gray-900">{{ payment.application.phone|default:"—" }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium text-gray-500">Nationality</dt>
+              <dd class="mt-0.5 text-sm text-gray-900">{{ payment.application.nationality|default:"—" }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium text-gray-500">Gender</dt>
+              <dd class="mt-0.5 text-sm text-gray-900 capitalize">{{ payment.application.get_gender_display|default:"—" }}</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+      {% endif %}
+
+      {# ── Quick Actions ────────────────────────────────────────────── #}
+      <section class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+               aria-labelledby="actions-heading">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+          <i class="fas fa-bolt text-gray-400" aria-hidden="true"></i>
+          <h2 id="actions-heading" class="text-base font-semibold text-gray-800">Quick Actions</h2>
+        </div>
+        <div class="p-6 space-y-3">
+          <a href="{% url 'payments:payment_management' %}"
+             class="flex items-center gap-2 w-full px-4 py-2.5 bg-gray-50 hover:bg-gray-100
+                    text-gray-800 rounded-lg text-sm font-medium transition-colors">
+            <i class="fas fa-list text-gray-400 w-4" aria-hidden="true"></i>
+            All Payments
+          </a>
+
+          {# ✅ Email link for application payments: use application.email (direct field) #}
+          {% if payment_type == 'application' %}
+          <a href="mailto:{{ payment.application.email }}"
+             class="flex items-center gap-2 w-full px-4 py-2.5 bg-gray-50 hover:bg-gray-100
+                    text-gray-800 rounded-lg text-sm font-medium transition-colors">
+            <i class="fas fa-envelope text-gray-400 w-4" aria-hidden="true"></i>
+            Email Applicant
+          </a>
+          {# ✅ Email link for fee payments: use payment.user.email #}
+          {% elif payment_type == 'fee' %}
+          <a href="mailto:{{ payment.user.email }}"
+             class="flex items-center gap-2 w-full px-4 py-2.5 bg-gray-50 hover:bg-gray-100
+                    text-gray-800 rounded-lg text-sm font-medium transition-colors">
+            <i class="fas fa-envelope text-gray-400 w-4" aria-hidden="true"></i>
+            Email Student
+          </a>
+          {% endif %}
+
+          <button onclick="window.print()"
+                  class="flex items-center gap-2 w-full px-4 py-2.5 bg-gray-50 hover:bg-gray-100
+                         text-gray-800 rounded-lg text-sm font-medium transition-colors text-left">
+            <i class="fas fa-print text-gray-400 w-4" aria-hidden="true"></i>
+            Print Receipt
+          </button>
+        </div>
+      </section>
+
+    </div>{# end sidebar #}
+  </div>{# end grid #}
+
+</main>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── Print styles override ─────────────────────────────────────────────────
+window.addEventListener('beforeprint', function () {
+  document.body.classList.add('print-mode');
+});
+window.addEventListener('afterprint', function () {
+  document.body.classList.remove('print-mode');
+});
+</script>
+{% endblock %}

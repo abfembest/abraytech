@@ -1,0 +1,979 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}About {{ site_config.school_short_name|default:"ABrayTech" }} — {{ site_config.school_name|default:"ABrayTech Limited" }} | Our Story, Mission &amp; Team{% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="Learn about {{ site_config.school_name|default:'ABrayTech Limited' }} — a UK &amp; Nigeria-based tech training and digital transformation platform. Discover our story, mission, vision, and leadership team.">
+<meta name="keywords" content="{{ site_config.school_name|default:'ABrayTech Limited' }}, {{ site_config.school_short_name|default:'ABrayTech' }}, tech training, AI courses, cybersecurity, full-stack development, digital transformation, Nigeria, UK">
+<meta name="robots" content="index, follow">
+<meta name="author" content="{{ site_config.school_name|default:'ABrayTech Limited' }}">
+{% endblock %}
+
+{% block og_tags %}
+<meta property="og:type" content="website">
+<meta property="og:title" content="About {{ site_config.school_short_name|default:'ABrayTech' }} — {{ site_config.school_name|default:'ABrayTech Limited' }}">
+<meta property="og:description" content="UK &amp; Nigeria-based tech training and digital transformation platform — building in-demand skills since day one.">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+{% if site_config.og_image %}<meta property="og:image" content="{{ site_config.og_image.url }}">{% endif %}
+{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "{{ site_config.school_name|default:'ABrayTech Limited'|escapejs }}",
+  "alternateName": "{{ site_config.school_short_name|default:'ABrayTech'|escapejs }}",
+  "description": "A UK &amp; Nigeria-based tech training and digital transformation platform.",
+  "url": "{{ request.build_absolute_uri }}"
+}
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── About page extras ── */
+
+  /* Hero split layout */
+  .about-hero-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+  @media (min-width: 1024px) {
+    .about-hero-grid {
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 5rem;
+    }
+  }
+
+  /* Founder card */
+  .founder-card {
+    position: relative;
+    border-radius: 1.5rem;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+  }
+  .founder-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(6,15,26,0.95) 0%, rgba(6,15,26,0.3) 55%, transparent 100%);
+    z-index: 1;
+    pointer-events: none;
+  }
+  .founder-card-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    padding: 1.75rem 1.5rem;
+  }
+
+  /* Stats row */
+  .stats-belt {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 1rem;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.07);
+  }
+  @media (min-width: 768px) {
+    .stats-belt { grid-template-columns: repeat(4, 1fr); }
+  }
+  .stats-belt-item {
+    background: rgba(255,255,255,0.03);
+    padding: 1.75rem 1rem;
+    text-align: center;
+    transition: background 0.2s;
+  }
+  .stats-belt-item:hover { background: rgba(6,182,212,0.07); }
+
+  /* Timeline */
+  .timeline-rail {
+    position: absolute;
+    left: 19px;
+    top: 24px;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, #06b6d4, rgba(6,182,212,0.1));
+  }
+  @media (min-width: 640px) {
+    .timeline-rail { left: 23px; }
+  }
+
+  /* MVV cards */
+  .mvv-card {
+    border-radius: 1.25rem;
+    padding: 2rem 2rem 2rem 2rem;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+  }
+  .mvv-card:hover {
+    box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+    transform: translateY(-3px);
+  }
+  .mvv-icon-wrap {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Member cards */
+  .member-card {
+    border-radius: 1rem;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+  }
+  .member-card:hover {
+    box-shadow: 0 12px 32px rgba(6,182,212,0.15);
+    transform: translateY(-3px);
+  }
+  .member-card-img {
+    height: 11rem;
+    overflow: hidden;
+    position: relative;
+  }
+  @media (min-width: 640px) {
+    .member-card-img { height: 13rem; }
+  }
+
+  /* Section label line */
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+  .section-label-bar {
+    display: inline-block;
+    width: 2rem;
+    height: 3px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* Video wrapper */
+  .video-frame {
+    border-radius: 1.25rem;
+    overflow: hidden;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+    aspect-ratio: 16/9;
+    position: relative;
+    background: #0f2236;
+  }
+  .video-frame iframe,
+  .video-frame video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  /* Scroll reveal */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: none;
+  }
+  .reveal-l {
+    opacity: 0;
+    transform: translateX(-30px);
+    transition: opacity 0.65s ease, transform 0.65s ease;
+  }
+  .reveal-l.visible { opacity: 1; transform: none; }
+  .reveal-r {
+    opacity: 0;
+    transform: translateX(30px);
+    transition: opacity 0.65s ease, transform 0.65s ease;
+  }
+  .reveal-r.visible { opacity: 1; transform: none; }
+
+  .delay-1 { transition-delay: 0.08s; }
+  .delay-2 { transition-delay: 0.16s; }
+  .delay-3 { transition-delay: 0.24s; }
+  .delay-4 { transition-delay: 0.32s; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ══════════════════════════════════════════════════════════
+     §1  HERO  — deep navy mesh, split layout
+══════════════════════════════════════════════════════════ -->
+<section class="hero-mesh relative overflow-hidden text-white pt-24 sm:pt-28 lg:pt-32 pb-20 lg:pb-28"
+         aria-labelledby="about-heading">
+
+  <!-- Grid texture -->
+  <div class="absolute inset-0 pointer-events-none" aria-hidden="true"
+       style="background-image: linear-gradient(rgba(6,182,212,.05) 1px,transparent 1px),
+                                linear-gradient(90deg,rgba(6,182,212,.05) 1px,transparent 1px);
+              background-size:64px 64px;"></div>
+
+  <!-- Glow orbs -->
+  <div class="absolute -top-16 -left-16 w-96 h-96 rounded-full pointer-events-none" aria-hidden="true"
+       style="background:radial-gradient(circle,rgba(6,182,212,.18) 0%,transparent 65%);"></div>
+  <div class="absolute bottom-0 right-0 w-80 h-80 rounded-full pointer-events-none" aria-hidden="true"
+       style="background:radial-gradient(circle,rgba(163,230,53,.1) 0%,transparent 65%);"></div>
+
+  <div class="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
+
+    <!-- Breadcrumb -->
+    <nav class="mb-10" aria-label="Breadcrumb">
+      <ol class="flex flex-wrap items-center gap-x-2 text-xs sm:text-sm"
+          itemscope itemtype="https://schema.org/BreadcrumbList">
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="{% url 'eduweb:index' %}" itemprop="item"
+             class="text-white/50 hover:text-cyan-300 transition-colors focus:outline-none focus:text-cyan-300">
+            <span itemprop="name">Home</span>
+          </a>
+          <meta itemprop="position" content="1">
+        </li>
+        <li aria-hidden="true">
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/30 inline-block"></i>
+        </li>
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" aria-current="page">
+          <span itemprop="name" class="text-white/70 font-medium">About Us</span>
+          <meta itemprop="position" content="2">
+        </li>
+      </ol>
+    </nav>
+
+    <div class="about-hero-grid">
+
+      <!-- Left — text -->
+      <div>
+        <div class="pill pill-cyan mb-6 inline-flex">
+          <i data-lucide="info" class="w-3.5 h-3.5"></i>
+          <span>Our Story</span>
+        </div>
+
+        <h1 id="about-heading"
+            class="font-heading font-extrabold leading-[1.04] mb-6 text-white"
+            style="font-size: clamp(2.8rem, 7vw, 5.2rem);">
+          We Build<br>
+          <span class="shimmer-text">Tech Futures.</span>
+        </h1>
+
+        <p class="text-navy-200 text-lg leading-relaxed mb-4 max-w-xl">
+          {{ site_config.hero_tagline|default:"A UK &amp; Nigeria-based tech training and digital transformation platform — building the in-demand skills of tomorrow, today." }}
+        </p>
+        <p class="text-navy-300 text-base leading-relaxed mb-10 max-w-xl">
+          {{ site_config.school_name|default:"ABrayTech Limited" }} closes the digital skills gap across Africa and the diaspora — with practical, career-focused training in AI, cybersecurity, full-stack development, and more.
+        </p>
+
+        <!-- Chips -->
+        <div class="flex flex-wrap gap-2.5 mb-10">
+          <span class="pill pill-cyan"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>UK &amp; Nigeria</span>
+          <span class="pill pill-cyan"><i data-lucide="award" class="w-3.5 h-3.5"></i>Industry-Led</span>
+          <span class="pill pill-lime"><i data-lucide="zap" class="w-3.5 h-3.5"></i>Career-Ready</span>
+          <span class="pill pill-cyan"><i data-lucide="globe" class="w-3.5 h-3.5"></i>Online &amp; In-Person</span>
+        </div>
+
+        <div class="flex flex-wrap gap-3">
+          <a href="{% url 'eduweb:apply' %}" class="btn-primary">
+            <i data-lucide="send" class="w-4 h-4"></i> Enrol Now
+          </a>
+          <a href="#leadership" class="btn-outline">
+            <i data-lucide="users" class="w-4 h-4"></i> Meet the Team
+          </a>
+          <a href="#our-story" class="btn-outline">
+            <i data-lucide="book-open" class="w-4 h-4"></i> Our Story
+          </a>
+        </div>
+      </div>
+
+      <!-- Right — founder card -->
+      <div class="hidden lg:block">
+        {% with founder=admin_board_members.first %}
+        <div class="founder-card" style="max-height: 520px;">
+          {% if founder and founder.photo %}
+            <img src="{{ founder.photo.url }}"
+                 alt="Portrait of {{ founder.name }}, {{ founder.role }}"
+                 class="w-full h-full object-cover object-top"
+                 style="min-height:420px;"
+                 loading="eager" itemprop="image">
+          {% else %}
+            <div class="w-full flex items-center justify-center"
+                 style="min-height:420px;background:linear-gradient(135deg,#091829 0%,#0f2236 60%,#0a1e30 100%);">
+              <div class="text-center">
+                <div class="w-28 h-28 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-4">
+                  <i data-lucide="user-circle" class="w-16 h-16 text-cyan-400"></i>
+                </div>
+                <p class="font-heading font-bold text-white text-xl mb-1">
+                  {% if founder %}{{ founder.name }}{% else %}{{ site_config.school_short_name|default:"ABrayTech" }} Leadership{% endif %}
+                </p>
+                <p class="text-cyan-300 text-sm font-semibold">
+                  {% if founder %}{{ founder.role }}{% else %}Driving Digital Transformation{% endif %}
+                </p>
+              </div>
+            </div>
+          {% endif %}
+          <div class="founder-card-info">
+            <p class="font-heading font-bold text-white text-xl mb-0.5">
+              {% if founder %}{{ founder.name }}{% else %}{{ site_config.school_short_name|default:"ABrayTech" }}{% endif %}
+            </p>
+            <p class="text-cyan-300 text-sm font-semibold">
+              {% if founder %}{{ founder.role }}{% else %}Driving Digital Transformation{% endif %}
+            </p>
+          </div>
+        </div>
+        {% endwith %}
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     §2  STATS BELT  — white/light bg
+══════════════════════════════════════════════════════════ -->
+<section class="bg-white py-0" aria-label="Key facts and statistics">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="stats-belt">
+
+      <div class="stats-belt-item reveal">
+        <div class="font-heading font-extrabold text-3xl sm:text-4xl text-navy-800 mb-1"
+             style="text-shadow:0 0 24px rgba(6,182,212,.2);">
+          {{ site_config.founded_year|default:"2020" }}
+        </div>
+        <div class="flex items-center justify-center gap-1.5 text-cyan-600 text-xs font-semibold uppercase tracking-wider mt-1">
+          <i data-lucide="calendar" class="w-3.5 h-3.5"></i> Founded
+        </div>
+      </div>
+
+      <div class="stats-belt-item reveal delay-1">
+        <div class="font-heading font-extrabold text-3xl sm:text-4xl text-navy-800 mb-1">2</div>
+        <div class="flex items-center justify-center gap-1.5 text-cyan-600 text-xs font-semibold uppercase tracking-wider mt-1">
+          <i data-lucide="globe" class="w-3.5 h-3.5"></i> Countries
+        </div>
+      </div>
+
+      <div class="stats-belt-item reveal delay-2">
+        <div class="font-heading font-extrabold text-3xl sm:text-4xl text-navy-800 mb-1">
+          {{ all_faculties.count|default:"4" }}+
+        </div>
+        <div class="flex items-center justify-center gap-1.5 text-cyan-600 text-xs font-semibold uppercase tracking-wider mt-1">
+          <i data-lucide="layers" class="w-3.5 h-3.5"></i> Service Areas
+        </div>
+      </div>
+
+      <div class="stats-belt-item reveal delay-3">
+        <div class="font-heading font-extrabold text-3xl sm:text-4xl text-navy-800 mb-1">500+</div>
+        <div class="flex items-center justify-center gap-1.5 text-cyan-600 text-xs font-semibold uppercase tracking-wider mt-1">
+          <i data-lucide="users" class="w-3.5 h-3.5"></i> Learners Trained
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     §3  WHO WE ARE  — warm off-white #fafaf9
+══════════════════════════════════════════════════════════ -->
+<section style="background:#fafaf9;" class="py-16 sm:py-20 lg:py-24" id="who-we-are"
+         aria-labelledby="who-heading">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+
+    <div class="max-w-3xl mx-auto text-center mb-14 reveal">
+      <div class="pill pill-light mb-4 inline-flex">
+        <i data-lucide="building" class="w-3.5 h-3.5"></i>
+        <span>Our Identity</span>
+      </div>
+      <h2 id="who-heading" class="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold text-navy-800 mb-4">
+        Who We Are
+      </h2>
+      <p class="text-gray-500 text-base sm:text-lg leading-relaxed">
+        A team of practitioners, educators, and builders — united by one goal.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+
+      <!-- Text -->
+      <div class="space-y-5 reveal-l">
+        <p class="text-gray-700 leading-relaxed text-base lg:text-lg">
+          {{ site_config.school_name|default:"ABrayTech Limited" }} is a UK &amp; Nigeria-based technology training and digital transformation company, committed to closing the skills gap across Africa and the diaspora.
+        </p>
+        <p class="text-gray-700 leading-relaxed text-base lg:text-lg">
+          We deliver career-focused, practical training in AI, cybersecurity, full-stack development, data science, and digital marketing — built for the real world, not just the classroom.
+        </p>
+        <p class="text-gray-700 leading-relaxed text-base lg:text-lg">
+          Our programmes are crafted by industry practitioners and structured to take complete beginners through to job-ready professionals, with ongoing mentorship and community support.
+        </p>
+        <div class="flex flex-col sm:flex-row flex-wrap gap-3 pt-2">
+          <a href="{% url 'eduweb:apply' %}" class="btn-primary">
+            <i data-lucide="send" class="w-4 h-4"></i> Enrol Now
+          </a>
+          <a href="#leadership" class="btn-dark">
+            <i data-lucide="users" class="w-4 h-4"></i> Our Team
+          </a>
+        </div>
+      </div>
+
+      <!-- Feature grid -->
+      <div class="grid grid-cols-2 gap-4 reveal-r">
+
+        <div class="rounded-xl p-5 border border-cyan-100 bg-white shadow-sm hover:shadow-md transition-shadow">
+          <div class="w-10 h-10 rounded-lg bg-cyan-50 flex items-center justify-center mb-3">
+            <i data-lucide="map-pin" class="w-5 h-5 text-cyan-600"></i>
+          </div>
+          <p class="font-heading font-bold text-navy-800 text-sm mb-1">UK &amp; Nigeria</p>
+          <p class="text-gray-500 text-xs leading-relaxed">Dual presence, global mindset</p>
+        </div>
+
+        <div class="rounded-xl p-5 border border-lime-100 bg-white shadow-sm hover:shadow-md transition-shadow">
+          <div class="w-10 h-10 rounded-lg bg-lime-50 flex items-center justify-center mb-3">
+            <i data-lucide="award" class="w-5 h-5 text-lime-600"></i>
+          </div>
+          <p class="font-heading font-bold text-navy-800 text-sm mb-1">Industry-Led</p>
+          <p class="text-gray-500 text-xs leading-relaxed">Curriculum built by practitioners</p>
+        </div>
+
+        <div class="rounded-xl p-5 border border-amber-100 bg-white shadow-sm hover:shadow-md transition-shadow">
+          <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center mb-3">
+            <i data-lucide="zap" class="w-5 h-5 text-amber-500"></i>
+          </div>
+          <p class="font-heading font-bold text-navy-800 text-sm mb-1">Career-Ready</p>
+          <p class="text-gray-500 text-xs leading-relaxed">Job outcomes from day one</p>
+        </div>
+
+        <div class="rounded-xl p-5 border border-navy-100 bg-white shadow-sm hover:shadow-md transition-shadow">
+          <div class="w-10 h-10 rounded-lg bg-navy-50 flex items-center justify-center mb-3">
+            <i data-lucide="globe" class="w-5 h-5 text-navy-600"></i>
+          </div>
+          <p class="font-heading font-bold text-navy-800 text-sm mb-1">Online &amp; In-Person</p>
+          <p class="text-gray-500 text-xs leading-relaxed">Flexible learning modes</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     §4  WATCH US  — deep navy
+══════════════════════════════════════════════════════════ -->
+<section class="section-dark py-16 sm:py-20" id="watch-us" aria-labelledby="watch-heading">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+
+    <div class="max-w-3xl mx-auto text-center mb-10 reveal">
+      <div class="pill pill-cyan mb-4 inline-flex">
+        <i data-lucide="video" class="w-3.5 h-3.5"></i>
+        <span>See Us in Action</span>
+      </div>
+      <h2 id="watch-heading" class="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-4">
+        Watch Us in Action
+      </h2>
+      <p class="text-navy-300 text-base leading-relaxed">
+        Get a real feel for what learning with {{ site_config.school_short_name|default:"ABrayTech" }} looks like.
+      </p>
+    </div>
+
+    <div class="max-w-4xl mx-auto reveal">
+      <div class="video-frame">
+        {% if site_config.promo_video_url %}
+          {{ site_config.promo_video_url|safe }}
+        {% else %}
+          <iframe src="https://www.youtube.com/embed/wzcQ5_XU58I?start=4"
+                  title="{{ site_config.school_short_name|default:'ABrayTech' }} — Official Platform Overview"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen loading="lazy">
+          </iframe>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     §5  OUR STORY / TIMELINE  — white bg
+══════════════════════════════════════════════════════════ -->
+<section class="bg-white py-16 sm:py-20 lg:py-24" id="our-story" aria-labelledby="history-heading">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+
+    <div class="max-w-3xl mx-auto text-center mb-14 reveal">
+      <div class="pill pill-light mb-4 inline-flex">
+        <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+        <span>Our Journey</span>
+      </div>
+      <h2 id="history-heading" class="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold text-navy-800 mb-4">
+        Our Story
+      </h2>
+      <p class="text-gray-500 text-base leading-relaxed">
+        From a bold idea to a platform empowering thousands across two continents.
+      </p>
+    </div>
+
+    <div class="max-w-2xl mx-auto relative" role="list" aria-label="Company milestones">
+
+      <!-- Vertical rail -->
+      <div class="timeline-rail" aria-hidden="true"></div>
+
+      {% if history_milestones %}
+        {% for milestone in history_milestones %}
+        <div class="relative flex gap-6 sm:gap-8 {% if not forloop.last %}pb-12{% endif %} reveal" role="listitem">
+
+          <!-- Dot -->
+          <div class="flex flex-col items-center flex-shrink-0 w-10 sm:w-12" aria-hidden="true">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center z-10 relative
+              {% if forloop.first %}bg-cyan-500 shadow-lg
+              {% elif forloop.last %}bg-lime-500 shadow-lg
+              {% else %}bg-navy-800 border-2 border-cyan-600{% endif %}">
+              {% if forloop.first %}<i data-lucide="flag" class="w-4 h-4 sm:w-5 sm:h-5 text-white"></i>
+              {% elif forloop.last %}<i data-lucide="star" class="w-4 h-4 sm:w-5 sm:h-5 text-white"></i>
+              {% else %}<i data-lucide="circle-dot" class="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400"></i>{% endif %}
+            </div>
+          </div>
+
+          <!-- Card -->
+          <div class="flex-1">
+            <span class="pill mb-3 inline-flex
+              {% if forloop.first %}bg-cyan-50 text-cyan-700 border-cyan-200
+              {% elif forloop.last %}bg-lime-50 text-lime-700 border-lime-200
+              {% else %}bg-gray-100 text-gray-600 border-gray-200{% endif %}"
+                  aria-label="Year: {{ milestone.year }}">
+              <i data-lucide="calendar" class="w-3 h-3"></i>
+              {{ milestone.year }}
+            </span>
+            <div class="rounded-xl border p-5 sm:p-6
+              {% if forloop.first %}border-cyan-200 bg-cyan-50/40
+              {% elif forloop.last %}border-lime-200 bg-lime-50/40
+              {% else %}border-gray-200 bg-gray-50/60{% endif %}">
+              <h3 class="font-heading font-bold text-base sm:text-lg text-navy-800 mb-2">{{ milestone.title }}</h3>
+              <p class="text-gray-600 text-sm leading-relaxed">{{ milestone.description }}</p>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+
+      {% else %}
+        <!-- Static fallback -->
+        <div class="relative flex gap-6 sm:gap-8 pb-12 reveal" role="listitem">
+          <div class="flex-shrink-0 w-10 sm:w-12" aria-hidden="true">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-cyan-500 shadow-lg flex items-center justify-center z-10 relative">
+              <i data-lucide="flag" class="w-5 h-5 text-white"></i>
+            </div>
+          </div>
+          <div class="flex-1">
+            <span class="pill bg-cyan-50 text-cyan-700 border-cyan-200 mb-3 inline-flex">
+              <i data-lucide="calendar" class="w-3 h-3"></i> Founded
+            </span>
+            <div class="rounded-xl border border-cyan-200 bg-cyan-50/40 p-5 sm:p-6">
+              <h3 class="font-heading font-bold text-navy-800 text-base sm:text-lg mb-2">The Beginning</h3>
+              <p class="text-gray-600 text-sm leading-relaxed">ABrayTech was established with a clear mission: to provide practical, career-focused tech education to individuals and businesses across the UK and Nigeria.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative flex gap-6 sm:gap-8 pb-12 reveal" role="listitem">
+          <div class="flex-shrink-0 w-10 sm:w-12" aria-hidden="true">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-navy-800 border-2 border-cyan-500 flex items-center justify-center z-10 relative">
+              <i data-lucide="circle-dot" class="w-4 h-4 text-cyan-400"></i>
+            </div>
+          </div>
+          <div class="flex-1">
+            <span class="pill bg-gray-100 text-gray-600 border-gray-200 mb-3 inline-flex">
+              <i data-lucide="calendar" class="w-3 h-3"></i> Growth
+            </span>
+            <div class="rounded-xl border border-gray-200 bg-gray-50/60 p-5 sm:p-6">
+              <h3 class="font-heading font-bold text-navy-800 text-base sm:text-lg mb-2">Expanding Programmes</h3>
+              <p class="text-gray-600 text-sm leading-relaxed">We launched new course tracks including AI &amp; Machine Learning, Cybersecurity, and Business Digitalisation — responding to rapid industry demand across both markets.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative flex gap-6 sm:gap-8 reveal" role="listitem">
+          <div class="flex-shrink-0 w-10 sm:w-12" aria-hidden="true">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-lime-500 shadow-lg flex items-center justify-center z-10 relative">
+              <i data-lucide="star" class="w-5 h-5 text-white"></i>
+            </div>
+          </div>
+          <div class="flex-1">
+            <span class="pill bg-lime-50 text-lime-700 border-lime-200 mb-3 inline-flex">
+              <i data-lucide="calendar" class="w-3 h-3"></i> Today
+            </span>
+            <div class="rounded-xl border border-lime-200 bg-lime-50/40 p-5 sm:p-6">
+              <h3 class="font-heading font-bold text-navy-800 text-base sm:text-lg mb-2">A Growing Community</h3>
+              <p class="text-gray-600 text-sm leading-relaxed">Today, ABrayTech serves hundreds of learners globally, with a curriculum co-designed by industry experts and a growing alumni network shaping the tech landscape across Africa and the UK.</p>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     §6  MISSION · VISION · VALUES  — slate bg
+══════════════════════════════════════════════════════════ -->
+<section style="background:#f1f5f9;" class="py-16 sm:py-20 lg:py-24" aria-labelledby="mvv-heading">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+
+    <div class="max-w-3xl mx-auto text-center mb-14 reveal">
+      <div class="pill pill-light mb-4 inline-flex">
+        <i data-lucide="compass" class="w-3.5 h-3.5"></i>
+        <span>Our Foundation</span>
+      </div>
+      <h2 id="mvv-heading" class="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold text-navy-800 mb-4">
+        Mission, Vision &amp; Values
+      </h2>
+      <p class="text-gray-500 text-base leading-relaxed">The principles that guide everything we build and teach.</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+
+      <!-- Mission -->
+      <article class="mvv-card reveal delay-1" style="border-top: 4px solid #06b6d4;">
+        <div class="mvv-icon-wrap" style="background:#ecfeff;">
+          <i data-lucide="target" class="w-6 h-6 text-cyan-600"></i>
+        </div>
+        <h3 class="font-heading font-bold text-lg sm:text-xl mb-3 text-navy-800">Our Mission</h3>
+        <p class="text-gray-600 leading-relaxed text-sm sm:text-base">
+          {{ site_config.about_mission|default:"To deliver practical, industry-aligned tech training that transforms careers and businesses — making world-class digital skills accessible across the UK and Nigeria." }}
+        </p>
+      </article>
+
+      <!-- Vision -->
+      <article class="mvv-card reveal delay-2" style="border-top: 4px solid #1e3a5f;">
+        <div class="mvv-icon-wrap" style="background:#eef2ff;">
+          <i data-lucide="eye" class="w-6 h-6 text-navy-700"></i>
+        </div>
+        <h3 class="font-heading font-bold text-lg sm:text-xl mb-3 text-navy-800">Our Vision</h3>
+        <p class="text-gray-600 leading-relaxed text-sm sm:text-base">
+          {{ site_config.about_vision|default:"To be the leading tech skills platform bridging Africa and the world — empowering a generation of developers, analysts, and digital entrepreneurs to build the future." }}
+        </p>
+      </article>
+
+      <!-- Values -->
+      <article class="mvv-card reveal delay-3 sm:col-span-2 lg:col-span-1" style="border-top: 4px solid #84cc16;">
+        <div class="mvv-icon-wrap" style="background:#f7fee7;">
+          <i data-lucide="heart" class="w-6 h-6 text-lime-600"></i>
+        </div>
+        <h3 class="font-heading font-bold text-lg sm:text-xl mb-3 text-navy-800">Our Core Values</h3>
+        <ul class="space-y-2.5" role="list">
+          {% if site_config.about_values %}
+            {% for value in site_config.about_values %}
+            <li class="flex items-start gap-2.5">
+              <i data-lucide="check-circle" class="w-4 h-4 flex-shrink-0 text-cyan-600 mt-0.5"></i>
+              <span class="text-gray-600 text-sm">{{ value }}</span>
+            </li>
+            {% endfor %}
+          {% else %}
+            {% comment %} {% for val in "Practical Industry-Relevant Curriculum,Learner-First Experience,Accessibility &amp; Inclusion,Community &amp; Mentorship,Integrity &amp; Excellence"|split:"," %}
+            <li class="flex items-start gap-2.5">
+              <i data-lucide="check-circle" class="w-4 h-4 flex-shrink-0 text-cyan-600 mt-0.5"></i>
+              <span class="text-gray-600 text-sm">{{ val }}</span>
+            </li>
+            {% endfor %} {% endcomment %}
+            {# fallback if template tag unavailable #}
+            {% if not site_config.about_values %}
+            <li class="flex items-start gap-2.5">
+              <i data-lucide="check-circle" class="w-4 h-4 flex-shrink-0 text-cyan-600 mt-0.5"></i>
+              <span class="text-gray-600 text-sm">Practical, Industry-Relevant Curriculum</span>
+            </li>
+            <li class="flex items-start gap-2.5">
+              <i data-lucide="check-circle" class="w-4 h-4 flex-shrink-0 text-cyan-600 mt-0.5"></i>
+              <span class="text-gray-600 text-sm">Learner-First Experience</span>
+            </li>
+            <li class="flex items-start gap-2.5">
+              <i data-lucide="check-circle" class="w-4 h-4 flex-shrink-0 text-cyan-600 mt-0.5"></i>
+              <span class="text-gray-600 text-sm">Accessibility &amp; Inclusion</span>
+            </li>
+            <li class="flex items-start gap-2.5">
+              <i data-lucide="check-circle" class="w-4 h-4 flex-shrink-0 text-cyan-600 mt-0.5"></i>
+              <span class="text-gray-600 text-sm">Community &amp; Mentorship</span>
+            </li>
+            <li class="flex items-start gap-2.5">
+              <i data-lucide="check-circle" class="w-4 h-4 flex-shrink-0 text-cyan-600 mt-0.5"></i>
+              <span class="text-gray-600 text-sm">Integrity &amp; Excellence</span>
+            </li>
+            {% endif %}
+          {% endif %}
+        </ul>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     §7  LEADERSHIP & TEAM  — dark navy
+══════════════════════════════════════════════════════════ -->
+<section class="section-dark py-16 sm:py-20 lg:py-24" id="leadership" aria-labelledby="leadership-heading">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+
+    <div class="max-w-3xl mx-auto text-center mb-14 reveal">
+      <div class="pill pill-cyan mb-4 inline-flex">
+        <i data-lucide="users" class="w-3.5 h-3.5"></i>
+        <span>Our People</span>
+      </div>
+      <h2 id="leadership-heading" class="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-4">
+        Leadership &amp; Team
+      </h2>
+      <p class="text-navy-300 text-base leading-relaxed">
+        Guided by experienced professionals and practitioners committed to tech excellence and learner success.
+      </p>
+    </div>
+
+    <!-- Admin / Leadership Board -->
+    {% if admin_board_members %}
+    <div class="mb-14">
+      <div class="section-label reveal">
+        <span class="section-label-bar" style="background:#06b6d4;"></span>
+        <h3 class="font-heading text-lg sm:text-xl font-bold text-white">Leadership Team</h3>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 lg:gap-5">
+        {% for member in admin_board_members %}
+        <article class="member-card reveal" itemscope itemtype="https://schema.org/Person"
+                 style="transition-delay:{{ forloop.counter0|add:0 }}00ms; background:#0f2236; border-color:rgba(255,255,255,0.08);">
+          <div class="member-card-img" style="background:linear-gradient(135deg,#091829,#0f2236);">
+            {% if member.photo %}
+              <img src="{{ member.photo.url }}"
+                   alt="Portrait of {{ member.name }}"
+                   class="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                   loading="lazy" itemprop="image">
+            {% else %}
+              <div class="absolute inset-0 flex items-center justify-center">
+                <i data-lucide="user-circle" class="w-14 h-14 text-cyan-700"></i>
+              </div>
+            {% endif %}
+          </div>
+          <div class="p-4 text-center">
+            <p class="font-heading font-bold text-sm text-white leading-snug mb-1" itemprop="name">{{ member.name }}</p>
+            <p class="text-xs text-cyan-400 font-semibold mb-2 leading-tight" itemprop="jobTitle">{{ member.role }}</p>
+            {% if member.bio %}
+              <p class="text-xs text-navy-300 line-clamp-2 leading-relaxed" itemprop="description">{{ member.bio }}</p>
+            {% endif %}
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+    {% else %}
+    <div class="mb-14">
+      <div class="section-label reveal">
+        <span class="section-label-bar" style="background:#06b6d4;"></span>
+        <h3 class="font-heading text-lg sm:text-xl font-bold text-white">Leadership Team</h3>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 lg:gap-5">
+        {% for item in "12345"|make_list %}
+        <article class="member-card reveal" style="background:#0f2236;border-color:rgba(255,255,255,0.08);">
+          <div class="member-card-img" style="background:linear-gradient(135deg,#091829,#0f2236);">
+            <img src="{% static 'images/board-admin-'|add:forloop.counter|add:'.jpg' %}"
+                 alt="" class="absolute inset-0 w-full h-full object-cover object-top"
+                 onerror="this.style.display='none';" loading="lazy">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <i data-lucide="user-circle" class="w-14 h-14 text-cyan-700"></i>
+            </div>
+          </div>
+          <div class="p-4 text-center">
+            <p class="font-heading font-bold text-sm text-white leading-snug mb-1">
+              {% if forloop.counter == 1 %}Founder &amp; CEO
+              {% elif forloop.counter == 2 %}Head of Training
+              {% elif forloop.counter == 3 %}Lead Instructor
+              {% elif forloop.counter == 4 %}Head of Operations
+              {% else %}Head of Partnerships{% endif %}
+            </p>
+            <p class="text-xs text-cyan-400 font-semibold leading-tight">ABrayTech Limited</p>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Academic / Instructors Board -->
+    {% if academic_board_members %}
+    <div class="mb-14">
+      <div class="section-label reveal">
+        <span class="section-label-bar" style="background:#a5b4fc;"></span>
+        <h3 class="font-heading text-lg sm:text-xl font-bold text-white">Instructors &amp; Academic Team</h3>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 lg:gap-5">
+        {% for member in academic_board_members %}
+        <article class="member-card reveal" itemscope itemtype="https://schema.org/Person"
+                 style="background:#0f2236;border-color:rgba(255,255,255,0.08);">
+          <div class="member-card-img" style="background:linear-gradient(135deg,#0a1236,#162e4d);">
+            {% if member.photo %}
+              <img src="{{ member.photo.url }}"
+                   alt="Portrait of {{ member.name }}"
+                   class="absolute inset-0 w-full h-full object-cover object-top"
+                   loading="lazy" itemprop="image">
+            {% else %}
+              <div class="absolute inset-0 flex items-center justify-center">
+                <i data-lucide="user-circle" class="w-14 h-14 text-navy-400"></i>
+              </div>
+            {% endif %}
+          </div>
+          <div class="p-4 text-center">
+            <p class="font-heading font-bold text-sm text-white leading-snug mb-1" itemprop="name">{{ member.name }}</p>
+            <p class="text-xs text-navy-300 font-semibold mb-2 leading-tight" itemprop="jobTitle">{{ member.role }}</p>
+            {% if member.bio %}
+              <p class="text-xs text-navy-400 line-clamp-2 leading-relaxed" itemprop="description">{{ member.bio }}</p>
+            {% endif %}
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Advisorate Board -->
+    {% if advisorate_board_members %}
+    <div class="mb-14">
+      <div class="section-label reveal">
+        <span class="section-label-bar" style="background:#a3e635;"></span>
+        <h3 class="font-heading text-lg sm:text-xl font-bold text-white">Advisors</h3>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 lg:gap-5">
+        {% for member in advisorate_board_members %}
+        <article class="member-card reveal" itemscope itemtype="https://schema.org/Person"
+                 style="background:#0f2236;border-color:rgba(255,255,255,0.08);">
+          <div class="member-card-img" style="background:linear-gradient(135deg,#0a1a06,#0d2a10);">
+            {% if member.photo %}
+              <img src="{{ member.photo.url }}"
+                   alt="Portrait of {{ member.name }}"
+                   class="absolute inset-0 w-full h-full object-cover object-top"
+                   loading="lazy" itemprop="image">
+            {% else %}
+              <div class="absolute inset-0 flex items-center justify-center">
+                <i data-lucide="user-circle" class="w-14 h-14 text-lime-700"></i>
+              </div>
+            {% endif %}
+          </div>
+          <div class="p-4 text-center">
+            <p class="font-heading font-bold text-sm text-white leading-snug mb-1" itemprop="name">{{ member.name }}</p>
+            <p class="text-xs text-lime-400 font-semibold mb-2 leading-tight" itemprop="jobTitle">{{ member.role }}</p>
+            {% if member.bio %}
+              <p class="text-xs text-navy-400 line-clamp-2 leading-relaxed" itemprop="description">{{ member.bio }}</p>
+            {% endif %}
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Staff -->
+    {% if staff_members %}
+    <div>
+      <div class="section-label reveal">
+        <span class="section-label-bar" style="background:#06b6d4;"></span>
+        <h3 class="font-heading text-lg sm:text-xl font-bold text-white">Staff</h3>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 lg:gap-5">
+        {% for member in staff_members %}
+        <article class="member-card reveal" itemscope itemtype="https://schema.org/Person"
+                 style="background:#0f2236;border-color:rgba(255,255,255,0.08);">
+          <div class="member-card-img" style="background:linear-gradient(135deg,#091829,#0a1e30);">
+            {% if member.photo %}
+              <img src="{{ member.photo.url }}"
+                   alt="Portrait of {{ member.name }}"
+                   class="absolute inset-0 w-full h-full object-cover object-top"
+                   loading="lazy" itemprop="image">
+            {% else %}
+              <div class="absolute inset-0 flex items-center justify-center">
+                <i data-lucide="user-circle" class="w-14 h-14 text-cyan-700"></i>
+              </div>
+            {% endif %}
+          </div>
+          <div class="p-4 text-center">
+            <p class="font-heading font-bold text-sm text-white leading-snug mb-1" itemprop="name">{{ member.name }}</p>
+            <p class="text-xs text-cyan-400 font-semibold mb-2 leading-tight" itemprop="jobTitle">{{ member.role }}</p>
+            {% if member.bio %}
+              <p class="text-xs text-navy-400 line-clamp-2 leading-relaxed" itemprop="description">{{ member.bio }}</p>
+            {% endif %}
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+
+
+{% comment %} <!-- ══════════════════════════════════════════════════════════
+     §8  CTA  — cyan accent
+══════════════════════════════════════════════════════════ -->
+<section style="background:linear-gradient(135deg,#0e7490 0%,#06b6d4 50%,#22d3ee 100%);"
+         class="py-16 sm:py-20" aria-label="Join ABrayTech">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mx-auto text-center reveal">
+
+      <h2 class="font-heading font-extrabold text-white mb-4"
+          style="font-size:clamp(2rem,5vw,3.2rem);">
+        Ready to Build Your Future?
+      </h2>
+      <p class="text-cyan-100 text-lg leading-relaxed mb-10 max-w-xl mx-auto">
+        Join {{ site_config.school_name|default:"ABrayTech" }} and get the skills that employers are hiring for — right now.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="{% url 'eduweb:apply' %}"
+           class="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-bold text-base
+                  bg-white text-cyan-700 hover:bg-cyan-50 transition-all shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-white/40">
+          <i data-lucide="send" class="w-5 h-5"></i> Apply Now
+        </a>
+        <a href="{% url 'eduweb:all_programs' %}"
+           class="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-bold text-base
+                  bg-transparent text-white border-2 border-white/60 hover:bg-white/10 transition-all focus:outline-none focus:ring-4 focus:ring-white/40">
+          <i data-lucide="book-open" class="w-5 h-5"></i> Browse Courses
+        </a>
+      </div>
+
+    </div>
+  </div>
+</section> {% endcomment %}
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+(function () {
+  'use strict';
+
+  // Simple IntersectionObserver scroll-reveal
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.reveal, .reveal-l, .reveal-r').forEach(el => io.observe(el));
+
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+})();
+</script>
+{% endblock %}

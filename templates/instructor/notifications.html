@@ -1,0 +1,416 @@
+{% extends "management/base.html" %}
+{% load static %}
+
+{% block title %}Notifications - {{ site_config.school_short_name|default:"Instructor" }} Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ── Notification item transitions ── */
+    .notif-item {
+        transition: background-color 0.25s ease, border-color 0.25s ease, transform 0.15s ease;
+    }
+    .notif-item:hover {
+        transform: translateX(2px);
+    }
+    .notif-item.unread {
+        border-left-color: var(--color-primary-500);
+        background-color: #eff6ff;
+    }
+    .notif-item.read {
+        border-left-color: transparent;
+        background-color: #fff;
+    }
+    .notif-item.read:hover {
+        background-color: #f9fafb;
+    }
+    /* dot pulse on unread */
+    @keyframes pulse-dot {
+        0%, 100% { opacity: 1; }
+        50%       { opacity: 0.35; }
+    }
+    .dot-pulse { animation: pulse-dot 2s ease-in-out infinite; }
+
+    /* filter pill active */
+    .filter-pill.active {
+        background-color: var(--color-primary-500);
+        color: #fff;
+        border-color: var(--color-primary-500);
+    }
+    .filter-pill {
+        transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+    }
+
+    /* skeleton shimmer */
+    @keyframes shimmer {
+        0%   { background-position: -400px 0; }
+        100% { background-position: 400px 0; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-full mx-auto px-3 sm:px-4 lg:px-6 py-6 lg:py-8">
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- PAGE HEADER                                               -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <!-- Icon badge -->
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center shadow-sm flex-shrink-0">
+                <i class="fas fa-bell text-white text-base" aria-hidden="true"></i>
+            </div>
+            <div>
+                <h1 class="text-xl sm:text-2xl font-bold text-gray-900 font-heading leading-tight">
+                    Notifications
+                </h1>
+                <p class="text-xs sm:text-sm text-gray-500 mt-0.5">
+                    Stay up-to-date with your course activity
+                </p>
+            </div>
+        </div>
+
+        <!-- Right-side actions -->
+        <div class="flex items-center gap-2 flex-shrink-0">
+            {% if unread_count > 0 %}
+            <!-- Unread badge pill -->
+            <span id="unread-badge"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 border border-red-200 text-red-600 rounded-full text-xs font-semibold">
+                <span class="w-2 h-2 rounded-full bg-red-500 dot-pulse inline-block"></span>
+                <span id="unread-count">{{ unread_count }}</span> unread
+            </span>
+            {% else %}
+            <span id="unread-badge" class="hidden inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 border border-red-200 text-red-600 rounded-full text-xs font-semibold">
+                <span class="w-2 h-2 rounded-full bg-red-500 dot-pulse inline-block"></span>
+                <span id="unread-count">0</span> unread
+            </span>
+            {% endif %}
+
+            <!-- Mark all read button -->
+            {% if unread_count > 0 %}
+            <a href="?mark_all=1"
+               id="mark-all-btn"
+               class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 border border-primary-200 rounded-lg hover:bg-primary-100 transition-colors"
+               title="Mark all notifications as read">
+                <i class="fas fa-check-double text-xs" aria-hidden="true"></i>
+                <span class="hidden sm:inline">Mark all read</span>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- FILTER PILLS                                              -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="mb-5 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <button onclick="filterNotifs('all')"
+                data-filter="all"
+                class="filter-pill active flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-full text-gray-600 bg-white hover:bg-gray-50">
+            <i class="fas fa-list text-xs"></i> All
+        </button>
+        <button onclick="filterNotifs('unread')"
+                data-filter="unread"
+                class="filter-pill flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-full text-gray-600 bg-white hover:bg-gray-50">
+            <i class="fas fa-circle text-xs" style="font-size:7px"></i> Unread
+        </button>
+        <button onclick="filterNotifs('assignment')"
+                data-filter="assignment"
+                class="filter-pill flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-full text-gray-600 bg-white hover:bg-gray-50">
+            <i class="fas fa-file-alt text-xs"></i> Assignments
+        </button>
+        <button onclick="filterNotifs('grade')"
+                data-filter="grade"
+                class="filter-pill flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-full text-gray-600 bg-white hover:bg-gray-50">
+            <i class="fas fa-star text-xs"></i> Grades
+        </button>
+        <button onclick="filterNotifs('message')"
+                data-filter="message"
+                class="filter-pill flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-full text-gray-600 bg-white hover:bg-gray-50">
+            <i class="fas fa-envelope text-xs"></i> Messages
+        </button>
+        <button onclick="filterNotifs('enrollment')"
+                data-filter="enrollment"
+                class="filter-pill flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-full text-gray-600 bg-white hover:bg-gray-50">
+            <i class="fas fa-user-check text-xs"></i> Enrollments
+        </button>
+        <button onclick="filterNotifs('announcement')"
+                data-filter="announcement"
+                class="filter-pill flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-full text-gray-600 bg-white hover:bg-gray-50">
+            <i class="fas fa-bullhorn text-xs"></i> Announcements
+        </button>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- NOTIFICATION LIST                                         -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    {% if notifications %}
+    <div class="space-y-2" id="notif-list">
+        {% for notif in notifications %}
+        <!-- Determine type-based styling vars in template logic -->
+        <div id="notif-{{ notif.id }}"
+             data-read="{{ notif.is_read|yesno:'true,false' }}"
+             data-type="{{ notif.notification_type }}"
+             onclick="markRead({{ notif.id }})"
+             role="button"
+             tabindex="0"
+             aria-label="{{ notif.title }} - {% if not notif.is_read %}Unread{% else %}Read{% endif %}"
+             onkeydown="if(event.key==='Enter'||event.key===' ')markRead({{ notif.id }})"
+             class="notif-item {% if not notif.is_read %}unread{% else %}read{% endif %}
+                    relative flex items-start gap-3 sm:gap-4 p-4 sm:p-5
+                    rounded-xl border border-gray-100 border-l-4 cursor-pointer
+                    shadow-sm hover:shadow-md outline-none
+                    focus:ring-2 focus:ring-primary-400 focus:ring-offset-1">
+
+            <!-- ── Type icon ── -->
+            <div class="flex-shrink-0 mt-0.5">
+                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center
+                    {% if notif.notification_type == 'assignment' %}bg-orange-100
+                    {% elif notif.notification_type == 'grade' %}bg-emerald-100
+                    {% elif notif.notification_type == 'message' %}bg-blue-100
+                    {% elif notif.notification_type == 'certificate' %}bg-yellow-100
+                    {% elif notif.notification_type == 'enrollment' %}bg-purple-100
+                    {% elif notif.notification_type == 'announcement' %}bg-primary-100
+                    {% elif notif.notification_type == 'system' %}bg-gray-100
+                    {% else %}bg-gray-100{% endif %}">
+                    <i class="text-sm
+                        {% if notif.notification_type == 'assignment' %}fas fa-file-alt text-orange-500
+                        {% elif notif.notification_type == 'grade' %}fas fa-star text-emerald-500
+                        {% elif notif.notification_type == 'message' %}fas fa-envelope text-blue-500
+                        {% elif notif.notification_type == 'certificate' %}fas fa-certificate text-yellow-500
+                        {% elif notif.notification_type == 'enrollment' %}fas fa-user-check text-purple-500
+                        {% elif notif.notification_type == 'announcement' %}fas fa-bullhorn text-primary-500
+                        {% elif notif.notification_type == 'system' %}fas fa-cog text-gray-500
+                        {% else %}fas fa-bell text-gray-400{% endif %}"
+                        aria-hidden="true"></i>
+                </div>
+            </div>
+
+            <!-- ── Content ── -->
+            <div class="flex-1 min-w-0">
+                <!-- Title + read status row -->
+                <div class="flex items-start justify-between gap-2 mb-1">
+                    <p class="text-sm font-semibold text-gray-900 leading-snug
+                               {% if not notif.is_read %}font-bold{% endif %}">
+                        {{ notif.title }}
+                    </p>
+                    <!-- Type label chip -->
+                    <span class="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                        {% if notif.notification_type == 'assignment' %}bg-orange-50 text-orange-600
+                        {% elif notif.notification_type == 'grade' %}bg-emerald-50 text-emerald-600
+                        {% elif notif.notification_type == 'message' %}bg-blue-50 text-blue-600
+                        {% elif notif.notification_type == 'certificate' %}bg-yellow-50 text-yellow-600
+                        {% elif notif.notification_type == 'enrollment' %}bg-purple-50 text-purple-600
+                        {% elif notif.notification_type == 'announcement' %}bg-primary-50 text-primary-600
+                        {% else %}bg-gray-100 text-gray-500{% endif %}">
+                        {{ notif.get_notification_type_display|default:notif.notification_type|capfirst }}
+                    </span>
+                </div>
+
+                <!-- Message body -->
+                <p class="text-xs sm:text-sm text-gray-500 leading-relaxed line-clamp-2">
+                    {{ notif.message }}
+                </p>
+
+                <!-- Meta row: time + status -->
+                <div class="flex items-center gap-3 mt-2 flex-wrap">
+                    <span class="flex items-center gap-1 text-xs text-gray-400">
+                        <i class="fas fa-clock text-gray-300 text-xs" aria-hidden="true"></i>
+                        {{ notif.created_at|timesince }} ago
+                    </span>
+
+                    <!-- Read / Unread status label -->
+                    <span id="status-{{ notif.id }}"
+                          class="inline-flex items-center gap-1 text-xs font-medium
+                                 {% if notif.is_read %}text-emerald-600{% else %}text-primary-600{% endif %}">
+                        {% if notif.is_read %}
+                            <i class="fas fa-check-double" aria-hidden="true"></i> Read
+                        {% else %}
+                            <i class="fas fa-circle" style="font-size:6px" aria-hidden="true"></i> New
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <!-- ── Unread dot ── -->
+            <div class="flex-shrink-0 self-center pl-1">
+                <span id="dot-{{ notif.id }}"
+                      class="block w-2.5 h-2.5 rounded-full transition-all duration-300
+                             {% if not notif.is_read %}bg-primary-500 dot-pulse{% else %}invisible{% endif %}">
+                </span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Empty-after-filter message (hidden by default) -->
+    <div id="no-filter-results" class="hidden mt-8 text-center py-12">
+        <div class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <i class="fas fa-filter text-gray-300 text-xl" aria-hidden="true"></i>
+        </div>
+        <p class="text-sm font-medium text-gray-500">No notifications match this filter</p>
+        <button onclick="filterNotifs('all')" class="mt-2 text-xs text-primary-500 hover:underline">Show all</button>
+    </div>
+
+    <!-- ── Pagination ── -->
+    {% if notifications.has_other_pages %}
+    <div class="mt-6 flex justify-center items-center gap-2">
+        {% if notifications.has_previous %}
+        <a href="?page={{ notifications.previous_page_number }}"
+           class="inline-flex items-center gap-1.5 px-4 py-2 border border-gray-200 rounded-lg text-xs sm:text-sm text-gray-600 bg-white hover:bg-gray-50 transition-colors shadow-sm">
+            <i class="fas fa-chevron-left text-xs" aria-hidden="true"></i>
+            <span>Previous</span>
+        </a>
+        {% endif %}
+
+        <div class="flex items-center gap-1">
+            {% for i in notifications.paginator.page_range %}
+                {% if notifications.number == i %}
+                <span class="inline-flex items-center justify-center w-9 h-9 bg-primary-500 text-white rounded-lg text-sm font-semibold shadow-sm">
+                    {{ i }}
+                </span>
+                {% elif i == 1 or i == notifications.paginator.num_pages or i >= notifications.number|add:"-2" and i <= notifications.number|add:"2" %}
+                <a href="?page={{ i }}"
+                   class="inline-flex items-center justify-center w-9 h-9 border border-gray-200 text-gray-600 rounded-lg text-sm hover:bg-gray-50 transition-colors">
+                    {{ i }}
+                </a>
+                {% elif i == notifications.number|add:"-3" or i == notifications.number|add:"3" %}
+                <span class="inline-flex items-center justify-center w-9 h-9 text-gray-400 text-sm">…</span>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        {% if notifications.has_next %}
+        <a href="?page={{ notifications.next_page_number }}"
+           class="inline-flex items-center gap-1.5 px-4 py-2 border border-gray-200 rounded-lg text-xs sm:text-sm text-gray-600 bg-white hover:bg-gray-50 transition-colors shadow-sm">
+            <span>Next</span>
+            <i class="fas fa-chevron-right text-xs" aria-hidden="true"></i>
+        </a>
+        {% endif %}
+    </div>
+
+    <p class="text-center text-xs text-gray-400 mt-3">
+        Page {{ notifications.number }} of {{ notifications.paginator.num_pages }}
+        &nbsp;&bull;&nbsp; {{ notifications.paginator.count }} total notification{{ notifications.paginator.count|pluralize }}
+    </p>
+    {% endif %}
+
+    {% else %}
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- EMPTY STATE                                               -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm py-16 sm:py-20 px-6 text-center">
+        <div class="relative w-20 h-20 mx-auto mb-5">
+            <div class="absolute inset-0 bg-gradient-to-br from-primary-100 to-secondary-100 rounded-full opacity-60"></div>
+            <div class="relative w-20 h-20 flex items-center justify-center">
+                <i class="fas fa-bell-slash text-3xl text-gray-300" aria-hidden="true"></i>
+            </div>
+        </div>
+        <h3 class="text-base sm:text-lg font-semibold text-gray-700 mb-2 font-heading">
+            No notifications yet
+        </h3>
+        <p class="text-xs sm:text-sm text-gray-400 max-w-xs mx-auto leading-relaxed">
+            When students submit assignments, leave reviews, or enroll in your courses, you'll see updates here.
+        </p>
+        <a href="{% url 'instructor:dashboard' %}"
+           class="inline-flex items-center gap-2 mt-6 px-5 py-2.5 bg-primary-500 text-white text-sm font-medium rounded-lg hover:bg-primary-600 transition-colors shadow-sm">
+            <i class="fas fa-tachometer-alt text-xs" aria-hidden="true"></i>
+            Back to Dashboard
+        </a>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+(function () {
+    /* ── Live unread counter ── */
+    var unreadCount = {{ unread_count }};
+
+    /* ── Mark single notification as read ── */
+    window.markRead = function (id) {
+        var item = document.getElementById('notif-' + id);
+        if (!item || item.dataset.read === 'true') return;
+
+        fetch('{% url "instructor:notification_read" notif_id=0 %}'.replace('/0/', '/' + id + '/'), {
+            method: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin',
+        })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+            if (!data.success) return;
+
+            /* visual: swap unread → read */
+            item.classList.remove('unread');
+            item.classList.add('read');
+            item.dataset.read = 'true';
+
+            /* status label */
+            var status = document.getElementById('status-' + id);
+            if (status) {
+                status.className = 'inline-flex items-center gap-1 text-xs font-medium text-emerald-600';
+                status.innerHTML = '<i class="fas fa-check-double" aria-hidden="true"></i> Read';
+            }
+
+            /* title: remove bold */
+            var title = item.querySelector('p.font-bold');
+            if (title) title.classList.remove('font-bold');
+
+            /* dot */
+            var dot = document.getElementById('dot-' + id);
+            if (dot) {
+                dot.classList.remove('bg-primary-500', 'dot-pulse');
+                dot.classList.add('invisible');
+            }
+
+            /* badge */
+            unreadCount = Math.max(0, unreadCount - 1);
+            updateBadge();
+        })
+        .catch(function () {});
+    };
+
+    /* ── Update header badge ── */
+    function updateBadge() {
+        var badge = document.getElementById('unread-badge');
+        var countEl = document.getElementById('unread-count');
+        if (!badge || !countEl) return;
+
+        if (unreadCount <= 0) {
+            badge.classList.add('hidden');
+            var markAllBtn = document.getElementById('mark-all-btn');
+            if (markAllBtn) markAllBtn.classList.add('hidden');
+        } else {
+            badge.classList.remove('hidden');
+            countEl.textContent = unreadCount;
+        }
+    }
+
+    /* ── Filter pills ── */
+    window.filterNotifs = function (filter) {
+        /* Update active pill */
+        document.querySelectorAll('.filter-pill').forEach(function (pill) {
+            pill.classList.toggle('active', pill.dataset.filter === filter);
+        });
+
+        var items    = document.querySelectorAll('#notif-list > [id^="notif-"]');
+        var noResult = document.getElementById('no-filter-results');
+        var visible  = 0;
+
+        items.forEach(function (item) {
+            var matchType   = filter === 'all' || item.dataset.type === filter;
+            var matchUnread = filter !== 'unread' || item.dataset.read === 'false';
+            var show        = matchType && matchUnread;
+
+            item.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+
+        if (noResult) noResult.classList.toggle('hidden', visible > 0);
+    };
+})();
+</script>
+{% endblock %}

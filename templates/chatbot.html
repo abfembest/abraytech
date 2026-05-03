@@ -1,0 +1,528 @@
+{% load static %}
+
+
+<!-- Chatbot Container -->
+<div id="studentLifeChatbot" class="fixed bottom-6 right-6 z-50" role="complementary" aria-label="Student Life Chatbot">
+    <!-- Toggle Button -->
+    <button id="chatbotToggle"
+            class="w-16 h-16 bg-gradient-to-br from-primary-950 to-primary-700 rounded-full flex items-center justify-center shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-4 focus:ring-accent-400 focus:ring-offset-2"
+            aria-label="Toggle chatbot"
+            aria-expanded="false">
+        <i data-lucide="message-circle" class="w-8 h-8 text-white" id="chatbotIcon"></i>
+        <span id="notificationBadge"
+              class="absolute -top-1 -right-1 w-6 h-6 bg-accent-400 rounded-full flex items-center justify-center text-xs font-bold text-primary-950 opacity-0 scale-0 transition-all duration-300"
+              aria-live="polite">
+            1
+        </span>
+    </button>
+
+    <!-- Chatbot Window -->
+    <div id="chatbotWindow"
+         class="fixed sm:absolute bottom-0 sm:bottom-20 left-0 sm:left-auto right-0 w-full sm:w-96 h-[100vh] sm:h-[36rem] md:h-[40rem] bg-white sm:rounded-2xl shadow-2xl border-0 sm:border border-gray-200 opacity-0 scale-95 pointer-events-none transition-all duration-300 flex flex-col"
+         role="dialog"
+         aria-labelledby="chatbotTitle"
+         aria-modal="true">
+
+        <!-- Header -->
+        <div class="bg-gradient-to-br from-primary-950 to-primary-700 text-white p-4 flex justify-between items-center shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-primary-700 shadow-lg">
+                    <i data-lucide="bot" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 id="chatbotTitle" class="font-bold text-sm">MIU Student Assistant</h3>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse" aria-hidden="true"></span>
+                        <span class="text-xs text-blue-100">Online</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button id="chatbotMinimize"
+                        class="hover:bg-white/20 p-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
+                        aria-label="Minimize chat">
+                    <i data-lucide="minus" class="w-5 h-5"></i>
+                </button>
+                <button id="chatbotClose"
+                        class="hover:bg-white/20 p-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
+                        aria-label="Close chat">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Pre‑chat form (hidden by default) -->
+        <div id="prechatForm" class="p-4 hidden">
+            <p class="text-sm font-medium text-gray-700 mb-3">Please introduce yourself</p>
+            <form id="userDetailsForm">
+                <input type="text" name="first_name" placeholder="First name" required
+                       class="w-full mb-2 p-2 border rounded-lg" maxlength="100">
+                <input type="email" name="email" placeholder="Email" required
+                       class="w-full mb-2 p-2 border rounded-lg" maxlength="254">
+                <button type="submit" class="w-full bg-primary-700 text-white p-2 rounded-lg">
+                    Start Chat
+                </button>
+            </form>
+        </div>
+
+        <!-- Quick Actions (hidden initially, shown after session starts) -->
+        <div id="quickActions" class="p-4 bg-gradient-to-br from-gray-50 to-blue-50 border-b border-gray-200 shrink-0 hidden">
+            <p class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-3">Quick Actions</p>
+            <div class="grid grid-cols-2 gap-2">
+                <button class="quick-topic p-3 text-left bg-white border-2 border-gray-200 rounded-xl hover:border-primary-500 hover:shadow-md transition-all group focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        data-action="programs"
+                        aria-label="Learn about programs">
+                    <span class="block text-2xl mb-1 group-hover:scale-110 transition-transform" aria-hidden="true">🎓</span>
+                    <span class="text-xs font-medium text-gray-700">Programs</span>
+                </button>
+                <button class="quick-topic p-3 text-left bg-white border-2 border-gray-200 rounded-xl hover:border-primary-500 hover:shadow-md transition-all group focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        data-action="admissions"
+                        aria-label="Learn about admissions">
+                    <span class="block text-2xl mb-1 group-hover:scale-110 transition-transform" aria-hidden="true">📋</span>
+                    <span class="text-xs font-medium text-gray-700">Admissions</span>
+                </button>
+                <button class="quick-topic p-3 text-left bg-white border-2 border-gray-200 rounded-xl hover:border-primary-500 hover:shadow-md transition-all group focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        data-action="campus"
+                        aria-label="Learn about campus life">
+                    <span class="block text-2xl mb-1 group-hover:scale-110 transition-transform" aria-hidden="true">🏫</span>
+                    <span class="text-xs font-medium text-gray-700">Campus Life</span>
+                </button>
+                <button class="quick-topic p-3 text-left bg-white border-2 border-gray-200 rounded-xl hover:border-primary-500 hover:shadow-md transition-all group focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        data-action="support"
+                        aria-label="Get academic support">
+                    <span class="block text-2xl mb-1 group-hover:scale-110 transition-transform" aria-hidden="true">💡</span>
+                    <span class="text-xs font-medium text-gray-700">Support</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Messages Container (hidden initially) -->
+        <div id="chatMessages"
+             class="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-br from-white to-gray-50 scroll-smooth overscroll-contain hidden"
+             role="log"
+             aria-live="polite"
+             aria-atomic="false">
+            <!-- Messages will be injected here -->
+        </div>
+
+        <!-- Typing Indicator -->
+        <div id="typingIndicator" class="hidden px-4 pb-2">
+            <div class="flex items-start gap-2">
+                <div class="w-8 h-8 bg-gradient-to-br from-primary-700 to-primary-900 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0">
+                    AI
+                </div>
+                <div class="bg-white rounded-2xl rounded-tl-sm p-3 shadow-sm border border-gray-100">
+                    <div class="flex gap-1">
+                        <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0s"></span>
+                        <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></span>
+                        <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.4s"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area (hidden initially) -->
+        <div id="inputArea" class="p-4 bg-white border-t border-gray-200 shrink-0 hidden">
+            <form id="chatForm" class="flex items-end gap-2">
+                {% csrf_token %}
+                <div class="flex-1">
+                    <label for="chatInput" class="sr-only">Type your message</label>
+                    <textarea id="chatInput"
+                              rows="1"
+                              placeholder="Type your message..."
+                              class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none"
+                              maxlength="500"
+                              aria-label="Message input"></textarea>
+                    <p class="text-xs text-gray-400 mt-1 px-1" id="charCount">0/500</p>
+                </div>
+                <button type="submit"
+                        id="sendMessage"
+                        class="p-3 bg-gradient-to-br from-primary-700 to-primary-900 text-white rounded-xl hover:shadow-lg hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                        aria-label="Send message">
+                    <i data-lucide="send" class="w-5 h-5"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Minimal custom animations that Tailwind doesn't provide */
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(1rem);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // ========== ELEMENTS ==========
+        const chatbotToggle = document.getElementById('chatbotToggle');
+        const chatbotWindow = document.getElementById('chatbotWindow');
+        const chatbotClose = document.getElementById('chatbotClose');
+        const chatbotMinimize = document.getElementById('chatbotMinimize');
+        const prechatForm = document.getElementById('prechatForm');
+        const userDetailsForm = document.getElementById('userDetailsForm');
+        const quickActions = document.getElementById('quickActions');
+        const chatMessages = document.getElementById('chatMessages');
+        const inputArea = document.getElementById('inputArea');
+        const chatForm = document.getElementById('chatForm');
+        const chatInput = document.getElementById('chatInput');
+        const sendMessage = document.getElementById('sendMessage');
+        const charCount = document.getElementById('charCount');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const notificationBadge = document.getElementById('notificationBadge');
+        const quickTopicButtons = document.querySelectorAll('.quick-topic');
+
+        // Global session ID
+        let sessionId = null;
+
+
+        const START_URL = "{% url 'chatbot:start_session' %}";
+        const MESSAGE_URL = "{% url 'chatbot:send_message' %}";
+        const CLOSE_URL = "{% url 'chatbot:close_session' %}";
+        const SESSION_URL = "{% url 'chatbot:session_status' %}";
+
+        // ========== HELPER FUNCTIONS ==========
+        // Get CSRF token from cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Show/hide typing indicator
+        function showTypingIndicator(show) {
+            if (show) {
+                typingIndicator.classList.remove('hidden');
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            } else {
+                typingIndicator.classList.add('hidden');
+            }
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Format bot message (convert newlines to <br>)
+        function formatMessage(text) {
+            return escapeHtml(text).replace(/\n/g, '<br>');
+        }
+
+        // Add a message to the chat window
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex items-start gap-2 opacity-0 translate-y-4`;
+
+            if (sender === 'user') {
+                messageDiv.classList.add('justify-end');
+                messageDiv.innerHTML = `
+                    <div class="bg-gradient-to-br from-primary-700 to-primary-900 text-white rounded-2xl rounded-br-sm p-3 max-w-[85%] shadow-md">
+                        <p class="text-sm whitespace-pre-wrap break-words">${escapeHtml(text)}</p>
+                    </div>
+                    <div class="w-8 h-8 bg-gradient-to-br from-accent-400 to-accent-500 rounded-full flex items-center justify-center text-primary-950 text-xs font-bold shrink-0">
+                        You
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="w-8 h-8 bg-gradient-to-br from-primary-700 to-primary-900 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0">
+                        AI
+                    </div>
+                    <div class="bg-white rounded-2xl rounded-tl-sm p-3 max-w-[85%] shadow-sm border border-gray-100">
+                        <p class="text-sm text-gray-800 whitespace-pre-wrap break-words">${formatMessage(text)}</p>
+                    </div>
+                `;
+            }
+
+            chatMessages.appendChild(messageDiv);
+
+            // Animate message in
+            setTimeout(() => {
+                messageDiv.classList.remove('opacity-0', 'translate-y-4');
+                messageDiv.classList.add('transition-all', 'duration-500');
+            }, 50);
+
+            // Scroll to bottom
+            setTimeout(() => {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 100);
+        }
+
+        // Load messages from a session (used after verifying session)
+        function loadMessages(messages) {
+            chatMessages.innerHTML = ''; // clear any placeholder
+            messages.forEach(msg => {
+                addMessage(msg.content, msg.sender);
+            });
+        }
+
+        // Show the main chat interface (after session started)
+        function showChatInterface() {
+            prechatForm.classList.add('hidden');
+            quickActions.classList.remove('hidden');
+            chatMessages.classList.remove('hidden');
+            inputArea.classList.remove('hidden');
+            // Re-initialize Lucide icons for any new ones
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+
+        // Hide chat interface and show pre‑chat form
+        function showPrechatForm() {
+            prechatForm.classList.remove('hidden');
+            quickActions.classList.add('hidden');
+            chatMessages.classList.add('hidden');
+            inputArea.classList.add('hidden');
+            sessionId = null;
+            sessionStorage.removeItem('chatSessionId');
+        }
+
+        // ========== SESSION MANAGEMENT ==========
+        // Check if stored session is still active
+        async function verifySession(sid) {
+            try {
+                const response = await fetch(SESSION_URL + "?session_id=" + sid, {
+                    method: 'GET',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+                const data = await response.json();
+                if (response.ok && data.active) {
+                    sessionId = sid;
+                    loadMessages(data.messages);
+                    showChatInterface();
+                } else {
+                    // Session expired or invalid
+                    sessionStorage.removeItem('chatSessionId');
+                    showPrechatForm();
+                }
+            } catch (error) {
+                console.error('Session verification failed:', error);
+                sessionStorage.removeItem('chatSessionId');
+                showPrechatForm();
+            }
+        }
+
+        // Start a new session
+        async function startSession(firstName, email) {
+            try {
+                const response = await fetch(START_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ first_name: firstName, email: email })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    sessionId = data.session_id;
+                    sessionStorage.setItem('chatSessionId', sessionId);
+                    loadMessages(data.messages);
+                    showChatInterface();
+                } else {
+                    alert('Failed to start session: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Start session error:', error);
+                alert('Network error. Please try again.');
+            }
+        }
+
+        // Close the current session
+        async function closeSession() {
+            if (!sessionId) return;
+            try {
+                await fetch(CLOSE_URL,{
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ session_id: sessionId })
+                });
+            } catch (error) {
+                console.error('Close session error:', error);
+            } finally {
+                sessionStorage.removeItem('chatSessionId');
+                showPrechatForm();
+            }
+        }
+
+        // Send a message to the backend
+        async function sendMessageToBackend(message) {
+            showTypingIndicator(true);
+            try {
+                const response = await fetch(MESSAGE_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ session_id: sessionId, message: message })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    addMessage(data.response, 'bot');
+                } else if (response.status === 401) {
+                    // Session expired
+                    sessionStorage.removeItem('chatSessionId');
+                    showPrechatForm();
+                    addMessage('Your session has expired. Please start a new chat.', 'bot');
+                } else {
+                    addMessage('Sorry, an error occurred.', 'bot');
+                }
+            } catch (error) {
+                addMessage('Network error. Please try again.', 'bot');
+            } finally {
+                showTypingIndicator(false);
+            }
+        }
+
+        // ========== EVENT LISTENERS ==========
+        // Toggle chatbot open/close
+        chatbotToggle.addEventListener('click', () => {
+            if (chatbotWindow.classList.contains('pointer-events-none')) {
+                // Open
+                chatbotWindow.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
+                chatbotWindow.classList.add('opacity-100', 'scale-100');
+                chatbotToggle.setAttribute('aria-expanded', 'true');
+                notificationBadge.classList.remove('opacity-100', 'scale-100');
+                notificationBadge.classList.add('opacity-0', 'scale-0');
+
+                // Check for existing session
+                const storedSession = sessionStorage.getItem('chatSessionId');
+                if (storedSession) {
+                    verifySession(storedSession);
+                } else {
+                    showPrechatForm();
+                }
+
+                // Focus input after a short delay if chat interface is visible
+                setTimeout(() => {
+                    if (!prechatForm.classList.contains('hidden')) {
+                        chatInput.focus();
+                    }
+                }, 300);
+            } else {
+                // Close (minimize)
+                chatbotWindow.classList.remove('opacity-100', 'scale-100');
+                chatbotWindow.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+                chatbotToggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        // Close button (X) – closes session and window
+        chatbotClose.addEventListener('click', async () => {
+            await closeSession();
+            chatbotWindow.classList.remove('opacity-100', 'scale-100');
+            chatbotWindow.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+            chatbotToggle.setAttribute('aria-expanded', 'false');
+        });
+
+        // Minimize button – just closes window, session stays active
+        chatbotMinimize.addEventListener('click', () => {
+            chatbotWindow.classList.remove('opacity-100', 'scale-100');
+            chatbotWindow.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+            chatbotToggle.setAttribute('aria-expanded', 'false');
+        });
+
+        // Pre‑chat form submission
+        userDetailsForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const firstName = this.first_name.value.trim();
+            const email = this.email.value.trim();
+            if (firstName && email) {
+                await startSession(firstName, email);
+            }
+        });
+
+        // Character counter and auto-resize
+        chatInput.addEventListener('input', function () {
+            const length = this.value.length;
+            charCount.textContent = `${length}/500`;
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            sendMessage.disabled = length === 0;
+        });
+
+        // Send message on Enter (Shift+Enter for new line)
+        chatInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                chatForm.dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // Chat form submission
+        chatForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const message = chatInput.value.trim();
+            if (message && sessionId) {
+                addMessage(message, 'user');
+                chatInput.value = '';
+                chatInput.style.height = 'auto';
+                charCount.textContent = '0/500';
+                sendMessage.disabled = true;
+                sendMessageToBackend(message);
+            }
+        });
+
+        // Quick topic buttons
+        quickTopicButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const topic = this.querySelector('.text-xs').textContent;
+                const message = `Tell me about ${topic}`;
+                if (sessionId) {
+                    addMessage(message, 'user');
+                    sendMessageToBackend(message);
+                }
+            });
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !chatbotWindow.classList.contains('pointer-events-none')) {
+                chatbotWindow.classList.remove('opacity-100', 'scale-100');
+                chatbotWindow.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+                chatbotToggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        // Simulate notification badge after 5 seconds if chatbot is closed
+        setTimeout(() => {
+            if (chatbotWindow.classList.contains('pointer-events-none')) {
+                notificationBadge.classList.remove('opacity-0', 'scale-0');
+                notificationBadge.classList.add('opacity-100', 'scale-100');
+            }
+        }, 5000);
+
+        // Initialize Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
+</script>

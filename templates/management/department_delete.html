@@ -1,0 +1,101 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Delete Department - MIU Admin{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <a href="{% url 'management:departments_list' %}" class="text-primary-600 hover:text-primary-700 font-medium flex items-center mb-4">
+        <i class="fas fa-arrow-left mr-2"></i>Back to Departments
+    </a>
+    <h1 class="text-3xl font-bold text-gray-800 font-display">Delete Department</h1>
+</div>
+
+<!-- Warning Alert -->
+<div class="bg-red-50 border-l-4 border-red-500 p-6 mb-8 rounded-r-lg">
+    <div class="flex">
+        <i class="fas fa-exclamation-triangle text-red-500 text-2xl mr-4 flex-shrink-0 mt-0.5"></i>
+        <div>
+            <h2 class="text-lg font-bold text-red-800 mb-2">Permanent Action</h2>
+            <p class="text-red-700">Deleting this department is <strong>permanent and cannot be undone</strong>. Please review the information below carefully.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Department Information Card -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
+    <h2 class="text-xl font-bold text-gray-800 mb-6">Department to Delete</h2>
+    
+    <div class="space-y-4">
+        <div class="bg-gray-50 p-4 rounded-lg">
+            <p class="text-sm text-gray-600 mb-1">Department Name</p>
+            <p class="text-lg font-semibold text-gray-800">{{ department.name }}</p>
+        </div>
+        
+        <div class="bg-gray-50 p-4 rounded-lg">
+            <p class="text-sm text-gray-600 mb-1">Department Code</p>
+            <p class="text-lg font-semibold text-gray-800">{{ department.code }}</p>
+        </div>
+        
+        <div class="bg-gray-50 p-4 rounded-lg">
+            <p class="text-sm text-gray-600 mb-1">Faculty</p>
+            <p class="text-lg font-semibold text-gray-800">{{ department.faculty.name }}</p>
+        </div>
+        
+        {% if department.description %}
+        <div class="bg-gray-50 p-4 rounded-lg">
+            <p class="text-sm text-gray-600 mb-1">Description</p>
+            <p class="text-gray-800">{{ department.description|truncatewords:30 }}</p>
+        </div>
+        {% endif %}
+        
+        <div class="bg-gray-50 p-4 rounded-lg">
+            <p class="text-sm text-gray-600 mb-1">Status</p>
+            <p class="text-lg font-semibold">
+                <span class="inline-block px-3 py-1 rounded-full text-sm font-medium {% if department.is_active %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                    {% if department.is_active %}Active{% else %}Inactive{% endif %}
+                </span>
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Impact Information -->
+<div class="bg-amber-50 border-l-4 border-amber-500 p-6 mb-8 rounded-r-lg">
+    <h3 class="font-bold text-amber-900 mb-2 flex items-center">
+        <i class="fas fa-info-circle mr-2"></i>
+        What will be deleted with this department:
+    </h3>
+    <ul class="list-disc list-inside text-amber-800 space-y-1 ml-1">
+        <li>The department record itself</li>
+        <li>All programs associated with this department</li>
+        <li>All enrollments linked to those programs</li>
+        <li>All course intakes for those programs</li>
+    </ul>
+</div>
+
+<!-- Confirmation Form -->
+<form method="POST" class="space-y-6">
+    {% csrf_token %}
+    
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <label class="flex items-center space-x-3 cursor-pointer">
+            <input type="checkbox" id="confirm-delete" name="confirm" required class="w-5 h-5 text-red-600 rounded focus:ring-2 focus:ring-red-500">
+            <span class="text-gray-700">
+                I understand this action is permanent and will delete the department <strong>{{ department.name }}</strong> and all related data.
+            </span>
+        </label>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="flex flex-col sm:flex-row gap-4">
+        <a href="{% url 'management:departments_list' %}" class="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors text-center">
+            <i class="fas fa-times mr-2"></i>Cancel
+        </a>
+        <button type="submit" class="px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center" onclick="return confirm('Are you absolutely sure you want to delete this department?');">
+            <i class="fas fa-trash mr-2"></i>Delete Department Permanently
+        </button>
+    </div>
+</form>
+
+{% endblock %}

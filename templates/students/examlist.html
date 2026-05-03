@@ -1,0 +1,599 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Exam Timetable{% endblock %}
+{% block breadcrumb %}Examinations{% endblock %}
+{% block breadcrumb_title %}Exam Timetable{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ── Exam cards ── */
+    .exam-card { transition: box-shadow .2s ease, transform .18s ease; }
+    .exam-card:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(74,107,255,.11); }
+    .status-pill { font-size:.65rem; letter-spacing:.06em; font-weight:700; text-transform:uppercase; }
+    .pulse-dot   { animation: pulseDot 1.4s ease-in-out infinite; }
+    @keyframes pulseDot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.6)} }
+    .countdown-live { font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; letter-spacing:.04em; }
+    .pbar { transition: width 1.2s linear; }
+    .card-live         { border-color:#fca5a5!important; box-shadow:0 0 0 2px rgba(239,68,68,.07); }
+    .card-instructions { border-color:#fde68a!important; box-shadow:0 0 0 2px rgba(245,158,11,.07); }
+    .card-submitted    { border-color:#bbf7d0!important; }
+    #clockDisplay { font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
+    .stat-chip {
+        display:inline-flex; align-items:center; gap:.35rem;
+        background:#f8fafc; border:1px solid #e2e8f0; border-radius:.4rem;
+        padding:.25rem .6rem; font-size:.72rem; color:#475569; font-weight:500;
+    }
+    .stat-chip i { color:var(--color-primary-500,#4a6bff); font-size:.65rem; }
+
+    /* ── Timetable table ── */
+    .tt-table { border-collapse:separate; border-spacing:0; width:100%; }
+    .tt-table thead th {
+        background: linear-gradient(135deg, var(--color-primary-600,#3a5bef), var(--color-secondary-600,#6b21a8));
+        color:#fff; font-size:.68rem; font-weight:700; text-transform:uppercase;
+        letter-spacing:.06em; padding:.55rem .75rem; white-space:nowrap;
+    }
+    .tt-table thead th:first-child  { border-radius:.5rem 0 0 0; }
+    .tt-table thead th:last-child   { border-radius:0 .5rem 0 0; }
+    .tt-table tbody tr { transition:background .15s ease; }
+    .tt-table tbody tr:hover td { background:#f0f4ff; }
+    .tt-table tbody td {
+        font-size:.75rem; color:#374151; padding:.55rem .75rem;
+        border-bottom:1px solid #e5e7eb; vertical-align:middle;
+    }
+    .tt-table tbody tr:last-child td { border-bottom:none; }
+    .tt-table tbody tr:nth-child(odd) td { background:#fafbff; }
+    .tt-table tbody tr:nth-child(even) td { background:#fff; }
+
+    /* type badges inside timetable */
+    .type-badge {
+        display:inline-block; padding:.15rem .5rem; border-radius:.3rem;
+        font-size:.6rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
+    }
+    .type-ca           { background:#dbeafe; color:#1d4ed8; }
+    .type-mid_semester { background:#fef3c7; color:#92400e; }
+    .type-end_of_semester { background:#ede9fe; color:#5b21b6; }
+    .type-supplementary { background:#fce7f3; color:#9d174d; }
+    .type-resit        { background:#fee2e2; color:#991b1b; }
+    .type-practical    { background:#d1fae5; color:#065f46; }
+    .type-oral         { background:#f0fdf4; color:#166534; }
+    .type-default      { background:#f3f4f6; color:#374151; }
+
+    /* status dot in timetable */
+    .tt-dot { width:.55rem; height:.55rem; border-radius:50%; display:inline-block; margin-right:.3rem; vertical-align:middle; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-full">
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         PAGE HEADER
+    ══════════════════════════════════════════════════════════════════════ -->
+    <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div class="flex items-center gap-3">
+            <span class="inline-flex items-center justify-center w-9 h-9 rounded-xl
+                         bg-gradient-to-br from-primary-500 to-secondary-500 text-white shadow shrink-0">
+                <i class="fas fa-calendar-check text-sm"></i>
+            </span>
+            <div>
+                <h1 class="text-xl sm:text-2xl font-bold text-gray-900 font-heading leading-tight">Exam Timetable</h1>
+                <p class="text-xs text-gray-400 mt-0.5">
+                    {% if current_session %}Session: <strong class="text-gray-600">{{ current_session.name }}</strong>{% if current_term %} &bull; {{ current_term|title }} Semester{% endif %}{% else %}All your upcoming and active CBT exams.{% endif %}
+                </p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-gray-500 font-medium self-start sm:self-center
+                    bg-white border border-gray-200 rounded-xl px-3 py-1.5 shadow-sm">
+            <i class="fas fa-clock text-primary-400 text-xs"></i>
+            <span id="clockDisplay" class="countdown-live text-gray-700 tabular-nums">--:-- --</span>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         SECTION 2 — ACTIVE / UPCOMING EXAM CARDS (within visibility window)
+    ══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- Section header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+        <div class="flex items-center gap-2">
+            <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-red-50 shrink-0">
+                <i class="fas fa-bolt text-red-500 text-xs"></i>
+            </span>
+            <div>
+                <h2 class="text-sm font-bold text-gray-800 leading-tight">Active &amp; Imminent Exams</h2>
+                <p class="text-[10px] text-gray-400">Exams currently open or opening within the next 2 hours</p>
+            </div>
+        </div>
+        {% if exams %}
+        <!-- Summary chips -->
+        <div class="flex flex-wrap gap-2">
+            <div class="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-1.5 shadow-sm">
+                <span class="w-5 h-5 rounded-md bg-primary-50 flex items-center justify-center">
+                    <i class="fas fa-list-ol text-primary-500 text-[9px]"></i>
+                </span>
+                <span class="text-xs font-medium text-gray-600">Total: <strong class="text-gray-800">{{ exams|length }}</strong></span>
+            </div>
+            <div class="inline-flex items-center gap-2 bg-white border border-red-200 rounded-xl px-3 py-1.5 shadow-sm">
+                <span class="w-5 h-5 rounded-md bg-red-50 flex items-center justify-center">
+                    <i class="fas fa-circle-notch text-red-500 text-[9px]"></i>
+                </span>
+                <span class="text-xs font-medium text-gray-600">Live: <strong id="liveCount" class="text-red-600">—</strong></span>
+            </div>
+            <div class="inline-flex items-center gap-2 bg-white border border-green-200 rounded-xl px-3 py-1.5 shadow-sm">
+                <span class="w-5 h-5 rounded-md bg-green-50 flex items-center justify-center">
+                    <i class="fas fa-check-circle text-green-500 text-[9px]"></i>
+                </span>
+                <span class="text-xs font-medium text-gray-600">Done: <strong id="submittedCount" class="text-green-600">—</strong></span>
+            </div>
+            <div class="inline-flex items-center gap-2 bg-white border border-yellow-200 rounded-xl px-3 py-1.5 shadow-sm">
+                <span class="w-5 h-5 rounded-md bg-yellow-50 flex items-center justify-center">
+                    <i class="fas fa-hourglass-start text-yellow-500 text-[9px]"></i>
+                </span>
+                <span class="text-xs font-medium text-gray-600">Upcoming: <strong id="upcomingCount" class="text-yellow-600">—</strong></span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ── Empty state for cards ── -->
+    {% if not exams %}
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm py-12 text-center">
+        <div class="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-center mx-auto mb-3">
+            <i class="fas fa-calendar-times text-2xl text-gray-300"></i>
+        </div>
+        <p class="text-gray-700 font-bold">No active exams right now</p>
+        <p class="text-gray-400 text-xs mt-1 max-w-xs mx-auto">
+            No exam is open within the current window. Refer to the timetable above for scheduled dates.
+        </p>
+    </div>
+
+    {% else %}
+
+    <!-- ── Exam cards ── -->
+    <div class="space-y-3">
+        {% for item in exams %}
+        <article
+            class="exam-card bg-white rounded-xl border-2 border-gray-100 overflow-hidden
+                   {% if item.student_status == 'submitted' or item.student_status == 'graded' %}card-submitted
+                   {% elif item.is_live %}card-live
+                   {% elif item.can_read %}card-instructions{% endif %}"
+            data-slug="{{ item.exam.slug }}"
+            data-instructions-at="{{ item.instructions_open_at_iso }}"
+            data-start-at="{{ item.exam_start_datetime_iso }}"
+            data-end-at="{{ item.exam_end_datetime_iso }}"
+            data-status="{{ item.student_status }}"
+            data-instr-url="{% url 'students:exam_instructions' item.exam.slug %}"
+            data-start-url="{% url 'students:start_exam' item.exam.slug %}">
+
+            <!-- Colour strip -->
+            <div class="js-accent-bar h-1 w-full
+                {% if item.student_status == 'submitted' or item.student_status == 'graded' %}bg-gradient-to-r from-green-400 to-emerald-500
+                {% elif item.is_live %}bg-gradient-to-r from-red-500 to-rose-500
+                {% elif item.can_read %}bg-gradient-to-r from-yellow-400 to-amber-500
+                {% else %}bg-gradient-to-r from-primary-500 to-secondary-500{% endif %}">
+            </div>
+
+            <div class="p-3.5 sm:p-4 md:p-5">
+
+                <!-- Row 1: title + pill -->
+                <div class="flex flex-wrap items-start justify-between gap-2 mb-2.5">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex flex-wrap items-center gap-1.5 mb-1">
+                            <span class="text-[10px] text-gray-400 font-mono tracking-wide">{{ item.exam.reference_code }}</span>
+                            <span class="text-gray-200 text-xs">|</span>
+                            <span class="text-[10px] text-secondary-500 font-semibold truncate">
+                                {% if item.exam.course.code %}{{ item.exam.course.code }} — {% endif %}{{ item.exam.course.title }}
+                            </span>
+                            <span class="text-gray-200 text-xs">|</span>
+                            <span class="text-[10px] text-gray-400">{{ item.exam.get_exam_type_display }}</span>
+                        </div>
+                        <h3 class="text-sm font-bold text-gray-900 font-heading leading-snug truncate">{{ item.exam.title }}</h3>
+                    </div>
+
+                    <!-- Status pill (dynamic) -->
+                    <span class="js-status-pill status-pill px-2.5 py-1 rounded-full shrink-0 text-[10px]
+                        {% if item.student_status == 'submitted' or item.student_status == 'graded' %}bg-green-100 text-green-700
+                        {% elif item.is_live %}bg-red-100 text-red-700
+                        {% elif item.can_read %}bg-yellow-100 text-yellow-700
+                        {% else %}bg-gray-100 text-gray-500{% endif %}">
+                        <span class="pulse-dot inline-block w-1.5 h-1.5 rounded-full
+                            {% if item.student_status == 'submitted' or item.student_status == 'graded' %}bg-green-500
+                            {% elif item.is_live %}bg-red-500
+                            {% elif item.can_read %}bg-yellow-500
+                            {% else %}bg-gray-400{% endif %} mr-1 align-middle"></span>
+                        {% if item.student_status == 'submitted' or item.student_status == 'graded' %}Submitted
+                        {% elif item.is_live %}Live Now
+                        {% elif item.can_read %}Instructions Open
+                        {% else %}Upcoming{% endif %}
+                    </span>
+                </div>
+
+                <!-- Row 2: meta chips -->
+                <div class="flex flex-wrap gap-1.5 mb-3">
+                    <span class="stat-chip">
+                        <i class="fas fa-calendar-day"></i>
+                        {{ item.exam.start_datetime|date:"d M Y" }}
+                    </span>
+                    <span class="stat-chip js-time-range" data-start="{{ item.exam_start_datetime_iso }}" data-end="{{ item.exam_end_datetime_iso }}">
+                        <i class="fas fa-clock"></i>
+                        {{ item.exam.start_datetime|time:"P" }} – {{ item.exam.end_datetime|time:"P" }}
+                    </span>
+                    <span class="stat-chip">
+                        <i class="fas fa-hourglass-half"></i>
+                        {{ item.exam.duration_minutes }} mins
+                    </span>
+                    <span class="stat-chip">
+                        <i class="fas fa-list-ol"></i>
+                        {{ item.exam.active_question_count }} Qs
+                    </span>
+                    {% if item.exam.total_marks %}
+                    <span class="stat-chip">
+                        <i class="fas fa-star-half-alt"></i>
+                        {{ item.exam.total_marks }} marks
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Row 3: progress bar (live only) -->
+                <div class="mb-3 h-1 bg-gray-100 rounded-full overflow-hidden {% if not item.is_live %}hidden{% endif %}">
+                    <div class="js-progress-bar h-full bg-gradient-to-r from-red-500 to-rose-400 rounded-full" style="width:0%"></div>
+                </div>
+
+                <!-- Row 4: countdown + action button -->
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-1.5 text-xs text-gray-500">
+                        <i class="fas fa-stopwatch js-countdown-icon text-gray-400 shrink-0 text-[11px]"></i>
+                        <span class="js-countdown-label"></span>
+                        <span class="js-countdown-value countdown-live font-bold text-gray-500"></span>
+                    </div>
+
+                    <div class="js-action-wrap shrink-0">
+                        {% if item.student_status == 'submitted' or item.student_status == 'graded' %}
+                            <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-green-50 text-green-700 text-xs font-bold border border-green-200">
+                                <i class="fas fa-check-circle"></i> Submitted
+                                {% if item.score is not None %}&nbsp;&bull;&nbsp;{{ item.score }}%{% endif %}
+                            </span>
+                        {% elif item.is_live %}
+                            {% if item.student_status == 'in_progress' %}
+                            <a href="{% url 'students:start_exam' item.exam.slug %}"
+                               class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-sm transition">
+                                <i class="fas fa-redo-alt"></i> Resume Exam
+                            </a>
+                            {% else %}
+                            <a href="{% url 'students:start_exam' item.exam.slug %}"
+                               class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-sm transition">
+                                <i class="fas fa-play-circle"></i> Start Exam
+                            </a>
+                            {% endif %}
+                        {% elif item.can_read %}
+                            <a href="{% url 'students:exam_instructions' item.exam.slug %}"
+                               class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-bold shadow-sm transition">
+                                <i class="fas fa-book-open"></i> Read Instructions
+                            </a>
+                        {% else %}
+                            <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gray-100 text-gray-400 text-xs font-medium border border-gray-200 cursor-default">
+                                <i class="fas fa-lock text-gray-300"></i> Not Yet Available
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         SECTION 1 — FULL SEMESTER EXAM TIMETABLE (all published exams)
+    ══════════════════════════════════════════════════════════════════════ -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mt-6">
+
+        <!-- Section header -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-primary-50 shrink-0">
+                    <i class="fas fa-table text-primary-500 text-xs"></i>
+                </span>
+                <div>
+                    <h2 class="text-sm font-bold text-gray-800 leading-tight">Semester Exam Schedule</h2>
+                    <p class="text-[10px] text-gray-400">All scheduled exams for your enrolled courses this semester</p>
+                </div>
+            </div>
+            {% if all_exams %}
+            <span class="inline-flex items-center gap-1 bg-primary-50 text-primary-700 text-[10px] font-bold px-2.5 py-1 rounded-full border border-primary-100">
+                <i class="fas fa-list-ol text-[9px]"></i>
+                {{ all_exams|length }} exam{{ all_exams|length|pluralize }}
+            </span>
+            {% endif %}
+        </div>
+
+        {% if all_exams %}
+        <!-- Scrollable table wrapper -->
+        <div class="overflow-x-auto">
+            <table class="tt-table">
+                <thead>
+                    <tr>
+                        <th class="text-left">Course Code</th>
+                        <th class="text-left">Exam Title</th>
+                        <th class="text-left">Type</th>
+                        <th class="text-left">Date</th>
+                        <th class="text-left">Day</th>
+                        <th class="text-left">Start</th>
+                        <th class="text-left">End</th>
+                        <th class="text-left">Duration</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for exam in all_exams %}
+                    <tr>
+
+                        <!-- Course code + title -->
+                        <td class="min-w-[160px]">
+                            {% if exam.course.code %}
+                            <span class="font-bold text-primary-600">{{ exam.course.code }}</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Exam title -->
+                        <td class="min-w-[180px]">
+                            <a href="{% url 'students:exam_instructions' exam.slug %}"
+                               class="text-gray-800 font-semibold hover:text-primary-600 transition line-clamp-1">
+                                {{ exam.title|truncatechars:40 }}
+                            </a>
+                            <div class="text-[10px] text-gray-400 font-mono mt-0.5">{{ exam.reference_code }}</div>
+                        </td>
+
+                        <!-- Exam type badge -->
+                        <td class="whitespace-nowrap">
+                            <span class="type-badge
+                                {% if exam.exam_type == 'ca' %}type-ca
+                                {% elif exam.exam_type == 'mid_semester' %}type-mid_semester
+                                {% elif exam.exam_type == 'end_of_semester' %}type-end_of_semester
+                                {% elif exam.exam_type == 'supplementary' %}type-supplementary
+                                {% elif exam.exam_type == 'resit' %}type-resit
+                                {% elif exam.exam_type == 'practical' %}type-practical
+                                {% elif exam.exam_type == 'oral' %}type-oral
+                                {% else %}type-default{% endif %}">
+                                {{ exam.get_exam_type_display }}
+                            </span>
+                        </td>
+
+                        <!-- Date -->
+                        <td class="whitespace-nowrap font-semibold text-gray-700">
+                            {{ exam.start_datetime|date:"d M Y" }}
+                        </td>
+
+                        <!-- Day -->
+                        <td class="whitespace-nowrap text-gray-500">
+                            {{ exam.start_datetime|date:"l" }}
+                        </td>
+
+                        <!-- Start time — rendered by JS -->
+                        <td class="whitespace-nowrap font-semibold text-gray-800 js-tt-start" data-iso="{{ exam.start_datetime.isoformat }}">
+                            {{ exam.start_datetime|time:"P" }}
+                        </td>
+
+                        <!-- End time — rendered by JS -->
+                        <td class="whitespace-nowrap text-gray-500 js-tt-end" data-iso="{{ exam.end_datetime.isoformat }}">
+                            {{ exam.end_datetime|time:"P" }}
+                        </td>
+
+                        <!-- Duration -->
+                        <td class="whitespace-nowrap text-gray-600">
+                            {{ exam.duration_minutes }} min
+                        </td>
+
+                        {% comment %} <!-- Questions -->
+                        <td class="text-center text-gray-700 font-semibold">
+                            {{ exam.active_question_count }}
+                        </td>
+
+                        <!-- Total marks -->
+                        <td class="text-center text-gray-700 font-semibold">
+                            {% if exam.total_marks %}{{ exam.total_marks }}{% else %}<span class="text-gray-300">—</span>{% endif %}
+                        </td>
+
+                        <!-- Status -->
+                        <td class="whitespace-nowrap">
+                            {% if exam.status == 'published' %}
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-green-700">
+                                <span class="tt-dot bg-green-500"></span> Published
+                            </span>
+                            {% elif exam.status == 'approved' %}
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700">
+                                <span class="tt-dot bg-blue-500"></span> Approved
+                            </span>
+                            {% elif exam.status == 'submitted' %}
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-yellow-700">
+                                <span class="tt-dot bg-yellow-500"></span> Pending Approval
+                            </span>
+                            {% elif exam.status == 'cancelled' %}
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-red-600">
+                                <span class="tt-dot bg-red-400"></span> Cancelled
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-gray-400">
+                                <span class="tt-dot bg-gray-300"></span> {{ exam.get_status_display }}
+                            </span>
+                            {% endif %}
+                        </td> {% endcomment %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% else %}
+        <!-- No scheduled exams yet -->
+        <div class="py-10 text-center">
+            <div class="w-12 h-12 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center mx-auto mb-3">
+                <i class="fas fa-calendar text-xl text-gray-300"></i>
+            </div>
+            <p class="text-gray-600 font-semibold text-sm">No exams scheduled yet</p>
+            <p class="text-gray-400 text-xs mt-1 max-w-xs mx-auto">
+                No exams have been created for your courses this semester. Check back later.
+            </p>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+'use strict';
+const pad = n => String(n).padStart(2, '0');
+function fmtHuman(s){ return s>=3600?`${Math.floor(s/3600)}h ${pad(Math.floor((s%3600)/60))}m`:s>=60?`${Math.floor(s/60)}m ${pad(s%60)}s`:`${s}s`; }
+function fmtCd(s){ const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60; return h>0?`${pad(h)}:${pad(m)}:${pad(sc)}`:`${pad(m)}:${pad(sc)}`; }
+function fmt12(iso){ return iso ? new Date(iso).toLocaleTimeString([], {hour:'numeric', minute:'2-digit', hour12:true}) : ''; }
+
+/* ── Live clock ── */
+(function clock(){
+    const el = document.getElementById('clockDisplay');
+    const t = () => el && (el.textContent = new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit', second:'2-digit', hour12:true}));
+    t(); setInterval(t, 1000);
+})();
+
+/* ── Timetable time columns → 12-hr format ── */
+document.querySelectorAll('.js-tt-start, .js-tt-end').forEach(el => {
+    if (el.dataset.iso) el.textContent = fmt12(el.dataset.iso);
+});
+
+/* ── Card time range chips ── */
+document.querySelectorAll('.js-time-range').forEach(el => {
+    const s = el.dataset.start, e = el.dataset.end;
+    if (s && e) el.innerHTML = `<i class="fas fa-clock" style="color:var(--color-primary-500,#4a6bff);font-size:.65rem"></i> ${fmt12(s)} – ${fmt12(e)}`;
+});
+
+/* ── Summary counters ── */
+(function summaries(){
+    let live = 0, sub = 0, up = 0;
+    document.querySelectorAll('.exam-card').forEach(c => {
+        const st = c.dataset.status, now = new Date();
+        const sa = new Date(c.dataset.startAt), ea = new Date(c.dataset.endAt);
+        if (st === 'submitted' || st === 'graded') sub++;
+        else if (now >= sa && now < ea) live++;
+        else if (now < sa) up++;
+    });
+    const s = id => document.getElementById(id);
+    if (s('liveCount'))      s('liveCount').textContent      = live;
+    if (s('submittedCount')) s('submittedCount').textContent = sub;
+    if (s('upcomingCount'))  s('upcomingCount').textContent  = up;
+})();
+
+/* ── Card dynamic countdown / state machine ── */
+const pillCfg = {
+    upcoming:    {cls:'bg-gray-100 text-gray-500',     dot:'bg-gray-400',   txt:'Upcoming'},
+    instructions:{cls:'bg-yellow-100 text-yellow-700', dot:'bg-yellow-500', txt:'Instructions Open'},
+    live:        {cls:'bg-red-100 text-red-700',       dot:'bg-red-500',    txt:'Live Now'},
+    ended:       {cls:'bg-gray-100 text-gray-400',     dot:'bg-gray-300',   txt:'Ended'},
+};
+const accentCls = {
+    upcoming:    'js-accent-bar h-1 w-full bg-gradient-to-r from-primary-500 to-secondary-500',
+    instructions:'js-accent-bar h-1 w-full bg-gradient-to-r from-yellow-400 to-amber-500',
+    live:        'js-accent-bar h-1 w-full bg-gradient-to-r from-red-500 to-rose-500',
+    ended:       'js-accent-bar h-1 w-full bg-gradient-to-r from-gray-300 to-gray-400',
+};
+const BTN = 'inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-sm transition';
+
+document.querySelectorAll('.exam-card').forEach(card => {
+    const ia = new Date(card.dataset.instructionsAt);
+    const sa = new Date(card.dataset.startAt);
+    const ea = new Date(card.dataset.endAt);
+    const status = card.dataset.status;
+    const iUrl   = card.dataset.instrUrl;
+    const sUrl   = card.dataset.startUrl;
+    const cdL    = card.querySelector('.js-countdown-label');
+    const cdV    = card.querySelector('.js-countdown-value');
+    const cdI    = card.querySelector('.js-countdown-icon');
+    const act    = card.querySelector('.js-action-wrap');
+    const pill   = card.querySelector('.js-status-pill');
+    const pBar   = card.querySelector('.js-progress-bar');
+    const accent = card.querySelector('.js-accent-bar');
+
+    if (['submitted', 'graded', 'absent'].includes(status)) return;
+
+    function setPill(p){
+        if (!pill) return;
+        const {cls, dot, txt} = pillCfg[p] || pillCfg.upcoming;
+        pill.className = `js-status-pill status-pill px-2.5 py-1 rounded-full shrink-0 text-[10px] ${cls}`;
+        pill.innerHTML = `<span class="pulse-dot inline-block w-1.5 h-1.5 rounded-full ${dot} mr-1 align-middle"></span>${txt}`;
+    }
+    function setBtn(p){
+        if (!act) return;
+        if (p === 'instructions')
+            act.innerHTML = `<a href="${iUrl}" class="${BTN} bg-yellow-500 hover:bg-yellow-600 text-white"><i class="fas fa-book-open"></i> Read Instructions</a>`;
+        else if (p === 'live'){
+            const l  = status === 'in_progress' ? 'Resume Exam' : 'Start Exam';
+            const ic = status === 'in_progress' ? 'fa-redo-alt'  : 'fa-play-circle';
+            act.innerHTML = `<a href="${sUrl}" class="${BTN} bg-red-600 hover:bg-red-700 text-white"><i class="fas ${ic}"></i> ${l}</a>`;
+        } else if (p === 'ended')
+            act.innerHTML = `<span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gray-100 text-gray-400 text-xs font-medium border border-gray-200"><i class="fas fa-times-circle"></i> Exam Ended</span>`;
+    }
+
+    let phase = null;
+    function tick(){
+        const now = new Date();
+        const ti  = Math.max(0, Math.floor((ia - now) / 1000));
+        const ts  = Math.max(0, Math.floor((sa - now) / 1000));
+        const te  = Math.max(0, Math.floor((ea - now) / 1000));
+
+        if (now < ia){
+            if (phase !== 'upcoming'){
+                phase = 'upcoming';
+                setPill('upcoming');
+                if (accent) accent.className = accentCls.upcoming;
+                if (cdI) cdI.className = 'fas fa-stopwatch js-countdown-icon text-gray-400 shrink-0 text-[11px]';
+                if (cdV) cdV.className = 'js-countdown-value countdown-live font-bold text-gray-500';
+            }
+            if (cdL) cdL.textContent = 'Instructions open in ';
+            if (cdV) cdV.textContent = fmtHuman(ti);
+            return;
+        }
+        if (now >= ia && now < sa){
+            if (phase !== 'instructions'){
+                phase = 'instructions';
+                setPill('instructions'); setBtn('instructions');
+                if (accent) accent.className = accentCls.instructions;
+                card.classList.remove('card-live'); card.classList.add('card-instructions');
+                if (cdI) cdI.className = 'fas fa-stopwatch js-countdown-icon text-yellow-500 shrink-0 text-[11px]';
+                if (cdV) cdV.className = 'js-countdown-value countdown-live font-bold text-yellow-600';
+            }
+            if (cdL) cdL.textContent = 'Starts in ';
+            if (cdV) cdV.textContent = fmtCd(ts);
+            return;
+        }
+        if (now >= sa && now < ea){
+            if (phase !== 'live'){
+                phase = 'live';
+                setPill('live'); setBtn('live');
+                if (accent) accent.className = accentCls.live;
+                card.classList.remove('card-instructions'); card.classList.add('card-live');
+                if (cdI) cdI.className = 'fas fa-stopwatch js-countdown-icon text-red-500 shrink-0 text-[11px]';
+                if (cdV) cdV.className = 'js-countdown-value countdown-live font-bold text-red-600';
+            }
+            if (cdL) cdL.textContent = 'Time left: ';
+            if (cdV) cdV.textContent = fmtCd(te);
+            if (pBar){
+                const tot = Math.max(1, Math.floor((ea - sa) / 1000));
+                pBar.style.width = Math.min(100, ((tot - te) / tot * 100)) + '%';
+            }
+            return;
+        }
+        if (phase !== 'ended'){
+            phase = 'ended';
+            setPill('ended');
+            if (accent) accent.className = accentCls.ended;
+            setBtn('ended');
+            if (cdL) cdL.textContent = '';
+            if (cdV){ cdV.textContent = 'Exam ended'; cdV.className = 'js-countdown-value font-medium text-gray-400'; }
+            if (pBar) pBar.style.width = '100%';
+        }
+    }
+    tick(); setInterval(tick, 1000);
+});
+</script>
+{% endblock %}

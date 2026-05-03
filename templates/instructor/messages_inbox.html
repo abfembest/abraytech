@@ -1,0 +1,116 @@
+{% extends 'management/base.html' %}
+{% load static %}
+{% block title %}{% if active_folder == 'sent' %}Sent Messages{% else %}Inbox{% endif %} — Messages{% endblock %}
+{% block breadcrumb %}Messages{% endblock %}
+
+{% block content %}
+
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
+    <div>
+        <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Messages</h1>
+        <p class="text-gray-500 mt-0.5 text-xs sm:text-sm">Communicate with your students</p>
+    </div>
+    <a href="{% url 'instructor:message_compose' %}"
+       class="inline-flex items-center justify-center px-4 sm:px-5 py-2 sm:py-2.5 bg-primary-600 text-white text-xs sm:text-sm font-semibold rounded-lg hover:bg-primary-700 shadow-sm hover:shadow-md transition-all whitespace-nowrap">
+        <i class="fas fa-pen mr-1.5 sm:mr-2"></i>Compose
+    </a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
+
+    <!-- Sidebar Folders -->
+    <div class="lg:col-span-1">
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-100">
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Folders</p>
+            </div>
+            <nav class="p-1.5 sm:p-2 space-y-0.5">
+                <a href="{% url 'instructor:messages_inbox' %}"
+                   class="flex items-center justify-between px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm transition-colors
+                          {% if active_folder == 'inbox' %}bg-primary-50 text-primary-700 font-semibold{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-inbox w-4 text-center"></i><span>Inbox</span>
+                    </div>
+                    {% if unread_count %}
+                    <span class="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 text-xs font-bold bg-primary-600 text-white rounded-full">{{ unread_count }}</span>
+                    {% endif %}
+                </a>
+                <a href="{% url 'instructor:messages_sent' %}"
+                   class="flex items-center gap-2 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm transition-colors
+                          {% if active_folder == 'sent' %}bg-primary-50 text-primary-700 font-semibold{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
+                    <i class="fas fa-paper-plane w-4 text-center"></i><span>Sent</span>
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Message List -->
+    <div class="lg:col-span-3">
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 flex items-center justify-between gap-2">
+                <h2 class="font-semibold text-gray-900 text-xs sm:text-sm">
+                    {% if active_folder == 'sent' %}Sent{% else %}Inbox{% endif %}
+                    <span class="text-gray-400 font-normal ml-1">({{ messages_list|length }})</span>
+                </h2>
+                {% if unread_count and active_folder == 'inbox' %}
+                <a href="{% url 'instructor:messages_mark_all_read' %}" class="text-xs text-primary-600 hover:text-primary-800 font-medium transition-colors whitespace-nowrap">
+                    <i class="fas fa-check-double mr-1"></i>Mark all read
+                </a>
+                {% endif %}
+            </div>
+
+            {% if messages_list %}
+            <ul class="divide-y divide-gray-100">
+                {% for message in messages_list %}
+                <li>
+                    <a href="{% url 'instructor:message_thread' message.id %}"
+                       class="flex items-start gap-3 sm:gap-4 px-4 sm:px-6 py-3 sm:py-4 hover:bg-gray-50 transition-colors block
+                              {% if not message.is_read and active_folder == 'inbox' %}bg-blue-50/30{% endif %}">
+                        <div class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                            <span class="text-primary-700 font-semibold text-xs">
+                                {% if active_folder == 'sent' %}{{ message.recipient.first_name|slice:":1"|upper }}{{ message.recipient.last_name|slice:":1"|upper }}
+                                {% else %}{{ message.sender.first_name|slice:":1"|upper }}{{ message.sender.last_name|slice:":1"|upper }}{% endif %}
+                            </span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between mb-0.5 gap-2">
+                                <p class="text-xs sm:text-sm font-semibold text-gray-900 truncate">
+                                    {% if active_folder == 'sent' %}To: {{ message.recipient.get_full_name }}
+                                    {% else %}{{ message.sender.get_full_name }}{% endif %}
+                                </p>
+                                <div class="flex items-center gap-1.5 ml-2 flex-shrink-0">
+                                    {% if not message.is_read and active_folder == 'inbox' %}
+                                    <span class="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0"></span>
+                                    {% endif %}
+                                    <span class="text-xs text-gray-400 whitespace-nowrap">{{ message.created_at|date:"M d" }}</span>
+                                </div>
+                            </div>
+                            <p class="text-xs sm:text-sm font-medium text-gray-700 truncate mb-0.5">{{ message.subject }}</p>
+                            <p class="text-xs text-gray-400 truncate">{{ message.body|truncatewords:10 }}</p>
+                        </div>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="py-12 sm:py-16 px-6 sm:px-8 text-center">
+                <div class="w-14 h-14 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                    <i class="fas fa-envelope-open text-2xl sm:text-3xl text-gray-300"></i>
+                </div>
+                <h3 class="font-bold text-gray-900 mb-1 text-sm sm:text-base">
+                    {% if active_folder == 'sent' %}No sent messages{% else %}Your inbox is empty{% endif %}
+                </h3>
+                <p class="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-5">
+                    {% if active_folder == 'inbox' %}When students message you, they'll appear here.{% else %}Messages you send will appear here.{% endif %}
+                </p>
+                <a href="{% url 'instructor:message_compose' %}"
+                   class="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">
+                    <i class="fas fa-pen mr-1.5 sm:mr-2"></i>Compose Message
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,156 @@
+{% extends "management/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - MIU Student Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-12xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <!-- Back -->
+    <div class="mb-6">
+        <a href="{% url 'students:study_groups' %}"
+           class="inline-flex items-center text-primary-600 hover:text-primary-800 text-sm font-medium">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Study Groups
+        </a>
+    </div>
+
+    <div class="mb-8">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Create Study Group</h1>
+        <p class="text-gray-500 mt-1 text-sm">
+            Start a collaborative learning space for you and your peers
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Form -->
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <form method="post" novalidate class="space-y-5">
+                {% csrf_token %}
+
+                <!-- Group Name -->
+                <div>
+                    <label for="{{ form.name.id_for_label }}"
+                           class="block text-sm font-medium text-gray-700 mb-1.5">
+                        Group Name <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ form.name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label for="{{ form.description.id_for_label }}"
+                           class="block text-sm font-medium text-gray-700 mb-1.5">
+                        Description
+                    </label>
+                    {{ form.description }}
+                    <p class="mt-1 text-xs text-gray-400">
+                        Tell students what this group is about and what to expect.
+                    </p>
+                    {% if form.description.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ form.description.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Related Course -->
+                <div>
+                    <label for="{{ form.course.id_for_label }}"
+                           class="block text-sm font-medium text-gray-700 mb-1.5">
+                        Related Course
+                        <span class="text-gray-400 font-normal">(optional)</span>
+                    </label>
+                    {{ form.course }}
+                    {% if form.course.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ form.course.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Max Members -->
+                <div>
+                    <label for="{{ form.max_members.id_for_label }}"
+                           class="block text-sm font-medium text-gray-700 mb-1.5">
+                        Maximum Members <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.max_members }}
+                    <p class="mt-1 text-xs text-gray-400">Between 2 and 50 members.</p>
+                    {% if form.max_members.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ form.max_members.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Is Public -->
+                <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    {{ form.is_public }}
+                    <div>
+                        <label for="{{ form.is_public.id_for_label }}"
+                               class="text-sm font-medium text-gray-800 cursor-pointer">
+                            Make this group publicly visible
+                        </label>
+                        <p class="text-xs text-gray-500 mt-0.5">
+                            Public groups appear in the study groups directory.
+                            Private groups are invitation-only.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                    <button type="submit"
+                            class="px-8 py-3 bg-primary-600 text-white rounded-lg
+                                   hover:bg-primary-700 font-semibold text-sm transition-all
+                                   focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        <i class="fas fa-users mr-2"></i>Create Group
+                    </button>
+                    <a href="{% url 'students:study_groups' %}"
+                       class="px-8 py-3 bg-gray-100 text-gray-700 text-center rounded-lg
+                              hover:bg-gray-200 font-medium text-sm transition-all">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Info sidebar -->
+        <div class="space-y-4">
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-5">
+                <h3 class="font-semibold text-blue-900 mb-3 text-sm flex items-center gap-2">
+                    <i class="fas fa-info-circle text-blue-500"></i>About Study Groups
+                </h3>
+                <ul class="space-y-2 text-sm text-blue-800">
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check text-blue-500 mt-0.5 flex-shrink-0 text-xs"></i>
+                        You become the group admin automatically
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check text-blue-500 mt-0.5 flex-shrink-0 text-xs"></i>
+                        Admins can remove members and manage the group
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check text-blue-500 mt-0.5 flex-shrink-0 text-xs"></i>
+                        Link a course to make it easier for classmates to find
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check text-blue-500 mt-0.5 flex-shrink-0 text-xs"></i>
+                        You can change settings anytime from the group page
+                    </li>
+                </ul>
+            </div>
+
+            <div class="bg-green-50 border border-green-200 rounded-xl p-5">
+                <h3 class="font-semibold text-green-900 mb-2 text-sm flex items-center gap-2">
+                    <i class="fas fa-lightbulb text-green-500"></i>Tips for a great group
+                </h3>
+                <ul class="space-y-2 text-sm text-green-800">
+                    <li>Choose a clear, descriptive name</li>
+                    <li>Set a realistic member limit</li>
+                    <li>Write a helpful description so people know what to expect</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

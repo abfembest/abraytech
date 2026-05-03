@@ -1,0 +1,696 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MIU – Modern International University</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    {% block style %} {% endblock %}
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        miu: {
+                            primary: "#0F2A44",
+                            secondary: "#1D4ED8",
+                            accent: "#FACC15",
+                            light: "#F0F7FF",
+                            gradientStart: "#0F2A44",
+                            gradientEnd: "#1D4ED8"
+                        }
+                    },
+                    fontFamily: {
+                        'serif': ['Georgia', 'Times New Roman', 'serif'],
+                    },
+                    backgroundImage: {
+                        'gradient-miu': 'linear-gradient(135deg, #0F2A44 0%, #1D4ED8 100%)',
+                        'gradient-light': 'linear-gradient(135deg, #F0F7FF 0%, #E6F0FF 100%)',
+                        'gradient-card-1': 'linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%)',
+                        'gradient-card-2': 'linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%)',
+                        'gradient-card-3': 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)',
+                        'gradient-card-hover': 'linear-gradient(135deg, #FFECB3 0%, #FFE082 100%)',
+                        'gradient-mobile': 'linear-gradient(135deg, #0F2A44 0%, #1E40AF 50%, #3B82F6 100%)'
+                    }
+                }
+            }
+        }
+    </script>
+
+</head>
+
+<body class="font-sans text-gray-800">
+
+    <!-- ================= NAVBAR ================= -->
+    <!-- ================= NAVBAR ================= -->
+    <header class="fixed top-0 w-full bg-white shadow-lg z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <div class="w-10 h-10 bg-miu-primary rounded-full flex items-center justify-center glow-effect">
+                    <span class="text-white font-bold text-xl">MIU</span>
+                </div>
+                <span class="text-2xl font-bold text-miu-primary">Modern International University</span>
+            </div>
+
+            <!-- ================= ENHANCED NAVIGATION FOR LARGE SCREENS ================= -->
+            <ul class="hidden lg:flex items-center space-x-3">
+                <li><a href="{% url 'index' %}" class="hover:text-miu-secondary font-medium transition-colors px-2 py-1 text-sm">Home</a></li>
+                <li><a href="{% url 'about' %}" class="hover:text-miu-secondary font-medium transition-colors px-2 py-1 text-sm">About Us</a></li>
+
+
+
+                <!-- Faculties Dropdown for Desktop -->
+                <li class="relative group">
+                    <button id="facultiesBtnDesktop" class="hover:text-miu-secondary font-medium transition-colors flex items-center focus:outline-none px-2 py-1 text-sm group">
+                        Faculties <span class="ml-1 transform transition-transform group-hover:rotate-180">▾</span>
+                    </button>
+                    <ul id="facultiesMenuDesktop" class="absolute hidden group-hover:block mt-1 bg-gradient-to-br from-pink-50 via-rose-50 to-fuchsia-50 shadow-2xl rounded-xl w-64 py-3 z-10 dropdown-enter border border-pink-200">
+                        <li><a class="block px-5 py-3 hover:bg-gradient-to-r hover:from-white hover:to-pink-100 transition-all duration-200 border-l-3 border-transparent hover:border-miu-accent hover:shadow-sm text-gray-700 text-sm" href="#">Faculty of Science</a></li>
+                        <li><a class="block px-5 py-3 hover:bg-gradient-to-r hover:from-white hover:to-pink-100 transition-all duration-200 border-l-3 border-transparent hover:border-miu-accent hover:shadow-sm text-gray-700 text-sm" href="#">Faculty of Engineering</a></li>
+                        <li><a class="block px-5 py-3 hover:bg-gradient-to-r hover:from-white hover:to-pink-100 transition-all duration-200 border-l-3 border-transparent hover:border-miu-accent hover:shadow-sm text-gray-700 text-sm" href="#">Faculty of Business</a></li>
+                        <li><a class="block px-5 py-3 hover:bg-gradient-to-r hover:from-white hover:to-pink-100 transition-all duration-200 border-l-3 border-transparent hover:border-miu-accent hover:shadow-sm text-gray-700 text-sm" href="#">Faculty of Arts</a></li>
+                        <li><a class="block px-5 py-3 hover:bg-gradient-to-r hover:from-white hover:to-pink-100 transition-all duration-200 border-l-3 border-transparent hover:border-miu-accent hover:shadow-sm text-gray-700 text-sm" href="#">Faculty of Health Sciences</a></li>
+                    </ul>
+                </li>
+
+
+                <!-- Programs Dropdown for Desktop -->
+                <li class="relative group">
+                    <button id="programsBtnDesktop" class="hover:text-miu-secondary font-medium transition-colors flex items-center focus:outline-none px-2 py-1 text-sm group">
+                        Programs <span class="ml-1 transform transition-transform group-hover:rotate-180">▾</span>
+                    </button>
+                    <ul id="programsMenuDesktop" class="absolute hidden group-hover:block mt-1 bg-gradient-to-br from-pink-50 via-rose-50 to-fuchsia-50 shadow-2xl rounded-xl w-64 py-3 z-10 dropdown-enter border border-pink-200">
+                        <li><a class="block px-5 py-3 hover:bg-gradient-to-r hover:from-white hover:to-pink-100 transition-all duration-200 border-l-3 border-transparent hover:border-miu-accent hover:shadow-sm text-gray-700 text-sm" href="course-detail.html">Business Administration</a></li>
+                        <li><a class="block px-5 py-3 hover:bg-gradient-to-r hover:from-white hover:to-pink-100 transition-all duration-200 border-l-3 border-transparent hover:border-miu-accent hover:shadow-sm text-gray-700 text-sm" href="#" data-program="cs">Computer Science</a></li>
+                        <li><a class="block px-5 py-3 hover:bg-gradient-to-r hover:from-white hover:to-pink-100 transition-all duration-200 border-l-3 border-transparent hover:border-miu-accent hover:shadow-sm text-gray-700 text-sm" href="#" data-program="data">Data Science</a></li>
+                        <li><a class="block px-5 py-3 hover:bg-gradient-to-r hover:from-white hover:to-pink-100 transition-all duration-200 border-l-3 border-transparent hover:border-miu-accent hover:shadow-sm text-gray-700 text-sm" href="#" data-program="health">Health Sciences</a></li>
+                        <li><a class="block px-5 py-3 hover:bg-gradient-to-r hover:from-white hover:to-pink-100 transition-all duration-200 border-l-3 border-transparent hover:border-miu-accent hover:shadow-sm text-gray-700 text-sm" href="#" data-program="engineering">Engineering</a></li>
+                    </ul>
+                </li>
+
+
+
+                <li><a href="{% url 'admission_requirement' %}" class="hover:text-miu-secondary font-medium transition-colors px-2 py-1 text-sm">Admissions</a></li>
+
+                <!-- More Dropdown for Desktop -->
+                <li class="relative group">
+                    <button id="moreBtnDesktop" class="hover:text-miu-secondary font-medium transition-colors flex items-center focus:outline-none px-2 py-1 text-sm group">
+                        More <span class="ml-1 transform transition-transform group-hover:rotate-180">▾</span>
+                    </button>
+                    <ul id="moreMenuDesktop" class="absolute hidden group-hover:block mt-1 bg-gradient-to-br from-pink-50 via-rose-50 to-fuchsia-50 shadow-2xl rounded-xl w-64 py-3 z-10 dropdown-enter border border-pink-200">
+                        <li><a class="block px-5 py-3 hover:bg-gradient-to-r hover:from-white hover:to-pink-100 transition-all duration-200 border-l-3 border-transparent hover:border-miu-accent hover:shadow-sm text-gray-700 text-sm" href="#">Research</a></li>
+                        <li><a class="block px-5 py-3 hover:bg-gradient-to-r hover:from-white hover:to-pink-100 transition-all duration-200 border-l-3 border-transparent hover:border-miu-accent hover:shadow-sm text-gray-700 text-sm" href="#">Campus Life</a></li>
+                        <li><a href="#contact" class="block px-5 py-3 hover:bg-gradient-to-r hover:from-white hover:to-pink-100 transition-all duration-200 border-l-3 border-transparent hover:border-miu-accent hover:shadow-sm text-gray-700 text-sm">Contact Us</a></li>
+                        <li><a class="block px-5 py-3 hover:bg-gradient-to-r hover:from-white hover:to-pink-100 transition-all duration-200 border-l-3 border-transparent hover:border-miu-accent hover:shadow-sm text-gray-700 text-sm" href="#">Blogs</a></li>
+                        <li><a class="block px-5 py-3 hover:bg-gradient-to-r hover:from-white hover:to-pink-100 transition-all duration-200 border-l-3 border-transparent hover:border-miu-accent hover:shadow-sm text-gray-700 text-sm" href="#">Login</a></li>
+                    </ul>
+                </li>
+
+                <li><a href="{% url 'apply' %}" class="bg-gradient-miu text-white px-5 py-2 rounded-lg hover:opacity-90 transition-all font-medium shadow-lg hover:shadow-xl ml-2 text-sm">Apply Now</a></li>
+            </ul>
+
+            <button id="menuBtn" class="lg:hidden text-2xl text-miu-primary focus:outline-none hover:text-miu-secondary transition-colors">☰</button>
+        </div>
+        <!-- Mobile Menu with Beautiful Gradient Background -->
+        <div id="mobileMenu" class="hidden lg:hidden mobile-menu-gradient text-white shadow-2xl">
+            <a class="mobile-menu-item block px-6 py-5 hover:text-miu-accent transition-all" href="{% url 'index' %}">
+                <span class="flex items-center">
+                    <span class="mr-3">🏠</span> Home
+                </span>
+            </a>
+
+            <a class="mobile-menu-item block px-6 py-5 hover:text-miu-accent transition-all" href="{% url 'about' %}">
+                <span class="flex items-center">
+                    <span class="mr-3">🏛️</span> About Us
+                </span>
+            </a>
+
+
+            <!-- Faculties Dropdown for Mobile -->
+            <div class="border-b border-white/20">
+                <button id="facultiesBtnMobile" class="mobile-menu-item w-full text-left px-6 py-5 hover:text-miu-accent transition-all flex justify-between items-center">
+                    <span class="flex items-center">
+                        <span class="mr-3">🎓</span> Faculties
+                    </span>
+                    <span id="facultiesArrowMobile" class="transform transition-transform">▾</span>
+                </button>
+                <ul id="facultiesMenuMobile" class="hidden bg-gradient-to-b from-white/10 to-white/5 dropdown-enter">
+                    <li><a class="block px-6 py-4 hover:text-miu-accent transition-colors pl-14 hover:pl-16 bg-gradient-to-r from-transparent to-white/5 hover:to-white/10" href="#">Faculty of Science</a></li>
+                    <li><a class="block px-6 py-4 hover:text-miu-accent transition-colors pl-14 hover:pl-16 bg-gradient-to-r from-transparent to-white/5 hover:to-white/10" href="#">Faculty of Engineering</a></li>
+                    <li><a class="block px-6 py-4 hover:text-miu-accent transition-colors pl-14 hover:pl-16 bg-gradient-to-r from-transparent to-white/5 hover:to-white/10" href="#">Faculty of Business</a></li>
+                    <li><a class="block px-6 py-4 hover:text-miu-accent transition-colors pl-14 hover:pl-16 bg-gradient-to-r from-transparent to-white/5 hover:to-white/10" href="#">Faculty of Arts</a></li>
+                    <li><a class="block px-6 py-4 hover:text-miu-accent transition-colors pl-14 hover:pl-16 bg-gradient-to-r from-transparent to-white/5 hover:to-white/10" href="#">Faculty of Health Sciences</a></li>
+                </ul>
+            </div>
+
+
+
+            <!-- Programs Dropdown for Mobile -->
+            <div class="border-b border-white/20">
+                <button id="programsBtnMobile" class="mobile-menu-item w-full text-left px-6 py-5 hover:text-miu-accent transition-all flex justify-between items-center">
+                    <span class="flex items-center">
+                        <span class="mr-3">📚</span> Programs
+                    </span>
+                    <span id="programsArrowMobile" class="transform transition-transform">▾</span>
+                </button>
+                <ul id="programsMenuMobile" class="hidden bg-gradient-to-b from-white/10 to-white/5 dropdown-enter">
+                    <li><a class="block px-6 py-4 hover:text-miu-accent transition-colors pl-14 hover:pl-16 bg-gradient-to-r from-transparent to-white/5 hover:to-white/10" href="#" data-program="business">Business Administration</a></li>
+                    <li><a class="block px-6 py-4 hover:text-miu-accent transition-colors pl-14 hover:pl-16 bg-gradient-to-r from-transparent to-white/5 hover:to-white/10" href="#" data-program="cs">Computer Science</a></li>
+                    <li><a class="block px-6 py-4 hover:text-miu-accent transition-colors pl-14 hover:pl-16 bg-gradient-to-r from-transparent to-white/5 hover:to-white/10" href="#" data-program="data">Data Science</a></li>
+                    <li><a class="block px-6 py-4 hover:text-miu-accent transition-colors pl-14 hover:pl-16 bg-gradient-to-r from-transparent to-white/5 hover:to-white/10" href="#" data-program="health">Health Sciences</a></li>
+                    <li><a class="block px-6 py-4 hover:text-miu-accent transition-colors pl-14 hover:pl-16 bg-gradient-to-r from-transparent to-white/5 hover:to-white/10" href="#" data-program="engineering">Engineering</a></li>
+                </ul>
+            </div>
+
+
+
+
+            <a class="mobile-menu-item block px-6 py-5 hover:text-miu-accent transition-all" href="{% url 'admission_requirement' %}">
+                <span class="flex items-center">
+                    <span class="mr-3">📋</span> Admissions
+                </span>
+            </a>
+
+            <!-- More Dropdown for Mobile -->
+            <div class="border-b border-white/20">
+                <button id="moreBtnMobile" class="mobile-menu-item w-full text-left px-6 py-5 hover:text-miu-accent transition-all flex justify-between items-center">
+                    <span class="flex items-center">
+                        <span class="mr-3">📌</span> More
+                    </span>
+                    <span id="moreArrowMobile" class="transform transition-transform">▾</span>
+                </button>
+                <ul id="moreMenuMobile" class="hidden bg-gradient-to-b from-white/10 to-white/5 dropdown-enter">
+                    <li><a class="block px-6 py-4 hover:text-miu-accent transition-colors pl-14 hover:pl-16 bg-gradient-to-r from-transparent to-white/5 hover:to-white/10" href="#">Research</a></li>
+                    <li><a class="block px-6 py-4 hover:text-miu-accent transition-colors pl-14 hover:pl-16 bg-gradient-to-r from-transparent to-white/5 hover:to-white/10" href="#">Campus Life</a></li>
+                    <li><a class="block px-6 py-4 hover:text-miu-accent transition-colors pl-14 hover:pl-16 bg-gradient-to-r from-transparent to-white/5 hover:to-white/10" href="#contact">Contact Us</a></li>
+                    <li><a class="block px-6 py-4 hover:text-miu-accent transition-colors pl-14 hover:pl-16 bg-gradient-to-r from-transparent to-white/5 hover:to-white/10" href="#">Blogs</a></li>
+                    <li><a class="block px-6 py-4 hover:text-miu-accent transition-colors pl-14 hover:pl-16 bg-gradient-to-r from-transparent to-white/5 hover:to-white/10" href="#">Login</a></li>
+                </ul>
+            </div>
+
+            <a class="block px-6 py-5 bg-gradient-to-r from-miu-accent to-yellow-400 text-miu-primary font-bold text-center hover:from-yellow-400 hover:to-miu-accent transition-all shadow-lg" href="{% url 'apply' %}">
+                Apply Now 🚀
+            </a>
+        </div>
+    </header>
+
+
+
+
+    <!-- ================= HERO CAROUSEL ================= -->
+    <section class="pt-24 relative overflow-hidden">
+        <div id="carousel" class="relative h-[200px]">
+
+            <!-- Slide 1 -->
+            <div class="slide hero-slide-1 absolute inset-0 text-white flex items-center">
+                <div class="max-w-7xl mx-auto px-4">
+                    <div class="max-w-2xl flex flex-col justify-center h-full">
+                        <h1 class="text-3xl md:text-4xl font-bold mb-2 leading-tight font-serif">
+                            Empowering Global Education
+                        </h1>
+                        <p class="mb-4 text-sm md:text-base text-gray-200">
+                            World-class online education with flexibility and excellence.
+                            Join students from 120+ countries.
+                        </p>
+                        <div class="flex flex-wrap gap-2 md:gap-4 text-xs md:text-sm">
+                            <button class="bg-miu-accent text-miu-primary px-4 py-2 md:px-8 md:py-3 rounded-lg font-semibold hover:bg-yellow-400 transition-colors shadow-lg">
+                                Apply Now
+                            </button>
+                            <button class="border-2 border-white text-white px-4 py-2 md:px-8 md:py-3 rounded-lg font-semibold hover:bg-white hover:text-miu-primary transition-colors">
+                                Explore Programs
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 2 -->
+            <div class="slide hero-slide-2 hidden absolute inset-0 text-white flex items-center">
+                <div class="max-w-7xl mx-auto px-4">
+                    <div class="max-w-2xl flex flex-col justify-center h-full">
+                        <h1 class="text-3xl md:text-4xl font-bold mb-2 leading-tight font-serif">
+                            Learn From Anywhere
+                        </h1>
+                        <p class="mb-4 text-sm md:text-base text-gray-200">
+                            Study at your pace with expert faculty and cutting-edge
+                            digital platforms.
+                        </p>
+                        <div class="flex flex-wrap gap-2 md:gap-4 text-xs md:text-sm">
+                            <button class="bg-white text-miu-secondary px-4 py-2 md:px-8 md:py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors shadow-lg">
+                                Virtual Tour
+                            </button>
+                            <button class="border-2 border-white text-white px-4 py-2 md:px-8 md:py-3 rounded-lg font-semibold hover:bg-white hover:text-miu-secondary transition-colors">
+                                Meet Our Faculty
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 3 -->
+            <div class="slide hero-slide-3 hidden absolute inset-0 text-white flex items-center">
+                <div class="max-w-7xl mx-auto px-4">
+                    <div class="max-w-2xl flex flex-col justify-center h-full">
+                        <h1 class="text-3xl md:text-4xl font-bold mb-2 leading-tight font-serif">
+                            Build Your Future
+                        </h1>
+                        <p class="mb-4 text-sm md:text-base text-gray-200">
+                            Career-focused programs designed for success in today's global
+                            marketplace.
+                        </p>
+                        <div class="flex flex-wrap gap-2 md:gap-4 text-xs md:text-sm">
+                            <button class="bg-miu-accent text-miu-primary px-4 py-2 md:px-8 md:py-3 rounded-lg font-semibold hover:bg-yellow-400 transition-colors shadow-lg">
+                                View Careers
+                            </button>
+                            <button class="border-2 border-white text-white px-4 py-2 md:px-8 md:py-3 rounded-lg font-semibold hover:bg-white hover:text-miu-primary transition-colors">
+                                Alumni Network
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Carousel Indicators -->
+            <div class="absolute bottom-2 md:bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 md:space-x-3">
+                <button class="carousel-indicator w-2 h-2 md:w-3 md:h-3 rounded-full bg-white opacity-50 hover:opacity-100 transition-opacity"
+                        data-index="0"></button>
+                <button class="carousel-indicator w-2 h-2 md:w-3 md:h-3 rounded-full bg-white opacity-50 hover:opacity-100 transition-opacity"
+                        data-index="1"></button>
+                <button class="carousel-indicator w-2 h-2 md:w-3 md:h-3 rounded-full bg-white opacity-50 hover:opacity-100 transition-opacity"
+                        data-index="2"></button>
+            </div>
+        </div>
+    </section>
+
+
+
+    {% block content %}
+    <!-- ================= CALL TO ACTION ================= -->
+    <section class="py-16 md:py-20 bg-gradient text-white">
+        <div class="max-w-5xl mx-auto px-4 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6 font-serif">Information goes here</h2>
+            <p class="text-xl mb-10 text-blue-100 max-w-3xl mx-auto">
+               Balnks
+            </p>
+            <div class="flex flex-wrap justify-center gap-6">
+               
+            </div>
+        </div>
+
+
+    </section>
+    {% endblock %}
+
+
+    <!-- ================= CALL TO ACTION ================= -->
+    <section class="py-16 md:py-20 bg-gradient-miu text-white">
+        <div class="max-w-5xl mx-auto px-4 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6 font-serif">Ready to Start Your Journey with MIU?</h2>
+            <p class="text-xl mb-10 text-blue-100 max-w-3xl mx-auto">
+                Join our global community of learners and innovators. Your future starts here.
+            </p>
+            <div class="flex flex-wrap justify-center gap-6">
+                <a href="{%url 'apply'%}" class="bg-white text-miu-primary px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-all shadow-lg text-lg">
+                    Apply Now
+                </a>
+                <a href="programs.html" class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-miu-primary transition-all text-lg">
+                    Explore Programs
+                </a>
+                <a href="{% url 'index' %}#contact" class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-miu-primary transition-all text-lg">
+                    Contact Admissions
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= CONTACT ================= -->
+    <section id="contact" class="py-6 bg-gradient-light">
+
+        <div class="text-center mb-5">
+            <h2 class="text-4xl font-bold text-miu-primary mb-4 font-serif">Locate MIU</h2>
+
+        </div>
+
+        <!-- ================= LOCATION MAP ================= -->
+        <div class="relative w-full h-72 overflow-hidden rounded-2xl shadow-2xl">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3024.177858804427!2d-73.98784468459426!3d40.70555167933205!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25a315cdf4c9b%3A0x8b934de5cae6f7a!2sFinancial%20District%2C%20New%20York%2C%20NY%2C%20USA!5e0!3m2!1sen!2s!4v1648561234567!5m2!1sen!2s"
+                    class="absolute top-0 left-0 w-full h-full border-0 filter grayscale-[20%] contrast-[1.1]"
+                    allowfullscreen="" loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade" title="MIU Main Campus Location Map">
+            </iframe>
+
+            <div class="absolute bottom-5 right-5 bg-[#0F2A44E6] text-white p-4 rounded-lg backdrop-blur-sm border-l-4 border-yellow-400 z-10">
+                <h4 class="font-bold text-lg mb-1">MIU Main Campus</h4>
+                <p class="text-sm text-gray-300">123 University Avenue<br>Knowledge City, KC 10101</p>
+                <a href="https://maps.google.com/?q=123+University+Avenue+Knowledge+City" target="_blank"
+                   class="inline-block mt-2 text-miu-accent font-medium hover:text-yellow-300 transition-colors text-sm">
+                    Get Directions →
+                </a>
+            </div>
+        </div>
+
+
+
+
+
+        <!-- Map Controls -->
+        <div class="absolute top-4 left-4 z-10 flex space-x-2">
+            <button class="bg-white p-2 rounded-lg shadow-md hover:bg-gray-100 transition-colors"
+                    title="Zoom In">
+                <span class="text-lg">➕</span>
+            </button>
+            <button class="bg-white p-2 rounded-lg shadow-md hover:bg-gray-100 transition-colors"
+                    title="Zoom Out">
+                <span class="text-lg">➖</span>
+            </button>
+            <button class="bg-white p-2 rounded-lg shadow-md hover:bg-gray-100 transition-colors"
+                    title="Reset View">
+                <span class="text-lg">🔄</span>
+            </button>
+        </div>
+
+        <!-- Transportation Info -->
+        <div class="mt-8 grid md:grid-cols-3 gap-6">
+            <div class="bg-white p-5 rounded-xl shadow-lg">
+                <div class="flex items-center mb-3">
+                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                        <span class="text-blue-600">🚇</span>
+                    </div>
+                    <h4 class="font-bold text-lg">Public Transit</h4>
+                </div>
+                <p class="text-gray-600 text-sm">
+                    Take Metro Line 1 to University Station. Campus is a 5-minute
+                    walk from exit B.
+                </p>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-lg">
+                <div class="flex items-center mb-3">
+                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                        <span class="text-green-600">🚗</span>
+                    </div>
+                    <h4 class="font-bold text-lg">Parking</h4>
+                </div>
+                <p class="text-gray-600 text-sm">
+                    Visitor parking available in Lot A. Daily parking pass: $10.
+                    Free on weekends.
+                </p>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-lg">
+                <div class="flex items-center mb-3">
+                    <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                        <span class="text-purple-600">✈️</span>
+                    </div>
+                    <h4 class="font-bold text-lg">From Airport</h4>
+                </div>
+                <p class="text-gray-600 text-sm">
+                    25 minutes from International Airport. Taxi/Uber available.
+                    Airport shuttle every 30 mins.
+                </p>
+            </div>
+        </div>
+
+
+    </section>
+
+    <!-- ================= FOOTER ================= -->
+    <footer class="bg-gradient-miu text-white py-12">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-6">
+                        <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center glow-effect">
+                            <span class="text-miu-primary font-bold text-xl">MIU</span>
+                        </div>
+                        <span class="text-2xl font-bold">MIU</span>
+                    </div>
+                    <p class="text-gray-300">
+                        Modern International University - Empowering global education since 1995.
+                    </p>
+                    <div class="mt-4 flex items-center text-gray-300">
+                        <span class="mr-2">📍</span>
+                        <span class="text-sm">123 University Avenue, Knowledge City</span>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Quick Links</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-gray-300 hover:text-miu-accent transition-colors">About MIU</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-miu-accent transition-colors">Programs</a></li>
+                        <li>
+                            <a href="#" class="text-gray-300 hover:text-miu-accent transition-colors">Admissions</a>
+                        </li>
+                        <li>
+                            <a href="#contact" class="text-gray-300 hover:text-miu-accent transition-colors">
+                                Contact &
+                                Map
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Resources</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-gray-300 hover:text-miu-accent transition-colors">Library</a></li>
+                        <li>
+                            <a href="#" class="text-gray-300 hover:text-miu-accent transition-colors">
+                                Career
+                                Services
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="text-gray-300 hover:text-miu-accent transition-colors">Student Portal</a>
+                        </li>
+                        <li>
+                            <a href="#" class="text-gray-300 hover:text-miu-accent transition-colors">Campus Map</a>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Connect With Us</h4>
+                    <div class="flex space-x-4 mb-6">
+                        <a href="#"
+                           class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors hover:scale-110">f</a>
+                        <a href="#"
+                           class="w-10 h-10 bg-blue-400 rounded-full flex items-center justify-center hover:bg-blue-500 transition-colors hover:scale-110">t</a>
+                        <a href="#"
+                           class="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors hover:scale-110">in</a>
+                        <a href="#"
+                           class="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors hover:scale-110">yt</a>
+                    </div>
+                    <p class="text-gray-300 text-sm">
+                        Follow us for campus updates, events, and student stories.
+                    </p>
+                </div>
+            </div>
+            <div class="border-t border-white/20 pt-8 text-center text-gray-300">
+                <p>&copy; 2025 Modern International University (MIU). All rights reserved.</p>
+                <p class="mt-2 text-sm">123 University Avenue, Knowledge City, KC 10101 | +1 (555) 123-4567</p>
+            </div>
+        </div>
+    </footer>
+
+
+
+    <!-- ================= STUDENT LIFE CHATBOT ================= -->
+    <!-- Add this HTML at the end of the body, just before closing </body> tag -->
+    <div id="studentLifeChatbot" class="fixed bottom-6 right-6 z-50">
+        <!-- Chatbot Toggle Button -->
+        <button id="chatbotToggle"
+                class="w-16 h-16 bg-gradient-miu rounded-full flex items-center justify-center shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-110">
+            <div id="chatbotIcon" class="text-white text-2xl transition-transform duration-300">💬</div>
+            <div id="notificationBadge"
+                 class="absolute -top-1 -right-1 w-6 h-6 bg-miu-accent rounded-full flex items-center justify-center text-xs font-bold text-miu-primary hidden">
+                3
+            </div>
+        </button>
+
+        <!-- Chatbot Window -->
+        <div id="chatbotWindow"
+             class="hidden absolute bottom-20 right-0 w-96 h-[600px] bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+            <!-- Chat Header -->
+            <div class="bg-gradient-miu text-white p-4 flex justify-between items-center">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center mr-3">
+                        <span class="text-miu-primary font-bold">MIU</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg">Student Life Assistant</h3>
+                        <div class="flex items-center text-sm">
+                            <div class="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                            <span>Online</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex space-x-2">
+                    <button id="chatbotMinimize" class="text-white hover:text-gray-200 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6"></path>
+                        </svg>
+                    </button>
+                    <button id="chatbotClose" class="text-white hover:text-gray-200 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat Body -->
+            <div class="h-[calc(100%-140px)] flex flex-col">
+                <!-- Messages Container -->
+                <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-4">
+                    <!-- Initial Welcome Message -->
+                    <div class="chat-message bot-message">
+                        <div class="flex items-start space-x-2">
+                            <div class="w-8 h-8 bg-gradient-to-r from-miu-primary to-miu-secondary rounded-full flex items-center justify-center text-white text-sm">
+                                AI
+                            </div>
+                            <div>
+                                <div class="bg-gray-100 rounded-2xl rounded-tl-none p-4 max-w-[80%]">
+                                    <p class="text-gray-800">
+                                        👋 Welcome to MIU Student Life Assistant! I'm here to help
+                                        you explore campus life, academic support, extracurricular activities, career
+                                        services, and wellbeing resources. How can I assist you today?
+                                    </p>
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1 ml-1">Just now</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Action Buttons -->
+                    <div class="chat-message bot-message">
+                        <div class="flex items-start space-x-2">
+                            <div class="w-8 h-8 bg-gradient-to-r from-miu-primary to-miu-secondary rounded-full flex items-center justify-center text-white text-sm">
+                                AI
+                            </div>
+                            <div>
+                                <div class="max-w-[80%]">
+                                    <p class="text-gray-800 mb-2">Quickly explore popular topics:</p>
+                                    <div class="flex flex-wrap gap-2">
+                                        <button class="quick-action bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-2 rounded-lg text-sm transition-colors"
+                                                data-action="academic">
+                                            📚 Academic Support
+                                        </button>
+                                        <button class="quick-action bg-green-100 hover:bg-green-200 text-green-800 px-3 py-2 rounded-lg text-sm transition-colors"
+                                                data-action="community">
+                                            🌍 Virtual Community
+                                        </button>
+                                        <button class="quick-action bg-purple-100 hover:bg-purple-200 text-purple-800 px-3 py-2 rounded-lg text-sm transition-colors"
+                                                data-action="activities">
+                                            🎭 Extracurriculars
+                                        </button>
+                                        <button class="quick-action bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-3 py-2 rounded-lg text-sm transition-colors"
+                                                data-action="career">
+                                            💼 Career Services
+                                        </button>
+                                        <button class="quick-action bg-pink-100 hover:bg-pink-200 text-pink-800 px-3 py-2 rounded-lg text-sm transition-colors"
+                                                data-action="wellbeing">
+                                            ❤️ Wellbeing Resources
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Typing Indicator -->
+                <div id="typingIndicator" class="hidden px-4 py-2">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-gradient-to-r from-miu-primary to-miu-secondary rounded-full flex items-center justify-center text-white text-sm">
+                            AI
+                        </div>
+                        <div class="flex space-x-1">
+                            <div class="w-2 h-2 bg-gray-300 rounded-full animate-pulse"></div>
+                            <div class="w-2 h-2 bg-gray-300 rounded-full animate-pulse delay-75"></div>
+                            <div class="w-2 h-2 bg-gray-300 rounded-full animate-pulse delay-150"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Input Area -->
+            <div class="border-t border-gray-200 p-4">
+                <div class="flex space-x-2 mb-3">
+                    <input type="text" id="chatInput"
+                           placeholder="Ask about student life, support services, or activities..."
+                           class="flex-1 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-miu-secondary focus:border-transparent"
+                           maxlength="500" />
+                    <button id="sendMessage"
+                            class="bg-gradient-miu text-white rounded-lg px-4 hover:opacity-90 transition-opacity flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="flex justify-between items-center">
+                    <div class="text-xs text-gray-500">
+                        <span id="charCount">0/500</span> characters
+                    </div>
+                    <button id="voiceInput" class="text-gray-500 hover:text-miu-secondary transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Menu (Minimized State) -->
+        <div id="quickMenu"
+             class="hidden absolute bottom-20 right-0 w-64 bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200 p-4">
+            <h4 class="font-bold text-miu-primary mb-3">Student Life Topics</h4>
+            <div class="space-y-2">
+                <button class="quick-topic w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors flex items-center"
+                        data-action="academic">
+                    <span class="mr-2">📚</span> Academic Support
+                </button>
+                <button class="quick-topic w-full text-left px-3 py-2 rounded-lg hover:bg-green-50 transition-colors flex items-center"
+                        data-action="community">
+                    <span class="mr-2">🌍</span> Virtual Community
+                </button>
+                <button class="quick-topic w-full text-left px-3 py-2 rounded-lg hover:bg-purple-50 transition-colors flex items-center"
+                        data-action="activities">
+                    <span class="mr-2">🎭</span> Activities & Clubs
+                </button>
+                <button class="quick-topic w-full text-left px-3 py-2 rounded-lg hover:bg-yellow-50 transition-colors flex items-center"
+                        data-action="career">
+                    <span class="mr-2">💼</span> Career Services
+                </button>
+                <button class="quick-topic w-full text-left px-3 py-2 rounded-lg hover:bg-pink-50 transition-colors flex items-center"
+                        data-action="wellbeing">
+                    <span class="mr-2">❤️</span> Wellbeing Resources
+                </button>
+            </div>
+            <button id="openFullChat"
+                    class="w-full bg-gradient-miu text-white rounded-lg py-2 mt-3 hover:opacity-90 transition-opacity">
+                Open Full Chat
+            </button>
+        </div>
+    </div>
+
+    <script src="{% static 'js/main.js' %}"></script>
+
+    {% block js %} {% endblock %}
+
+</body>
+
+
+</html>

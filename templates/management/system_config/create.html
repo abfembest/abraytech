@@ -1,0 +1,166 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}System Configuration - MIU Portal{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 font-display">
+                <i class="fas fa-cogs text-primary-600 mr-3"></i>
+                System Configuration
+            </h1>
+            <p class="text-gray-600 mt-1">Manage system-wide settings and configurations</p>
+        </div>
+        <a href="{% url 'management:system_config_create' %}" 
+           class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all shadow-md hover:shadow-lg inline-flex items-center">
+            <i class="fas fa-plus mr-2"></i>
+            Add Configuration
+        </a>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <a href="{% url 'management:branding_config' %}" 
+           class="p-4 bg-white rounded-lg shadow-sm border-l-4 border-purple-500 hover:shadow-md transition-all">
+            <i class="fas fa-paint-brush text-purple-500 text-2xl mb-2"></i>
+            <h3 class="font-semibold text-gray-900">Branding</h3>
+            <p class="text-sm text-gray-600">Logo, colors, theme</p>
+        </a>
+        <a href="{% url 'management:email_config' %}" 
+           class="p-4 bg-white rounded-lg shadow-sm border-l-4 border-blue-500 hover:shadow-md transition-all">
+            <i class="fas fa-envelope text-blue-500 text-2xl mb-2"></i>
+            <h3 class="font-semibold text-gray-900">Email</h3>
+            <p class="text-sm text-gray-600">SMTP settings</p>
+        </a>
+        <a href="{% url 'management:notification_config' %}" 
+           class="p-4 bg-white rounded-lg shadow-sm border-l-4 border-green-500 hover:shadow-md transition-all">
+            <i class="fas fa-bell text-green-500 text-2xl mb-2"></i>
+            <h3 class="font-semibold text-gray-900">Notifications</h3>
+            <p class="text-sm text-gray-600">Alert preferences</p>
+        </a>
+        <a href="{% url 'management:security_dashboard' %}" 
+           class="p-4 bg-white rounded-lg shadow-sm border-l-4 border-red-500 hover:shadow-md transition-all">
+            <i class="fas fa-shield-alt text-red-500 text-2xl mb-2"></i>
+            <h3 class="font-semibold text-gray-900">Security</h3>
+            <p class="text-sm text-gray-600">Access & logs</p>
+        </a>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="bg-white p-4 rounded-lg shadow-sm">
+        <form method="get" class="flex gap-4">
+            <div class="flex-1">
+                <input type="text" 
+                       name="search" 
+                       value="{{ search_query }}" 
+                       placeholder="Search configurations..."
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+            </div>
+            <button type="submit" class="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all">
+                <i class="fas fa-search mr-2"></i>Search
+            </button>
+        </form>
+    </div>
+
+    <!-- Configurations Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Key</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Type</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Value</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Public</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Updated</th>
+                        <th class="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for config in configs %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="font-medium text-gray-900">{{ config.key }}</div>
+                            {% if config.description %}
+                            <div class="text-sm text-gray-500">{{ config.description|truncatewords:10 }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
+                                {{ config.get_setting_type_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900 max-w-xs truncate">
+                                {{ config.value|truncatewords:5 }}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if config.is_public %}
+                            <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                                <i class="fas fa-check mr-1"></i>Yes
+                            </span>
+                            {% else %}
+                            <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
+                                <i class="fas fa-lock mr-1"></i>No
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500">
+                            {{ config.updated_at|date:"M d, Y" }}<br>
+                            <span class="text-xs">by {{ config.updated_by.username|default:"System" }}</span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <a href="{% url 'management:system_config_edit' config.id %}" 
+                                   class="text-primary-600 hover:text-primary-700" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'management:system_config_delete' config.id %}" 
+                                   class="text-red-600 hover:text-red-700" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center">
+                            <i class="fas fa-inbox text-gray-400 text-4xl mb-4"></i>
+                            <p class="text-gray-500">No configurations found</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if configs.has_other_pages %}
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+            <div class="flex items-center justify-between">
+                <div class="text-sm text-gray-600">
+                    Showing {{ configs.start_index }} to {{ configs.end_index }} of {{ total_configs }} configurations
+                </div>
+                <div class="flex gap-2">
+                    {% if configs.has_previous %}
+                    <a href="?page={{ configs.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" 
+                       class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Previous</a>
+                    {% endif %}
+                    
+                    <span class="px-4 py-2 bg-primary-600 text-white rounded-lg">{{ configs.number }}</span>
+                    
+                    {% if configs.has_next %}
+                    <a href="?page={{ configs.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" 
+                       class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Next</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

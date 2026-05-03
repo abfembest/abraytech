@@ -1,0 +1,563 @@
+{% extends 'melbac/base.html' %}
+{% load static %}
+
+{% block title %}Admissions — Melchisedec Graduate Bible Academy (MELBAC){% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="Apply for free admission to MELBAC. No tuition fees. No admission fees. Offering Basic Certificate, Advanced Certificate, Diploma, Bachelors, Masters and Doctorate degree programs in Christian Ministry and Theology.">
+<meta name="keywords"    content="MELBAC admissions, free Bible university admission, Christian degree requirements, theological studies Nigeria, apply MELBAC">
+<meta name="robots"      content="index, follow">
+{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Admissions — MELBAC",
+  "description": "Free admission to MELBAC degree programs — no tuition, no admission fees.",
+  "url": "{{ request.build_absolute_uri }}"
+}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── PAGE HERO ──────────────────────────────────────────────────── -->
+<section class="mb-page-hero" aria-label="Admissions page header">
+  <div class="mb-page-hero-pattern" aria-hidden="true"></div>
+  <div class="mb-container mb-page-hero-inner">
+    <nav aria-label="Breadcrumb">
+      <ol class="mb-breadcrumb">
+        <li><a href="{% url 'melbac:index' %}">Home</a></li>
+        <li class="mb-breadcrumb-sep" aria-hidden="true">/</li>
+        <li aria-current="page">Admissions</li>
+      </ol>
+    </nav>
+    <h1>Admissions</h1>
+    <p>The Board of Management of Melchisedec Graduate Bible Academy cheerfully welcomes intending students. We are an admission-free and tuition-free non-denominational theological university.</p>
+  </div>
+</section>
+
+
+<!-- ── STICKY SUB-NAV ─────────────────────────────────────────────── -->
+<div class="mb-subnav" aria-label="Admissions navigation">
+  <div class="mb-container">
+    <nav class="mb-subnav-inner" aria-label="Degree level navigation">
+      <a href="#overview"  class="acad-tab active" data-target="overview">Overview</a>
+      <a href="#basic"     class="acad-tab"         data-target="basic">Certificate</a>
+      <a href="#diploma"   class="acad-tab"         data-target="diploma">Diploma</a>
+      <a href="#bachelors" class="acad-tab"         data-target="bachelors">Bachelors</a>
+      <a href="#masters"   class="acad-tab"         data-target="masters">Masters</a>
+      <a href="#doctorate" class="acad-tab"         data-target="doctorate">Doctorate</a>
+    </nav>
+  </div>
+</div>
+
+
+<!-- ── WELCOME / OVERVIEW ─────────────────────────────────────────── -->
+<section id="overview" class="mb-section mb-bg-s3 mb-section-divider mb-faculty-section"
+         aria-labelledby="overview-heading">
+  <div class="mb-container">
+
+    <div class="mb-reveal">
+      <p class="mb-eyebrow">Welcome to MELBAC</p>
+      <h2 id="overview-heading">A Free Education for the Kingdom</h2>
+      <div class="mb-divider"></div>
+    </div>
+
+    <p class="mb-about-intro mb-reveal d1">
+      The Board of Management of Melchisedec Graduate Bible Academy, an admission free and tuition free non-denominational theological university, cheerfully welcomes intending students who are applying to study in this institution, and also the general public who are interested in knowing what this institution is made of, into our website.
+    </p>
+    <p class="mb-about-intro mb-reveal d2">
+      Melchisedec Graduate Bible Academy (MELBAC) is an institution of graduate and post-graduate studies and is recognized by the Federal Government of Nigeria to award certificate, diploma, baccalaureate (bachelors), masters and doctorate degrees.
+    </p>
+
+    <!-- Key facts strip -->
+    <div class="mb-adm-facts mb-reveal d3">
+      <div class="mb-adm-fact-card mb-card">
+        <div class="mb-icon-wrap mb-adm-fact-icon">
+          <i data-lucide="shield-check" class="w-5 h-5 text-gospel-600" aria-hidden="true"></i>
+        </div>
+        <p class="mb-adm-fact-num">0</p>
+        <p class="mb-adm-fact-label">Admission Fees</p>
+      </div>
+      <div class="mb-adm-fact-card mb-card">
+        <div class="mb-icon-wrap mb-adm-fact-icon">
+          <i data-lucide="badge-dollar-sign" class="w-5 h-5 text-gospel-600" aria-hidden="true"></i>
+        </div>
+        <p class="mb-adm-fact-num">0</p>
+        <p class="mb-adm-fact-label">Tuition Fees</p>
+      </div>
+      <div class="mb-adm-fact-card mb-card">
+        <div class="mb-icon-wrap mb-adm-fact-icon">
+          <i data-lucide="graduation-cap" class="w-5 h-5 text-gospel-600" aria-hidden="true"></i>
+        </div>
+        <p class="mb-adm-fact-num">6</p>
+        <p class="mb-adm-fact-label">Degree Levels</p>
+      </div>
+      <div class="mb-adm-fact-card mb-card">
+        <div class="mb-icon-wrap mb-adm-fact-icon">
+          <i data-lucide="users" class="w-5 h-5 text-gospel-600" aria-hidden="true"></i>
+        </div>
+        <p class="mb-adm-fact-num">2</p>
+        <p class="mb-adm-fact-label">Campuses</p>
+      </div>
+    </div>
+
+    <!-- Core requirement note -->
+    <div class="mb-card mb-adm-req-note mb-reveal d4">
+      <div class="mb-icon-wrap" style="width:40px;height:40px;flex-shrink:0;">
+        <i data-lucide="info" class="w-5 h-5 text-gospel-600" aria-hidden="true"></i>
+      </div>
+      <div>
+        <p class="mb-adm-req-note-title">Universal Requirement for All Programs</p>
+        <p class="mb-adm-req-note-text">All applicants for any degree level must be born again, baptized in water (immersion) and the Holy Ghost, and must have shown interest in becoming trained Ministers of the gospel of Jesus Christ.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ── BASIC CERTIFICATE ───────────────────────────────────────────── -->
+<section id="basic" class="mb-section mb-bg-s2 mb-section-divider mb-faculty-section"
+         aria-labelledby="basic-heading">
+  <div class="mb-container">
+
+    <div class="mb-adm-level-header mb-reveal">
+      <div class="mb-adm-level-badge mb-adm-badge-cert">
+        <i data-lucide="file-badge" class="w-5 h-5" aria-hidden="true"></i>
+      </div>
+      <div>
+        <p class="mb-eyebrow">Level 01</p>
+        <h2 id="basic-heading">Basic Certificate</h2>
+        <div class="mb-divider"></div>
+      </div>
+    </div>
+
+    <div class="mb-adm-level-grid">
+      <!-- Requirements -->
+      <div class="mb-card mb-adm-card mb-reveal d1">
+        <div class="mb-adm-card-head mb-adm-head-cert">
+          <i data-lucide="clipboard-list" class="w-4 h-4 text-white" aria-hidden="true"></i>
+          <h3>Requirements</h3>
+        </div>
+        <ul class="mb-adm-req-list">
+          <li class="mb-adm-req-item">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i>
+            <span>All applicants must be born again, baptized in water (immersion) and the Holy Ghost, and must have shown interest in becoming trained Ministers of the gospel of Jesus Christ.</span>
+          </li>
+          <li class="mb-adm-req-item">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i>
+            <span>All applicants must be proficient in reading and writing.</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Duration + Programs -->
+      <div class="mb-card mb-adm-card mb-reveal d2">
+        <div class="mb-adm-card-head mb-adm-head-cert">
+          <i data-lucide="clock" class="w-4 h-4 text-white" aria-hidden="true"></i>
+          <h3>Duration &amp; Programs</h3>
+        </div>
+        <div class="mb-adm-duration-wrap">
+          <span class="mb-adm-duration-badge">1 Year &middot; 2 Semesters</span>
+        </div>
+        <div class="mb-adm-programs-wrap">
+          <p class="mb-adm-programs-label">Programs Offered</p>
+          <ul class="mb-adm-prog-list">
+            <li class="mb-adm-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Christian Ministry</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ── ADVANCED CERTIFICATE ───────────────────────────────────────── -->
+<section class="mb-section mb-bg-s3 mb-section-divider mb-faculty-section"
+         aria-labelledby="advcert-heading">
+  <div class="mb-container">
+
+    <div class="mb-adm-level-header mb-reveal">
+      <div class="mb-adm-level-badge mb-adm-badge-advcert">
+        <i data-lucide="award" class="w-5 h-5" aria-hidden="true"></i>
+      </div>
+      <div>
+        <p class="mb-eyebrow">Level 02</p>
+        <h2 id="advcert-heading">Advanced Certificate</h2>
+        <div class="mb-divider"></div>
+      </div>
+    </div>
+
+    <div class="mb-adm-level-grid">
+      <div class="mb-card mb-adm-card mb-reveal d1">
+        <div class="mb-adm-card-head mb-adm-head-advcert">
+          <i data-lucide="clipboard-list" class="w-4 h-4 text-white" aria-hidden="true"></i>
+          <h3>Requirements</h3>
+        </div>
+        <ul class="mb-adm-req-list">
+          <li class="mb-adm-req-item">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i>
+            <span>All applicants must be born again, baptized in water (immersion) and the Holy Ghost, and must have shown interest in becoming trained Ministers of the gospel of Jesus Christ.</span>
+          </li>
+          <li class="mb-adm-req-item">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i>
+            <span>All applicants must have high school equivalent or Secondary School Certificate with pass level.</span>
+          </li>
+          <li class="mb-adm-req-item">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i>
+            <span>All applicants must submit testimonials from previous schools attended.</span>
+          </li>
+          <li class="mb-adm-req-item">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i>
+            <span>All applicants must submit previous schools' transcripts and certificates.</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="mb-card mb-adm-card mb-reveal d2">
+        <div class="mb-adm-card-head mb-adm-head-advcert">
+          <i data-lucide="clock" class="w-4 h-4 text-white" aria-hidden="true"></i>
+          <h3>Duration &amp; Programs</h3>
+        </div>
+        <div class="mb-adm-duration-wrap">
+          <span class="mb-adm-duration-badge">1 Year &middot; 2 Semesters</span>
+        </div>
+        <div class="mb-adm-programs-wrap">
+          <p class="mb-adm-programs-label">Programs Offered</p>
+          <ul class="mb-adm-prog-list">
+            <li class="mb-adm-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Christian Ministry</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ── DIPLOMA ────────────────────────────────────────────────────── -->
+<section id="diploma" class="mb-section mb-bg-s2 mb-section-divider mb-faculty-section"
+         aria-labelledby="diploma-heading">
+  <div class="mb-container">
+
+    <div class="mb-adm-level-header mb-reveal">
+      <div class="mb-adm-level-badge mb-adm-badge-diploma">
+        <i data-lucide="scroll-text" class="w-5 h-5" aria-hidden="true"></i>
+      </div>
+      <div>
+        <p class="mb-eyebrow">Level 03</p>
+        <h2 id="diploma-heading">Diploma</h2>
+        <div class="mb-divider"></div>
+      </div>
+    </div>
+
+    <div class="mb-adm-level-grid">
+      <div class="mb-card mb-adm-card mb-reveal d1">
+        <div class="mb-adm-card-head mb-adm-head-diploma">
+          <i data-lucide="clipboard-list" class="w-4 h-4 text-white" aria-hidden="true"></i>
+          <h3>Requirements</h3>
+        </div>
+        <ul class="mb-adm-req-list">
+          <li class="mb-adm-req-item">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i>
+            <span>All applicants must be born again, baptized in water (immersion) and the Holy Ghost, and must have shown interest in becoming trained Ministers of the gospel of Jesus Christ.</span>
+          </li>
+          <li class="mb-adm-req-item">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i>
+            <span>All applicants must have 5 credits at no more than 2 sittings in WASC/SSCE, O'Level GCE or its equivalent.</span>
+          </li>
+          <li class="mb-adm-req-item">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i>
+            <span>All applicants must submit testimonials from previous schools attended.</span>
+          </li>
+          <li class="mb-adm-req-item">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i>
+            <span>All applicants must submit previous schools' transcripts and certificates.</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="mb-card mb-adm-card mb-reveal d2">
+        <div class="mb-adm-card-head mb-adm-head-diploma">
+          <i data-lucide="clock" class="w-4 h-4 text-white" aria-hidden="true"></i>
+          <h3>Duration &amp; Programs</h3>
+        </div>
+        <div class="mb-adm-duration-wrap">
+          <span class="mb-adm-duration-badge">1 Year &middot; 2 Semesters</span>
+        </div>
+        <div class="mb-adm-programs-wrap">
+          <p class="mb-adm-programs-label">Programs Offered</p>
+          <ul class="mb-adm-prog-list">
+            <li class="mb-adm-prog-item"><span class="mb-prog-dot" aria-hidden="true"></span>Christian Ministry</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ── BACHELORS ──────────────────────────────────────────────────── -->
+<section id="bachelors" class="mb-section mb-bg-s3 mb-section-divider mb-faculty-section"
+         aria-labelledby="bachelors-heading">
+  <div class="mb-container">
+
+    <div class="mb-adm-level-header mb-reveal">
+      <div class="mb-adm-level-badge mb-adm-badge-bsc">
+        <i data-lucide="book-open" class="w-5 h-5" aria-hidden="true"></i>
+      </div>
+      <div>
+        <p class="mb-eyebrow">Level 04</p>
+        <h2 id="bachelors-heading">Bachelors Degree</h2>
+        <div class="mb-divider"></div>
+      </div>
+    </div>
+
+    <div class="mb-adm-level-grid">
+      <div class="mb-card mb-adm-card mb-reveal d1">
+        <div class="mb-adm-card-head mb-adm-head-bsc">
+          <i data-lucide="clipboard-list" class="w-4 h-4 text-white" aria-hidden="true"></i>
+          <h3>Requirements</h3>
+        </div>
+        <ul class="mb-adm-req-list">
+          <li class="mb-adm-req-item">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i>
+            <span>All applicants must be born again, baptized in water (immersion) and the Holy Ghost, and must have shown interest in becoming trained Ministers of the gospel of Jesus Christ.</span>
+          </li>
+          <li class="mb-adm-req-item">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i>
+            <span>All applicants must have a minimum of 5 credits at no more than 2 sittings in WASC/SSCE, O Level/GCE, or its equivalent. <strong>OR</strong> a Diploma certificate (OND/NCE/HND) from a recognized Theological/Bible school.</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="mb-card mb-adm-card mb-reveal d2">
+        <div class="mb-adm-card-head mb-adm-head-bsc">
+          <i data-lucide="clock" class="w-4 h-4 text-white" aria-hidden="true"></i>
+          <h3>Duration</h3>
+        </div>
+        <div class="mb-adm-duration-multi">
+          <div class="mb-adm-duration-row">
+            <span class="mb-adm-duration-badge">4 Years &middot; 8 Semesters</span>
+            <span class="mb-adm-duration-note">For WASC/SSCE, O Level/GCE applicants</span>
+          </div>
+          <div class="mb-adm-duration-row">
+            <span class="mb-adm-duration-badge mb-adm-duration-alt">2 Years &middot; 4 Semesters</span>
+            <span class="mb-adm-duration-note">For Diploma certificate (OND/NCE/HND) holders</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Programs -->
+    <div class="mb-reveal d3">
+      <p class="mb-eyebrow" style="margin-top:32px;">Bachelors Degree Programs</p>
+      <div class="mb-adm-prog-grid">
+        {% for prog in "1234567891011"|make_list %}
+        <div class="mb-card mb-adm-prog-card mb-reveal">
+          <span class="mb-prog-dot" aria-hidden="true"></span>
+          <span class="mb-adm-prog-name">
+            {% if forloop.counter == 1 %}Church Financial Management &amp; Administration
+            {% elif forloop.counter == 2 %}Church &amp; Intercultural Relations
+            {% elif forloop.counter == 3 %}Church Business Management
+            {% elif forloop.counter == 4 %}Christian Communication (Evangelism)
+            {% elif forloop.counter == 5 %}Intercessory Prayer &amp; Deliverance Studies
+            {% elif forloop.counter == 6 %}Missiology
+            {% elif forloop.counter == 7 %}Theology
+            {% elif forloop.counter == 8 %}Christian Religious Studies/Ministry
+            {% elif forloop.counter == 9 %}Christian Educational Administration
+            {% elif forloop.counter == 10 %}Christian Counseling
+            {% else %}Christian Education and Ethics{% endif %}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ── MASTERS ────────────────────────────────────────────────────── -->
+<section id="masters" class="mb-section mb-bg-s2 mb-section-divider mb-faculty-section"
+         aria-labelledby="masters-heading">
+  <div class="mb-container">
+
+    <div class="mb-adm-level-header mb-reveal">
+      <div class="mb-adm-level-badge mb-adm-badge-masters">
+        <i data-lucide="graduation-cap" class="w-5 h-5" aria-hidden="true"></i>
+      </div>
+      <div>
+        <p class="mb-eyebrow">Level 05</p>
+        <h2 id="masters-heading">Masters Degree</h2>
+        <div class="mb-divider"></div>
+      </div>
+    </div>
+
+    <div class="mb-adm-level-grid">
+      <div class="mb-card mb-adm-card mb-reveal d1">
+        <div class="mb-adm-card-head mb-adm-head-masters">
+          <i data-lucide="clipboard-list" class="w-4 h-4 text-white" aria-hidden="true"></i>
+          <h3>Requirements</h3>
+        </div>
+        <ul class="mb-adm-req-list">
+          <li class="mb-adm-req-item">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i>
+            <span>All applicants must be born again, baptized in water (immersion) and the Holy Ghost, and must have shown interest in becoming trained Ministers of the gospel of Jesus Christ.</span>
+          </li>
+          <li class="mb-adm-req-item">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i>
+            <span>All applicants must have a Bachelors degree from a government-approved Theological College/Institute/Seminary/University accredited by local/international accrediting bodies.</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="mb-card mb-adm-card mb-reveal d2">
+        <div class="mb-adm-card-head mb-adm-head-masters">
+          <i data-lucide="clock" class="w-4 h-4 text-white" aria-hidden="true"></i>
+          <h3>Duration</h3>
+        </div>
+        <div class="mb-adm-duration-wrap">
+          <span class="mb-adm-duration-badge">Minimum 2 Years</span>
+          <p class="mb-adm-duration-breakdown">18 months of academic work + 6 months of Research/Thesis</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-reveal d3">
+      <p class="mb-eyebrow" style="margin-top:32px;">Masters Degree Programs</p>
+      <div class="mb-adm-prog-grid">
+        {% for prog in "12345678"|make_list %}
+        <div class="mb-card mb-adm-prog-card mb-reveal">
+          <span class="mb-prog-dot" aria-hidden="true"></span>
+          <span class="mb-adm-prog-name">
+            {% if forloop.counter == 1 %}Christian Educational Administration
+            {% elif forloop.counter == 2 %}Christian Education and Ethics
+            {% elif forloop.counter == 3 %}Christian Religious Studies/Ministry
+            {% elif forloop.counter == 4 %}Missiology
+            {% elif forloop.counter == 5 %}Christian Leadership and Discipleship
+            {% elif forloop.counter == 6 %}Church Financial Management &amp; Administration
+            {% elif forloop.counter == 7 %}Theology and Pastoral Counseling
+            {% else %}Church &amp; Intercultural Communications{% endif %}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ── DOCTORATE ──────────────────────────────────────────────────── -->
+<section id="doctorate" class="mb-section mb-bg-s3 mb-section-divider mb-faculty-section"
+         aria-labelledby="doctorate-heading">
+  <div class="mb-container">
+
+    <div class="mb-adm-level-header mb-reveal">
+      <div class="mb-adm-level-badge mb-adm-badge-phd">
+        <i data-lucide="star" class="w-5 h-5" aria-hidden="true"></i>
+      </div>
+      <div>
+        <p class="mb-eyebrow">Level 06</p>
+        <h2 id="doctorate-heading">Doctorate Degree</h2>
+        <div class="mb-divider"></div>
+      </div>
+    </div>
+
+    <div class="mb-adm-level-grid">
+      <div class="mb-card mb-adm-card mb-reveal d1">
+        <div class="mb-adm-card-head mb-adm-head-phd">
+          <i data-lucide="clipboard-list" class="w-4 h-4 text-white" aria-hidden="true"></i>
+          <h3>Requirements</h3>
+        </div>
+        <ul class="mb-adm-req-list">
+          <li class="mb-adm-req-item">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i>
+            <span>All applicants must be born again, baptized in water (immersion) and the Holy Ghost, and must have shown interest in becoming trained Ministers of the gospel of Jesus Christ.</span>
+          </li>
+          <li class="mb-adm-req-item">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-gospel-600" aria-hidden="true"></i>
+            <span>All applicants must have a Masters degree from a government-approved Theological College/Institute/Seminary/University accredited by local/international accrediting bodies.</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="mb-card mb-adm-card mb-reveal d2">
+        <div class="mb-adm-card-head mb-adm-head-phd">
+          <i data-lucide="clock" class="w-4 h-4 text-white" aria-hidden="true"></i>
+          <h3>Duration</h3>
+        </div>
+        <div class="mb-adm-duration-wrap">
+          <span class="mb-adm-duration-badge">Minimum 3 Years</span>
+          <p class="mb-adm-duration-breakdown">2 years of Academic Work + 1 year of Research/Dissertation</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-reveal d3">
+      <p class="mb-eyebrow" style="margin-top:32px;">Doctorate Degree Programs</p>
+      <div class="mb-adm-prog-grid">
+        {% for prog in "1234567"|make_list %}
+        <div class="mb-card mb-adm-prog-card mb-reveal">
+          <span class="mb-prog-dot" aria-hidden="true"></span>
+          <span class="mb-adm-prog-name">
+            {% if forloop.counter == 1 %}Theology
+            {% elif forloop.counter == 2 %}Christian Leadership / Discipleship
+            {% elif forloop.counter == 3 %}Christian Education and Ethics
+            {% elif forloop.counter == 4 %}Christian Educational Administration
+            {% elif forloop.counter == 5 %}Missiology and Christian Communication
+            {% elif forloop.counter == 6 %}Church Management &amp; Administration
+            {% else %}Divinity{% endif %}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ── APPLY CTA ──────────────────────────────────────────────────── -->
+<section class="mb-section mb-bg-cta mb-final-cta" aria-label="Apply for admission">
+  <div class="mb-container mb-final-cta-inner">
+    <h2 class="mb-reveal">Begin Your Ministry Training Today</h2>
+    <p class="mb-reveal d1">Admission is completely free. No tuition fees. No entrance exams. Just a sincere heart to serve God and be trained in His Word.</p>
+    <div class="mb-final-cta-btns mb-reveal d2">
+      <a href="{% url 'melbac:contact' %}" class="mb-btn mb-btn-gold">
+        <i data-lucide="send" class="w-4 h-4" aria-hidden="true"></i>
+        <span>Apply For Admission</span>
+      </a>
+      <a href="{% url 'melbac:academics' %}" class="mb-btn mb-btn-white-outline">
+        <i data-lucide="graduation-cap" class="w-4 h-4" aria-hidden="true"></i>
+        <span>View Academics</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var tabs     = document.querySelectorAll('.acad-tab');
+  var sections = Array.from(tabs).map(function(t){ return document.getElementById(t.dataset.target); }).filter(Boolean);
+  function setActive() {
+    var y = window.scrollY + window.innerHeight * 0.3;
+    var active = sections[0];
+    sections.forEach(function(s){ if (s && s.offsetTop <= y) active = s; });
+    tabs.forEach(function(t){ t.classList.toggle('active', t.dataset.target === (active ? active.id : '')); });
+  }
+  window.addEventListener('scroll', setActive, { passive:true });
+  setActive();
+}());
+</script>
+{% endblock %}

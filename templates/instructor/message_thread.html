@@ -1,0 +1,242 @@
+{% extends 'management/base.html' %}
+{% load static %}
+{% block title %}{% if compose %}Compose Message{% else %}{{ thread_subject }}{% endif %}{% endblock %}
+{% block breadcrumb %}{% if compose %}Compose{% else %}Thread{% endif %}{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<nav class="flex items-center space-x-2 text-xs sm:text-sm text-gray-500 mb-5 sm:mb-8 overflow-x-auto whitespace-nowrap">
+    <a href="{% url 'instructor:messages_inbox' %}" class="hover:text-primary-600 transition-colors flex-shrink-0">
+        <i class="fas fa-inbox mr-1"></i>Inbox
+    </a>
+    <i class="fas fa-chevron-right text-xs flex-shrink-0"></i>
+    <span class="text-gray-800 font-medium truncate">{% if compose %}Compose{% else %}{{ thread_subject|truncatechars:40 }}{% endif %}</span>
+</nav>
+
+{% if compose %}
+<!-- ====== COMPOSE VIEW ====== -->
+<div class="mb-4 sm:mb-6">
+    <h1 class="text-xl sm:text-2xl font-bold text-gray-900">New Message</h1>
+    <p class="text-gray-500 mt-1 text-xs sm:text-sm">Send a message to a student or colleague</p>
+</div>
+
+<div class="w-full max-w-full sm:max-w-2xl">
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 bg-gray-50">
+            <h2 class="font-semibold text-gray-900 text-xs sm:text-sm">Compose Message</h2>
+        </div>
+
+        <form method="post" id="composeForm" class="p-4 sm:p-6 space-y-4 sm:space-y-5">
+            {% csrf_token %}
+
+            <!-- TO: Searchable Recipient -->
+            <div>
+                <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
+                    To <span class="text-red-500">*</span>
+                </label>
+                <input type="hidden" name="recipient" id="recipientInput" value="{{ form.recipient.value|default:'' }}">
+                <div class="relative">
+                    <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500 transition-all">
+                        <div class="pl-3 text-gray-400 flex-shrink-0"><i class="fas fa-search text-sm"></i></div>
+                        <input type="text" id="recipientSearch" placeholder="Search by name or email…" autocomplete="off"
+                               class="w-full px-2 sm:px-3 py-2 sm:py-2.5 text-xs sm:text-sm outline-none bg-transparent">
+                        <div id="recipientClearBtn" class="hidden pr-3 text-gray-400 cursor-pointer hover:text-gray-600 flex-shrink-0" onclick="clearRecipient()">
+                            <i class="fas fa-times text-sm"></i>
+                        </div>
+                    </div>
+                    <ul id="recipientDropdown" class="hidden absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-52 sm:max-h-60 overflow-y-auto">
+                        {% for user in recipients %}
+                        <li class="recipient-option flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-primary-50 cursor-pointer transition-colors border-b border-gray-100 last:border-0"
+                            data-id="{{ user.id }}" data-name="{{ user.get_full_name }}"
+                            data-email="{{ user.email }}" data-role="{{ user.profile.get_role_display }}">
+                            <div class="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-primary-100 flex items-center justify-center">
+                                <span class="text-primary-700 font-semibold text-xs">{{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs sm:text-sm font-semibold text-gray-900 truncate">{{ user.get_full_name }}</p>
+                                <p class="text-xs text-gray-400 truncate">{{ user.email }} · {{ user.profile.get_role_display }}</p>
+                            </div>
+                        </li>
+                        {% empty %}
+                        <li class="px-4 py-6 text-center text-xs sm:text-sm text-gray-400">No users found</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div id="selectedRecipient" class="hidden mt-2">
+                    <div class="inline-flex items-center gap-2 px-2.5 sm:px-3 py-1.5 bg-primary-50 border border-primary-200 rounded-full flex-wrap">
+                        <div class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-primary-200 flex items-center justify-center flex-shrink-0">
+                            <span id="selectedInitials" class="text-primary-800 font-bold text-xs"></span>
+                        </div>
+                        <span id="selectedName" class="text-xs sm:text-sm font-medium text-primary-800"></span>
+                        <span id="selectedEmail" class="text-xs text-primary-500 hidden sm:inline"></span>
+                        <button type="button" onclick="clearRecipient()" class="text-primary-400 hover:text-primary-700 transition-colors">
+                            <i class="fas fa-times text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+                {% if form.recipient.errors %}<p class="mt-1 text-xs text-red-600">{{ form.recipient.errors.0 }}</p>{% endif %}
+            </div>
+
+            <!-- Subject -->
+            <div>
+                <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">Subject <span class="text-red-500">*</span></label>
+                <input type="text" name="subject" value="{{ form.subject.value|default:'' }}" placeholder="Message subject"
+                       class="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors" required>
+                {% if form.subject.errors %}<p class="mt-1 text-xs text-red-600">{{ form.subject.errors.0 }}</p>{% endif %}
+            </div>
+
+            <!-- Body -->
+            <div>
+                <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">Message <span class="text-red-500">*</span></label>
+                <textarea name="body" rows="6" required placeholder="Write your message…"
+                          class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors resize-none">{{ form.body.value|default:'' }}</textarea>
+                {% if form.body.errors %}<p class="mt-1 text-xs text-red-600">{{ form.body.errors.0 }}</p>{% endif %}
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-0 pt-3 sm:pt-4 border-t border-gray-100">
+                <a href="{% url 'instructor:messages_inbox' %}"
+                   class="px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-center">
+                    Cancel
+                </a>
+                <button type="submit" id="sendBtn"
+                        class="px-4 sm:px-5 py-2 sm:py-2.5 bg-primary-600 text-white text-xs sm:text-sm font-semibold rounded-lg hover:bg-primary-700 shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-paper-plane mr-1.5 sm:mr-2"></i>Send Message
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% else %}
+<!-- ====== THREAD VIEW ====== -->
+<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+    <div>
+        <h1 class="text-xl sm:text-2xl font-bold text-gray-900">{{ thread_subject }}</h1>
+        {% if other_user %}
+        <p class="text-gray-500 mt-1 text-xs sm:text-sm">Conversation with
+            <span class="font-medium text-gray-700">{{ other_user.get_full_name }}</span>
+        </p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="w-full max-w-full sm:max-w-2xl space-y-3 sm:space-y-4">
+
+    {% for msg in thread_messages %}
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden
+        {% if msg.sender == request.user %}border-l-4 border-l-primary-400{% else %}border-l-4 border-l-gray-300{% endif %}">
+        <div class="px-4 sm:px-5 py-2.5 sm:py-3 border-b border-gray-100 bg-gray-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-2">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                    <span class="text-primary-700 font-semibold text-xs">{{ msg.sender.first_name|slice:":1"|upper }}{{ msg.sender.last_name|slice:":1"|upper }}</span>
+                </div>
+                <div>
+                    <span class="text-xs sm:text-sm font-semibold text-gray-900">{{ msg.sender.get_full_name }}</span>
+                    {% if msg.sender == request.user %}<span class="text-xs text-primary-600 ml-1">(You)</span>{% endif %}
+                    <span class="text-xs text-gray-400 ml-1.5">→ {{ msg.recipient.get_full_name }}</span>
+                </div>
+            </div>
+            <span class="text-xs text-gray-400 flex-shrink-0">{{ msg.created_at|date:"M d, Y · H:i" }}</span>
+        </div>
+        <div class="px-4 sm:px-5 py-3 sm:py-4">
+            <p class="text-xs sm:text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{{ msg.body }}</p>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Reply Box -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-5">
+        <h3 class="text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
+            <i class="fas fa-reply mr-1 sm:mr-1.5 text-gray-400"></i>Reply
+        </h3>
+        <form method="post" action="{% url 'instructor:message_reply' root_message.id %}">
+            {% csrf_token %}
+            <textarea name="body" rows="4" required placeholder="Type your reply…"
+                      class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors resize-none"></textarea>
+            <div class="flex justify-end mt-2 sm:mt-3">
+                <button type="submit"
+                        class="px-4 sm:px-5 py-2 sm:py-2.5 bg-primary-600 text-white text-xs sm:text-sm font-semibold rounded-lg hover:bg-primary-700 shadow-sm transition-all">
+                    <i class="fas fa-paper-plane mr-1.5 sm:mr-2"></i>Send Reply
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+{% if compose %}
+<script>
+(function() {
+    const searchInput   = document.getElementById('recipientSearch');
+    const dropdown      = document.getElementById('recipientDropdown');
+    const hiddenInput   = document.getElementById('recipientInput');
+    const selectedPill  = document.getElementById('selectedRecipient');
+    const selectedName  = document.getElementById('selectedName');
+    const selectedEmail = document.getElementById('selectedEmail');
+    const selectedInit  = document.getElementById('selectedInitials');
+    const clearBtn      = document.getElementById('recipientClearBtn');
+    const allOptions    = Array.from(document.querySelectorAll('.recipient-option'));
+
+    const preSelected = hiddenInput.value;
+    if (preSelected) { const match = allOptions.find(o => o.dataset.id === preSelected); if (match) selectRecipient(match); }
+
+    searchInput.addEventListener('focus', () => { filterList(''); dropdown.classList.remove('hidden'); });
+    searchInput.addEventListener('input', () => { filterList(searchInput.value.toLowerCase().trim()); dropdown.classList.remove('hidden'); });
+    document.addEventListener('click', e => {
+        if (!e.target.closest('#recipientSearch') && !e.target.closest('#recipientDropdown')) dropdown.classList.add('hidden');
+    });
+    allOptions.forEach(opt => opt.addEventListener('click', () => selectRecipient(opt)));
+
+    function filterList(query) {
+        let hasVisible = false;
+        allOptions.forEach(opt => {
+            const show = !query || opt.dataset.name.toLowerCase().includes(query) || opt.dataset.email.toLowerCase().includes(query);
+            opt.style.display = show ? '' : 'none';
+            if (show) hasVisible = true;
+        });
+        let noResults = document.getElementById('noResultsItem');
+        if (!hasVisible) {
+            if (!noResults) { noResults = document.createElement('li'); noResults.id = 'noResultsItem'; noResults.className = 'px-4 py-5 text-center text-sm text-gray-400'; noResults.textContent = 'No users match "' + query + '"'; dropdown.appendChild(noResults); }
+        } else if (noResults) { noResults.remove(); }
+    }
+
+    function selectRecipient(opt) {
+        const name = opt.dataset.name, email = opt.dataset.email, id = opt.dataset.id;
+        const parts = name.split(' ');
+        const initials = (parts[0]?.[0] || '') + (parts[1]?.[0] || '');
+        hiddenInput.value = id;
+        selectedName.textContent = name;
+        selectedEmail.textContent = email;
+        selectedInit.textContent = initials.toUpperCase();
+        selectedPill.classList.remove('hidden');
+        searchInput.parentElement.parentElement.classList.add('hidden');
+        clearBtn.classList.remove('hidden');
+        dropdown.classList.add('hidden');
+    }
+
+    window.clearRecipient = function() {
+        hiddenInput.value = ''; searchInput.value = '';
+        selectedPill.classList.add('hidden');
+        searchInput.parentElement.parentElement.classList.remove('hidden');
+        clearBtn.classList.add('hidden');
+        searchInput.focus();
+    };
+
+    document.getElementById('composeForm').addEventListener('submit', e => {
+        if (!hiddenInput.value) {
+            e.preventDefault();
+            searchInput.parentElement.parentElement.classList.add('ring-2', 'ring-red-400', 'border-red-400');
+            searchInput.placeholder = 'Please select a recipient first…';
+            searchInput.focus();
+        }
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

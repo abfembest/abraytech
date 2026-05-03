@@ -1,0 +1,178 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Contact Messages - MIU Admin Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-full">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Contact Messages</h1>
+      <p class="text-gray-500 mt-1">Messages submitted through the contact form</p>
+    </div>
+    {% if unread_count %}
+    <div class="flex items-center gap-2 px-4 py-2.5 bg-orange-50 border border-orange-200 rounded-xl">
+      <i class="fas fa-envelope text-orange-500" aria-hidden="true"></i>
+      <span class="text-sm font-semibold text-orange-700">{{ unread_count }} unread</span>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
+    <form method="get" class="flex flex-col sm:flex-row gap-3">
+      <div class="flex-1">
+        <input type="search" name="search" value="{{ request.GET.search }}"
+               placeholder="Search name, email, subject…"
+               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+      </div>
+      <div class="sm:w-44">
+        <select name="subject" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          <option value="">All Subjects</option>
+          <option value="admissions" {% if request.GET.subject == 'admissions' %}selected{% endif %}>Admissions</option>
+          <option value="programs" {% if request.GET.subject == 'programs' %}selected{% endif %}>Programs</option>
+          <option value="campus" {% if request.GET.subject == 'campus' %}selected{% endif %}>Campus Visit</option>
+          <option value="financial" {% if request.GET.subject == 'financial' %}selected{% endif %}>Financial Aid</option>
+          <option value="support" {% if request.GET.subject == 'support' %}selected{% endif %}>Tech Support</option>
+          <option value="other" {% if request.GET.subject == 'other' %}selected{% endif %}>Other</option>
+        </select>
+      </div>
+      <div class="sm:w-36">
+        <select name="read_status" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          <option value="">All</option>
+          <option value="unread" {% if request.GET.read_status == 'unread' %}selected{% endif %}>Unread</option>
+          <option value="read" {% if request.GET.read_status == 'read' %}selected{% endif %}>Read</option>
+        </select>
+      </div>
+      <div class="sm:w-40">
+        <select name="responded" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          <option value="">Any Response</option>
+          <option value="no" {% if request.GET.responded == 'no' %}selected{% endif %}>Needs Response</option>
+          <option value="yes" {% if request.GET.responded == 'yes' %}selected{% endif %}>Responded</option>
+        </select>
+      </div>
+      <div class="flex gap-2">
+        <button type="submit" class="px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium">
+          <i class="fas fa-search mr-1" aria-hidden="true"></i>Filter
+        </button>
+        <a href="{% url 'management:contact_messages_list' %}" class="px-3 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm">
+          <i class="fas fa-redo" aria-hidden="true"></i>
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Messages Table -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="p-5 border-b border-gray-100">
+      <h2 class="font-semibold text-gray-800">
+        Messages <span class="text-sm font-normal text-gray-400 ml-1">({{ messages_list.paginator.count }} total)</span>
+      </h2>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wide">
+          <tr>
+            <th class="py-3 px-5 text-left font-semibold">Sender</th>
+            <th class="py-3 px-5 text-left font-semibold">Subject</th>
+            <th class="py-3 px-5 text-left font-semibold">Date</th>
+            <th class="py-3 px-5 text-left font-semibold">Status</th>
+            <th class="py-3 px-5 text-left font-semibold">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for msg in messages_list %}
+          <tr class="hover:bg-gray-50 transition-colors {% if not msg.is_read %}bg-blue-50/40{% endif %}">
+            <td class="py-4 px-5">
+              <div class="flex items-center gap-2">
+                {% if not msg.is_read %}
+                <span class="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0" title="Unread"></span>
+                {% else %}
+                <span class="w-2 h-2 rounded-full bg-transparent flex-shrink-0"></span>
+                {% endif %}
+                <div>
+                  <div class="font-medium text-gray-800">{{ msg.name }}</div>
+                  <div class="text-xs text-gray-400">{{ msg.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="py-4 px-5">
+              <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs font-medium">{{ msg.get_subject_display }}</span>
+              <div class="text-xs text-gray-500 mt-1 line-clamp-1 max-w-xs">{{ msg.message|truncatechars:80 }}</div>
+            </td>
+            <td class="py-4 px-5 text-gray-500 text-sm">{{ msg.created_at|date:"M d, Y" }}</td>
+            <td class="py-4 px-5">
+              <div class="flex flex-col gap-1">
+                {% if msg.is_read %}
+                <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">Read</span>
+                {% else %}
+                <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">Unread</span>
+                {% endif %}
+                {% if msg.responded %}
+                <span class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">Responded</span>
+                {% endif %}
+              </div>
+            </td>
+            <td class="py-4 px-5">
+              <div class="flex items-center gap-2">
+                <a href="{% url 'management:contact_message_detail' msg.pk %}"
+                   class="px-3 py-1.5 bg-primary-50 text-primary-700 border border-primary-200 rounded-lg hover:bg-primary-100 transition-colors text-xs font-medium">
+                  <i class="fas fa-eye mr-1" aria-hidden="true"></i>View
+                </a>
+                {% if not msg.is_read %}
+                <form method="post" action="{% url 'management:contact_message_mark_read' msg.pk %}" class="inline">
+                  {% csrf_token %}
+                  <button type="submit"
+                          class="px-3 py-1.5 bg-gray-50 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100 text-xs font-medium">
+                    Mark Read
+                  </button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="py-16 text-center text-gray-400">
+              <i class="fas fa-inbox text-5xl mb-3 block" aria-hidden="true"></i>
+              <p class="font-medium text-gray-600">No messages found</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if messages_list.has_other_pages %}
+    <div class="p-5 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-3">
+      <p class="text-sm text-gray-500">Showing {{ messages_list.start_index }}–{{ messages_list.end_index }} of {{ messages_list.paginator.count }}</p>
+      <nav class="flex gap-1" aria-label="Pagination">
+        {% if messages_list.has_previous %}
+        <a href="?page={{ messages_list.previous_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}"
+           class="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">
+          <i class="fas fa-chevron-left" aria-hidden="true"></i>
+        </a>
+        {% endif %}
+        {% for num in messages_list.paginator.page_range %}
+          {% if messages_list.number == num %}
+          <span class="px-3 py-1.5 bg-primary-600 text-white rounded-lg text-sm font-medium">{{ num }}</span>
+          {% elif num > messages_list.number|add:"-3" and num < messages_list.number|add:"3" %}
+          <a href="?page={{ num }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}"
+             class="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+        {% if messages_list.has_next %}
+        <a href="?page={{ messages_list.next_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}"
+           class="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">
+          <i class="fas fa-chevron-right" aria-hidden="true"></i>
+        </a>
+        {% endif %}
+      </nav>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

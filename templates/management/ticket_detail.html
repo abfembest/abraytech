@@ -1,0 +1,238 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Ticket {{ ticket.ticket_id }} - MIU Admin Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-12xl mx-auto">
+
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6" aria-label="Breadcrumb">
+    <a href="{% url 'management:tickets_list' %}" class="hover:text-primary-600">Support Tickets</a>
+    <i class="fas fa-chevron-right text-xs" aria-hidden="true"></i>
+    <span class="text-gray-800 font-medium">{{ ticket.ticket_id }}</span>
+  </nav>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Main Column: Thread -->
+    <div class="lg:col-span-2 space-y-5">
+
+      <!-- Ticket Header -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="p-6 border-b border-gray-100">
+          <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+            <div>
+              <h1 class="text-xl font-bold text-gray-800 font-display">{{ ticket.subject }}</h1>
+              <div class="flex flex-wrap items-center gap-2 mt-2">
+                <span class="font-mono text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">{{ ticket.ticket_id }}</span>
+                <!-- Status Badge -->
+                {% if ticket.status == 'open' %}
+                <span class="px-2.5 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">Open</span>
+                {% elif ticket.status == 'in_progress' %}
+                <span class="px-2.5 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">In Progress</span>
+                {% elif ticket.status == 'resolved' %}
+                <span class="px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Resolved</span>
+                {% elif ticket.status == 'closed' %}
+                <span class="px-2.5 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">Closed</span>
+                {% else %}
+                <span class="px-2.5 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">{{ ticket.get_status_display }}</span>
+                {% endif %}
+                <!-- Priority -->
+                {% if ticket.priority == 'urgent' %}
+                <span class="px-2.5 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">🔴 Urgent</span>
+                {% elif ticket.priority == 'high' %}
+                <span class="px-2.5 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">High</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Original Description -->
+        <div class="p-6">
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-semibold flex-shrink-0">
+              {{ ticket.user.first_name|slice:":1" }}{{ ticket.user.last_name|slice:":1" }}
+            </div>
+            <div class="flex-1">
+              <div class="flex items-center justify-between">
+                <span class="font-medium text-gray-800">{{ ticket.user.get_full_name|default:ticket.user.username }}</span>
+                <span class="text-xs text-gray-400">{{ ticket.created_at|date:"M d, Y g:i A" }}</span>
+              </div>
+              <div class="mt-2 text-gray-700 text-sm leading-relaxed bg-gray-50 rounded-lg p-4">
+                {{ ticket.description|linebreaksbr }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Replies Thread -->
+      {% for reply in replies %}
+      <div class="bg-white rounded-xl shadow-sm border {% if reply.is_internal_note %}border-yellow-200{% else %}border-gray-200{% endif %} overflow-hidden">
+        {% if reply.is_internal_note %}
+        <div class="px-5 py-2 bg-yellow-50 border-b border-yellow-200 text-xs text-yellow-700 font-medium flex items-center gap-1">
+          <i class="fas fa-lock" aria-hidden="true"></i> Internal Note — not visible to user
+        </div>
+        {% endif %}
+        <div class="p-5">
+          <div class="flex items-start gap-4">
+            <div class="w-9 h-9 rounded-full {% if reply.author.is_staff %}bg-primary-600{% else %}bg-gray-200{% endif %} flex items-center justify-center text-{% if reply.author.is_staff %}white{% else %}gray-600{% endif %} text-xs font-semibold flex-shrink-0">
+              {{ reply.author.first_name|slice:":1" }}{{ reply.author.last_name|slice:":1" }}
+            </div>
+            <div class="flex-1">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="font-medium text-gray-800 text-sm">{{ reply.author.get_full_name|default:reply.author.username }}</span>
+                  {% if reply.author.is_staff %}
+                  <span class="ml-1.5 text-xs bg-primary-100 text-primary-700 px-1.5 py-0.5 rounded">Staff</span>
+                  {% endif %}
+                </div>
+                <span class="text-xs text-gray-400">{{ reply.created_at|date:"M d, Y g:i A" }}</span>
+              </div>
+              <div class="mt-2 text-gray-700 text-sm leading-relaxed">{{ reply.message|linebreaksbr }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+
+      <!-- Reply Form -->
+      {% if ticket.status != 'closed' %}
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 bg-gray-50 border-b border-gray-100">
+          <h2 class="font-semibold text-gray-800 text-sm"><i class="fas fa-reply text-primary-500 mr-2" aria-hidden="true"></i>Post Reply</h2>
+        </div>
+        <form method="post" action="{% url 'management:ticket_reply' ticket.pk %}" class="p-6 space-y-4">
+          {% csrf_token %}
+          <div>
+            <textarea name="message" rows="4" required
+                      placeholder="Type your reply here…"
+                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm resize-none"></textarea>
+          </div>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" name="is_internal_note"
+                     class="w-4 h-4 rounded text-yellow-500 border-gray-300 focus:ring-yellow-400">
+              <span class="text-sm text-gray-600">Internal note (hidden from user)</span>
+            </label>
+            <button type="submit"
+                    class="px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium shadow-sm">
+              <i class="fas fa-paper-plane mr-1.5" aria-hidden="true"></i>Send Reply
+            </button>
+          </div>
+        </form>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Sidebar: Ticket Info & Actions -->
+    <div class="space-y-5">
+
+      <!-- Ticket Details Card -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-5 py-4 bg-gray-50 border-b border-gray-100">
+          <h2 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">Ticket Details</h2>
+        </div>
+        <div class="p-5 space-y-4 text-sm">
+          <div class="flex justify-between">
+            <span class="text-gray-500">Category</span>
+            <span class="font-medium text-gray-700">{{ ticket.get_category_display }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500">Created</span>
+            <span class="font-medium text-gray-700">{{ ticket.created_at|date:"M d, Y" }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500">Updated</span>
+            <span class="font-medium text-gray-700">{{ ticket.updated_at|date:"M d, Y" }}</span>
+          </div>
+          {% if ticket.resolved_at %}
+          <div class="flex justify-between">
+            <span class="text-gray-500">Resolved</span>
+            <span class="font-medium text-green-600">{{ ticket.resolved_at|date:"M d, Y" }}</span>
+          </div>
+          {% endif %}
+          <div class="flex justify-between">
+            <span class="text-gray-500">Replies</span>
+            <span class="font-medium text-gray-700">{{ replies|length }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions Card -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-5 py-4 bg-gray-50 border-b border-gray-100">
+          <h2 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">Actions</h2>
+        </div>
+        <div class="p-5 space-y-3">
+
+          <!-- Change Status -->
+          <form method="post" action="{% url 'management:ticket_change_status' ticket.pk %}">
+            {% csrf_token %}
+            <label class="block text-xs text-gray-500 mb-1.5 font-medium">Change Status</label>
+            <div class="flex gap-2">
+              <select name="status" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                <option value="open" {% if ticket.status == 'open' %}selected{% endif %}>Open</option>
+                <option value="in_progress" {% if ticket.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                <option value="waiting_response" {% if ticket.status == 'waiting_response' %}selected{% endif %}>Waiting Response</option>
+                <option value="resolved" {% if ticket.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                <option value="closed" {% if ticket.status == 'closed' %}selected{% endif %}>Closed</option>
+              </select>
+              <button type="submit" class="px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 text-sm">
+                Set
+              </button>
+            </div>
+          </form>
+
+          <!-- Assign To -->
+          <form method="post" action="{% url 'management:ticket_assign' ticket.pk %}">
+            {% csrf_token %}
+            <label class="block text-xs text-gray-500 mb-1.5 font-medium">Assign To</label>
+            <div class="flex gap-2">
+              <select name="assigned_to" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                <option value="">Unassigned</option>
+                {% for staff in staff_users %}
+                <option value="{{ staff.pk }}" {% if ticket.assigned_to == staff %}selected{% endif %}>
+                  {{ staff.get_full_name|default:staff.username }}
+                </option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+                Assign
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+
+      <!-- User Info -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-5 py-4 bg-gray-50 border-b border-gray-100">
+          <h2 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">Submitted By</h2>
+        </div>
+        <div class="p-5">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-semibold">
+              {{ ticket.user.first_name|slice:":1" }}{{ ticket.user.last_name|slice:":1" }}
+            </div>
+            <div>
+              <div class="font-medium text-gray-800 text-sm">{{ ticket.user.get_full_name|default:ticket.user.username }}</div>
+              <div class="text-xs text-gray-400">{{ ticket.user.email }}</div>
+            </div>
+          </div>
+          <a href="{% url 'management:user_detail' ticket.user.pk %}"
+             class="block w-full text-center px-4 py-2 bg-gray-50 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-100 text-xs font-medium transition-colors">
+            View User Profile →
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

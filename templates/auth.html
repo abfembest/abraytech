@@ -1,0 +1,445 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sign In | Sign Up – {{ site_config.school_short_name|default:"ABrayTech" }}{% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="Sign in or create your {{ site_config.school_short_name|default:'ABrayTech' }} account to access your student portal, courses, and resources.">
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
+{% block content %}
+
+<!-- ═══════════════════════════════════════════════════════
+     AUTH PAGE
+═══════════════════════════════════════════════════════ -->
+<section class="hero-mesh min-h-screen flex items-center justify-center px-4 py-24 sm:py-28"
+         aria-label="Authentication">
+
+  <!-- Decorative blobs -->
+  <div class="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+    <div class="absolute top-20 left-8 sm:left-20 w-48 h-48 sm:w-64 sm:h-64 bg-cyan-500 rounded-full blur-3xl opacity-10"></div>
+    <div class="absolute bottom-16 right-8 sm:right-20 w-48 h-48 sm:w-72 sm:h-72 bg-cyan-400 rounded-full blur-3xl opacity-8"></div>
+  </div>
+
+  <div class="relative z-10 w-full max-w-xl lg:max-w-2xl">
+
+    <!-- Auth card -->
+    <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+
+      <!-- Card header -->
+      <div class="px-8 sm:px-12 pt-8 sm:pt-10 pb-0">
+
+        <!-- Logo -->
+        <div class="flex justify-center mb-7">
+          {% if site_config.logo %}
+            <img src="{{ site_config.logo.url }}"
+                 alt="{{ site_config.school_short_name|default:'ABrayTech' }}"
+                 class="h-10 w-auto object-contain">
+          {% else %}
+            <div class="flex items-center gap-2">
+              <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-700 flex items-center justify-center">
+                <span class="text-white font-heading font-bold text-sm">AB</span>
+              </div>
+              <span class="font-heading font-bold text-navy-800 text-xl">{{ site_config.school_short_name|default:"ABrayTech" }}</span>
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Tab bar -->
+        <div class="flex border-b-2 border-gray-100" role="tablist" aria-label="Authentication options">
+          <button class="auth-tab flex-1 pb-4 text-sm font-semibold text-gray-400 text-center tracking-wide focus:outline-none focus:ring-2 focus:ring-cyan-500 rounded-t-lg transition-colors"
+                  role="tab" aria-selected="true" aria-controls="loginForm" data-tab="login" id="tab-login">
+            Sign In
+          </button>
+          <button class="auth-tab flex-1 pb-4 text-sm font-semibold text-gray-400 text-center tracking-wide focus:outline-none focus:ring-2 focus:ring-cyan-500 rounded-t-lg transition-colors"
+                  role="tab" aria-selected="false" aria-controls="signupForm" data-tab="signup" id="tab-signup">
+            Sign Up
+          </button>
+        </div>
+      </div>
+
+      <!-- Forms area -->
+      <div class="px-8 sm:px-12 py-8 sm:py-10">
+
+        <!-- ── LOGIN FORM ── -->
+        <div class="form-container active" id="loginForm" role="tabpanel" aria-labelledby="tab-login">
+          <form id="loginFormElement" method="POST" class="space-y-5" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="action" value="login">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+              <!-- Username -->
+              <div>
+                <label for="login_username"
+                       class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  Username or Email
+                </label>
+                <div class="relative">
+                  <i data-lucide="user"
+                     class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+                     aria-hidden="true"></i>
+                  <div class="auth-input-wrap">{{ login_form.username }}</div>
+                </div>
+                <p class="error-message text-red-500 text-xs mt-1.5" id="login_username_error" role="alert"></p>
+              </div>
+
+              <!-- Password -->
+              <div>
+                <label for="login_password"
+                       class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  Password
+                </label>
+                <div class="relative">
+                  <i data-lucide="lock"
+                     class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+                     aria-hidden="true"></i>
+                  <div class="auth-input-wrap">{{ login_form.password }}</div>
+                  <button type="button"
+                          class="password-toggle absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-cyan-600 transition-colors focus:outline-none"
+                          data-target="id_password"
+                          aria-label="Toggle password visibility">
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                  </button>
+                </div>
+                <p class="error-message text-red-500 text-xs mt-1.5" id="login_password_error" role="alert"></p>
+              </div>
+
+            </div>
+
+            <!-- Captcha -->
+            <div>
+              <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                Security Check
+              </label>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="bg-gradient-to-br from-navy-50 to-cyan-50 border-2 border-dashed border-cyan-200 rounded-xl flex items-center justify-center min-h-[50px] font-mono text-base font-bold text-navy-800 tracking-wider"
+                     id="loginCaptchaQuestion" aria-live="polite">
+                  {{ captcha_question }} = ?
+                </div>
+                <div class="auth-input-wrap">
+                  <input type="number" name="captcha" id="login_captcha" required
+                         placeholder="Your answer" aria-label="Captcha answer">
+                </div>
+              </div>
+              <p class="error-message text-red-500 text-xs mt-1.5" id="login_captcha_error" role="alert"></p>
+            </div>
+
+            <!-- Remember + Forgot -->
+            <div class="flex items-center justify-between">
+              <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-600 font-medium">
+                <input type="checkbox" name="remember"
+                       class="h-4 w-4 rounded border-gray-300 accent-cyan-600">
+                Remember me
+              </label>
+              <a href="#"
+                 class="text-sm text-cyan-600 hover:text-cyan-800 font-semibold transition-colors focus:outline-none focus:underline">
+                Forgot password?
+              </a>
+            </div>
+
+            <p class="error-message text-red-500 text-sm" id="login_form_error" role="alert"></p>
+
+            <button type="submit" class="btn-primary w-full justify-center" id="loginSubmitBtn">
+              <span>Sign In</span>
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+
+            <p class="text-center text-sm text-gray-500 pt-1">
+              Don't have an account?
+              <button type="button" class="text-cyan-600 hover:text-cyan-800 font-semibold transition-colors focus:outline-none focus:underline"
+                      data-switch-tab="signup">
+                Sign Up
+              </button>
+            </p>
+
+          </form>
+        </div>
+
+        <!-- ── SIGNUP FORM ── -->
+        <div class="form-container" id="signupForm" role="tabpanel" aria-labelledby="tab-signup" hidden>
+          <form id="signupFormElement" method="POST" class="space-y-5" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="action" value="signup">
+
+            <!-- First + Last name -->
+            <div class="grid grid-cols-2 gap-5">
+              <div>
+                <label for="id_first_name"
+                       class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  First Name
+                </label>
+                <div class="auth-input-wrap">{{ signup_form.first_name }}</div>
+                <p class="error-message text-red-500 text-xs mt-1.5" id="first_name_error" role="alert"></p>
+              </div>
+              <div>
+                <label for="id_last_name"
+                       class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  Last Name
+                </label>
+                <div class="auth-input-wrap">{{ signup_form.last_name }}</div>
+                <p class="error-message text-red-500 text-xs mt-1.5" id="last_name_error" role="alert"></p>
+              </div>
+            </div>
+
+            <!-- Username + Email -->
+            <div class="grid grid-cols-2 gap-5">
+              <div>
+                <label for="id_username"
+                       class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  Username
+                </label>
+                <div class="relative">
+                  <i data-lucide="user"
+                     class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+                     aria-hidden="true"></i>
+                  <div class="auth-input-wrap">{{ signup_form.username }}</div>
+                </div>
+                <p class="error-message text-red-500 text-xs mt-1.5" id="username_error" role="alert"></p>
+              </div>
+              <div>
+                <label for="id_email"
+                       class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  Email Address
+                </label>
+                <div class="relative">
+                  <i data-lucide="mail"
+                     class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+                     aria-hidden="true"></i>
+                  <div class="auth-input-wrap">{{ signup_form.email }}</div>
+                </div>
+                <p class="error-message text-red-500 text-xs mt-1.5" id="email_error" role="alert"></p>
+              </div>
+            </div>
+
+            <!-- Password + Confirm -->
+            <div class="grid grid-cols-2 gap-5">
+              <div>
+                <label for="id_password1"
+                       class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  Password
+                </label>
+                <div class="relative">
+                  <i data-lucide="lock"
+                     class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+                     aria-hidden="true"></i>
+                  <div class="auth-input-wrap">{{ signup_form.password1 }}</div>
+                  <button type="button"
+                          class="password-toggle absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-cyan-600 transition-colors focus:outline-none"
+                          data-target="id_password1"
+                          aria-label="Toggle password visibility">
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                  </button>
+                </div>
+                <p class="error-message text-red-500 text-xs mt-1.5" id="password1_error" role="alert"></p>
+              </div>
+              <div>
+                <label for="id_password2"
+                       class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  Confirm Password
+                </label>
+                <div class="relative">
+                  <i data-lucide="lock"
+                     class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+                     aria-hidden="true"></i>
+                  <div class="auth-input-wrap">{{ signup_form.password2 }}</div>
+                  <button type="button"
+                          class="password-toggle absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-cyan-600 transition-colors focus:outline-none"
+                          data-target="id_password2"
+                          aria-label="Toggle confirm password visibility">
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                  </button>
+                </div>
+                <p class="error-message text-red-500 text-xs mt-1.5" id="password2_error" role="alert"></p>
+              </div>
+            </div>
+
+            <!-- Captcha -->
+            <div>
+              <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                Security Check
+              </label>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="bg-gradient-to-br from-navy-50 to-cyan-50 border-2 border-dashed border-cyan-200 rounded-xl flex items-center justify-center min-h-[50px] font-mono text-base font-bold text-navy-800 tracking-wider"
+                     id="signupCaptchaQuestion" aria-live="polite">
+                  {{ captcha_question }} = ?
+                </div>
+                <div class="auth-input-wrap">
+                  <input type="number" name="captcha" id="signup_captcha" required
+                         placeholder="Your answer" aria-label="Captcha answer">
+                </div>
+              </div>
+              <p class="error-message text-red-500 text-xs mt-1.5" id="captcha_error" role="alert"></p>
+            </div>
+
+            <!-- Terms -->
+            <label class="flex items-start gap-2.5 cursor-pointer text-sm text-gray-600 font-medium leading-snug">
+              <input type="checkbox" required
+                     class="h-4 w-4 rounded border-gray-300 accent-cyan-600 mt-0.5 flex-shrink-0">
+              <span>I agree to the
+                <a href="#" class="text-cyan-600 hover:text-cyan-800 font-semibold focus:outline-none focus:underline">Terms of Service</a>
+                and
+                <a href="#" class="text-cyan-600 hover:text-cyan-800 font-semibold focus:outline-none focus:underline">Privacy Policy</a>
+              </span>
+            </label>
+
+            <p class="error-message text-red-500 text-sm" id="signup_form_error" role="alert"></p>
+
+            <button type="submit" class="btn-primary w-full justify-center" id="signupSubmitBtn">
+              <span>Create Account</span>
+              <i data-lucide="user-plus" class="w-4 h-4"></i>
+            </button>
+
+            <p class="text-center text-sm text-gray-500 pt-1">
+              Already have an account?
+              <button type="button" class="text-cyan-600 hover:text-cyan-800 font-semibold transition-colors focus:outline-none focus:underline"
+                      data-switch-tab="login">
+                Sign In
+              </button>
+            </p>
+
+          </form>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Back to home link -->
+    <p class="text-center mt-6 text-sm text-navy-300">
+      <a href="{% url 'eduweb:index' %}"
+         class="inline-flex items-center gap-1.5 hover:text-cyan-300 transition-colors focus:outline-none focus:underline">
+        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+        Back to Home
+      </a>
+    </p>
+
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  lucide.createIcons();
+
+  const tabs   = document.querySelectorAll('.auth-tab');
+  const panels = document.querySelectorAll('.form-container');
+
+  function switchTab(targetId) {
+    tabs.forEach(t => {
+      const isTarget = t.dataset.tab === targetId;
+      t.classList.toggle('active', isTarget);
+      t.setAttribute('aria-selected', String(isTarget));
+    });
+    panels.forEach(p => {
+      const isTarget = p.id === targetId + 'Form';
+      p.classList.toggle('active', isTarget);
+      isTarget ? p.removeAttribute('hidden') : p.setAttribute('hidden', '');
+    });
+    clearErrors();
+    setTimeout(() => lucide.createIcons(), 50);
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+  });
+
+  // Inline "switch tab" links inside forms
+  document.querySelectorAll('[data-switch-tab]').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.switchTab));
+  });
+
+  // Password toggle
+  document.body.addEventListener('click', function (e) {
+    const toggle = e.target.closest('.password-toggle');
+    if (!toggle) return;
+    e.preventDefault();
+    const input = document.getElementById(toggle.dataset.target);
+    if (!input) return;
+    const show = input.type === 'password';
+    input.type = show ? 'text' : 'password';
+    const icon = toggle.querySelector('i[data-lucide]');
+    if (icon) icon.setAttribute('data-lucide', show ? 'eye-off' : 'eye');
+    lucide.createIcons();
+  });
+
+  // Login submit
+  document.getElementById('loginFormElement').addEventListener('submit', async function (e) {
+    e.preventDefault(); clearErrors();
+    const btn = document.getElementById('loginSubmitBtn'), orig = btn.innerHTML;
+    setLoading(btn, 'Signing In\u2026');
+    try {
+      const data = await postForm(this);
+      if (data.success) {
+        window.showToast('success', data.message);
+        setTimeout(() => window.location.href = data.redirect_url, 1500);
+      } else {
+        mapErrors('login', data.errors);
+        if (data.captcha_question) {
+          document.getElementById('loginCaptchaQuestion').textContent = data.captcha_question + ' = ?';
+          document.getElementById('login_captcha').value = '';
+        }
+        btn.innerHTML = orig; btn.disabled = false; lucide.createIcons();
+      }
+    } catch {
+      window.showToast('error', 'An error occurred. Please try again.');
+      btn.innerHTML = orig; btn.disabled = false; lucide.createIcons();
+    }
+  });
+
+  // Signup submit
+  document.getElementById('signupFormElement').addEventListener('submit', async function (e) {
+    e.preventDefault(); clearErrors();
+    const btn = document.getElementById('signupSubmitBtn'), orig = btn.innerHTML;
+    setLoading(btn, 'Creating Account\u2026');
+    try {
+      const data = await postForm(this);
+      if (data.success) {
+        window.showToast('success', data.message);
+        setTimeout(() => this.reset(), 2000);
+      } else {
+        mapErrors('signup', data.errors);
+        if (data.captcha_question) {
+          document.getElementById('signupCaptchaQuestion').textContent = data.captcha_question + ' = ?';
+          document.getElementById('signup_captcha').value = '';
+        }
+      }
+      btn.innerHTML = orig; btn.disabled = false; lucide.createIcons();
+    } catch {
+      window.showToast('error', 'An error occurred. Please try again.');
+      btn.innerHTML = orig; btn.disabled = false; lucide.createIcons();
+    }
+  });
+
+  async function postForm(form) {
+    const res = await fetch('{% url "eduweb:auth_page" %}', {
+      method: 'POST',
+      body: new FormData(form),
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    });
+    return res.json();
+  }
+
+  function setLoading(btn, text) {
+    btn.innerHTML = '<span>' + text + '</span><i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>';
+    btn.disabled = true;
+    lucide.createIcons();
+  }
+
+  function mapErrors(prefix, errors) {
+    for (const [field, msgs] of Object.entries(errors)) {
+      const id = field === '__all__' ? prefix + '_form_error'
+               : prefix === 'login' ? 'login_' + field + '_error' : field + '_error';
+      const el = document.getElementById(id);
+      if (el) el.textContent = msgs.join(' ');
+    }
+  }
+
+  function clearErrors() {
+    document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+  }
+});
+</script>
+{% endblock %}
