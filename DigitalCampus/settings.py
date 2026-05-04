@@ -61,6 +61,7 @@ INSTALLED_APPS = [
 
     "django.contrib.humanize",
     'chatbot',
+    'portfolio',  # Add the portfolio app
 ]
 
 MIDDLEWARE = [

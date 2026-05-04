@@ -33,6 +33,7 @@ urlpatterns = [
 
     path('melbac/', include('melbac.urls')),
     path('library/', include('library.urls')),
+    path('', include('portfolio.urls')),  # Portfolio case studies
 
 ]
 

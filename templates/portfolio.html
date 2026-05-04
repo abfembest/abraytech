@@ -1,0 +1,31 @@
+{# templates/base.html #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>{% block title %}Digital Technology Case Studies{% endblock %}</title>
+    <meta name="description" content="Showcasing innovative digital products and dashboards">
+    <!-- TailwindCSS CDN + basic interceptor for custom styles -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Custom config to preserve animations -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                    }
+                }
+            }
+        }
+    </script>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="antialiased">
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
