@@ -1,625 +1,904 @@
-﻿{# templates/portfolio/project_detail.html #}
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% load static %}
 
-{% block title %}{{ project.name }} | Digital Case Study{% endblock %}
+{% block title %}Explore Our Projects | Case Studies | {{ site_config.school_name|default:"ABrayTech Limited" }}{% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="Browse real-world projects delivered by ABrayTech — AI products, full-stack platforms, cybersecurity tools, and business digitalization.">
+<meta name="keywords" content="ABrayTech portfolio, case studies, AI products, full-stack development, cybersecurity, digital transformation">
+{% endblock %}
+
+{% block og_tags %}
+<meta property="og:title" content="Our Projects – ABrayTech Case Studies">
+<meta property="og:description" content="Interactive walkthroughs of real client and student projects.">
+<meta property="og:type" content="website">
+{% if site_config.og_image %}
+<meta property="og:image" content="{{ site_config.og_image.url }}">{% endif %}
+{% endblock %}
 
 {% block extra_css %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
 <style>
-    /* Custom animations and slide styles - layered deck effect */
+    /* ─── Selector bar ─────────────────────────────────────────── */
+    #selectorSection {
+        transition: padding 0.4s ease;
+        position: relative;
+        z-index: 50;
+    }
+
+        /* Always-visible compact search bar once project is loaded */
+        #selectorSection.has-project {
+            padding-top: 0.6rem;
+            padding-bottom: 0.6rem;
+            background: rgba(15, 23, 42, 0.97);
+            border-bottom: 1px solid rgba(6, 182, 212, 0.2);
+        }
+
+            #selectorSection.has-project #selectorHeadingBlock {
+                display: none;
+            }
+
+    /* ─── Full-width slider ────────────────────────────────────── */
+    .full-width-slider {
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+    }
+
+    /* Fill the screen minus the compact selector bar (~52px) */
     .slide-container {
         position: relative;
         width: 100%;
-        max-width: 1100px;
-        margin: 0 auto;
-        aspect-ratio: 16 / 9;
+        height: calc(100svh - 52px);
+        min-height: 320px;
         overflow: hidden;
-        border-radius: 28px;
-        box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.35);
+        background: #0f172a;
     }
-    
+
     .slide {
         position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        will-change: transform, opacity, filter;
-        cursor: pointer;
-        border-radius: 24px;
+        inset: 0;
         overflow: hidden;
-        background: #f8fafc;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        background: #1e293b;
+        transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.6s ease, filter 0.6s ease;
     }
-    
-    .slide img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: top;
-        transition: transform 0.4s ease;
-    }
-    
-    .slide:hover img {
-        transform: scale(1.02);
-    }
-    
-    /* Active slide (frontmost) */
+
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center top;
+            transition: transform 0.4s ease, opacity 0.4s ease;
+            display: block;
+        }
+
     .slide-active {
         transform: translateX(0) scale(1);
         opacity: 1;
         z-index: 30;
-        filter: brightness(1) blur(0);
+        filter: none;
     }
-    
-    /* Behind slide (previous image) - shifts left and stays visible */
+
     .slide-behind-left {
-        transform: translateX(-45px) scale(0.92);
-        opacity: 0.75;
+        transform: translateX(-40px) scale(0.93);
+        opacity: 0.7;
         z-index: 20;
-        filter: brightness(0.85) blur(0.5px);
+        filter: brightness(0.8);
     }
-    
-    /* Behind slide for previous navigation - shifts right */
+
     .slide-behind-right {
-        transform: translateX(45px) scale(0.92);
-        opacity: 0.75;
+        transform: translateX(40px) scale(0.93);
+        opacity: 0.7;
         z-index: 20;
-        filter: brightness(0.85) blur(0.5px);
+        filter: brightness(0.8);
     }
-    
-    /* Hidden slides */
+
     .slide-hidden {
         opacity: 0;
         visibility: hidden;
-        transform: translateX(0) scale(0.95);
         z-index: 5;
         pointer-events: none;
+        transform: scale(0.95);
     }
-    
-    /* Content overlay for each slide */
-    .slide-content {
+
+    /* ─── Floating info overlay ───────────────────────────────── */
+    /*
+     * The overlay uses a solid dark pill on all screens.
+     * Text is always near-white on dark bg — clearly readable.
+     * On very small screens it anchors to the bottom of the image
+     * above the controls, and its max-width respects the viewport.
+     */
+    .project-info-overlay {
         position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
-        color: white;
-        padding: 1.5rem;
-        transform: translateY(0);
-        transition: transform 0.3s ease;
+        top: 1.25rem;
+        left: 1.25rem;
+        right: auto;
+        z-index: 45;
+        max-width: min(360px, calc(100% - 2.5rem));
+        background: rgba(0, 0, 0, 0.78);
+        border-radius: 1rem;
+        padding: 1rem 1.25rem;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        pointer-events: none;
+        /* No backdrop-filter on mobile — GPU intensive and causes flicker */
     }
-    
-    .slide:hover .slide-content {
-        transform: translateY(-5px);
+
+    @supports (backdrop-filter: blur(1px)) {
+        @media (min-width: 640px) {
+            .project-info-overlay {
+                background: rgba(0, 0, 0, 0.65);
+                backdrop-filter: blur(14px);
+                -webkit-backdrop-filter: blur(14px);
+            }
+        }
     }
-    
-    /* Navigation buttons */
+
+    .project-info-overlay .overlay-title {
+        font-size: clamp(0.95rem, 2.5vw, 1.35rem);
+        font-weight: 900;
+        color: #ffffff;
+        margin: 0 0 0.35rem;
+        line-height: 1.25;
+        letter-spacing: -0.01em;
+    }
+
+    .project-info-overlay .overlay-desc {
+        font-size: clamp(0.72rem, 1.8vw, 0.82rem);
+        color: #e5e7eb;
+        font-weight: 500;
+        margin: 0 0 0.5rem;
+        line-height: 1.5;
+    }
+
+    .project-info-overlay .overlay-client {
+        font-size: clamp(0.68rem, 1.6vw, 0.75rem);
+        color: #67e8f9;
+        font-weight: 700;
+        margin: 0 0 0.4rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .tech-tag {
+        display: inline-block;
+        background: rgba(6, 182, 212, 0.25);
+        color: #a5f3fc;
+        border-radius: 999px;
+        padding: 0.15rem 0.55rem;
+        font-size: clamp(0.6rem, 1.5vw, 0.68rem);
+        font-weight: 700;
+        margin: 0.2rem 0.25rem 0.2rem 0;
+        border: 1px solid rgba(6, 182, 212, 0.35);
+        letter-spacing: 0.04em;
+    }
+
+    /* On very small phones: slide overlay down to bottom */
+    @media (max-width: 479px) {
+        .project-info-overlay {
+            top: auto;
+            bottom: 5rem;
+            left: 0.75rem;
+            right: 0.75rem;
+            max-width: none;
+            padding: 0.75rem 1rem;
+            border-radius: 0.875rem;
+        }
+    }
+
+    /* ─── Nav buttons ─────────────────────────────────────────── */
     .nav-btn {
-        background: rgba(255,255,255,0.9);
-        backdrop-filter: blur(8px);
+        background: rgba(0, 0, 0, 0.60);
         border-radius: 9999px;
-        width: 48px;
-        height: 48px;
+        width: 44px;
+        height: 44px;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    
-    .nav-btn:hover {
-        background: white;
-        transform: scale(1.08);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-    }
-    
-    /* Dots indicator */
-    .dot {
-        width: 8px;
-        height: 8px;
-        background: #cbd5e1;
-        border-radius: 50%;
-        transition: all 0.2s;
         cursor: pointer;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        z-index: 40;
+        transition: background 0.2s, transform 0.2s, border-color 0.2s;
+        flex-shrink: 0;
     }
-    
-    .dot-active {
-        width: 28px;
-        background: #3b82f6;
-        border-radius: 999px;
-    }
-    
-    /* Mobile optimizations */
-    @media (max-width: 768px) {
-        .slide-container {
-            aspect-ratio: 4 / 3;
-            border-radius: 20px;
+
+        .nav-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke: #ffffff;
         }
-        .slide-behind-left {
-            transform: translateX(-20px) scale(0.94);
+
+        .nav-btn:hover {
+            background: #06b6d4;
+            border-color: #06b6d4;
+            transform: scale(1.1);
         }
-        .slide-behind-right {
-            transform: translateX(20px) scale(0.94);
-        }
-        .slide-content {
-            padding: 1rem;
-        }
+
+    @media (max-width: 479px) {
         .nav-btn {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
+        }
+
+            .nav-btn svg {
+                width: 14px;
+                height: 14px;
+            }
+
+        .slide-behind-left {
+            transform: translateX(-16px) scale(0.95);
+        }
+
+        .slide-behind-right {
+            transform: translateX(16px) scale(0.95);
         }
     }
-    
-    /* Progress bar */
+
+    /* ─── Controls bar (below slider) ─────────────────────────── */
+    .slider-controls-bar {
+        background: #0f172a;
+        padding: 0.6rem 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        border-top: 1px solid rgba(6, 182, 212, 0.15);
+    }
+
+    /* ─── Dots ─────────────────────────────────────────────────── */
+    .dot {
+        width: 7px;
+        height: 7px;
+        background: #475569;
+        border-radius: 50%;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        transition: width 0.2s, background 0.2s;
+        flex-shrink: 0;
+    }
+
+        .dot.dot-active {
+            width: 24px;
+            background: #06b6d4;
+            border-radius: 999px;
+        }
+
+    /* ─── Progress bar ─────────────────────────────────────────── */
     .progress-bar {
         height: 3px;
-        background: #e2e8f0;
-        border-radius: 3px;
+        background: #1e293b;
+        border-radius: 4px;
         overflow: hidden;
+        flex: 1;
+        min-width: 60px;
+        max-width: 160px;
     }
-    
+
     .progress-fill {
         height: 100%;
-        background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        background: linear-gradient(90deg, #06b6d4, #84cc16);
         width: 0%;
-        transition: width 0.3s ease;
+        transition: width 0.35s ease;
     }
-    
-    /* Pause indicator for autoplay */
-    .autoplay-pause {
-        opacity: 0.7;
+
+    /* ─── Autoplay button ──────────────────────────────────────── */
+    .autoplay-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.3rem 0.75rem;
+        border-radius: 999px;
+        background: rgba(30, 41, 59, 0.9);
+        border: 1px solid rgba(6, 182, 212, 0.25);
+        color: #cbd5e1;
+        font-size: 0.75rem;
+        font-weight: 600;
         cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+        white-space: nowrap;
+    }
+
+        .autoplay-btn:hover {
+            background: #06b6d4;
+            color: #ffffff;
+        }
+
+        .autoplay-btn svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+        }
+
+    /* ─── Counter ──────────────────────────────────────────────── */
+    .slide-counter {
+        font-size: 0.75rem;
+        font-family: monospace;
+        color: #94a3b8;
+        white-space: nowrap;
+    }
+
+    /* ─── Searchable select ────────────────────────────────────── */
+    .searchable-select {
+        position: relative;
+        width: 100%;
+        max-width: 460px;
+        margin: 0 auto;
+    }
+
+    .searchable-select-input {
+        width: 100%;
+        padding: 0.65rem 1.1rem;
+        background: rgba(15, 23, 42, 0.95);
+        border: 1px solid rgba(6, 182, 212, 0.4);
+        border-radius: 9999px;
+        color: #f1f5f9;
+        font-size: 0.9rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+        box-sizing: border-box;
+    }
+
+        .searchable-select-input:focus {
+            outline: none;
+            border-color: #06b6d4;
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.2);
+        }
+
+    .searchable-select-dropdown {
+        position: absolute;
+        top: calc(100% + 0.4rem);
+        left: 0;
+        right: 0;
+        background: #0f172a;
+        border-radius: 1rem;
+        box-shadow: 0 20px 40px -8px rgba(0,0,0,0.6);
+        max-height: 240px;
+        overflow-y: auto;
+        z-index: 200;
+        display: none;
+        border: 1px solid rgba(6, 182, 212, 0.25);
+    }
+
+        .searchable-select-dropdown.show {
+            display: block;
+        }
+
+    .select-option {
+        padding: 0.7rem 1.1rem;
+        cursor: pointer;
+        border-bottom: 1px solid rgba(6, 182, 212, 0.07);
+        transition: background 0.15s;
+    }
+
+        .select-option:last-child {
+            border-bottom: none;
+        }
+
+        .select-option:hover {
+            background: rgba(6, 182, 212, 0.12);
+        }
+
+        .select-option .opt-name {
+            color: #e2e8f0;
+            font-weight: 600;
+            font-size: 0.88rem;
+        }
+
+        .select-option .opt-desc {
+            color: #94a3b8;
+            font-size: 0.73rem;
+            margin-top: 0.1rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+    /* ─── Loading spinner ──────────────────────────────────────── */
+    .loading-spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid #1e293b;
+        border-top-color: #06b6d4;
+        border-radius: 50%;
+        animation: spin 0.75s linear infinite;
+        display: inline-block;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* ─── GSAP reveal ──────────────────────────────────────────── */
+    .gsap-reveal {
+        opacity: 0;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="bg-gradient-to-br from-slate-50 to-gray-100 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-7xl mx-auto">
-        <!-- Project header -->
-        <div class="text-center mb-12">
-            <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent mb-4">
-                {{ project.name }}
-            </h1>
-            <p class="text-lg text-gray-600 max-w-2xl mx-auto">{{ project.description }}</p>
-            {% if project.client %}
-            <div class="mt-3 text-sm text-gray-500">Client: {{ project.client }}</div>
-            {% endif %}
-            {% if project.technologies %}
-            <div class="flex flex-wrap gap-2 justify-center mt-4">
-                {% for tech in project.technologies.split|slice:":6" %}
-                <span class="px-3 py-1 bg-white/60 backdrop-blur-sm rounded-full text-xs font-medium text-gray-700 shadow-sm">{{ tech }}</span>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SELECTOR BAR  — always visible; collapses heading once active
+════════════════════════════════════════════════════════════════ -->
+<section class="section-dark py-8 lg:py-10" id="selectorSection" aria-labelledby="selector-heading">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl mx-auto text-center">
+
+            <div id="selectorHeadingBlock">
+                <div class="pill pill-cyan inline-flex mb-3">
+                    <i data-lucide="search" class="w-3.5 h-3.5"></i>&nbsp;Choose a Project
+                </div>
+                <h2 id="selector-heading" class="font-heading font-bold text-xl md:text-2xl text-white mb-6">
+                    Select a product to explore its interactive dashboard
+                </h2>
+            </div>
+
+            <!-- Search always shown -->
+            <div class="flex justify-center">
+                <div class="searchable-select">
+                    <input type="text" id="projectSearch"
+                           class="searchable-select-input"
+                           placeholder="🔍 Search or select a project…"
+                           autocomplete="off" aria-label="Search projects">
+                    <div id="projectDropdown" class="searchable-select-dropdown" role="listbox">
+                        {% for project in all_projects %}
+                        <div class="select-option" role="option"
+                             data-slug="{{ project.slug }}" data-name="{{ project.name }}">
+                            <div class="opt-name">{{ project.name }}</div>
+                            <div class="opt-desc">{{ project.description|truncatechars:65 }}</div>
+                        </div>
+                        {% empty %}
+                        <div class="p-4 text-gray-400 text-center text-sm">No projects available</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     EMPTY STATE — hidden once project loads
+════════════════════════════════════════════════════════════════ -->
+<div id="emptyState" class="text-center py-20 px-4">
+    <div class="inline-flex items-center justify-center p-4 bg-cyan-500/10 rounded-full mb-5 ring-1 ring-cyan-500/30">
+        <i data-lucide="layout-dashboard" class="w-10 h-10 text-cyan-400"></i>
+    </div>
+    <h3 class="text-lg md:text-xl font-semibold text-white mb-2">No project selected yet</h3>
+    <p class="text-navy-300 max-w-sm mx-auto text-sm">
+        Search or pick a product from the dropdown above to view its full interactive dashboard walkthrough.
+    </p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     DYNAMIC PROJECT CONTENT — injected by JS
+════════════════════════════════════════════════════════════════ -->
+<div id="projectContent" class="w-80%" hidden></div>
+
+<div class="section-divider"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     HOW WE WORK
+════════════════════════════════════════════════════════════════ -->
+<section class="section-dark py-20 lg:py-28" id="processSection">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-14">
+            <div class="pill pill-cyan mb-4 inline-flex gsap-reveal">
+                <i data-lucide="workflow" class="w-3.5 h-3.5"></i>&nbsp;How We Work
+            </div>
+            <h2 class="font-heading font-extrabold text-white gsap-reveal" style="font-size:clamp(1.75rem,5vw,3rem);">
+                From Idea to <span class="gradient-text">Shipped Product.</span>
+            </h2>
+        </div>
+        <div class="relative">
+            <div class="hidden lg:block absolute top-10 left-[12.5%] right-[12.5%] h-px"
+                 style="background:linear-gradient(90deg,transparent,rgba(6,182,212,.4),transparent)"></div>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8" id="processSteps">
+                {% for step in steps %}
+                <div class="process-step text-center gsap-reveal">
+                    <div class="w-18 h-18 rounded-2xl mx-auto mb-5 relative flex items-center justify-center"
+                         style="background:{{ step.bg }};border:1px solid {{ step.border }};">
+                        <span class="absolute -top-2 -right-2 w-6 h-6 rounded-full {{ step.badge }} text-white text-xs font-bold flex items-center justify-center">{{ forloop.counter }}</span>
+                        <i data-lucide="{{ step.icon }}" class="w-7 h-7 {{ step.icon_color }}"></i>
+                    </div>
+                    <h3 class="font-heading font-bold text-white text-base mb-1">{{ step.title }}</h3>
+                    <p class="text-navy-300 text-sm leading-relaxed">{{ step.body }}</p>
+                </div>
+                {% empty %}
+                <!-- fallback static steps -->
+                <div class="process-step text-center gsap-reveal">
+                    <div class="w-20 h-20 rounded-2xl mx-auto mb-6 relative flex items-center justify-center" style="background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.2)">
+                        <span class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-cyan-500 text-white text-xs font-bold flex items-center justify-center">1</span>
+                        <i data-lucide="search" class="w-8 h-8 text-cyan-400"></i>
+                    </div>
+                    <h3 class="font-heading font-bold text-white text-lg mb-2">Discovery</h3>
+                    <p class="text-navy-300 text-sm leading-relaxed">Define problem, audience, and success metrics before writing code.</p>
+                </div>
+                <div class="process-step text-center gsap-reveal">
+                    <div class="w-20 h-20 rounded-2xl mx-auto mb-6 relative flex items-center justify-center" style="background:rgba(163,230,53,.1);border:1px solid rgba(163,230,53,.2)">
+                        <span class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-lime-500 text-white text-xs font-bold flex items-center justify-center">2</span>
+                        <i data-lucide="pen-tool" class="w-8 h-8 text-lime-400"></i>
+                    </div>
+                    <h3 class="font-heading font-bold text-white text-lg mb-2">Design</h3>
+                    <p class="text-navy-300 text-sm leading-relaxed">Wireframes, user flows, hi-fi prototypes reviewed before build.</p>
+                </div>
+                <div class="process-step text-center gsap-reveal">
+                    <div class="w-20 h-20 rounded-2xl mx-auto mb-6 relative flex items-center justify-center" style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2)">
+                        <span class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-amber-500 text-white text-xs font-bold flex items-center justify-center">3</span>
+                        <i data-lucide="code-2" class="w-8 h-8 text-amber-400"></i>
+                    </div>
+                    <h3 class="font-heading font-bold text-white text-lg mb-2">Build</h3>
+                    <p class="text-navy-300 text-sm leading-relaxed">Agile sprints, CI/CD, test coverage — quality at every commit.</p>
+                </div>
+                <div class="process-step text-center gsap-reveal">
+                    <div class="w-20 h-20 rounded-2xl mx-auto mb-6 relative flex items-center justify-center" style="background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.2)">
+                        <span class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-cyan-500 text-white text-xs font-bold flex items-center justify-center">4</span>
+                        <i data-lucide="rocket" class="w-8 h-8 text-cyan-400"></i>
+                    </div>
+                    <h3 class="font-heading font-bold text-white text-lg mb-2">Launch &amp; Grow</h3>
+                    <p class="text-navy-300 text-sm leading-relaxed">Deploy, monitor, iterate post-launch. We stay involved.</p>
+                </div>
                 {% endfor %}
             </div>
-            {% endif %}
         </div>
-        
-        <!-- Main slider section -->
-        <div class="relative">
-            <!-- Slide container with deck effect -->
-            <div id="sliderContainer" class="slide-container relative">
-                <!-- Dynamic slides will be injected here by JavaScript -->
-                <div id="slidesWrapper" class="relative w-full h-full"></div>
-                
-                <!-- Navigation arrows -->
-                <button id="prevBtn" class="nav-btn absolute left-3 top-1/2 -translate-y-1/2 z-40" aria-label="Previous dashboard">
-                    <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                    </svg>
-                </button>
-                <button id="nextBtn" class="nav-btn absolute right-3 top-1/2 -translate-y-1/2 z-40" aria-label="Next dashboard">
-                    <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </button>
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CTA
+════════════════════════════════════════════════════════════════ -->
+<section class="section-muted py-20 lg:py-28" id="ctaSection">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl mx-auto text-center">
+            <div class="pill pill-light mb-5 inline-flex gsap-reveal">
+                <i data-lucide="handshake" class="w-3.5 h-3.5"></i>&nbsp;Hire ABrayTech
             </div>
-            
-            <!-- Progress bar & controls -->
-            <div class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div class="flex items-center gap-3">
-                    <!-- Dots container -->
-                    <div id="dotsContainer" class="flex gap-2 flex-wrap justify-center"></div>
-                </div>
-                <div class="flex items-center gap-4">
-                    <button id="autoplayBtn" class="text-sm flex items-center gap-1 px-3 py-1.5 rounded-full bg-white/70 hover:bg-white transition shadow-sm" title="Autoplay (pause on hover)">
-                        <svg id="autoplayIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span id="autoplayText">Autoplay</span>
-                    </button>
-                    <div class="progress-bar w-32 sm:w-48">
-                        <div id="progressFill" class="progress-fill"></div>
-                    </div>
-                    <span id="slideCounter" class="text-sm font-mono text-gray-500">1 / {{ total_images }}</span>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Call to action section -->
-        <div class="mt-16 text-center border-t border-gray-200 pt-10">
-            <h3 class="text-2xl font-semibold text-gray-800 mb-3">Ready to transform your digital experience?</h3>
-            <p class="text-gray-600 mb-6 max-w-lg mx-auto">
-                See how our solutions can help your business scale with intelligent dashboards and real-time insights.
+            <h2 class="font-heading font-extrabold text-navy-900 mb-4 gsap-reveal"
+                style="font-size:clamp(1.75rem,5vw,3rem);">
+                Need Something Built?
+            </h2>
+            <p class="text-gray-500 text-base leading-relaxed mb-8 max-w-xl mx-auto gsap-reveal">
+                Whether it's an MVP, AI integration, security audit, or a full digital transformation —
+                our team and graduates are ready to deliver.
             </p>
-            <div class="flex flex-wrap gap-4 justify-center">
-                <a href="#contact" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition shadow-md hover:shadow-lg">
-                    Request a Demo →
+            <div class="flex flex-col sm:flex-row gap-4 justify-center gsap-reveal">
+                <a href="{% url 'eduweb:contact' %}" class="btn-primary">
+                    <i data-lucide="mail" class="w-4 h-4"></i> Get In Touch
                 </a>
-                <a href="#case-study" class="px-6 py-3 bg-white border border-gray-300 hover:border-blue-400 text-gray-700 font-medium rounded-xl transition shadow-sm hover:shadow">
-                    Full Case Study
-                </a>
-                <a href="#contact-sales" class="px-6 py-3 bg-transparent text-blue-600 font-medium rounded-xl hover:bg-blue-50 transition">
-                    Get in touch
+                <a href="{% url 'eduweb:all_programs' %}" class="btn-dark">
+                    <i data-lucide="book-open" class="w-4 h-4"></i> Explore Our Courses
                 </a>
             </div>
         </div>
     </div>
-</div>
+</section>
 
+{% endblock %}
+
+{% block extra_js %}
 <script>
-    // Django injected image data
-    const imagesData = {{ images_data|safe }};
-    const totalSlides = {{ total_images }};
-    
-    // Slider state
-    let currentIndex = 0;
-    let isTransitioning = false;
-    let autoplayInterval = null;
-    let isAutoplayActive = true;
-    let slideDirection = 'next'; // Track direction for animations
-    
-    // DOM elements
-    const slidesWrapper = document.getElementById('slidesWrapper');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const dotsContainer = document.getElementById('dotsContainer');
-    const progressFill = document.getElementById('progressFill');
-    const slideCounter = document.getElementById('slideCounter');
-    const autoplayBtn = document.getElementById('autoplayBtn');
-    const autoplayIcon = document.getElementById('autoplayIcon');
-    const autoplayText = document.getElementById('autoplayText');
-    
-    // Lazy loading with Intersection Observer (performance)
-    const imageObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const img = entry.target;
-                const dataSrc = img.getAttribute('data-src');
-                if (dataSrc && img.src !== dataSrc) {
-                    img.src = dataSrc;
-                    img.classList.remove('opacity-0');
-                }
-                imageObserver.unobserve(img);
-            }
-        });
-    }, { rootMargin: '200px' });
-    
-    // Create slide elements dynamically
-    function createSlideElement(imageData, index) {
-        const slide = document.createElement('div');
-        slide.className = 'slide slide-hidden';
-        slide.setAttribute('data-index', index);
-        
-        // Image with lazy loading
-        const img = document.createElement('img');
-        img.setAttribute('data-src', imageData.url);
-        img.alt = imageData.title;
-        img.classList.add('w-full', 'h-full', 'object-cover', 'transition-opacity', 'duration-300', 'opacity-0');
-        img.loading = 'lazy';
-        
-        // Observe for lazy load
-        imageObserver.observe(img);
-        
-        // Content overlay
-        const content = document.createElement('div');
-        content.className = 'slide-content';
-        content.innerHTML = `
-            <h3 class="text-lg md:text-xl font-bold">${escapeHtml(imageData.title)}</h3>
-            <p class="text-sm md:text-base opacity-90 line-clamp-2">${escapeHtml(imageData.summary) || 'Explore this dashboard screen'}</p>
-        `;
-        
-        slide.appendChild(img);
-        slide.appendChild(content);
-        
-        // Click on slide to enlarge or show details (optional)
-        slide.addEventListener('click', () => {
-            // Could open modal, but for now just a subtle feedback
-            console.log('Viewing:', imageData.title);
-        });
-        
-        return slide;
-    }
-    
-    // Helper to escape HTML
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
-            return c;
-        });
-    }
-    
-    // Update visible slides (active + behind slide based on direction)
-    function updateSlides(newIndex, direction = 'next') {
-        if (isTransitioning) return;
-        isTransitioning = true;
-        
-        const slides = document.querySelectorAll('.slide');
-        if (slides.length === 0) return;
-        
-        // Reset all slide classes
-        slides.forEach(slide => {
-            slide.classList.remove('slide-active', 'slide-behind-left', 'slide-behind-right', 'slide-hidden');
-        });
-        
-        // Set active slide
-        const activeSlide = slides[newIndex];
-        if (activeSlide) activeSlide.classList.add('slide-active');
-        
-        // Determine behind slide: previous slide in history
-        let behindIndex = -1;
-        if (direction === 'next' && newIndex > 0) {
-            behindIndex = newIndex - 1;
-        } else if (direction === 'prev' && newIndex + 1 < slides.length) {
-            behindIndex = newIndex + 1;
-        } else if (direction === 'init' && newIndex > 0) {
-            behindIndex = newIndex - 1;
-        }
-        
-        // Apply behind class with proper transform direction
-        if (behindIndex !== -1 && slides[behindIndex]) {
-            if (direction === 'next' || (direction === 'init' && newIndex > behindIndex)) {
-                slides[behindIndex].classList.add('slide-behind-left');
-            } else if (direction === 'prev') {
-                slides[behindIndex].classList.add('slide-behind-right');
-            } else {
-                slides[behindIndex].classList.add('slide-behind-left');
-            }
-        }
-        
-        // Hide all other slides
-        for (let i = 0; i < slides.length; i++) {
-            if (i !== newIndex && i !== behindIndex) {
-                slides[i].classList.add('slide-hidden');
-            }
-        }
-        
-        // Load image for active slide if not already loaded
-        const activeImg = activeSlide.querySelector('img');
-        if (activeImg && activeImg.getAttribute('data-src') && !activeImg.src) {
-            activeImg.src = activeImg.getAttribute('data-src');
-            activeImg.classList.remove('opacity-0');
-        }
-        
-        // Update UI indicators after animation
-        setTimeout(() => {
-            isTransitioning = false;
-            updateDots(newIndex);
-            updateCounter(newIndex);
-            updateProgress(newIndex);
-        }, 600);
-    }
-    
-    // Navigation: Next
-    function nextSlide() {
-        if (isTransitioning) return;
-        if (currentIndex + 1 >= totalSlides) return;
-        slideDirection = 'next';
-        const newIndex = currentIndex + 1;
-        currentIndex = newIndex;
-        updateSlides(currentIndex, 'next');
-        resetAutoplayTimer();
-    }
-    
-    // Navigation: Previous
-    function prevSlide() {
-        if (isTransitioning) return;
-        if (currentIndex - 1 < 0) return;
-        slideDirection = 'prev';
-        const newIndex = currentIndex - 1;
-        currentIndex = newIndex;
-        updateSlides(currentIndex, 'prev');
-        resetAutoplayTimer();
-    }
-    
-    // Go to specific slide by index
-    function goToSlide(index) {
-        if (isTransitioning) return;
-        if (index === currentIndex) return;
-        if (index < 0 || index >= totalSlides) return;
-        
-        const direction = index > currentIndex ? 'next' : 'prev';
-        slideDirection = direction;
-        currentIndex = index;
-        updateSlides(currentIndex, direction);
-        resetAutoplayTimer();
-    }
-    
-    // Update dot indicators
-    function updateDots(activeIndex) {
-        const dots = document.querySelectorAll('.dot');
-        dots.forEach((dot, idx) => {
-            if (idx === activeIndex) {
-                dot.classList.add('dot-active');
-            } else {
-                dot.classList.remove('dot-active');
-            }
-        });
-    }
-    
-    // Update counter display
-    function updateCounter(index) {
-        slideCounter.textContent = `${index + 1} / ${totalSlides}`;
-    }
-    
-    // Update progress bar width
-    function updateProgress(index) {
-        const percent = ((index + 1) / totalSlides) * 100;
-        progressFill.style.width = `${percent}%`;
-    }
-    
-    // Create dots navigation
-    function createDots() {
-        dotsContainer.innerHTML = '';
-        for (let i = 0; i < totalSlides; i++) {
-            const dot = document.createElement('button');
-            dot.className = `dot transition-all duration-200 ${i === 0 ? 'dot-active' : ''}`;
-            dot.setAttribute('data-index', i);
-            dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
-            dot.addEventListener('click', (e) => {
-                e.stopPropagation();
-                goToSlide(i);
-            });
-            dotsContainer.appendChild(dot);
-        }
-    }
-    
-    // Autoplay functionality
-    function startAutoplay() {
-        if (autoplayInterval) clearInterval(autoplayInterval);
-        autoplayInterval = setInterval(() => {
-            if (!isAutoplayActive) return;
-            if (currentIndex + 1 >= totalSlides) {
-                // Loop to first slide
-                goToSlide(0);
-            } else {
-                nextSlide();
-            }
-        }, 4000);
-    }
-    
-    function stopAutoplay() {
-        if (autoplayInterval) {
-            clearInterval(autoplayInterval);
-            autoplayInterval = null;
-        }
-    }
-    
-    function resetAutoplayTimer() {
-        if (isAutoplayActive) {
-            stopAutoplay();
-            startAutoplay();
-        }
-    }
-    
-    function toggleAutoplay() {
-        isAutoplayActive = !isAutoplayActive;
-        if (isAutoplayActive) {
-            startAutoplay();
-            autoplayIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>';
-            autoplayText.textContent = 'Autoplay';
-        } else {
-            stopAutoplay();
-            autoplayIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>';
-            autoplayText.textContent = 'Paused';
-        }
-    }
-    
-    // Pause on hover
-    const sliderContainer = document.getElementById('sliderContainer');
-    sliderContainer.addEventListener('mouseenter', () => {
-        if (isAutoplayActive) stopAutoplay();
-    });
-    sliderContainer.addEventListener('mouseleave', () => {
-        if (isAutoplayActive) startAutoplay();
-    });
-    
-    // Keyboard navigation
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft') {
-            prevSlide();
-            e.preventDefault();
-        } else if (e.key === 'ArrowRight') {
-            nextSlide();
-            e.preventDefault();
-        }
-    });
-    
-    // Touch/swipe support for mobile
-    let touchStartX = 0;
-    let touchEndX = 0;
-    
-    sliderContainer.addEventListener('touchstart', (e) => {
-        touchStartX = e.changedTouches[0].screenX;
-    });
-    
-    sliderContainer.addEventListener('touchend', (e) => {
-        touchEndX = e.changedTouches[0].screenX;
-        const diff = touchEndX - touchStartX;
-        if (Math.abs(diff) > 50) {
-            if (diff > 0) {
-                prevSlide();
-            } else {
-                nextSlide();
-            }
-        }
-    });
-    
-    // Initialize the slider: render all slides, then show first
-    function initSlider() {
-        if (!imagesData.length) {
-            slidesWrapper.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No dashboard images available</div>';
-            return;
-        }
-        
-        // Create slides
-        imagesData.forEach((imgData, idx) => {
-            const slide = createSlideElement(imgData, idx);
-            slidesWrapper.appendChild(slide);
-        });
-        
-        createDots();
-        
-        // Initialize with first slide active, no behind slide initially (or behind left if exists)
-        currentIndex = 0;
-        updateSlides(0, 'init');
-        
-        // Start autoplay
-        if (totalSlides > 1) {
-            startAutoplay();
-        }
-        
-        // Preload next images in background (optional)
-        setTimeout(() => {
-            const nextIndex = Math.min(1, totalSlides - 1);
-            const nextSlideElement = document.querySelector(`.slide[data-index="${nextIndex}"]`);
-            if (nextSlideElement) {
-                const nextImg = nextSlideElement.querySelector('img');
-                if (nextImg && nextImg.getAttribute('data-src') && !nextImg.src) {
-                    nextImg.src = nextImg.getAttribute('data-src');
-                    nextImg.classList.remove('opacity-0');
-                }
-            }
-        }, 500);
-    }
-    
-    // Event listeners for buttons
-    prevBtn.addEventListener('click', prevSlide);
-    nextBtn.addEventListener('click', nextSlide);
-    autoplayBtn.addEventListener('click', toggleAutoplay);
-    
-    // Initialize on page load
-    initSlider();
-</script>
+    (function () {
+        'use strict';
 
-<!-- Add line-clamp fallback for older browsers -->
-<style>
-    .line-clamp-2 {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-    @media (max-width: 640px) {
-        .slide-content h3 { font-size: 0.9rem; }
-        .slide-content p { font-size: 0.75rem; }
-    }
-</style>
+        /* ─── GSAP scroll reveals ──────────────────────────────────── */
+        if (typeof gsap !== 'undefined') {
+            if (typeof ScrollTrigger !== 'undefined') gsap.registerPlugin(ScrollTrigger);
+            gsap.set('.gsap-reveal', { opacity: 0, y: 32 });
+            gsap.to('.process-step', {
+                scrollTrigger: { trigger: '#processSteps', start: 'top 80%', once: true },
+                y: 0, opacity: 1, stagger: 0.13, duration: 0.6, ease: 'power2.out'
+            });
+            gsap.to('#ctaSection .gsap-reveal', {
+                scrollTrigger: { trigger: '#ctaSection', start: 'top 82%', once: true },
+                y: 0, opacity: 1, stagger: 0.11, ease: 'power2.out'
+            });
+            gsap.utils.toArray('.section-divider').forEach(div => {
+                gsap.from(div, {
+                    scrollTrigger: { trigger: div, start: 'top 95%', once: true },
+                    scaleX: 0, transformOrigin: 'center', duration: 0.8, ease: 'power2.out'
+                });
+            });
+        }
+
+        /* ─── DOM refs ─────────────────────────────────────────────── */
+        const searchInput = document.getElementById('projectSearch');
+        const dropdown = document.getElementById('projectDropdown');
+        const options = Array.from(document.querySelectorAll('.select-option'));
+        const selectorSection = document.getElementById('selectorSection');
+        const emptyState = document.getElementById('emptyState');
+        const projectContent = document.getElementById('projectContent');
+
+        /* ─── Searchable select ────────────────────────────────────── */
+        function filterOptions(term) {
+            const val = term.toLowerCase().trim();
+            options.forEach(opt => {
+                const match = !val || opt.dataset.name.toLowerCase().includes(val);
+                opt.style.display = match ? '' : 'none';
+            });
+        }
+
+        const openDropdown = () => { filterOptions(searchInput.value); dropdown.classList.add('show'); };
+        const closeDropdown = () => dropdown.classList.remove('show');
+
+        searchInput.addEventListener('focus', openDropdown);
+        searchInput.addEventListener('input', e => { filterOptions(e.target.value); dropdown.classList.add('show'); });
+        document.addEventListener('click', e => {
+            if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) closeDropdown();
+        });
+
+        options.forEach(opt => {
+            opt.addEventListener('click', () => {
+                searchInput.value = opt.dataset.name;
+                closeDropdown();
+                loadProject(opt.dataset.slug);
+            });
+        });
+
+        /* ─── Load project via API ─────────────────────────────────── */
+        async function loadProject(slug) {
+            /* Collapse selector heading, keep search bar */
+            selectorSection.classList.add('has-project');
+
+            /* Hide empty state, show spinner */
+            emptyState.hidden = true;
+            projectContent.removeAttribute('hidden');
+            projectContent.innerHTML = `
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem 1rem;">
+                <div class="loading-spinner" style="margin-bottom:1rem;"></div>
+                <p style="color:#94a3b8;font-size:.9rem;">Loading dashboard…</p>
+            </div>`;
+
+            try {
+                const res = await fetch(`/api/project/${slug}/`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                renderSlider(await res.json());
+            } catch (err) {
+                console.error(err);
+                projectContent.innerHTML = `
+                <div style="text-align:center;padding:3rem 1rem;color:#f87171;">
+                    <i data-lucide="alert-circle" style="width:2.5rem;height:2.5rem;margin:0 auto .75rem;display:block;"></i>
+                    <p>Could not load this project. Please try again.</p>
+                </div>`;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+        }
+
+        /* ─── Render full-width slider ─────────────────────────────── */
+        function renderSlider({ project, images }) {
+            const total = images.length;
+            if (!total) {
+                projectContent.innerHTML = `<div style="text-align:center;padding:3rem;color:#94a3b8;">No dashboard images for this project.</div>`;
+                return;
+            }
+
+            /* Slides */
+            const slidesHTML = images.map((img, i) => `
+            <div class="slide slide-hidden" data-index="${i}">
+                <img data-src="${esc(img.image)}" alt="${esc(img.title)}"
+                     class="opacity-0" style="transition:opacity .35s ease;" loading="lazy">
+            </div>`).join('');
+
+            /* Tech tags */
+            const tags = project.technologies
+                ? project.technologies.split(',').slice(0, 6)
+                    .map(t => `<span class="tech-tag">${esc(t.trim())}</span>`).join('')
+                : '';
+
+            /* Floating overlay — black text-readable pill */
+            const overlay = `
+            <div class="project-info-overlay">
+                <p class="overlay-title">${esc(project.name)}</p>
+                <p class="overlay-desc">${esc(project.description)}</p>
+                ${project.client ? `<p class="overlay-client">Client: ${esc(project.client)}</p>` : ''}
+                ${tags ? `<div>${tags}</div>` : ''}
+            </div>`;
+
+            projectContent.innerHTML = `
+            <div class="full-width-slider">
+
+                <!-- Slide stage -->
+                <div class="slide-container" id="sliderStage">
+                    ${overlay}
+                    <div id="slidesWrapper" style="position:relative;width:100%;height:100%;">${slidesHTML}</div>
+
+                    <!-- Prev / Next -->
+                    <button class="nav-btn" id="prevBtn"
+                            style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%);"
+                            aria-label="Previous slide">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <button class="nav-btn" id="nextBtn"
+                            style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);"
+                            aria-label="Next slide">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Controls bar -->
+                <div class="slider-controls-bar">
+                    <div id="dotsWrap" style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center;"></div>
+
+                    <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;">
+                        <button class="autoplay-btn" id="autoBtn">
+                            <svg id="autoIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span id="autoLabel">Autoplay</span>
+                        </button>
+                        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+                        <span class="slide-counter" id="slideCounter">1 / ${total}</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="section-divider" style="margin:2rem 0;"></div>
+            <div style="text-align:center;padding:1.25rem 1rem;">
+                <a href="#ctaSection"
+                   style="display:inline-flex;align-items:center;gap:.4rem;color:#22d3ee;font-size:.9rem;font-weight:600;text-decoration:none;transition:color .2s;"
+                   onmouseover="this.style.color='#a5f3fc'" onmouseout="this.style.color='#22d3ee'">
+                    Interested in something similar?
+                    <i data-lucide="arrow-right" style="width:1rem;height:1rem;"></i>
+                </a>
+            </div>`;
+
+            initSlider(total);
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+
+            /* Scroll slider into view smoothly */
+            projectContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        /* ─── Slider engine ────────────────────────────────────────── */
+        function initSlider(total) {
+            let current = 0, busy = false, autoOn = true, autoTimer = null;
+
+            const stage = document.getElementById('sliderStage');
+            const slides = Array.from(document.querySelectorAll('.slide'));
+            const dotsWrap = document.getElementById('dotsWrap');
+            const progressFill = document.getElementById('progressFill');
+            const counter = document.getElementById('slideCounter');
+            const autoBtn = document.getElementById('autoBtn');
+            const autoIcon = document.getElementById('autoIcon');
+            const autoLabel = document.getElementById('autoLabel');
+
+            /* ── Lazy image loader ── */
+            function loadImg(slide) {
+                const img = slide.querySelector('img');
+                if (img && img.dataset.src) {
+                    img.src = img.dataset.src;
+                    img.onload = () => { img.style.opacity = '1'; img.classList.remove('opacity-0'); };
+                    img.onerror = () => img.style.opacity = '0.3';
+                    delete img.dataset.src;
+                }
+            }
+
+            /* Preload first two */
+            loadImg(slides[0]);
+            if (slides[1]) loadImg(slides[1]);
+
+            /* IntersectionObserver for the rest */
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(e => {
+                    if (e.isIntersecting) { loadImg(e.target); observer.unobserve(e.target); }
+                });
+            }, { rootMargin: '300px' });
+            slides.forEach(s => { if (s.querySelector('img[data-src]')) observer.observe(s); });
+
+            /* ── State update ── */
+            function go(idx, dir) {
+                if (busy || idx === current || idx < 0 || idx >= total) return;
+                busy = true;
+
+                const prev = current;
+                current = idx;
+
+                /* Reset all */
+                slides.forEach(s => { s.className = 'slide slide-hidden'; });
+
+                /* Active */
+                slides[current].className = 'slide slide-active';
+                loadImg(slides[current]);
+
+                /* Peek at neighbour */
+                const peek = dir === 'next' ? prev : (dir === 'prev' ? prev : -1);
+                if (peek >= 0 && peek < total) {
+                    slides[peek].className = `slide ${dir === 'next' ? 'slide-behind-left' : 'slide-behind-right'}`;
+                    loadImg(slides[peek]);
+                }
+
+                /* UI updates after transition */
+                setTimeout(() => {
+                    busy = false;
+                    counter.textContent = `${current + 1} / ${total}`;
+                    progressFill.style.width = `${((current + 1) / total) * 100}%`;
+                    dotsWrap.querySelectorAll('.dot').forEach((d, i) =>
+                        d.classList.toggle('dot-active', i === current));
+                    resetAuto();
+                }, 620);
+            }
+
+            const next = () => go(current + 1 < total ? current + 1 : current, 'next');
+            const prev = () => go(current - 1 >= 0 ? current - 1 : current, 'prev');
+
+            /* ── Autoplay ── */
+            function startAuto() { autoTimer = setInterval(() => { if (!busy) { go((current + 1) % total, 'next'); } }, 4000); }
+            function stopAuto() { clearInterval(autoTimer); autoTimer = null; }
+            function resetAuto() { if (autoOn) { stopAuto(); startAuto(); } }
+
+            /* ── Dots ── */
+            for (let i = 0; i < total; i++) {
+                const d = document.createElement('button');
+                d.className = `dot${i === 0 ? ' dot-active' : ''}`;
+                d.setAttribute('aria-label', `Slide ${i + 1}`);
+                d.addEventListener('click', () => go(i, i > current ? 'next' : 'prev'));
+                dotsWrap.appendChild(d);
+            }
+
+            /* ── Buttons ── */
+            document.getElementById('prevBtn').addEventListener('click', prev);
+            document.getElementById('nextBtn').addEventListener('click', next);
+
+            /* ── Autoplay toggle ── */
+            autoBtn.addEventListener('click', () => {
+                autoOn = !autoOn;
+                autoOn ? startAuto() : stopAuto();
+                autoIcon.innerHTML = autoOn
+                    ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>`
+                    : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/>`;
+                autoLabel.textContent = autoOn ? 'Autoplay' : 'Paused';
+            });
+
+            /* ── Keyboard ── */
+            document.addEventListener('keydown', e => {
+                if (e.key === 'ArrowLeft') { prev(); e.preventDefault(); }
+                if (e.key === 'ArrowRight') { next(); e.preventDefault(); }
+            });
+
+            /* ── Touch / swipe ── */
+            let tx = null;
+            stage.addEventListener('touchstart', e => tx = e.changedTouches[0].screenX, { passive: true });
+            stage.addEventListener('touchend', e => {
+                if (tx === null) return;
+                const diff = e.changedTouches[0].screenX - tx;
+                if (Math.abs(diff) > 44) diff > 0 ? prev() : next();
+                tx = null;
+            });
+
+            /* ── Init first slide ── */
+            slides[0].className = 'slide slide-active';
+            if (slides[1]) slides[1].className = 'slide slide-behind-right';
+            startAuto();
+        }
+
+        /* ── HTML escape ── */
+        function esc(s) {
+            if (!s) return '';
+            return String(s).replace(/[&<>"']/g, c =>
+                ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        /* ── Init icons ── */
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    })();
+</script>
 {% endblock %}
