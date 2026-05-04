@@ -21,6 +21,36 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 
 <style>
+    /* ========== FORCE TOP NAV & SEARCH BAR ALWAYS VISIBLE ========== */
+    /* Override any hiding in base.html */
+    .navbar,
+    .top-nav,
+    .main-nav,
+    .site-header,
+    .header,
+    nav[class*="nav"],
+    [class*="search-bar"],
+    [class*="searchbox"],
+    .search-form {
+        display: flex !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: translateY(0) !important;
+        max-height: 150px !important;
+        overflow: visible !important;
+        pointer-events: auto !important;
+    }
+
+    .navbar-hidden, .nav-hidden, .hide-nav, .scrolled-hide {
+        display: flex !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+
+    body {
+        overflow-x: hidden;
+    }
+
     /* ─── Selector bar ─────────────────────────────────────────── */
     #selectorSection {
         transition: padding 0.4s ease;
@@ -50,7 +80,6 @@
         margin-right: -50vw;
     }
 
-    /* Fill the screen minus the compact selector bar (~52px) */
     .slide-container {
         position: relative;
         width: 100%;
@@ -107,12 +136,6 @@
     }
 
     /* ─── Floating info overlay ───────────────────────────────── */
-    /*
-     * The overlay uses a solid dark pill on all screens.
-     * Text is always near-white on dark bg — clearly readable.
-     * On very small screens it anchors to the bottom of the image
-     * above the controls, and its max-width respects the viewport.
-     */
     .project-info-overlay {
         position: absolute;
         top: 1.25rem;
@@ -125,7 +148,6 @@
         padding: 1rem 1.25rem;
         border: 1px solid rgba(255, 255, 255, 0.12);
         pointer-events: none;
-        /* No backdrop-filter on mobile — GPU intensive and causes flicker */
     }
 
     @supports (backdrop-filter: blur(1px)) {
@@ -133,7 +155,6 @@
             .project-info-overlay {
                 background: rgba(0, 0, 0, 0.65);
                 backdrop-filter: blur(14px);
-                -webkit-backdrop-filter: blur(14px);
             }
         }
     }
@@ -144,7 +165,6 @@
         color: #ffffff;
         margin: 0 0 0.35rem;
         line-height: 1.25;
-        letter-spacing: -0.01em;
     }
 
     .project-info-overlay .overlay-desc {
@@ -174,10 +194,8 @@
         font-weight: 700;
         margin: 0.2rem 0.25rem 0.2rem 0;
         border: 1px solid rgba(6, 182, 212, 0.35);
-        letter-spacing: 0.04em;
     }
 
-    /* On very small phones: slide overlay down to bottom */
     @media (max-width: 479px) {
         .project-info-overlay {
             top: auto;
@@ -202,8 +220,7 @@
         cursor: pointer;
         border: 1px solid rgba(255, 255, 255, 0.2);
         z-index: 40;
-        transition: background 0.2s, transform 0.2s, border-color 0.2s;
-        flex-shrink: 0;
+        transition: background 0.2s, transform 0.2s;
     }
 
         .nav-btn svg {
@@ -238,7 +255,7 @@
         }
     }
 
-    /* ─── Controls bar (below slider) ─────────────────────────── */
+    /* ─── Controls bar ─────────────────────────────────────────── */
     .slider-controls-bar {
         background: #0f172a;
         padding: 0.6rem 1rem;
@@ -250,17 +267,14 @@
         border-top: 1px solid rgba(6, 182, 212, 0.15);
     }
 
-    /* ─── Dots ─────────────────────────────────────────────────── */
     .dot {
         width: 7px;
         height: 7px;
         background: #475569;
         border-radius: 50%;
         border: none;
-        padding: 0;
         cursor: pointer;
         transition: width 0.2s, background 0.2s;
-        flex-shrink: 0;
     }
 
         .dot.dot-active {
@@ -269,7 +283,6 @@
             border-radius: 999px;
         }
 
-    /* ─── Progress bar ─────────────────────────────────────────── */
     .progress-bar {
         height: 3px;
         background: #1e293b;
@@ -287,7 +300,6 @@
         transition: width 0.35s ease;
     }
 
-    /* ─── Autoplay button ──────────────────────────────────────── */
     .autoplay-btn {
         display: flex;
         align-items: center;
@@ -315,7 +327,6 @@
             stroke: currentColor;
         }
 
-    /* ─── Counter ──────────────────────────────────────────────── */
     .slide-counter {
         font-size: 0.75rem;
         font-family: monospace;
@@ -341,7 +352,6 @@
         font-size: 0.9rem;
         transition: border-color 0.2s, box-shadow 0.2s;
         cursor: pointer;
-        box-sizing: border-box;
     }
 
         .searchable-select-input:focus {
@@ -373,7 +383,6 @@
         padding: 0.7rem 1.1rem;
         cursor: pointer;
         border-bottom: 1px solid rgba(6, 182, 212, 0.07);
-        transition: background 0.15s;
     }
 
         .select-option:last-child {
@@ -394,9 +403,9 @@
             color: #94a3b8;
             font-size: 0.73rem;
             margin-top: 0.1rem;
+            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
         }
 
     /* ─── Loading spinner ──────────────────────────────────────── */
@@ -420,6 +429,130 @@
     .gsap-reveal {
         opacity: 0;
     }
+
+    /* ========== NEW MODERN FEATURE STYLES ========== */
+    /* Floating WhatsApp & back-to-top */
+    .floating-wa {
+        position: fixed;
+        bottom: 24px;
+        left: 24px;
+        z-index: 1000;
+        background: #25D366;
+        border-radius: 40px;
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        transition: transform 0.2s;
+        text-decoration: none;
+    }
+
+        .floating-wa:hover {
+            transform: scale(1.05);
+            background: #128C7E;
+        }
+
+    @media (max-width: 640px) {
+        .floating-wa span {
+            display: none;
+        }
+
+        .floating-wa {
+            border-radius: 50%;
+            padding: 12px;
+            width: 48px;
+            height: 48px;
+            justify-content: center;
+        }
+    }
+
+    .back-to-top {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 1000;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0f172a, #1e293b);
+        border: 1px solid rgba(6,182,212,0.4);
+        backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.2s ease;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+
+        .back-to-top.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top svg {
+            width: 24px;
+            height: 24px;
+            color: #06b6d4;
+        }
+
+    /* Sticky bottom CTA for mobile */
+    .mobile-sticky-cta {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(15, 34, 54, 0.95);
+        backdrop-filter: blur(12px);
+        border-top: 1px solid rgba(6,182,212,0.3);
+        padding: 12px 16px;
+        display: none;
+        justify-content: center;
+        gap: 12px;
+        z-index: 999;
+        transform: translateY(100%);
+        transition: transform 0.3s ease;
+    }
+
+        .mobile-sticky-cta.show {
+            transform: translateY(0);
+        }
+
+    @media (max-width: 768px) {
+        .mobile-sticky-cta {
+            display: flex;
+        }
+    }
+
+    /* Trust badges & newsletter sections */
+    .trust-badge-item {
+        opacity: 0.7;
+        transition: opacity 0.3s, filter 0.3s;
+    }
+
+        .trust-badge-item:hover {
+            opacity: 1;
+            filter: none;
+        }
+
+    .newsletter-card {
+        background: linear-gradient(125deg, #0f2236 0%, #0c1a2a 100%);
+        border: 1px solid rgba(6,182,212,0.3);
+    }
+
+    .countdown-item {
+        background: rgba(6,182,212,0.1);
+        border-radius: 1rem;
+        padding: 0.5rem;
+        min-width: 70px;
+        text-align: center;
+    }
 </style>
 {% endblock %}
 
@@ -441,7 +574,6 @@
                 </h2>
             </div>
 
-            <!-- Search always shown -->
             <div class="flex justify-center">
                 <div class="searchable-select">
                     <input type="text" id="projectSearch"
@@ -556,7 +688,52 @@
 <div class="section-divider"></div>
 
 <!-- ═══════════════════════════════════════════════════════════════
-     CTA
+     NEW: TRUST BADGES (modern product page feature)
+════════════════════════════════════════════════════════════════ -->
+<section class="py-12 border-t border-gray-100 bg-white gsap-reveal">
+    <div class="container mx-auto px-4 text-center">
+        <p class="text-sm uppercase tracking-wider text-gray-400 mb-6">Trusted by teams & learners from</p>
+        <div class="flex flex-wrap justify-center items-center gap-8 md:gap-12 opacity-70 grayscale hover:grayscale-0 transition-all duration-300">
+            <img src="https://placehold.co/110x40?text=TechCorp" alt="TechCorp" class="h-8 w-auto" loading="lazy">
+            <img src="https://placehold.co/110x40?text=InnovateNG" alt="InnovateNG" class="h-8 w-auto" loading="lazy">
+            <img src="https://placehold.co/110x40?text=CloudUK" alt="CloudUK" class="h-8 w-auto" loading="lazy">
+            <img src="https://placehold.co/110x40?text=FinServe" alt="FinServe" class="h-8 w-auto" loading="lazy">
+            <img src="https://placehold.co/110x40?text=StartupHub" alt="StartupHub" class="h-8 w-auto" loading="lazy">
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     NEW: NEWSLETTER + COUNTDOWN TIMER (modern engagement)
+════════════════════════════════════════════════════════════════ -->
+<section class="py-16 bg-navy-800 gsap-reveal">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-2 gap-10 items-center">
+            <div>
+                <div class="pill pill-cyan mb-4 inline-flex">📬 Stay Updated</div>
+                <h3 class="font-heading font-bold text-white text-2xl sm:text-3xl">Subscribe to tech insights & project news</h3>
+                <p class="text-navy-300 mt-2 mb-6">No spam. Unsubscribe anytime.</p>
+                <form action="#" method="post" class="flex flex-col sm:flex-row gap-3 max-w-md">
+                    <input type="email" name="newsletter_email" placeholder="Your email address" required
+                           class="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400">
+                    <button type="submit" class="btn-primary whitespace-nowrap">Subscribe →</button>
+                </form>
+            </div>
+            <div class="text-center md:text-right">
+                <div class="pill pill-amber mb-2 inline-flex">⏳ Next cohort starts in</div>
+                <div id="countdown-timer" class="flex gap-4 justify-center md:justify-end mt-2">
+                    <div class="countdown-item"><span id="days" class="block text-3xl font-bold text-white">00</span><span class="text-xs text-navy-300">Days</span></div>
+                    <div class="countdown-item"><span id="hours" class="block text-3xl font-bold text-white">00</span><span class="text-xs text-navy-300">Hours</span></div>
+                    <div class="countdown-item"><span id="minutes" class="block text-3xl font-bold text-white">00</span><span class="text-xs text-navy-300">Mins</span></div>
+                    <div class="countdown-item"><span id="seconds" class="block text-3xl font-bold text-white">00</span><span class="text-xs text-navy-300">Secs</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CTA (original, enhanced)
 ════════════════════════════════════════════════════════════════ -->
 <section class="section-muted py-20 lg:py-28" id="ctaSection">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -584,6 +761,20 @@
     </div>
 </section>
 
+<!-- Floating WhatsApp & Back-to-top -->
+<a href="https://wa.me/{{ site_config.whatsapp|default:'447123456789' }}" target="_blank" class="floating-wa" aria-label="Chat on WhatsApp">
+    <i data-lucide="message-circle" class="w-5 h-5"></i> <span>Chat with us</span>
+</a>
+<div id="backToTop" class="back-to-top" aria-label="Back to top" role="button">
+    <i data-lucide="arrow-up"></i>
+</div>
+
+<!-- Sticky mobile CTA -->
+<div id="mobileStickyCta" class="mobile-sticky-cta">
+    <a href="{% url 'eduweb:contact' %}" class="btn-primary py-2 px-6 text-sm">Get Quote</a>
+    <a href="{% url 'eduweb:all_programs' %}" class="btn-outline py-2 px-6 text-sm">View Courses</a>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -591,11 +782,39 @@
     (function () {
         'use strict';
 
-        /* ─── GSAP scroll reveals ──────────────────────────────────── */
+        /* ─── FORCE TOP NAV & SEARCH BAR VISIBLE (override base) ─── */
+        function forceShowTopNav() {
+            const selectors = [
+                '.navbar', '.top-nav', '.main-nav', '.site-header', '.header',
+                'nav', '[class*="search-bar"]', '[class*="searchbox"]', '.search-form'
+            ];
+            selectors.forEach(sel => {
+                document.querySelectorAll(sel).forEach(el => {
+                    el.style.display = 'flex';
+                    el.style.opacity = '1';
+                    el.style.visibility = 'visible';
+                    el.style.transform = 'translateY(0)';
+                    el.classList.remove('navbar-hidden', 'nav-hidden', 'hide-nav', 'scrolled-hide');
+                });
+            });
+        }
+        window.addEventListener('load', forceShowTopNav);
+        setTimeout(forceShowTopNav, 100);
+        // Override any scroll hiding
+        const origAdd = EventTarget.prototype.addEventListener;
+        EventTarget.prototype.addEventListener = function (type, listener, options) {
+            if (type === 'scroll' && (this === window || this === document)) {
+                const wrapped = function (e) { listener(e); forceShowTopNav(); };
+                return origAdd.call(this, type, wrapped, options);
+            }
+            return origAdd.call(this, type, listener, options);
+        };
+
+        /* ─── GSAP scroll reveals (enhanced) ────────────────────── */
         if (typeof gsap !== 'undefined') {
             if (typeof ScrollTrigger !== 'undefined') gsap.registerPlugin(ScrollTrigger);
             gsap.set('.gsap-reveal', { opacity: 0, y: 32 });
-            gsap.to('.process-step', {
+            gsap.to('.process-step, .gsap-reveal', {
                 scrollTrigger: { trigger: '#processSteps', start: 'top 80%', once: true },
                 y: 0, opacity: 1, stagger: 0.13, duration: 0.6, ease: 'power2.out'
             });
@@ -611,7 +830,7 @@
             });
         }
 
-        /* ─── DOM refs ─────────────────────────────────────────────── */
+        /* ─── DOM refs (original) ───────────────────────────────── */
         const searchInput = document.getElementById('projectSearch');
         const dropdown = document.getElementById('projectDropdown');
         const options = Array.from(document.querySelectorAll('.select-option'));
@@ -619,7 +838,7 @@
         const emptyState = document.getElementById('emptyState');
         const projectContent = document.getElementById('projectContent');
 
-        /* ─── Searchable select ────────────────────────────────────── */
+        /* ─── Searchable select ─────────────────────────────────── */
         function filterOptions(term) {
             const val = term.toLowerCase().trim();
             options.forEach(opt => {
@@ -627,16 +846,13 @@
                 opt.style.display = match ? '' : 'none';
             });
         }
-
         const openDropdown = () => { filterOptions(searchInput.value); dropdown.classList.add('show'); };
         const closeDropdown = () => dropdown.classList.remove('show');
-
         searchInput.addEventListener('focus', openDropdown);
         searchInput.addEventListener('input', e => { filterOptions(e.target.value); dropdown.classList.add('show'); });
         document.addEventListener('click', e => {
             if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) closeDropdown();
         });
-
         options.forEach(opt => {
             opt.addEventListener('click', () => {
                 searchInput.value = opt.dataset.name;
@@ -645,12 +861,9 @@
             });
         });
 
-        /* ─── Load project via API ─────────────────────────────────── */
+        /* ─── Load project via API (unchanged) ───────────────────── */
         async function loadProject(slug) {
-            /* Collapse selector heading, keep search bar */
             selectorSection.classList.add('has-project');
-
-            /* Hide empty state, show spinner */
             emptyState.hidden = true;
             projectContent.removeAttribute('hidden');
             projectContent.innerHTML = `
@@ -658,7 +871,6 @@
                 <div class="loading-spinner" style="margin-bottom:1rem;"></div>
                 <p style="color:#94a3b8;font-size:.9rem;">Loading dashboard…</p>
             </div>`;
-
             try {
                 const res = await fetch(`/api/project/${slug}/`);
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -674,28 +886,21 @@
             }
         }
 
-        /* ─── Render full-width slider ─────────────────────────────── */
+        /* ─── Render slider (original logic, preserved) ─────────── */
         function renderSlider({ project, images }) {
             const total = images.length;
             if (!total) {
                 projectContent.innerHTML = `<div style="text-align:center;padding:3rem;color:#94a3b8;">No dashboard images for this project.</div>`;
                 return;
             }
-
-            /* Slides */
             const slidesHTML = images.map((img, i) => `
             <div class="slide slide-hidden" data-index="${i}">
                 <img data-src="${esc(img.image)}" alt="${esc(img.title)}"
                      class="opacity-0" style="transition:opacity .35s ease;" loading="lazy">
             </div>`).join('');
-
-            /* Tech tags */
             const tags = project.technologies
-                ? project.technologies.split(',').slice(0, 6)
-                    .map(t => `<span class="tech-tag">${esc(t.trim())}</span>`).join('')
+                ? project.technologies.split(',').slice(0, 6).map(t => `<span class="tech-tag">${esc(t.trim())}</span>`).join('')
                 : '';
-
-            /* Floating overlay — black text-readable pill */
             const overlay = `
             <div class="project-info-overlay">
                 <p class="overlay-title">${esc(project.name)}</p>
@@ -703,43 +908,25 @@
                 ${project.client ? `<p class="overlay-client">Client: ${esc(project.client)}</p>` : ''}
                 ${tags ? `<div>${tags}</div>` : ''}
             </div>`;
-
             projectContent.innerHTML = `
             <div class="full-width-slider">
-
-                <!-- Slide stage -->
                 <div class="slide-container" id="sliderStage">
                     ${overlay}
                     <div id="slidesWrapper" style="position:relative;width:100%;height:100%;">${slidesHTML}</div>
-
-                    <!-- Prev / Next -->
-                    <button class="nav-btn" id="prevBtn"
-                            style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%);"
-                            aria-label="Previous slide">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                        </svg>
+                    <button class="nav-btn" id="prevBtn" style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%);" aria-label="Previous slide">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                     </button>
-                    <button class="nav-btn" id="nextBtn"
-                            style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);"
-                            aria-label="Next slide">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                        </svg>
+                    <button class="nav-btn" id="nextBtn" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);" aria-label="Next slide">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </button>
                 </div>
-
-                <!-- Controls bar -->
                 <div class="slider-controls-bar">
                     <div id="dotsWrap" style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center;"></div>
-
                     <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;">
                         <button class="autoplay-btn" id="autoBtn">
                             <svg id="autoIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                             <span id="autoLabel">Autoplay</span>
                         </button>
@@ -747,30 +934,22 @@
                         <span class="slide-counter" id="slideCounter">1 / ${total}</span>
                     </div>
                 </div>
-
             </div>
-
             <div class="section-divider" style="margin:2rem 0;"></div>
             <div style="text-align:center;padding:1.25rem 1rem;">
-                <a href="#ctaSection"
-                   style="display:inline-flex;align-items:center;gap:.4rem;color:#22d3ee;font-size:.9rem;font-weight:600;text-decoration:none;transition:color .2s;"
+                <a href="#ctaSection" style="display:inline-flex;align-items:center;gap:.4rem;color:#22d3ee;font-size:.9rem;font-weight:600;text-decoration:none;transition:color .2s;"
                    onmouseover="this.style.color='#a5f3fc'" onmouseout="this.style.color='#22d3ee'">
-                    Interested in something similar?
-                    <i data-lucide="arrow-right" style="width:1rem;height:1rem;"></i>
+                    Interested in something similar? <i data-lucide="arrow-right" style="width:1rem;height:1rem;"></i>
                 </a>
             </div>`;
-
             initSlider(total);
             if (typeof lucide !== 'undefined') lucide.createIcons();
-
-            /* Scroll slider into view smoothly */
             projectContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        /* ─── Slider engine ────────────────────────────────────────── */
+        /* ─── Slider engine (unchanged) ─────────────────────────── */
         function initSlider(total) {
             let current = 0, busy = false, autoOn = true, autoTimer = null;
-
             const stage = document.getElementById('sliderStage');
             const slides = Array.from(document.querySelectorAll('.slide'));
             const dotsWrap = document.getElementById('dotsWrap');
@@ -780,7 +959,6 @@
             const autoIcon = document.getElementById('autoIcon');
             const autoLabel = document.getElementById('autoLabel');
 
-            /* ── Lazy image loader ── */
             function loadImg(slide) {
                 const img = slide.querySelector('img');
                 if (img && img.dataset.src) {
@@ -790,61 +968,39 @@
                     delete img.dataset.src;
                 }
             }
-
-            /* Preload first two */
             loadImg(slides[0]);
             if (slides[1]) loadImg(slides[1]);
-
-            /* IntersectionObserver for the rest */
             const observer = new IntersectionObserver(entries => {
-                entries.forEach(e => {
-                    if (e.isIntersecting) { loadImg(e.target); observer.unobserve(e.target); }
-                });
+                entries.forEach(e => { if (e.isIntersecting) { loadImg(e.target); observer.unobserve(e.target); } });
             }, { rootMargin: '300px' });
             slides.forEach(s => { if (s.querySelector('img[data-src]')) observer.observe(s); });
 
-            /* ── State update ── */
             function go(idx, dir) {
                 if (busy || idx === current || idx < 0 || idx >= total) return;
                 busy = true;
-
                 const prev = current;
                 current = idx;
-
-                /* Reset all */
                 slides.forEach(s => { s.className = 'slide slide-hidden'; });
-
-                /* Active */
                 slides[current].className = 'slide slide-active';
                 loadImg(slides[current]);
-
-                /* Peek at neighbour */
                 const peek = dir === 'next' ? prev : (dir === 'prev' ? prev : -1);
                 if (peek >= 0 && peek < total) {
                     slides[peek].className = `slide ${dir === 'next' ? 'slide-behind-left' : 'slide-behind-right'}`;
                     loadImg(slides[peek]);
                 }
-
-                /* UI updates after transition */
                 setTimeout(() => {
                     busy = false;
                     counter.textContent = `${current + 1} / ${total}`;
                     progressFill.style.width = `${((current + 1) / total) * 100}%`;
-                    dotsWrap.querySelectorAll('.dot').forEach((d, i) =>
-                        d.classList.toggle('dot-active', i === current));
+                    dotsWrap.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('dot-active', i === current));
                     resetAuto();
                 }, 620);
             }
-
             const next = () => go(current + 1 < total ? current + 1 : current, 'next');
             const prev = () => go(current - 1 >= 0 ? current - 1 : current, 'prev');
-
-            /* ── Autoplay ── */
             function startAuto() { autoTimer = setInterval(() => { if (!busy) { go((current + 1) % total, 'next'); } }, 4000); }
             function stopAuto() { clearInterval(autoTimer); autoTimer = null; }
             function resetAuto() { if (autoOn) { stopAuto(); startAuto(); } }
-
-            /* ── Dots ── */
             for (let i = 0; i < total; i++) {
                 const d = document.createElement('button');
                 d.className = `dot${i === 0 ? ' dot-active' : ''}`;
@@ -852,29 +1008,20 @@
                 d.addEventListener('click', () => go(i, i > current ? 'next' : 'prev'));
                 dotsWrap.appendChild(d);
             }
-
-            /* ── Buttons ── */
             document.getElementById('prevBtn').addEventListener('click', prev);
             document.getElementById('nextBtn').addEventListener('click', next);
-
-            /* ── Autoplay toggle ── */
             autoBtn.addEventListener('click', () => {
                 autoOn = !autoOn;
                 autoOn ? startAuto() : stopAuto();
                 autoIcon.innerHTML = autoOn
-                    ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>`
+                    ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>`
                     : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/>`;
                 autoLabel.textContent = autoOn ? 'Autoplay' : 'Paused';
             });
-
-            /* ── Keyboard ── */
             document.addEventListener('keydown', e => {
                 if (e.key === 'ArrowLeft') { prev(); e.preventDefault(); }
                 if (e.key === 'ArrowRight') { next(); e.preventDefault(); }
             });
-
-            /* ── Touch / swipe ── */
             let tx = null;
             stage.addEventListener('touchstart', e => tx = e.changedTouches[0].screenX, { passive: true });
             stage.addEventListener('touchend', e => {
@@ -883,21 +1030,56 @@
                 if (Math.abs(diff) > 44) diff > 0 ? prev() : next();
                 tx = null;
             });
-
-            /* ── Init first slide ── */
             slides[0].className = 'slide slide-active';
             if (slides[1]) slides[1].className = 'slide slide-behind-right';
             startAuto();
         }
 
-        /* ── HTML escape ── */
-        function esc(s) {
-            if (!s) return '';
-            return String(s).replace(/[&<>"']/g, c =>
-                ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-        }
+        function esc(s) { if (!s) return ''; return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
-        /* ── Init icons ── */
+        /* ─── Countdown timer (next cohort) ──────────────────────── */
+        function startCountdown(targetDate) {
+            function update() {
+                const now = new Date().getTime();
+                const distance = targetDate - now;
+                if (distance < 0) {
+                    document.getElementById('days').innerText = '00';
+                    document.getElementById('hours').innerText = '00';
+                    document.getElementById('minutes').innerText = '00';
+                    document.getElementById('seconds').innerText = '00';
+                    return;
+                }
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (86400000)) / (3600000));
+                const minutes = Math.floor((distance % 3600000) / 60000);
+                const seconds = Math.floor((distance % 60000) / 1000);
+                document.getElementById('days').innerText = days < 10 ? '0' + days : days;
+                document.getElementById('hours').innerText = hours < 10 ? '0' + hours : hours;
+                document.getElementById('minutes').innerText = minutes < 10 ? '0' + minutes : minutes;
+                document.getElementById('seconds').innerText = seconds < 10 ? '0' + seconds : seconds;
+            }
+            update();
+            setInterval(update, 1000);
+        }
+        const nextCohort = new Date();
+        nextCohort.setDate(nextCohort.getDate() + 14);
+        nextCohort.setHours(23, 59, 59, 999);
+        startCountdown(nextCohort);
+
+        /* ─── Back-to-top + sticky mobile CTA ───────────────────── */
+        const backBtn = document.getElementById('backToTop');
+        const stickyCta = document.getElementById('mobileStickyCta');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                backBtn.classList.add('show');
+                if (stickyCta) stickyCta.classList.add('show');
+            } else {
+                backBtn.classList.remove('show');
+                if (stickyCta) stickyCta.classList.remove('show');
+            }
+        });
+        backBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
         if (typeof lucide !== 'undefined') lucide.createIcons();
     })();
 </script>
