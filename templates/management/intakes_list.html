@@ -1,0 +1,666 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Open Applications - {{ site_config.school_short_name }} Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-full">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Open Applications</h1>
+      <p class="text-gray-500 mt-1">Manage intake periods, application windows, and fees for academic programs</p>
+    </div>
+    {% if permissions.academics.can_create %}
+    <button onclick="openCreateIntakeModal()"
+       class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium shadow-sm">
+      <i class="fas fa-plus" aria-hidden="true"></i>New Intake
+    </button>
+    {% endif %}
+  </div>
+
+  <!-- Django messages -->
+  {% if messages %}
+  <div class="mb-4 space-y-2">
+    {% for message in messages %}
+    <div class="px-4 py-3 rounded-lg text-sm font-medium
+      {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200
+      {% else %}bg-green-50 text-green-700 border border-green-200{% endif %}">
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Filters -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
+    <form method="get" class="flex flex-col sm:flex-row gap-3">
+      <div class="flex-1">
+        <select name="program" class="searchable-select w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" data-ss-placeholder="All Programs">
+          <option value="">All Programs</option>
+          {% for prog in programs %}
+          <option value="{{ prog.id }}" {% if request.GET.program == prog.id|stringformat:"s" %}selected{% endif %}>{{ prog.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="sm:w-40">
+        <select name="year" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          <option value="">All Years</option>
+          {% for yr in years %}
+          <option value="{{ yr }}" {% if request.GET.year == yr|stringformat:"s" %}selected{% endif %}>{{ yr }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="sm:w-40">
+        <select name="period" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          <option value="">All Periods</option>
+          <option value="january" {% if request.GET.period == 'january' %}selected{% endif %}>January</option>
+          <option value="may" {% if request.GET.period == 'may' %}selected{% endif %}>May</option>
+          <option value="september" {% if request.GET.period == 'september' %}selected{% endif %}>September</option>
+        </select>
+      </div>
+      <div class="sm:w-36">
+        <select name="status" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          <option value="">All Status</option>
+          <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+          <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
+        </select>
+      </div>
+      <button type="submit" class="px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium">
+        <i class="fas fa-search mr-1" aria-hidden="true"></i>Filter
+      </button>
+      <a href="{% url 'management:intakes_list' %}" class="px-3 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm">
+        <i class="fas fa-redo" aria-hidden="true"></i>
+      </a>
+    </form>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="p-5 border-b border-gray-100">
+      <h2 class="font-semibold text-gray-800">
+        All Intakes <span class="text-sm font-normal text-gray-400 ml-1">({{ intakes.paginator.count }} total)</span>
+      </h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="table-card w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wide">
+          <tr>
+            <th class="py-3 px-5 text-left font-semibold">Program</th>
+            <th class="py-3 px-5 text-left font-semibold">Period</th>
+            <th class="py-3 px-5 text-left font-semibold">Application Window</th>
+            <th class="py-3 px-5 text-left font-semibold">Program Start</th>
+            <th class="py-3 px-5 text-left font-semibold">Fee</th>
+            <th class="py-3 px-5 text-left font-semibold">Slots</th>
+            <th class="py-3 px-5 text-left font-semibold">Accepted / Apps</th>
+            <th class="py-3 px-5 text-left font-semibold">Status</th>
+            <th class="py-3 px-5 text-left font-semibold">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for intake in intakes %}
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="py-4 px-5" data-label="Program">
+              <div class="font-medium text-gray-800">{{ intake.program.name }}</div>
+              <div class="text-xs text-gray-400">{{ intake.program.department.faculty.name }}</div>
+            </td>
+            <td class="py-4 px-5" data-label="Period">
+              <span class="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium capitalize">
+                {{ intake.intake_period }}
+              </span>
+              <span class="text-gray-500 ml-1">{{ intake.year }}</span>
+            </td>
+            <td class="py-4 px-5" data-label="Application Window">
+              {% if intake.application_start_date %}
+              <span class="text-gray-600">{{ intake.application_start_date|date:"M d, Y" }} –</span>
+              {% endif %}
+              {% if intake.application_deadline < today %}
+              <span class="text-red-500 font-medium">{{ intake.application_deadline|date:"M d, Y" }}</span>
+              <span class="text-xs text-red-400 block">Expired</span>
+              {% else %}
+              <span class="text-gray-600">{{ intake.application_deadline|date:"M d, Y" }}</span>
+              {% endif %}
+            </td>
+            <td class="py-4 px-5 text-gray-600" data-label="Program Start">{{ intake.start_date|date:"M d, Y" }}</td>
+            <td class="py-4 px-5 text-gray-700" data-label="Fee">${{ intake.application_fee|floatformat:0 }}</td>
+            <td class="py-4 px-5" data-label="Slots">
+              <span class="font-medium {% if intake.is_full %}text-red-600{% else %}text-gray-700{% endif %}">
+                {{ intake.available_slots }}
+              </span>
+              {% if intake.is_full %}
+              <span class="text-xs text-red-500 block">Full</span>
+              {% else %}
+              <span class="text-xs text-green-600 block">{{ intake.remaining_slots }} left</span>
+              {% endif %}
+            </td>
+            <td class="py-4 px-5" data-label="Accepted / Apps">
+              <span class="font-medium text-primary-600">{{ intake.accepted_count }}</span>
+              <span class="text-gray-400"> / {{ intake.applications.count }}</span>
+            </td>
+            <td class="py-4 px-5" data-label="Status">
+              {% if intake.is_active %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Active
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>Inactive
+              </span>
+              {% endif %}
+            </td>
+            <td class="py-4 px-5" data-label="Actions">
+              <div class="flex items-center gap-2">
+                {% if permissions.academics.can_edit %}
+                <button type="button"
+                        onclick="openEditIntakeModal({{ intake.pk }}, '{% url 'management:intake_edit' intake.pk %}')"
+                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Edit">
+                  <i class="fas fa-edit text-sm" aria-hidden="true"></i>
+                </button>
+                {% endif %}
+                {% if permissions.academics.can_delete %}
+                <button type="button"
+                        onclick="openDeleteModal('{% url 'management:intake_delete' intake.pk %}', '{{ intake }}')"
+                        class="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors" title="Delete">
+                  <i class="fas fa-trash-alt text-sm" aria-hidden="true"></i>
+                </button>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="9" class="py-16 text-center text-gray-400">
+              <i class="fas fa-door-open text-5xl mb-3 block" aria-hidden="true"></i>
+              <p class="font-medium text-gray-600">No intakes found</p>
+              {% if permissions.academics.can_create %}
+              <button onclick="openCreateIntakeModal()" class="text-primary-600 text-sm hover:underline mt-1 inline-block">Create the first intake</button>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if intakes.has_other_pages %}
+    <div class="p-5 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-3">
+      <p class="text-sm text-gray-500">Showing {{ intakes.start_index }}–{{ intakes.end_index }} of {{ intakes.paginator.count }}</p>
+      <nav class="flex gap-1" aria-label="Pagination">
+        {% if intakes.has_previous %}
+        <a href="?page={{ intakes.previous_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}"
+           class="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">
+          <i class="fas fa-chevron-left" aria-hidden="true"></i>
+        </a>
+        {% endif %}
+        {% for num in intakes.paginator.page_range %}
+          {% if intakes.number == num %}
+          <span class="px-3 py-1.5 bg-primary-600 text-white rounded-lg text-sm font-medium">{{ num }}</span>
+          {% elif num > intakes.number|add:"-3" and num < intakes.number|add:"3" %}
+          <a href="?page={{ num }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}"
+             class="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+        {% if intakes.has_next %}
+        <a href="?page={{ intakes.next_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}"
+           class="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">
+          <i class="fas fa-chevron-right" aria-hidden="true"></i>
+        </a>
+        {% endif %}
+      </nav>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ═══════════════════ CREATE MODAL (one or more intakes) ═══════════════════ -->
+<div id="createIntakeModal" class="fixed inset-0 z-50 hidden" aria-modal="true" role="dialog">
+  <div class="fixed inset-0 flex items-stretch sm:items-center justify-center sm:p-3">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-black/40" onclick="closeCreateIntakeModal()"></div>
+    <!-- Panel — widened, but still responsive (shrinks to viewport on small screens) -->
+    <div class="relative bg-white sm:rounded-xl shadow-xl w-full sm:max-w-4xl xl:max-w-5xl h-full sm:h-auto sm:max-h-[90vh] flex flex-col">
+      <div class="px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between shrink-0">
+        <h2 class="font-semibold text-gray-800 text-lg">New Intake</h2>
+        <button onclick="closeCreateIntakeModal()" class="text-gray-400 hover:text-gray-600 text-xl leading-none p-1 -m-1" aria-label="Close">&times;</button>
+      </div>
+
+      <form id="createIntakeForm" method="post" action="{% url 'management:intake_create' %}" class="flex flex-col flex-1 min-h-0">
+        {% csrf_token %}
+        {{ intake_formset.management_form }}
+
+        <div class="px-4 sm:px-6 py-4 overflow-y-auto flex-1 min-h-0">
+          <div id="intakeRowsContainer" class="space-y-4">
+            {% for form in intake_formset %}
+            {% include 'management/_intake_form_row.html' %}
+            {% endfor %}
+          </div>
+
+          <button type="button" onclick="addIntakeRow()"
+                  class="mt-4 inline-flex items-center gap-2 px-4 py-2 border border-dashed border-primary-300 text-primary-600 rounded-lg hover:bg-primary-50 text-sm font-medium">
+            <i class="fas fa-plus" aria-hidden="true"></i>Add Another Intake
+          </button>
+        </div>
+
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 px-4 sm:px-6 py-4 border-t border-gray-100 shrink-0">
+          <button type="button" onclick="closeCreateIntakeModal()"
+                  class="w-full sm:w-auto px-5 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-medium">Cancel</button>
+          <button type="submit"
+                  class="w-full sm:w-auto px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium shadow-sm">
+            <i class="fas fa-save mr-1.5" aria-hidden="true"></i>Create Intake(s)
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden template cloned by "Add Another Intake" -->
+<template id="intakeEmptyRowTemplate">{% with form=intake_formset.empty_form %}{% include 'management/_intake_form_row.html' %}{% endwith %}</template>
+
+<!-- ═══════════════════ EDIT MODAL (single intake) ═══════════════════ -->
+<div id="editIntakeModal" class="fixed inset-0 z-50 hidden" aria-modal="true" role="dialog">
+  <div class="fixed inset-0 flex items-stretch sm:items-center justify-center sm:p-3">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-black/40" onclick="closeEditIntakeModal()"></div>
+    <!-- Panel -->
+    <div class="relative bg-white sm:rounded-xl shadow-xl w-full sm:max-w-lg h-full sm:h-auto sm:max-h-[90vh] flex flex-col">
+      <div class="px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between shrink-0">
+        <h2 class="font-semibold text-gray-800 text-lg">Edit Intake</h2>
+        <button onclick="closeEditIntakeModal()" class="text-gray-400 hover:text-gray-600 text-xl leading-none p-1 -m-1" aria-label="Close">&times;</button>
+      </div>
+
+      <form id="editIntakeForm" method="post" action="" class="flex flex-col flex-1 min-h-0">
+        {% csrf_token %}
+        <div class="px-4 sm:px-6 py-4 space-y-4 overflow-y-auto flex-1 min-h-0">
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Program <span class="text-red-500">*</span></label>
+          <select id="edit_program" name="program" required
+                  class="searchable-select w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                  data-ss-placeholder="Type to search program…">
+            <option value="">Type to search program…</option>
+            {% for prog in programs %}
+            <option value="{{ prog.pk }}">{{ prog.name }} ({{ prog.code }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Intake Period <span class="text-red-500">*</span></label>
+            <select id="edit_intake_period" name="intake_period"
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" required>
+              <option value="january">January</option>
+              <option value="may">May</option>
+              <option value="september">September</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Year <span class="text-red-500">*</span></label>
+            <select id="edit_year" name="year"
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" required>
+              {% for y in year_options %}
+              <option value="{{ y }}">{{ y }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Applications Open <span class="text-red-500">*</span></label>
+            <input type="date" id="edit_application_start_date" name="application_start_date"
+                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Application Deadline <span class="text-red-500">*</span></label>
+            <input type="date" id="edit_deadline" name="application_deadline"
+                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" required>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Program Start Date <span class="text-red-500">*</span></label>
+            <input type="date" id="edit_start_date" name="start_date"
+                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Application Fee ($) <span class="text-red-500">*</span></label>
+            <input type="number" id="edit_application_fee" name="application_fee" value="0.00" min="0" step="0.01"
+                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" required>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Available Slots <span class="text-red-500">*</span></label>
+            <input type="number" id="edit_slots" name="available_slots" value="50" min="1"
+                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" required>
+          </div>
+          <div class="flex items-end pb-1">
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" id="edit_is_active" name="is_active" checked
+                     class="w-4 h-4 rounded text-primary-600 border-gray-300 focus:ring-primary-500">
+              <span class="text-sm font-medium text-gray-700">Active</span>
+            </label>
+          </div>
+        </div>
+        </div>
+
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 px-4 sm:px-6 py-4 border-t border-gray-100 shrink-0">
+          <button type="button" onclick="closeEditIntakeModal()"
+                  class="w-full sm:w-auto px-5 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-medium">Cancel</button>
+          <button type="submit"
+                  class="w-full sm:w-auto px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium shadow-sm">
+            <i class="fas fa-save mr-1.5" aria-hidden="true"></i>Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ DELETE CONFIRM MODAL ═══════════════════ -->
+<div id="deleteModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-modal="true" role="dialog">
+  <div class="flex min-h-full items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/40" onclick="closeDeleteModal()"></div>
+    <div class="relative bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+          <i class="fas fa-exclamation-triangle text-red-600"></i>
+        </div>
+        <div>
+          <h3 class="font-semibold text-gray-900 text-lg">Delete Intake?</h3>
+          <p class="text-sm text-gray-500 mt-1">
+            You are about to permanently delete <strong id="deleteIntakeName"></strong>. This will also remove all linked applications and enrollment records. This cannot be undone.
+          </p>
+        </div>
+      </div>
+      <form id="deleteForm" method="post" action="">
+        {% csrf_token %}
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3">
+          <button type="button" onclick="closeDeleteModal()"
+                  class="w-full sm:w-auto px-5 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-medium">Cancel</button>
+          <button type="submit"
+                  class="w-full sm:w-auto px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-semibold">
+            <i class="fas fa-trash mr-1.5"></i>Delete
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── Create modal (formset: one or more intake rows) ───────────
+const INTAKE_PREFIX = 'intake';
+
+function intakeTotalFormsInput() {
+  return document.getElementById(`id_${INTAKE_PREFIX}-TOTAL_FORMS`);
+}
+
+function openCreateIntakeModal() {
+  const container = document.getElementById('intakeRowsContainer');
+  // Drop any rows added in a previous open-then-cancel, back down to just
+  // the first one, and reset it — same "start fresh" behaviour as before.
+  // Native form.reset() (not manual field-by-field resetting) so every
+  // control type — including <select> defaults that aren't option 0, e.g.
+  // Year defaulting to the current year — goes back to its server-rendered
+  // default correctly.
+  const rows = container.querySelectorAll('.intake-row');
+  rows.forEach((row, i) => { if (i > 0) row.remove(); });
+  const createForm = document.getElementById('createIntakeForm');
+  createForm.reset();
+  clearFieldErrors(createForm);
+
+  const programSelect = container.querySelector('.intake-row select[name$="-program"]');
+  if (programSelect) programSelect.dispatchEvent(new Event('change', { bubbles: true }));
+
+  updateRemoveButtons();
+  document.getElementById('createIntakeModal').classList.remove('hidden');
+}
+
+function closeCreateIntakeModal() {
+  document.getElementById('createIntakeModal').classList.add('hidden');
+}
+
+// ── Inline field-error helpers — shared by create + edit modals ──
+// Highlights the offending input and drops an error message right under
+// it, instead of relying on messages.error() + a redirect that would
+// reload the page and wipe whatever the admin had already typed.
+function clearFieldErrors(scopeEl) {
+  scopeEl.querySelectorAll('.field-error').forEach(el => el.remove());
+  scopeEl.querySelectorAll('.field-error-input').forEach(el => {
+    el.classList.remove('field-error-input', 'border-red-500', 'ring-2', 'ring-red-200');
+  });
+}
+
+function showFieldError(input, message) {
+  if (!input) return;
+  input.classList.add('field-error-input', 'border-red-500', 'ring-2', 'ring-red-200');
+  const p = document.createElement('p');
+  p.className = 'field-error text-xs text-red-600 mt-1';
+  p.textContent = message;
+  input.insertAdjacentElement('afterend', p);
+}
+
+function focusFirstError(scopeEl) {
+  const first = scopeEl.querySelector('.field-error-input');
+  if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function showNonFieldErrors(container, messages) {
+  if (!messages || !messages.length) return;
+  const p = document.createElement('p');
+  p.className = 'field-error text-sm text-red-600 mt-3 font-medium';
+  p.textContent = messages.join(' ');
+  container.appendChild(p);
+}
+
+// ── Create modal — submit via fetch so per-row/per-field errors render
+//    inline and the modal keeps whatever the admin already entered ──
+document.getElementById('createIntakeForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const form = this;
+  clearFieldErrors(form);
+
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const originalHtml = submitBtn.innerHTML;
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5" aria-hidden="true"></i>Saving...';
+
+  try {
+    const response = await fetch(form.action, {
+      method: 'POST',
+      body: new FormData(form),
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    });
+    const data = await response.json();
+
+    if (data.success) {
+      window.location.reload();
+      return;
+    }
+
+    const rows = form.querySelectorAll('#intakeRowsContainer .intake-row');
+    if (data.row_errors) {
+      Object.entries(data.row_errors).forEach(([rowIndex, fieldErrors]) => {
+        const row = rows[Number(rowIndex)];
+        if (!row) return;
+        Object.entries(fieldErrors).forEach(([field, errs]) => {
+          const input = row.querySelector(`[name="intake-${rowIndex}-${field}"]`);
+          if (input) showFieldError(input, errs.join(' '));
+          else showNonFieldErrors(row, errs); // e.g. __all__
+        });
+      });
+    }
+    showNonFieldErrors(form, data.non_form_errors);
+    focusFirstError(form);
+  } catch (err) {
+    showNonFieldErrors(form, ['Something went wrong submitting the form. Please try again.']);
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalHtml;
+  }
+});
+
+function addIntakeRow() {
+  const template = document.getElementById('intakeEmptyRowTemplate');
+  const nextIndex = parseInt(intakeTotalFormsInput().value, 10);
+  const html = template.innerHTML.replace(/__prefix__/g, nextIndex);
+
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = html.trim();
+  const newRow = wrapper.firstElementChild;
+
+  document.getElementById('intakeRowsContainer').appendChild(newRow);
+  intakeTotalFormsInput().value = nextIndex + 1;
+
+  if (window.enhanceSearchableSelects) window.enhanceSearchableSelects(newRow);
+  updateRemoveButtons();
+  newRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function removeIntakeRow(button) {
+  const row = button.closest('.intake-row');
+  row.remove();
+  reindexIntakeRows();
+}
+
+// Renumber remaining rows' name="intake-N-field" / id="id_intake-N-field"
+// / label[for] attributes to a contiguous 0..count-1 so Django's formset
+// (which expects exactly TOTAL_FORMS contiguous forms) can parse them.
+function reindexIntakeRows() {
+  const rows = document.querySelectorAll('#intakeRowsContainer .intake-row');
+  rows.forEach((row, idx) => {
+    row.querySelectorAll('[name], [id], label[for]').forEach(el => {
+      ['name', 'id', 'for'].forEach(attr => {
+        if (el.hasAttribute(attr)) {
+          el.setAttribute(attr, el.getAttribute(attr).replace(
+            new RegExp(`${INTAKE_PREFIX}-\\d+-`), `${INTAKE_PREFIX}-${idx}-`
+          ));
+        }
+      });
+    });
+  });
+  intakeTotalFormsInput().value = rows.length;
+  updateRemoveButtons();
+}
+
+function updateRemoveButtons() {
+  const rows = document.querySelectorAll('#intakeRowsContainer .intake-row');
+  rows.forEach(row => {
+    const btn = row.querySelector('.remove-intake-row');
+    if (btn) btn.classList.toggle('hidden', rows.length <= 1);
+  });
+}
+
+// ── Edit modal — fetch data via AJAX then pre-fill ────────────
+// Edit modal field name -> input id (not a 1:1 "edit_{field}" pattern for
+// every field, so the mapping is explicit rather than guessed).
+const EDIT_FIELD_IDS = {
+  program: 'edit_program',
+  intake_period: 'edit_intake_period',
+  year: 'edit_year',
+  application_start_date: 'edit_application_start_date',
+  application_deadline: 'edit_deadline',
+  start_date: 'edit_start_date',
+  application_fee: 'edit_application_fee',
+  available_slots: 'edit_slots',
+  is_active: 'edit_is_active',
+};
+
+function openEditIntakeModal(pk, url) {
+  const editForm = document.getElementById('editIntakeForm');
+  clearFieldErrors(editForm);
+  fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(r => r.json())
+    .then(data => {
+      editForm.action = url;
+      const programSelectEdit = document.getElementById('edit_program');
+      programSelectEdit.value = data.program;
+      programSelectEdit.dispatchEvent(new Event('change', { bubbles: true }));
+      document.getElementById('edit_intake_period').value = data.intake_period;
+      document.getElementById('edit_year').value = data.year;
+      document.getElementById('edit_application_start_date').value = data.application_start_date;
+      document.getElementById('edit_deadline').value = data.application_deadline;
+      document.getElementById('edit_start_date').value = data.start_date;
+      document.getElementById('edit_application_fee').value = data.application_fee;
+      document.getElementById('edit_slots').value = data.available_slots;
+      document.getElementById('edit_is_active').checked = data.is_active;
+      document.getElementById('editIntakeModal').classList.remove('hidden');
+    })
+    .catch(() => alert('Could not load intake data. Please try again.'));
+}
+
+function closeEditIntakeModal() {
+  document.getElementById('editIntakeModal').classList.add('hidden');
+}
+
+document.getElementById('editIntakeForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const form = this;
+  clearFieldErrors(form);
+
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const originalHtml = submitBtn.innerHTML;
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5" aria-hidden="true"></i>Saving...';
+
+  try {
+    const response = await fetch(form.action, {
+      method: 'POST',
+      body: new FormData(form),
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    });
+    const data = await response.json();
+
+    if (data.success) {
+      window.location.reload();
+      return;
+    }
+
+    const generalErrors = [];
+    Object.entries(data.errors || {}).forEach(([field, errs]) => {
+      const inputId = EDIT_FIELD_IDS[field];
+      const input = inputId ? document.getElementById(inputId) : null;
+      if (input) showFieldError(input, errs.join(' '));
+      else generalErrors.push(...errs);
+    });
+    showNonFieldErrors(form, generalErrors);
+    focusFirstError(form);
+  } catch (err) {
+    showNonFieldErrors(form, ['Something went wrong submitting the form. Please try again.']);
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalHtml;
+  }
+});
+
+// ── Delete modal ──────────────────────────────────────────────
+function openDeleteModal(url, name) {
+  document.getElementById('deleteIntakeName').textContent = name;
+  document.getElementById('deleteForm').action = url;
+  document.getElementById('deleteModal').classList.remove('hidden');
+}
+
+function closeDeleteModal() {
+  document.getElementById('deleteModal').classList.add('hidden');
+}
+
+// Close modals on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeCreateIntakeModal();
+    closeEditIntakeModal();
+    closeDeleteModal();
+  }
+});
+</script>
+{% endblock %}

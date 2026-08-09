@@ -1,0 +1,340 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}{{ enrollment.student.get_full_name }} - Progress Details{% endblock %}
+
+{% block meta_description %}Detailed progress tracking for {{ enrollment.student.get_full_name }} in {{ course.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* DataTables Custom Styling */
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter,
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate { font-family: 'Inter', system-ui, sans-serif; }
+    .dataTables_wrapper .dataTables_filter input {
+        border: 1px solid #D1D5DB; border-radius: .5rem;
+        padding: .4rem .875rem; margin-left: .5rem; font-size: .875rem; outline: none; transition: all .2s;
+    }
+    .dataTables_wrapper .dataTables_filter input:focus {
+        border-color: #4a6bff; box-shadow: 0 0 0 3px rgba(74,107,255,.1);
+    }
+    .dataTables_wrapper .dataTables_length select {
+        border: 1px solid #D1D5DB; border-radius: .5rem;
+        padding: .4rem 2rem .4rem .75rem; margin: 0 .5rem; font-size: .875rem; outline: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right .5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; appearance: none;
+    }
+    .dataTables_wrapper .dataTables_length select:focus {
+        border-color: #4a6bff; box-shadow: 0 0 0 3px rgba(74,107,255,.1);
+    }
+    .dataTables_wrapper .dataTables_info { color: #6B7280; font-size: .8rem; padding-top: .4rem; }
+    .dataTables_wrapper .dataTables_paginate { padding-top: .4rem; }
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        padding: .35rem .6rem; margin: 0 .1rem; border: 1px solid #D1D5DB;
+        border-radius: .5rem; color: #374151; background: white; cursor: pointer; transition: all .2s; font-size: .8rem;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover { background: #F3F4F6; border-color: #9CA3AF; }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+        background: #4a6bff; border-color: #4a6bff; color: white;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled { opacity: .5; cursor: not-allowed; }
+    table.dataTable thead th { position: relative; cursor: pointer; }
+    table.dataTable thead .sorting:after,
+    table.dataTable thead .sorting_asc:after,
+    table.dataTable thead .sorting_desc:after {
+        position: absolute; right: .75rem; opacity: .3;
+        font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: .7rem;
+    }
+    table.dataTable thead .sorting:after { content: '\f0dc'; }
+    table.dataTable thead .sorting_asc:after { content: '\f0de'; opacity: .7; }
+    table.dataTable thead .sorting_desc:after { content: '\f0dd'; opacity: .7; }
+    @media (max-width: 640px) {
+        .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_length { width: 100%; }
+        .dataTables_wrapper .dataTables_filter input { width: 100%; margin-left: 0; margin-top: .25rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<header class="mb-6 sm:mb-8">
+    <nav class="mb-3 sm:mb-4 overflow-x-auto" aria-label="Breadcrumb">
+        <ol class="flex items-center space-x-1.5 text-xs sm:text-sm text-gray-600 whitespace-nowrap">
+            <li><a href="{% url 'instructor:dashboard' %}" class="hover:text-primary-600 transition-colors">Dashboard</a></li>
+            <li><span class="mx-1 text-gray-400">/</span></li>
+            <li><a href="{% url 'instructor:analytics_student_progress' %}" class="hover:text-primary-600 transition-colors">Student Analytics</a></li>
+            <li><span class="mx-1 text-gray-400">/</span></li>
+            <li class="text-gray-900 font-medium truncate max-w-[140px] sm:max-w-none">{{ enrollment.student.get_full_name }}</li>
+        </ol>
+    </nav>
+
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Student Progress Details</h1>
+            <p class="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">
+                Tracking progress for <span class="font-medium">{{ enrollment.student.get_full_name }}</span>
+                in <span class="font-medium">{{ course.title }}</span>
+            </p>
+        </div>
+        <a href="{% url 'instructor:analytics_student_progress' %}"
+           class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors text-sm w-full sm:w-auto flex-shrink-0">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Analytics
+        </a>
+    </div>
+</header>
+
+<!-- Student Info Card -->
+<section class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+        <!-- Avatar + Name spans 2 cols on mobile -->
+        <div class="col-span-2 sm:col-span-1 flex items-center gap-3 sm:gap-4">
+            <div class="w-12 h-12 sm:w-16 sm:h-16 bg-primary-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <span class="text-lg sm:text-2xl font-bold text-white">
+                    {{ enrollment.student.first_name.0|upper }}{{ enrollment.student.last_name.0|upper }}
+                </span>
+            </div>
+            <div class="min-w-0">
+                <h2 class="text-sm sm:text-base font-semibold text-gray-900 truncate">{{ enrollment.student.get_full_name }}</h2>
+                <p class="text-xs text-gray-600 truncate">{{ enrollment.student.email }}</p>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <div class="text-2xl sm:text-3xl font-bold text-primary-600 mb-0.5 sm:mb-1">{{ enrollment.progress_percentage }}%</div>
+            <p class="text-xs sm:text-sm text-gray-600">Overall Progress</p>
+        </div>
+
+        <div class="text-center">
+            <div class="text-2xl sm:text-3xl font-bold text-blue-600 mb-0.5 sm:mb-1">
+                {{ enrollment.completed_lessons }}/{{ enrollment.total_lessons }}
+            </div>
+            <p class="text-xs sm:text-sm text-gray-600">Lessons Completed</p>
+        </div>
+
+        <div class="text-center">
+            <div class="text-2xl sm:text-3xl font-bold text-green-600 mb-0.5 sm:mb-1">
+                {% if enrollment.avg_quiz_score %}{{ enrollment.avg_quiz_score|floatformat:0 }}%{% else %}N/A{% endif %}
+            </div>
+            <p class="text-xs sm:text-sm text-gray-600">Avg Quiz Score</p>
+        </div>
+    </div>
+</section>
+
+<!-- Performance Summary Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+    <article class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-clock text-lg sm:text-2xl text-blue-600"></i>
+            </div>
+            <span class="text-xl sm:text-2xl font-bold text-gray-900">{{ enrollment.total_time_spent|default:"0h" }}</span>
+        </div>
+        <h3 class="text-xs sm:text-sm font-medium text-gray-600">Time Spent</h3>
+    </article>
+
+    <article class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-calendar text-lg sm:text-2xl text-purple-600"></i>
+            </div>
+            <span class="text-sm sm:text-lg font-bold text-gray-900">{{ enrollment.enrolled_at|date:"M d, Y" }}</span>
+        </div>
+        <h3 class="text-xs sm:text-sm font-medium text-gray-600">Enrollment Date</h3>
+    </article>
+
+    <article class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-check-circle text-lg sm:text-2xl text-green-600"></i>
+            </div>
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs sm:text-sm font-medium
+                         {% if enrollment.status == 'active' %}bg-blue-100 text-blue-800
+                         {% elif enrollment.status == 'completed' %}bg-green-100 text-green-800
+                         {% else %}bg-gray-100 text-gray-800{% endif %}">
+                {{ enrollment.status|title }}
+            </span>
+        </div>
+        <h3 class="text-xs sm:text-sm font-medium text-gray-600">Current Status</h3>
+    </article>
+</div>
+
+<!-- Lesson Progress Table -->
+<section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <header class="p-4 sm:p-6 border-b border-gray-200">
+        <h2 class="text-lg sm:text-xl font-bold text-gray-900">Lesson-by-Lesson Progress</h2>
+        <p class="text-gray-600 text-xs sm:text-sm mt-0.5 sm:mt-1">Detailed breakdown of lesson completion and performance</p>
+    </header>
+
+    {% if lesson_progress %}
+    <div class="p-3 sm:p-4 md:p-6 overflow-x-auto">
+        <table id="lessonProgressTable" class="w-full min-w-[580px]" role="table" aria-label="Lesson progress data">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Lesson</th>
+                    <th class="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wide">Status</th>
+                    <th class="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wide hidden sm:table-cell">Progress</th>
+                    <th class="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wide">Quiz</th>
+                    <th class="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wide hidden md:table-cell">Time</th>
+                    <th class="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wide hidden md:table-cell">Last Accessed</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white">
+                {% for progress in lesson_progress %}
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-4 sm:px-6 py-3 sm:py-4">
+                        <div>
+                            <p class="font-medium text-gray-900 text-sm truncate max-w-[150px] sm:max-w-[200px] lg:max-w-none">{{ progress.lesson.title }}</p>
+                            <p class="text-xs text-gray-500">{{ progress.lesson.section.title }}</p>
+                        </div>
+                    </td>
+                    <td class="px-4 sm:px-6 py-3 sm:py-4 text-center whitespace-nowrap">
+                        {% if progress.is_completed %}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <i class="fas fa-check-circle mr-1 text-xs"></i><span class="hidden sm:inline">Completed</span><span class="sm:hidden">Done</span>
+                        </span>
+                        {% elif progress.percentage > 0 %}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            <i class="fas fa-circle-notch mr-1 text-xs"></i><span class="hidden sm:inline">In Progress</span><span class="sm:hidden">Active</span>
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            <i class="fas fa-circle mr-1 text-xs"></i><span class="hidden sm:inline">Not Started</span><span class="sm:hidden">—</span>
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 sm:px-6 py-3 sm:py-4 hidden sm:table-cell" data-order="{{ progress.percentage }}">
+                        <div class="flex flex-col items-center space-y-1">
+                            <div class="w-20 sm:w-24 bg-gray-200 rounded-full h-1.5 sm:h-2">
+                                <div class="bg-primary-600 h-1.5 sm:h-2 rounded-full" style="width: {{ progress.percentage }}%"></div>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-700">{{ progress.percentage|floatformat:0 }}%</span>
+                        </div>
+                    </td>
+                    <td class="px-4 sm:px-6 py-3 sm:py-4 text-center" data-order="{{ progress.quiz_score|default:0 }}">
+                        {% if progress.quiz_score %}
+                        <span class="font-semibold text-xs sm:text-sm
+                                     {% if progress.quiz_score >= 80 %}text-green-600
+                                     {% elif progress.quiz_score >= 60 %}text-yellow-600
+                                     {% else %}text-red-600{% endif %}">
+                            {{ progress.quiz_score|floatformat:0 }}%
+                        </span>
+                        {% else %}
+                        <span class="text-gray-400 text-xs sm:text-sm">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 sm:px-6 py-3 sm:py-4 text-center text-xs sm:text-sm text-gray-700 hidden md:table-cell">
+                        {{ progress.time_spent|default:"—" }}
+                    </td>
+                    <td class="px-4 sm:px-6 py-3 sm:py-4 text-center text-xs sm:text-sm text-gray-700 hidden md:table-cell">
+                        {% if progress.last_accessed %}
+                            {{ progress.last_accessed|date:"M d, Y" }}
+                        {% else %}
+                            <span class="text-gray-400">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="p-8 sm:p-12 text-center">
+        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+            <i class="fas fa-book-open text-3xl sm:text-4xl text-gray-400"></i>
+        </div>
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">No Progress Data</h3>
+        <p class="text-gray-600 text-sm">This student hasn't started any lessons yet</p>
+    </div>
+    {% endif %}
+</section>
+
+<!-- Quiz Performance Section -->
+{% if enrollment.quiz_attempts %}
+<section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-6 sm:mt-8">
+    <header class="p-4 sm:p-6 border-b border-gray-200">
+        <h2 class="text-lg sm:text-xl font-bold text-gray-900">Quiz Performance</h2>
+        <p class="text-gray-600 text-xs sm:text-sm mt-0.5 sm:mt-1">All quiz attempts and scores</p>
+    </header>
+
+    <div class="p-3 sm:p-4 md:p-6 overflow-x-auto">
+        <table id="quizPerformanceTable" class="w-full min-w-[480px]">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Quiz</th>
+                    <th class="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wide">Score</th>
+                    <th class="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wide hidden sm:table-cell">Attempts</th>
+                    <th class="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wide">Best</th>
+                    <th class="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wide hidden sm:table-cell">Last Attempt</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white">
+                {% for attempt in enrollment.quiz_attempts %}
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-4 sm:px-6 py-3 sm:py-4">
+                        <p class="text-xs sm:text-sm text-gray-900 font-medium truncate max-w-[140px] sm:max-w-none">{{ attempt.quiz.title }}</p>
+                    </td>
+                    <td class="px-4 sm:px-6 py-3 sm:py-4 text-center" data-order="{{ attempt.percentage }}">
+                        <span class="font-semibold text-xs sm:text-sm
+                                     {% if attempt.percentage >= 80 %}text-green-600
+                                     {% elif attempt.percentage >= 60 %}text-yellow-600
+                                     {% else %}text-red-600{% endif %}">
+                            {{ attempt.percentage|floatformat:0 }}%
+                        </span>
+                    </td>
+                    <td class="px-4 sm:px-6 py-3 sm:py-4 text-center text-xs sm:text-sm text-gray-700 hidden sm:table-cell">
+                        {{ attempt.attempt_number }}
+                    </td>
+                    <td class="px-4 sm:px-6 py-3 sm:py-4 text-center" data-order="{{ attempt.best_score }}">
+                        <span class="font-semibold text-green-600 text-xs sm:text-sm">{{ attempt.best_score|floatformat:0 }}%</span>
+                    </td>
+                    <td class="px-4 sm:px-6 py-3 sm:py-4 text-center text-xs sm:text-sm text-gray-700 hidden sm:table-cell">
+                        {{ attempt.submitted_at|date:"M d, Y H:i" }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function () {
+    var dtConfig = {
+        pageLength: 10,
+        language: {
+            search: 'Search:', lengthMenu: 'Show _MENU_ per page',
+            info: '_START_–_END_ of _TOTAL_', infoEmpty: 'No records',
+            infoFiltered: '(filtered from _MAX_)',
+            paginate: { first: 'First', last: 'Last', next: 'Next »', previous: '« Prev' }
+        },
+        dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4"lf>rt<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-4"ip>',
+        drawCallback: function () {
+            $('.dataTables_paginate .paginate_button').addClass('transition-all duration-200');
+        }
+    };
+
+    $('#lessonProgressTable').DataTable($.extend({}, dtConfig, {
+        order: [[5, 'desc']],
+        columnDefs: [
+            { orderable: false, targets: 2 },
+            { className: 'text-center', targets: [1, 2, 3, 4, 5] }
+        ]
+    }));
+
+    if ($('#quizPerformanceTable').length) {
+        $('#quizPerformanceTable').DataTable($.extend({}, dtConfig, {
+            order: [[4, 'desc']],
+            columnDefs: [{ className: 'text-center', targets: [1, 2, 3, 4] }]
+        }));
+    }
+});
+</script>
+{% endblock %}

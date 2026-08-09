@@ -1,0 +1,359 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Accreditation &amp; Partners - MIU Admin Portal{% endblock %}
+{% block meta_description %}Manage the accreditation, affiliations and partners shown on the About page{% endblock %}
+
+{% block content %}
+<div class="max-w-full">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&larr; Back</button>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Accreditation &amp; Partners</h1>
+      <p class="text-gray-500 mt-1">Manage the Accreditation, Affiliates &amp; Partners section on the About page</p>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-8">
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="text-2xl font-bold text-primary-700">{{ accreditation_count }}</div>
+      <div class="text-sm text-gray-500">Active Accreditations</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="text-2xl font-bold text-primary-700">{{ affiliation_count }}</div>
+      <div class="text-sm text-gray-500">Active Affiliations</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="text-2xl font-bold text-primary-700">{{ partner_count }}</div>
+      <div class="text-sm text-gray-500">Active Partners</div>
+    </div>
+  </div>
+
+  <!-- Accreditation -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+    <div class="p-5 border-b border-gray-100 flex items-center justify-between gap-3 flex-wrap">
+      <h2 class="font-semibold text-gray-800">
+        Accreditation
+        <span class="text-sm font-normal text-gray-400 ml-1">({{ accreditations.count }} total)</span>
+      </h2>
+      {% if permissions.site_content.can_create %}
+      <button type="button" class="js-open-partner-modal inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm shadow-sm" data-category="accreditation">
+        <i class="fas fa-plus" aria-hidden="true"></i>Add Accreditation
+      </button>
+      {% endif %}
+    </div>
+    <div class="overflow-x-auto p-5 pt-0">
+      <table id="accreditationsDataTable" class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wide">
+          <tr>
+            <th class="py-3 px-5 text-left font-semibold">Name</th>
+            <th class="py-3 px-5 text-left font-semibold">Location</th>
+            <th class="py-3 px-5 text-left font-semibold">Status</th>
+            <th class="py-3 px-5 text-left font-semibold">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for item in accreditations %}
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="py-4 px-5">
+              <div class="flex items-center gap-3">
+                {% if item.logo %}
+                <img src="{{ item.logo.url }}" alt="" class="h-8 w-8 object-contain rounded border border-gray-100 flex-shrink-0" loading="lazy">
+                {% else %}
+                <span class="h-8 w-8 rounded bg-gray-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-shield-alt text-gray-400 text-xs" aria-hidden="true"></i></span>
+                {% endif %}
+                <span class="font-medium text-gray-800">{{ item.name }}</span>
+              </div>
+            </td>
+            <td class="py-4 px-5 text-gray-600">{{ item.location|default:"—" }}</td>
+            <td class="py-4 px-5">
+              {% if item.is_active %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Active
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>Inactive
+              </span>
+              {% endif %}
+            </td>
+            <td class="py-4 px-5">
+              <div class="flex items-center gap-2">
+                {% if permissions.site_content.can_edit %}
+                <button type="button" onclick="partnerModal.openForEdit('{{ item.pk }}')"
+                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Edit">
+                  <i class="fas fa-edit text-sm" aria-hidden="true"></i>
+                </button>
+                {% endif %}
+                {% if permissions.site_content.can_delete %}
+                <button type="button"
+                        onclick="confirmPartnerDelete('{% url 'management:institution_partner_delete' item.pk %}', '{{ item.name|escapejs }}')"
+                        class="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors" title="Delete">
+                  <i class="fas fa-trash-alt text-sm" aria-hidden="true"></i>
+                </button>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr class="empty-row"><td></td><td></td><td></td><td></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Affiliations -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+    <div class="p-5 border-b border-gray-100 flex items-center justify-between gap-3 flex-wrap">
+      <h2 class="font-semibold text-gray-800">
+        Affiliations
+        <span class="text-sm font-normal text-gray-400 ml-1">({{ affiliations.count }} total)</span>
+      </h2>
+      {% if permissions.site_content.can_create %}
+      <button type="button" class="js-open-partner-modal inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm shadow-sm" data-category="affiliation">
+        <i class="fas fa-plus" aria-hidden="true"></i>Add Affiliation
+      </button>
+      {% endif %}
+    </div>
+    <div class="overflow-x-auto p-5 pt-0">
+      <table id="affiliationsDataTable" class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wide">
+          <tr>
+            <th class="py-3 px-5 text-left font-semibold">Name</th>
+            <th class="py-3 px-5 text-left font-semibold">Location</th>
+            <th class="py-3 px-5 text-left font-semibold">Status</th>
+            <th class="py-3 px-5 text-left font-semibold">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for item in affiliations %}
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="py-4 px-5">
+              <div class="flex items-center gap-3">
+                {% if item.logo %}
+                <img src="{{ item.logo.url }}" alt="" class="h-8 w-8 object-contain rounded border border-gray-100 flex-shrink-0" loading="lazy">
+                {% else %}
+                <span class="h-8 w-8 rounded bg-gray-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-link text-gray-400 text-xs" aria-hidden="true"></i></span>
+                {% endif %}
+                <span class="font-medium text-gray-800">{{ item.name }}</span>
+              </div>
+            </td>
+            <td class="py-4 px-5 text-gray-600">{{ item.location|default:"—" }}</td>
+            <td class="py-4 px-5">
+              {% if item.is_active %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Active
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>Inactive
+              </span>
+              {% endif %}
+            </td>
+            <td class="py-4 px-5">
+              <div class="flex items-center gap-2">
+                {% if permissions.site_content.can_edit %}
+                <button type="button" onclick="partnerModal.openForEdit('{{ item.pk }}')"
+                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Edit">
+                  <i class="fas fa-edit text-sm" aria-hidden="true"></i>
+                </button>
+                {% endif %}
+                {% if permissions.site_content.can_delete %}
+                <button type="button"
+                        onclick="confirmPartnerDelete('{% url 'management:institution_partner_delete' item.pk %}', '{{ item.name|escapejs }}')"
+                        class="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors" title="Delete">
+                  <i class="fas fa-trash-alt text-sm" aria-hidden="true"></i>
+                </button>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr class="empty-row"><td></td><td></td><td></td><td></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Partners -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+    <div class="p-5 border-b border-gray-100 flex items-center justify-between gap-3 flex-wrap">
+      <h2 class="font-semibold text-gray-800">
+        Partners
+        <span class="text-sm font-normal text-gray-400 ml-1">({{ partners.count }} total)</span>
+      </h2>
+      {% if permissions.site_content.can_create %}
+      <button type="button" class="js-open-partner-modal inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm shadow-sm" data-category="partner">
+        <i class="fas fa-plus" aria-hidden="true"></i>Add Partner
+      </button>
+      {% endif %}
+    </div>
+    <div class="overflow-x-auto p-5 pt-0">
+      <table id="partnersDataTable" class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wide">
+          <tr>
+            <th class="py-3 px-5 text-left font-semibold">Name</th>
+            <th class="py-3 px-5 text-left font-semibold">Location</th>
+            <th class="py-3 px-5 text-left font-semibold">Status</th>
+            <th class="py-3 px-5 text-left font-semibold">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for item in partners %}
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="py-4 px-5">
+              <div class="flex items-center gap-3">
+                {% if item.logo %}
+                <img src="{{ item.logo.url }}" alt="" class="h-8 w-8 object-contain rounded border border-gray-100 flex-shrink-0" loading="lazy">
+                {% else %}
+                <span class="h-8 w-8 rounded bg-gray-100 flex items-center justify-center flex-shrink-0"><i class="fas fa-handshake text-gray-400 text-xs" aria-hidden="true"></i></span>
+                {% endif %}
+                <span class="font-medium text-gray-800">{{ item.name }}</span>
+              </div>
+            </td>
+            <td class="py-4 px-5 text-gray-600">{{ item.location|default:"—" }}</td>
+            <td class="py-4 px-5">
+              {% if item.is_active %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Active
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>Inactive
+              </span>
+              {% endif %}
+            </td>
+            <td class="py-4 px-5">
+              <div class="flex items-center gap-2">
+                {% if permissions.site_content.can_edit %}
+                <button type="button" onclick="partnerModal.openForEdit('{{ item.pk }}')"
+                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Edit">
+                  <i class="fas fa-edit text-sm" aria-hidden="true"></i>
+                </button>
+                {% endif %}
+                {% if permissions.site_content.can_delete %}
+                <button type="button"
+                        onclick="confirmPartnerDelete('{% url 'management:institution_partner_delete' item.pk %}', '{{ item.name|escapejs }}')"
+                        class="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors" title="Delete">
+                  <i class="fas fa-trash-alt text-sm" aria-hidden="true"></i>
+                </button>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr class="empty-row"><td></td><td></td><td></td><td></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<form id="deleteForm" method="post" action="" style="display:none;">{% csrf_token %}</form>
+
+<!-- Create/Edit modal (shared across all 3 categories) -->
+<div id="partnerCreateModal" class="fixed inset-0 z-50 hidden items-stretch sm:items-center justify-center sm:p-3" style="background: rgba(15,23,42,.55);">
+  <div class="bg-white sm:rounded-xl shadow-2xl w-full sm:max-w-lg h-full sm:h-auto sm:max-h-[97vh] flex flex-col">
+    <div class="px-4 sm:px-5 py-2.5 border-b border-gray-100 flex items-center justify-between shrink-0">
+      <h2 class="text-base font-semibold text-gray-800 font-display" id="partnerModalTitle">New Record</h2>
+      <button type="button" id="partnerModalCloseBtn" data-modal-close class="text-gray-400 hover:text-gray-600 p-1 -m-1" aria-label="Close">
+        <i class="fas fa-times text-lg" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="px-4 sm:px-5 py-3 overflow-y-auto overflow-x-hidden flex-1 min-h-0" id="partnerModalBody">
+      <form method="post" action="{% url 'management:institution_partner_create' %}" enctype="multipart/form-data" id="partnerModalForm">
+        {% csrf_token %}
+        {% include 'management/site_config/_partner_form_fields.html' %}
+      </form>
+    </div>
+    <div class="px-4 sm:px-5 py-2.5 border-t border-gray-100 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 shrink-0">
+      <button type="button" id="partnerModalCancelBtn" data-modal-close
+              class="w-full sm:w-auto px-5 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-medium">
+        Cancel
+      </button>
+      <button type="submit" form="partnerModalForm" id="partnerModalSubmitBtn"
+              class="w-full sm:w-auto px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium shadow-sm disabled:opacity-60 disabled:cursor-not-allowed">
+        <i class="fas fa-save mr-1.5" aria-hidden="true"></i>
+        <span id="partnerModalSubmitLabel">Create Record</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmPartnerDelete(url, name) {
+  confirmAdminDelete({
+    url: url,
+    title: 'Delete Record?',
+    html: 'Are you sure you want to delete <strong>' + name + '</strong>? This is permanent and cannot be undone.',
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  var tableOpts = {
+    pageLength: 10,
+    order: [[0, 'asc']],
+    columns: [null, null, null, { orderable: false, searchable: false }],
+    dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4"lf>rt<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-4 pt-4 border-t"ip>',
+    language: {
+      search: '_INPUT_',
+      searchPlaceholder: 'Search by name…',
+      lengthMenu: 'Show _MENU_',
+      info: '_START_–_END_ of _TOTAL_',
+      paginate: {
+        previous: '<i class="fas fa-chevron-left"></i>',
+        next: '<i class="fas fa-chevron-right"></i>'
+      },
+      emptyTable: 'No records found'
+    },
+    initComplete: function () {
+      var api = this.api();
+      if (api.page.info().recordsTotal === 1) {
+        var firstRow = api.row(0).data();
+        if (firstRow && firstRow[0] === '') { api.clear().draw(); }
+      }
+    }
+  };
+
+  ['#accreditationsDataTable', '#affiliationsDataTable', '#partnersDataTable'].forEach(function (sel) {
+    try { $(sel).DataTable(tableOpts); } catch (e) {}
+  });
+});
+
+var partnerModal = createAjaxModal({
+  modalId: 'partnerCreateModal',
+  bodyId: 'partnerModalBody',
+  formId: 'partnerModalForm',
+  titleId: 'partnerModalTitle',
+  submitBtnId: 'partnerModalSubmitBtn',
+  submitLabelId: 'partnerModalSubmitLabel',
+  fieldsPartialId: 'partnerFormFieldsPartial',
+  createUrl: '{% url "management:institution_partner_create" %}',
+  editUrlTemplate: '{% url "management:institution_partner_edit" 0 %}',
+  createTitle: 'New Record',
+  createLabel: 'Create Record',
+  editTitle: 'Edit Record',
+  editLabel: 'Save Changes',
+});
+
+document.querySelectorAll('.js-open-partner-modal').forEach(function (trigger) {
+  trigger.addEventListener('click', function (e) {
+    e.preventDefault();
+    partnerModal.openForCreate();
+    var category = trigger.getAttribute('data-category');
+    var select = document.getElementById('partnerModalBody').querySelector('select[name="category"]');
+    if (select && category) select.value = category;
+  });
+});
+</script>
+{% endblock %}

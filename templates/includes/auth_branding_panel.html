@@ -1,0 +1,47 @@
+{% load static %}
+<!-- Left Side - Branding -->
+<div class="hidden lg:flex lg:col-span-2 flex-col justify-center p-8 bg-gradient-to-br from-primary-950 via-purple-900 to-purple-800 text-white">
+    <div class="mb-8 text-center">
+        {% if site_config and site_config.logo %}
+        <img src="{{ site_config.logo.url }}" alt="{{ site_config.school_short_name|default:'MIU' }} Logo" class="h-16 w-auto mb-6 bg-white rounded-xl p-3 mx-auto">
+        {% else %}
+        <img src="{% static 'images/miulogo.png' %}" alt="MIU Logo" class="h-16 w-auto mb-6 bg-white rounded-xl p-3 mx-auto">
+        {% endif %}
+        <h2 class="text-4xl font-bold font-display mb-4">Welcome to {{ site_config.school_short_name|default:"MIU" }}</h2>
+        <p class="text-purple-200 text-lg leading-relaxed">
+            Join thousands of students worldwide in pursuing excellence through our innovative online education platform.
+        </p>
+    </div>
+
+    <div class="space-y-4">
+        <div class="flex items-start gap-3">
+            <div class="bg-purple-700 rounded-lg p-2 mt-1">
+                <i data-lucide="check" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h4 class="font-semibold mb-1">World-Class Education</h4>
+                <p class="text-purple-200 text-sm">Access top-tier programs and expert faculty</p>
+            </div>
+        </div>
+
+        <div class="flex items-start gap-3">
+            <div class="bg-purple-700 rounded-lg p-2 mt-1">
+                <i data-lucide="check" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h4 class="font-semibold mb-1">Flexible Learning</h4>
+                <p class="text-purple-200 text-sm">Study at your own pace, anywhere in the world</p>
+            </div>
+        </div>
+
+        <div class="flex items-start gap-3">
+            <div class="bg-purple-700 rounded-lg p-2 mt-1">
+                <i data-lucide="check" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h4 class="font-semibold mb-1">Global Recognition</h4>
+                <p class="text-purple-200 text-sm">Internationally accredited degrees and certifications</p>
+            </div>
+        </div>
+    </div>
+</div>

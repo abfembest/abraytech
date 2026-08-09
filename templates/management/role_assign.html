@@ -1,0 +1,482 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Role & Permissions Assignment — MIU Portal{% endblock %}
+
+{% block content %}
+<input type="hidden" id="csrfToken" value="{{ csrf_token }}">
+<link href="{% static 'vendor/select2/select2.min.css' %}" rel="stylesheet">
+<style>
+  #mainContent { overflow-x: clip; }
+  .select2-container { width: 100% !important; }
+  .select2-container--default .select2-selection--single {
+    height: 42px; border: 1px solid #d1d5db; border-radius: .5rem;
+    display: flex; align-items: center; padding: 0 .75rem;
+  }
+  .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 42px; color: #111827; font-size: .875rem; padding: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 28px);
+  }
+  .select2-container--default .select2-selection--single .select2-selection__arrow { height: 42px; right: 10px; }
+  .select2-container--default.select2-container--focus .select2-selection--single,
+  .select2-container--default.select2-container--open  .select2-selection--single {
+    border-color: #3a56d4; box-shadow: 0 0 0 2px rgba(58,86,212,.15); outline: none;
+  }
+  .select2-dropdown {
+    border: 1px solid #d1d5db; border-radius: .5rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,.12); font-size: .875rem;
+    width: 100% !important; max-width: 100% !important; box-sizing: border-box;
+  }
+  .select2-container--default .select2-results__option--highlighted[aria-selected] { background-color: #3a56d4; }
+  .select2-container--default .select2-search--dropdown .select2-search__field {
+    border: 1px solid #d1d5db; border-radius: .375rem;
+    padding: .375rem .75rem; font-size: .875rem; outline: none; width: 100%; box-sizing: border-box;
+  }
+  #userPickerCard { position: relative; }
+  /* Mobile matrix: shrink action columns, allow horizontal scroll */
+  @media (max-width: 639px) {
+    #permMatrix td:not(:first-child), .perm-th:not(:first-child) { padding-left: .375rem; padding-right: .375rem; }
+    .perm-th-label { display: none; }
+    .perm-th-icon  { display: block; }
+  }
+  @media (min-width: 640px) {
+    .perm-th-label { display: block; }
+    .perm-th-icon  { display: none; }
+  }
+</style>
+
+<div class="w-full px-3 sm:px-5 lg:px-8 space-y-4 sm:space-y-5">
+
+  {# ── Header ── #}
+  <div>
+    <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
+    <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Role & Permissions Assignment</h1>
+    <p class="text-gray-500 mt-1 text-xs sm:text-sm">Select a user to assign their role and configure module-level permissions</p>
+  </div>
+
+  {# ── Flash messages ── #}
+  {% if messages %}
+  <div class="space-y-2">
+    {% for message in messages %}
+    <div class="flex items-center gap-3 px-4 py-3 rounded-lg border text-sm
+      {% if message.tags == 'success' %}bg-green-50 border-green-200 text-green-800
+      {% elif message.tags == 'error' %}bg-red-50 border-red-200 text-red-800
+      {% else %}bg-blue-50 border-blue-200 text-blue-800{% endif %}">
+      <i class="fas fa-info-circle flex-shrink-0"></i>
+      <span class="flex-1">{{ message }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# ── Two-column layout ── #}
+  <div class="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
+
+    {# ── LEFT — User Picker ── #}
+    <div class="w-full lg:w-72 xl:w-80 lg:flex-shrink-0">
+      <div id="userPickerCard" class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5">
+        <h2 class="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">Select User</h2>
+
+        <select id="userSelect">
+          <option value="">Search by name, username or email…</option>
+          {% for u in users %}
+          <option value="{{ u.id }}"
+                  data-name="{{ u.get_full_name|default:u.username|escapejs }}"
+                  data-username="{{ u.username|escapejs }}"
+                  data-email="{{ u.email|escapejs }}"
+                  data-role="{{ u.profile.role }}"
+                  data-role-display="{{ u.profile.get_role_display|escapejs }}"
+                  data-active="{{ u.is_active|yesno:'true,false' }}"
+                  {% if selected_user and selected_user.id == u.id %}selected{% endif %}>
+            {{ u.get_full_name|default:u.username }} · {{ u.username }}
+          </option>
+          {% endfor %}
+        </select>
+
+        {# Selected user card #}
+        <div id="userCard" class="{% if not selected_user %}hidden{% endif %} mt-4 pt-4 border-t border-gray-100">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-user text-primary-600 text-sm sm:text-base"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p id="cardName" class="font-semibold text-gray-900 text-sm truncate">{% if selected_user %}{{ selected_user.get_full_name|default:selected_user.username }}{% endif %}</p>
+              <p id="cardUsername" class="text-xs text-gray-500 truncate">{% if selected_user %}{{ selected_user.username }}{% endif %}</p>
+              <p id="cardEmail" class="text-xs text-gray-400 truncate">{% if selected_user %}{{ selected_user.email }}{% endif %}</p>
+            </div>
+          </div>
+          <div class="mt-3 space-y-1.5">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-gray-500">Status</span>
+              <span id="cardStatus" class="px-2 py-0.5 rounded-full font-semibold
+                {% if selected_user %}{% if selected_user.is_active %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}{% endif %}">
+                {% if selected_user %}{% if selected_user.is_active %}Active{% else %}Inactive{% endif %}{% endif %}
+              </span>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-gray-500">Current Role</span>
+              <span id="cardRoleBadge" class="px-2 py-0.5 rounded-full bg-primary-100 text-primary-700 font-semibold">
+                {% if selected_user %}{{ selected_user.profile.get_role_display }}{% endif %}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {# Empty state #}
+        <div id="cardEmpty" class="{% if selected_user %}hidden{% endif %} mt-4 py-8 text-center text-gray-300">
+          <i class="fas fa-user-circle text-4xl mb-2 block"></i>
+          <p class="text-xs">No user selected</p>
+        </div>
+
+        {# Role selector — moved into left card #}
+        <div id="roleBar" class="{% if not selected_user %}hidden{% endif %} mt-4 pt-4 border-t border-gray-100">
+          <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Assign Role</label>
+          <select id="roleSelect"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm bg-white mb-3">
+            {% for value, label in role_choices %}
+            <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+          <div class="flex items-center gap-2 flex-wrap">
+            {% if permissions.user_management.can_edit %}
+            <button onclick="saveRole()"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg shadow transition-all text-sm whitespace-nowrap">
+              <i class="fas fa-save"></i> Save Role
+            </button>
+            {% endif %}
+            <div id="roleMsg" class="hidden text-xs px-3 py-2 rounded-lg whitespace-nowrap"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ── RIGHT — Role + Matrix ── #}
+    <div class="flex-1 min-w-0 space-y-4 sm:space-y-5">
+
+      {# Empty state #}
+      <div id="rightEmpty" class="{% if selected_user %}hidden{% endif %} bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col items-center justify-center py-14 sm:py-20 xl:py-24 text-gray-300">
+        <i class="fas fa-arrow-left text-3xl mb-3 hidden lg:block"></i>
+        <i class="fas fa-arrow-up text-3xl mb-3 lg:hidden"></i>
+        <p class="text-xs sm:text-sm font-medium">Select a user to get started</p>
+      </div>
+
+      
+
+      {# Permissions Matrix #}
+      <div id="permSection" class="{% if not selected_user %}hidden{% endif %} bg-white rounded-xl shadow-sm border border-gray-200">
+
+        {# Matrix header #}
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 px-4 sm:px-5 py-3 sm:py-4 border-b border-gray-200">
+          <div>
+            <h2 class="text-sm sm:text-base font-semibold text-gray-800">Permissions Matrix</h2>
+            <p class="text-xs text-gray-400 mt-0.5">User-level overrides — takes precedence over role defaults</p>
+          </div>
+          {# Bulk clear dropdown #}
+          {% if permissions.user_management.can_edit %}
+          <div class="relative self-start sm:self-auto flex-shrink-0" id="bulkClearDropdownWrap">
+            <button onclick="toggleBulkClearDropdown(event)"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+              <i class="fas fa-broom text-gray-400 text-xs"></i>
+              <span class="hidden xs:inline sm:inline">Clear All</span>
+              <i class="fas fa-chevron-down text-[10px] text-gray-400"></i>
+            </button>
+            <div id="bulkClearMenu"
+                 class="hidden absolute right-0 top-full mt-1.5 w-48 sm:w-52 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+              <button id="bulkClearBtn_can_view" onclick="clearAllAction('can_view')"    type="button" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><i class="fas fa-eye text-gray-400 w-4 text-center"></i> <span class="bulk-clear-label">Remove All Views</span></button>
+              <button id="bulkClearBtn_can_create" onclick="clearAllAction('can_create')"  type="button" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><i class="fas fa-plus text-gray-400 w-4 text-center"></i> <span class="bulk-clear-label">Remove All Create</span></button>
+              <button id="bulkClearBtn_can_edit" onclick="clearAllAction('can_edit')"    type="button" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><i class="fas fa-pen text-gray-400 w-4 text-center"></i> <span class="bulk-clear-label">Remove All Edit</span></button>
+              <button id="bulkClearBtn_can_delete" onclick="clearAllAction('can_delete')"  type="button" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><i class="fas fa-trash text-gray-400 w-4 text-center"></i> <span class="bulk-clear-label">Remove All Delete</span></button>
+              <button id="bulkClearBtn_can_approve" onclick="clearAllAction('can_approve')" type="button" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><i class="fas fa-check-double text-gray-400 w-4 text-center"></i> <span class="bulk-clear-label">Remove All Approve</span></button>
+              <button id="bulkClearBtn_can_export" onclick="clearAllAction('can_export')"  type="button" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><i class="fas fa-file-export text-gray-400 w-4 text-center"></i> <span class="bulk-clear-label">Remove All Export</span></button>
+              <div class="border-t border-gray-100 my-1"></div>
+              <button id="bulkClearBtnAll" onclick="clearAllPermissions()" type="button"
+                      class="w-full text-left px-4 py-2 text-sm font-semibold flex items-center gap-2">
+                <i class="fas fa-times-circle w-4 text-center bulk-clear-all-icon"></i> <span class="bulk-clear-all-label">Clear Everything</span>
+              </button>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+
+        {# Error box #}
+        <div id="permErrors" class="hidden mx-4 sm:mx-5 mt-4 bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700"></div>
+
+        {# Matrix table #}
+        <form id="permForm" novalidate>
+          {% csrf_token %}
+          <div class="overflow-x-auto max-h-[50vh] overflow-y-auto">
+            <table class="min-w-full text-sm">
+              <thead class="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
+                <tr>
+                  <th class="px-3 sm:px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider min-w-[90px] sm:min-w-0">Module</th>
+                  {% for icon, label in perm_cols|default:"" %}{% endfor %}
+                  <th class="perm-th px-2 sm:px-3 py-2.5 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider"><span class="perm-th-label">View</span><i class="perm-th-icon fas fa-eye"></i></th>
+                  <th class="perm-th px-2 sm:px-3 py-2.5 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider"><span class="perm-th-label">Create</span><i class="perm-th-icon fas fa-plus"></i></th>
+                  <th class="perm-th px-2 sm:px-3 py-2.5 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider"><span class="perm-th-label">Edit</span><i class="perm-th-icon fas fa-pen"></i></th>
+                  <th class="perm-th px-2 sm:px-3 py-2.5 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider"><span class="perm-th-label">Delete</span><i class="perm-th-icon fas fa-trash"></i></th>
+                  <th class="perm-th px-2 sm:px-3 py-2.5 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider"><span class="perm-th-label">Approve</span><i class="perm-th-icon fas fa-check-double"></i></th>
+                  <th class="perm-th px-2 sm:px-3 py-2.5 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider"><span class="perm-th-label">Export</span><i class="perm-th-icon fas fa-file-export"></i></th>
+                </tr>
+              </thead>
+              <tbody id="permMatrix">
+                <tr>
+                  <td colspan="7" class="text-center py-10 text-gray-300">
+                    <i class="fas fa-shield-alt text-3xl mb-2 block"></i>
+                    <span class="text-xs">Permissions will load here</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="px-4 sm:px-5 py-3 text-xs text-gray-400 border-t border-gray-100">
+            <i class="fas fa-info-circle mr-1"></i>
+            Saved overrides apply to this user only. Admin users inherit all permissions by default.
+          </p>
+        </form>
+
+        {# Matrix footer #}
+        {% if permissions.user_management.can_edit %}
+        <div class="flex justify-end px-4 sm:px-5 py-3 sm:py-4 bg-gray-50 border-t border-gray-200 rounded-b-xl">
+          <button id="permSubmitBtn" onclick="submitPermissions()"
+                  class="inline-flex items-center gap-2 px-4 sm:px-5 py-2 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg shadow transition-all text-sm">
+            <i class="fas fa-save"></i> Save Permissions
+          </button>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+    {# /RIGHT #}
+
+  </div>
+</div>
+
+<script src="{% static 'vendor/select2/select2.min.js' %}"></script>
+<script>
+(function () {
+  const PERM_URL = '{% url "management:user_permissions" pk=0 %}';
+  const ROLE_URL = '{% url "management:user_change_role" pk=0 %}';
+
+  const MODULE_LABELS = {
+    dashboard:'Dashboard', user_management:'User Management', academics:'Academics',
+    lms_courses:'LMS Courses', applications:'Applications', exams:'Exams',
+    enrollments:'Enrollments', finance:'Finance', communications:'Communications',
+    blog:'Blog', library:'Library', site_content:'Site Content', security_audit:'Security & Audit',
+    instructor_courses:'My Courses', instructor_assessments:'Assessments',
+    instructor_analytics:'Analytics', instructor_resources:'Resources',
+    instructor_communications:'Communications',
+    finance_payments:'Payments', finance_subscriptions:'Subscriptions',
+    finance_payroll:'Payroll',
+    support_tickets:'Tickets', support_knowledge_base:'Knowledge Base',
+    support_communications:'Communications', support_analytics:'Analytics',
+    support_config:'Support Config',
+    academic_progression:'Academic Progression',
+    results_publish:'Results Publishing',
+    role_permissions:'Roles & Permissions',
+  };
+
+  let _userId = null;
+  const csrf = () => document.getElementById('csrfToken').value;
+  const show = id => document.getElementById(id).classList.remove('hidden');
+  const hide = id => document.getElementById(id).classList.add('hidden');
+
+  $(document).ready(function () {
+    $('#userSelect').select2({
+      placeholder: 'Search by name, username or email…',
+      allowClear: true,
+      width: '100%',
+      dropdownParent: $('#userPickerCard'),
+      matcher(params, data) {
+        if (!params.term?.trim()) return data;
+        const q = params.term.toLowerCase();
+        const opt = $(data.element);
+        return ((opt.data('name')||'') + ' ' + (opt.data('username')||'') + ' ' + (opt.data('email')||'')).toLowerCase().includes(q) ? data : null;
+      },
+      templateResult(data) {
+        if (!data.id) return $('<span>').text(data.text);
+        const o = $(data.element);
+        return $('<div class="py-1">').append(
+          $('<div class="font-medium text-gray-900 text-sm">').text(o.data('name') || data.text),
+          $('<div class="text-xs text-gray-400">').text((o.data('username')||'') + ' · ' + (o.data('email')||''))
+        );
+      },
+      templateSelection(data) {
+        if (!data.id) return data.text;
+        const o = $(data.element);
+        return (o.data('name') || data.text) + ' (' + (o.data('username')||'') + ')';
+      },
+    });
+
+    $('#userSelect').on('change', function () { onUserSelected(this.value); });
+    {% if selected_user %}onUserSelected('{{ selected_user.id }}');{% endif %}
+  });
+
+  function onUserSelected(uid) {
+    if (!uid) {
+      _userId = null;
+      hide('userCard'); show('cardEmpty'); show('rightEmpty'); hide('roleBar'); hide('permSection');
+      const url = new URL(window.location); url.searchParams.delete('user_id'); history.replaceState({}, '', url);
+      return;
+    }
+    const opt = document.querySelector('#userSelect option[value="'+uid+'"]');
+    _userId = uid;
+    document.getElementById('cardName').textContent     = opt.dataset.name || opt.text;
+    document.getElementById('cardUsername').textContent = opt.dataset.username || '';
+    document.getElementById('cardEmail').textContent    = opt.dataset.email || '';
+    const active = opt.dataset.active === 'true';
+    const statusEl = document.getElementById('cardStatus');
+    statusEl.textContent = active ? 'Active' : 'Inactive';
+    statusEl.className   = 'px-2 py-0.5 rounded-full font-semibold text-xs ' + (active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700');
+    document.getElementById('cardRoleBadge').textContent = opt.dataset.roleDisplay || opt.dataset.role || '';
+    show('userCard'); hide('cardEmpty'); hide('rightEmpty'); show('roleBar'); show('permSection');
+    document.getElementById('roleMsg').className = 'hidden text-xs px-3 py-2 rounded-lg whitespace-nowrap';
+    if (opt.dataset.role) document.getElementById('roleSelect').value = opt.dataset.role;
+    loadPermissions(uid);
+    const url = new URL(window.location); url.searchParams.set('user_id', uid); history.replaceState({}, '', url);
+  }
+
+  async function saveRole() {
+    if (!_userId) return;
+    const roleMsg = document.getElementById('roleMsg');
+    roleMsg.className = 'hidden text-xs px-3 py-2 rounded-lg whitespace-nowrap';
+    const fd = new FormData();
+    fd.set('csrfmiddlewaretoken', csrf());
+    fd.set('role', document.getElementById('roleSelect').value);
+    try {
+      const data = await fetch(ROLE_URL.replace('/0/', '/'+_userId+'/'), {
+        method:'POST', body:fd, headers:{'X-Requested-With':'XMLHttpRequest'},
+      }).then(r => r.json());
+      if (data.success) {
+        document.getElementById('cardRoleBadge').textContent = data.role_display;
+        const opt = document.querySelector('#userSelect option[value="'+_userId+'"]');
+        if (opt) { opt.dataset.role = data.role; opt.dataset.roleDisplay = data.role_display; }
+        roleMsg.textContent = 'Role updated to ' + data.role_display + '.';
+        roleMsg.className   = 'text-xs px-3 py-2 rounded-lg whitespace-nowrap bg-green-50 border border-green-200 text-green-800';
+        loadPermissions(_userId);
+      } else {
+        roleMsg.textContent = 'Failed to update role.';
+        roleMsg.className   = 'text-xs px-3 py-2 rounded-lg whitespace-nowrap bg-red-50 border border-red-200 text-red-700';
+      }
+    } catch {
+      roleMsg.textContent = 'Network error.';
+      roleMsg.className   = 'text-xs px-3 py-2 rounded-lg whitespace-nowrap bg-red-50 border border-red-200 text-red-700';
+    }
+  }
+
+  function loadPermissions(uid) {
+    const matrix = document.getElementById('permMatrix');
+    hide('permErrors');
+    matrix.innerHTML = '<tr><td colspan="7" class="text-center py-10 text-gray-400"><i class="fas fa-spinner fa-spin text-2xl"></i></td></tr>';
+    fetch(PERM_URL.replace('/0/', '/'+uid+'/'), { headers:{'X-Requested-With':'XMLHttpRequest'} })
+      .then(r => r.json())
+      .then(data => {
+        if (!data.success) { matrix.innerHTML = '<tr><td colspan="7" class="text-center py-10 text-red-400 text-sm">Failed to load permissions.</td></tr>'; return; }
+        if (!data.modules.length) { matrix.innerHTML = '<tr><td colspan="7" class="text-center py-10 text-gray-400 text-sm">This role has no manageable modules.</td></tr>'; return; }
+        matrix.innerHTML = data.modules.map(mod => {
+          const perms = data.permissions[mod] || {};
+          const cells = data.actions.map(action =>
+            '<td class="px-2 sm:px-3 py-2.5 text-center"><input type="checkbox" name="perm_'+mod+'_'+action+'" class="w-4 h-4 text-primary-600 border-gray-300 rounded cursor-pointer"'+(perms[action]?' checked':'')+' ></td>'
+          ).join('');
+          return '<tr class="border-b border-gray-100 hover:bg-gray-50"><td class="px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">'+(MODULE_LABELS[mod]||mod)+'</td>'+cells+'</tr>';
+        }).join('');
+        refreshBulkClearLabels();
+      })
+      .catch(() => { matrix.innerHTML = '<tr><td colspan="7" class="text-center py-10 text-red-400 text-sm">Network error loading permissions.</td></tr>'; });
+  }
+
+  async function submitPermissions() {
+    if (!_userId) return;
+    const btn    = document.getElementById('permSubmitBtn');
+    const errBox = document.getElementById('permErrors');
+    hide('permErrors');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving…';
+    const fd = new FormData(document.getElementById('permForm'));
+    fd.set('csrfmiddlewaretoken', csrf());
+    try {
+      const data = await fetch(PERM_URL.replace('/0/', '/'+_userId+'/'), {
+        method:'POST', body:fd, headers:{'X-Requested-With':'XMLHttpRequest'},
+      }).then(r => r.json());
+      const roleMsg = document.getElementById('roleMsg');
+      if (data.success) {
+        roleMsg.textContent = data.message || 'Permissions saved.';
+        roleMsg.className   = 'text-xs px-3 py-2 rounded-lg whitespace-nowrap bg-green-50 border border-green-200 text-green-800';
+      } else {
+        errBox.textContent = data.message || 'Error saving permissions.';
+        show('permErrors');
+      }
+    } catch {
+      errBox.textContent = 'Network error — please try again.';
+      show('permErrors');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Permissions';
+    }
+  }
+
+  function toggleBulkClearDropdown(e) {
+    e.stopPropagation();
+    const menu = document.getElementById('bulkClearMenu');
+    const isHidden = menu.classList.contains('hidden');
+    if (isHidden) refreshBulkClearLabels();
+    menu.classList.toggle('hidden');
+  }
+  document.addEventListener('click', e => {
+    const wrap = document.getElementById('bulkClearDropdownWrap');
+    if (wrap && !wrap.contains(e.target)) hide('bulkClearMenu');
+  });
+
+  const BULK_ACTIONS = ['can_view', 'can_create', 'can_edit', 'can_delete', 'can_approve', 'can_export'];
+
+  /**
+   * Re-derive each bulk button's label/style from the checkboxes' current
+   * state: if every checkbox for that action is checked, the button offers
+   * to clear them all; otherwise it offers to select them all. Same for
+   * "Clear/Select Everything" across the whole matrix.
+   */
+  function refreshBulkClearLabels() {
+    BULK_ACTIONS.forEach(action => {
+      const checkboxes = document.querySelectorAll('input[type="checkbox"][name^="perm_"][name$="_' + action + '"]');
+      const btn = document.getElementById('bulkClearBtn_' + action);
+      if (!btn || !checkboxes.length) return;
+      const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+      const label = action.replace('can_', '').replace(/^./, c => c.toUpperCase());
+      btn.querySelector('.bulk-clear-label').textContent = allChecked ? ('Remove All ' + label) : ('Select All ' + label);
+      btn.classList.toggle('hover:text-red-600', allChecked);
+      btn.classList.toggle('hover:text-green-600', !allChecked);
+    });
+
+    const allBoxes = document.querySelectorAll('#permMatrix input[type="checkbox"]');
+    const allBtn = document.getElementById('bulkClearBtnAll');
+    if (allBtn && allBoxes.length) {
+      const allChecked = Array.from(allBoxes).every(cb => cb.checked);
+      allBtn.querySelector('.bulk-clear-all-label').textContent = allChecked ? 'Clear Everything' : 'Select Everything';
+      allBtn.querySelector('.bulk-clear-all-icon').className = 'w-4 text-center bulk-clear-all-icon fas ' + (allChecked ? 'fa-times-circle' : 'fa-check-circle');
+      allBtn.classList.toggle('text-red-600', allChecked);
+      allBtn.classList.toggle('hover:bg-red-50', allChecked);
+      allBtn.classList.toggle('text-green-600', !allChecked);
+      allBtn.classList.toggle('hover:bg-green-50', !allChecked);
+    }
+  }
+
+  function clearAllAction(action) {
+    const checkboxes = document.querySelectorAll('input[type="checkbox"][name^="perm_"][name$="_'+action+'"]');
+    const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+    const newState = !allChecked;
+    checkboxes.forEach(cb => cb.checked = newState);
+    refreshBulkClearLabels();
+    hide('bulkClearMenu');
+  }
+  function clearAllPermissions() {
+    const checkboxes = document.querySelectorAll('#permMatrix input[type="checkbox"]');
+    const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+    const newState = !allChecked;
+    checkboxes.forEach(cb => cb.checked = newState);
+    refreshBulkClearLabels();
+    hide('bulkClearMenu');
+  }
+
+  Object.assign(window, { saveRole, submitPermissions, toggleBulkClearDropdown, clearAllAction, clearAllPermissions });
+}());
+</script>
+{% endblock %}

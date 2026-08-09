@@ -1,0 +1,66 @@
+<!-- Authentication -->
+<div>
+    <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+        <i class="fas fa-key mr-3 text-primary-600"></i>
+        Authentication
+    </h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                SMTP Username <span class="text-red-500">*</span>
+            </label>
+            {{ form.smtp_username }}
+            {% if form.smtp_username.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.smtp_username.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                SMTP Password
+            </label>
+            {{ form.smtp_password }}
+            {% if form.smtp_password.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.smtp_password.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-500">
+                Stored encrypted. Leave blank to keep the current password — only fill this in when setting it for the first time or changing it.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Sender Information -->
+<div class="pt-6 border-t border-gray-200">
+    <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+        <i class="fas fa-paper-plane mr-3 text-primary-600"></i>
+        Sender Information
+    </h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                From Email <span class="text-red-500">*</span>
+            </label>
+            {{ form.from_email }}
+            {% if form.from_email.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.from_email.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-500">
+                Email address that appears in the "From" field
+            </p>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                From Name <span class="text-red-500">*</span>
+            </label>
+            {{ form.from_name }}
+            {% if form.from_name.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.from_name.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-500">
+                Display name for outgoing emails
+            </p>
+        </div>
+    </div>
+</div>

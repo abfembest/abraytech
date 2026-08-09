@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sign In - {{ site_config.school_short_name|default:"MIU" }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-primary-50 to-gold-100 flex items-center p-4">
+    <div class="container mx-auto">
+
+        <div class="bg-white/98 backdrop-blur-xl shadow-2xl shadow-primary-950/15 max-w-[1400px] w-full mx-auto rounded-2xl overflow-hidden">
+            <div class="grid lg:grid-cols-5 gap-0">
+
+                {% include 'includes/auth_branding_panel.html' %}
+
+                <!-- Right Side - Login Form -->
+                <div class="lg:col-span-3 p-6 lg:p-8">
+
+                    <h3 class="text-2xl font-bold font-heading text-gray-900 mb-6 text-center">
+                        Welcome Back!
+                    </h3>
+
+                    <form id="loginFormElement" method="POST" class="space-y-4">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="login">
+
+                        <!-- Username/Email -->
+                        <div class="mb-4">
+                            <label for="login_username" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Username or Email
+                            </label>
+                            <div class="input-group">
+                                <i data-lucide="user" class="icon w-5 h-5"></i>
+                                {{ login_form.username }}
+                            </div>
+                            <div class="error-message text-red-600 text-sm mt-1" id="login_username_error"></div>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-4">
+                            <label for="login_password" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Password
+                            </label>
+                            <div class="input-group">
+                                <i data-lucide="lock" class="icon w-5 h-5"></i>
+                                {{ login_form.password }}
+                                <i data-lucide="eye" data-target="id_password"
+                                   class="password-toggle absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 cursor-pointer text-gray-400 hover:text-primary-950 transition-colors"></i>
+                            </div>
+                            <div class="error-message text-red-600 text-sm mt-1" id="login_password_error"></div>
+                        </div>
+
+                        <!-- Captcha -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                Security Check
+                            </label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div id="loginCaptchaQuestion"
+                                     class="bg-gradient-to-br from-purple-100 to-amber-100 border-2 border-dashed border-purple-400 rounded-lg flex items-center justify-center py-5 text-2xl font-bold text-primary-950">
+                                    {{ captcha_question }} = ?
+                                </div>
+                                <input type="text"
+                                       inputmode="numeric"
+                                       pattern="[0-9]*"
+                                       name="captcha"
+                                       id="login_captcha"
+                                       required
+                                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-950 focus:ring-2 focus:ring-purple-200 transition-all"
+                                       placeholder="Your answer">
+                            </div>
+                            <div class="error-message text-red-600 text-sm mt-1" id="login_captcha_error"></div>
+                        </div>
+
+                        <!-- Remember Me & Forgot Password -->
+                        <div class="flex items-center justify-between mb-4">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" name="remember" class="h-4 w-4 rounded border-gray-300 text-primary-950 focus:ring-primary-950">
+                                <span class="text-sm text-gray-700">Remember me</span>
+                            </label>
+                            <a href="{% url 'eduweb:forgot_password' %}" class="text-sm text-primary-950 hover:text-purple-700 font-medium">
+                                Forgot password?
+                            </a>
+                        </div>
+
+                        <!-- Form Error Messages -->
+                        <div class="error-message text-red-600 text-sm mb-4" id="login_form_error"></div>
+
+                        <!-- Submit Button -->
+                        <button type="submit"
+                                class="w-full py-3.5 bg-gradient-to-r from-primary-950 to-purple-700 text-white rounded-lg font-bold text-base hover:shadow-xl hover:shadow-purple-500/50 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
+                                id="loginSubmitBtn">
+                            <span>Sign In</span>
+                            <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+// Guards every lucide.createIcons() call below: if the lucide CDN script is
+// slow, blocked (ad-blocker/network), or fails to load for any reason, a
+// bare `lucide.createIcons()` throws a ReferenceError — and since the very
+// first call used to sit at the top of the DOMContentLoaded handler, that
+// exception silently aborted the ENTIRE callback, including the login form
+// addEventListener wiring further down. That left the form as a plain,
+// non-intercepted HTML form: submitting it did a real page navigation to
+// this same URL, and the JSON the view returns got rendered as raw text
+// instead of triggering the intended redirect. Icons are cosmetic; form
+// submission isn't, so a missing icon library must never take it down too.
+function safeLucideIcons() {
+    try {
+        if (window.lucide) lucide.createIcons();
+    } catch (e) {
+        console.warn('lucide icon render failed:', e);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    safeLucideIcons();
+
+    // ========== PASSWORD TOGGLE (FIXED VERSION) ==========
+    document.body.addEventListener('click', function(e) {
+        // Check if clicked element IS the toggle or is inside it
+        const toggle = e.target.classList.contains('password-toggle') ? e.target : e.target.closest('.password-toggle');
+
+        if (toggle) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const targetId = toggle.dataset.target;
+            const input = document.getElementById(targetId);
+
+            if (input) {
+                const isPassword = input.type === 'password';
+                input.type = isPassword ? 'text' : 'password';
+
+                // Update the icon
+                toggle.setAttribute('data-lucide', isPassword ? 'eye-off' : 'eye');
+                safeLucideIcons();
+            }
+        }
+    });
+
+    // ========== LOGIN FORM ==========
+    document.getElementById('loginFormElement').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        clearAllErrors();
+        const submitBtn = document.getElementById('loginSubmitBtn');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span>Signing In...</span><i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>';
+        submitBtn.disabled = true;
+        safeLucideIcons();
+
+        try {
+            const formData = new FormData(this);
+            const response = await fetch('{% url "eduweb:auth_page" %}', {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showMessage('success', data.message);
+                setTimeout(() => window.location.href = data.redirect_url, 1500);
+            } else {
+                handleFormErrors(data.errors);
+                if (data.captcha_question) {
+                    document.getElementById('loginCaptchaQuestion').textContent = data.captcha_question + ' = ?';
+                    document.getElementById('login_captcha').value = '';
+                }
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                safeLucideIcons();
+            }
+        } catch (error) {
+            showMessage('error', 'An error occurred. Please try again.');
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+            safeLucideIcons();
+        }
+    });
+
+    // ========== HELPER FUNCTIONS ==========
+    function handleFormErrors(errors) {
+        for (const [field, messages] of Object.entries(errors)) {
+            const errorElement = document.getElementById(`login_${field}_error`);
+            if (errorElement) {
+                errorElement.textContent = messages.join(' ');
+            } else if (field === '__all__') {
+                document.getElementById('login_form_error').textContent = messages.join(' ');
+            }
+        }
+    }
+
+    function clearAllErrors() {
+        document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+    }
+
+    function showMessage(type, message) {
+        window.showToast(type, message);
+    }
+});
+</script>
+{% endblock %}

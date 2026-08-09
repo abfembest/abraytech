@@ -1,0 +1,45 @@
+{% extends "management/base.html" %}
+{% load static %}{% block title %}Chat Sessions{% endblock %}
+{% block breadcrumb %}Support › Communications › Live Chat{% endblock %}
+{% block breadcrumb_title %}Live Chat Sessions{% endblock %}
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8 py-6 max-w-screen-xl mx-auto">
+    <div class="mb-6"><h1 class="text-2xl font-bold font-heading text-gray-900">Live Chat Sessions</h1><p class="text-sm text-gray-500 mt-1">Manage and review student chat interactions</p></div>
+    <form method="get" class="mb-6 flex gap-3">
+        <select name="status" onchange="this.form.submit()" class="w-full sm:w-auto border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none">
+            <option value="">All Statuses</option>
+            {% for val, label in status_choices %}
+            <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+    </form>
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide"><tr><th class="px-5 py-3 text-left">Session</th><th class="px-5 py-3 text-left">Student</th><th class="px-5 py-3 text-left hidden md:table-cell">Agent</th><th class="px-5 py-3 text-left">Status</th><th class="px-5 py-3 text-left hidden lg:table-cell">Rating</th><th class="px-5 py-3 text-left hidden xl:table-cell">Started</th></tr></thead>
+            <tbody class="divide-y divide-gray-50">
+                {% for s in sessions %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-5 py-3 font-mono text-xs text-primary-600 font-semibold">{{ s.session_id|truncatechars:12 }}</td>
+                    <td class="px-5 py-3"><p class="font-medium text-gray-800 text-xs">{{ s.student.get_full_name|default:s.student.username }}</p><p class="text-xs text-gray-400">{{ s.student.email }}</p></td>
+                    <td class="px-5 py-3 hidden md:table-cell text-xs text-gray-600">{% if s.agent %}{{ s.agent.get_full_name|default:s.agent.username }}{% else %}—{% endif %}</td>
+                    <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-xs font-medium {% if s.status == 'active' %}bg-green-100 text-green-700{% elif s.status == 'waiting' %}bg-yellow-100 text-yellow-700{% elif s.status == 'missed' %}bg-red-100 text-red-700{% else %}bg-gray-100 text-gray-500{% endif %}">{{ s.get_status_display }}</span></td>
+                    <td class="px-5 py-3 hidden lg:table-cell">{% if s.rating %}<div class="flex gap-0.5">{% for i in "12345" %}<i class="fas fa-star text-xs {% if forloop.counter <= s.rating %}text-yellow-400{% else %}text-gray-200{% endif %}" aria-hidden="true"></i>{% endfor %}</div>{% else %}<span class="text-gray-300 text-xs">—</span>{% endif %}</td>
+                    <td class="px-5 py-3 hidden xl:table-cell text-xs text-gray-400">{{ s.started_at|timesince }} ago</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="px-5 py-10 text-center text-gray-400">No chat sessions found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+      </div>
+        {% if sessions.paginator.num_pages > 1 %}
+        <div class="px-5 py-4 border-t border-gray-100 flex justify-between items-center">
+            <p class="text-sm text-gray-500">Page {{ sessions.number }}</p>
+            <div class="flex gap-2">{% if sessions.has_previous %}<a href="?page={{ sessions.previous_page_number }}&status={{ status_filter }}" class="px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50">← Prev</a>{% endif %}{% if sessions.has_next %}<a href="?page={{ sessions.next_page_number }}&status={{ status_filter }}" class="px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Next →</a>{% endif %}</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>$(document).ready(function(){lucide.createIcons();});</script>{% endblock %}

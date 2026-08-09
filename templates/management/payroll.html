@@ -1,0 +1,580 @@
+{% extends 'management/base.html' %}
+{% block title %}Staff Payroll · Admin{% endblock %}
+
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8 py-6 max-w-full mx-auto">
+
+  {# ── Page header ── #}
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold font-heading text-gray-900">Staff Payroll</h1>
+      <p class="text-sm text-gray-500 mt-0.5">Manage staff compensation and payment records</p>
+    </div>
+    {% if permissions.finance_payroll.can_create %}
+    <button type="button" onclick="PY.open()"
+            class="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600
+                   hover:bg-primary-700 active:bg-primary-800 text-white text-sm
+                   font-semibold rounded-lg transition focus:outline-none
+                   focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+      <i class="fas fa-plus fa-xs" aria-hidden="true"></i>
+      New Payroll
+    </button>
+    {% endif %}
+  </div>
+
+  {# ── Filters ── #}
+  <form method="get"
+        class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-5">
+    <div class="flex flex-col sm:flex-row gap-3">
+      <div class="relative flex-1">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2
+                  text-gray-400 text-sm pointer-events-none" aria-hidden="true"></i>
+        <input type="search" name="search"
+               value="{{ request.GET.search|default:'' }}"
+               placeholder="Staff name or reference…"
+               aria-label="Search payroll"
+               class="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg
+                      text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none">
+      </div>
+      <select name="status" aria-label="Filter by status"
+              class="sm:w-44 px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                     bg-white focus:ring-2 focus:ring-primary-500 focus:outline-none">
+        <option value="">All Statuses</option>
+        {% for val, label in status_choices %}
+          <option value="{{ val }}"
+                  {% if request.GET.status == val %}selected{% endif %}>
+            {{ label }}
+          </option>
+        {% endfor %}
+      </select>
+      <button type="submit"
+              class="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white
+                     text-sm font-semibold rounded-lg transition focus:outline-none
+                     focus:ring-2 focus:ring-primary-500 whitespace-nowrap">
+        Filter
+      </button>
+      {% if request.GET.search or request.GET.status %}
+        <a href="{% url 'management:staff_payroll_list' %}"
+           class="px-5 py-2.5 border border-gray-300 text-gray-600 rounded-lg
+                  text-sm hover:bg-gray-50 transition whitespace-nowrap flex items-center">
+          Clear
+        </a>
+      {% endif %}
+    </div>
+  </form>
+
+  {# ── Full-width table ── #}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[760px] text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200">
+          <tr>
+            <th scope="col"
+                class="px-5 py-3 text-left text-xs font-semibold text-gray-600
+                       uppercase tracking-wide">
+              Staff
+            </th>
+            <th scope="col"
+                class="px-5 py-3 text-left text-xs font-semibold text-gray-600
+                       uppercase tracking-wide">
+              Reference
+            </th>
+            <th scope="col"
+                class="px-5 py-3 text-left text-xs font-semibold text-gray-600
+                       uppercase tracking-wide hidden sm:table-cell">
+              Period
+            </th>
+            <th scope="col"
+                class="px-5 py-3 text-right text-xs font-semibold text-gray-600
+                       uppercase tracking-wide hidden md:table-cell">
+              Base
+            </th>
+            <th scope="col"
+                class="px-5 py-3 text-right text-xs font-semibold text-gray-600
+                       uppercase tracking-wide">
+              Net Pay
+            </th>
+            <th scope="col"
+                class="px-5 py-3 text-left text-xs font-semibold text-gray-600
+                       uppercase tracking-wide hidden sm:table-cell">
+              Status
+            </th>
+            <th scope="col"
+                class="px-5 py-3 text-right text-xs font-semibold text-gray-600
+                       uppercase tracking-wide w-24">
+              <span class="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for p in payroll_records %}
+          <tr class="hover:bg-gray-50/60 transition-colors">
+
+            <td class="px-5 py-3">
+              <p class="font-medium text-gray-900">
+                {{ p.staff.get_full_name|default:p.staff.username }}
+              </p>
+              <p class="text-xs text-gray-400">@{{ p.staff.username }}</p>
+            </td>
+
+            <td class="px-5 py-3">
+              <code class="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-mono">
+                {{ p.payroll_reference }}
+              </code>
+            </td>
+
+            <td class="px-5 py-3 text-sm text-gray-700 hidden sm:table-cell whitespace-nowrap">
+              {{ p.get_month_name }} {{ p.year }}
+            </td>
+
+            <td class="px-5 py-3 text-right text-sm text-gray-700
+                       hidden md:table-cell whitespace-nowrap">
+              {{ p.currency|default:"USD" }} {{ p.base_salary|floatformat:2 }}
+            </td>
+
+            <td class="px-5 py-3 text-right whitespace-nowrap">
+              <span class="font-semibold text-green-600">
+                {{ p.currency|default:"USD" }} {{ p.net_salary|floatformat:2 }}
+              </span>
+            </td>
+
+            <td class="px-5 py-3 hidden sm:table-cell whitespace-nowrap">
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium border
+                {% if p.payment_status == 'paid' %}
+                  bg-green-50 text-green-700 border-green-200
+                {% elif p.payment_status == 'processing' %}
+                  bg-blue-50 text-blue-700 border-blue-200
+                {% elif p.payment_status == 'failed' %}
+                  bg-red-50 text-red-700 border-red-200
+                {% elif p.payment_status == 'on_hold' %}
+                  bg-orange-50 text-orange-700 border-orange-200
+                {% else %}
+                  bg-yellow-50 text-yellow-700 border-yellow-200
+                {% endif %}">
+                {{ p.get_payment_status_display }}
+              </span>
+            </td>
+
+            <td class="px-5 py-3 text-right whitespace-nowrap">
+              {% if permissions.finance_payroll.can_edit %}
+              <button type="button"
+                      onclick="PY.open('{{ p.payroll_reference }}')"
+                      class="px-2.5 py-1.5 text-xs font-medium text-primary-600
+                             hover:bg-primary-50 rounded-lg transition
+                             focus:outline-none focus:ring-2 focus:ring-primary-400"
+                      aria-label="Edit {{ p.payroll_reference }}">
+                <i class="fas fa-pen-to-square" aria-hidden="true"></i>
+                <span class="hidden sm:inline ml-1">Edit</span>
+              </button>
+              {% endif %}
+              {% if permissions.finance_payroll.can_delete %}
+              <form method="post"
+                    action="{% url 'management:staff_payroll_delete' p.payroll_reference %}"
+                    class="inline"
+                    onsubmit="return PY.confirmDelete(event,
+                      '{{ p.staff.get_full_name|default:p.staff.username|escapejs }}')">
+                {% csrf_token %}
+                <button type="submit"
+                        class="px-2.5 py-1.5 text-xs font-medium text-red-500
+                               hover:bg-red-50 rounded-lg transition
+                               focus:outline-none focus:ring-2 focus:ring-red-400"
+                        aria-label="Delete {{ p.payroll_reference }}">
+                  <i class="fas fa-trash" aria-hidden="true"></i>
+                  <span class="hidden sm:inline ml-1">Delete</span>
+                </button>
+              </form>
+              {% endif %}
+            </td>
+
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7"
+                class="px-6 py-16 text-center text-gray-400">
+              <i class="fas fa-file-invoice-dollar text-4xl opacity-25 block mb-3"
+                 aria-hidden="true"></i>
+              {% if request.GET.search or request.GET.status %}
+                No records match your filters.
+              {% else %}
+                No payroll records yet.
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# Pagination footer #}
+    {% if payroll_records.has_other_pages %}
+    <div class="px-5 py-3 border-t border-gray-100 flex flex-wrap
+                items-center justify-between gap-2 text-sm text-gray-600">
+      <span>
+        Page {{ payroll_records.number }} of
+        {{ payroll_records.paginator.num_pages }}
+      </span>
+      <nav aria-label="Payroll pagination" class="flex gap-1">
+        {% if payroll_records.has_previous %}
+          <a href="?page={{ payroll_records.previous_page_number }}&search={{ request.GET.search|default:'' }}&status={{ request.GET.status|default:'' }}"
+             class="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50">
+            &laquo;
+          </a>
+        {% endif %}
+        {% for n in payroll_records.paginator.page_range %}
+          {% if payroll_records.number == n %}
+            <span class="px-3 py-1.5 bg-primary-600 text-white rounded-lg font-medium">
+              {{ n }}
+            </span>
+          {% elif n > payroll_records.number|add:"-3" and n < payroll_records.number|add:"3" %}
+            <a href="?page={{ n }}&search={{ request.GET.search|default:'' }}&status={{ request.GET.status|default:'' }}"
+               class="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50">
+              {{ n }}
+            </a>
+          {% endif %}
+        {% endfor %}
+        {% if payroll_records.has_next %}
+          <a href="?page={{ payroll_records.next_page_number }}&search={{ request.GET.search|default:'' }}&status={{ request.GET.status|default:'' }}"
+             class="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50">
+            &raquo;
+          </a>
+        {% endif %}
+      </nav>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+{# ══════════════════════════════ MODAL ══════════════════════════════ #}
+<div id="py-modal"
+     role="dialog" aria-modal="true" aria-labelledby="py-modal-title"
+     class="fixed inset-0 z-50 hidden items-stretch sm:items-center justify-center sm:p-3">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"
+       onclick="PY.close()" aria-hidden="true"></div>
+
+  <div class="relative bg-white sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl h-full sm:h-auto sm:max-h-[90vh] flex flex-col">
+
+      {# Header #}
+      <div class="flex items-center justify-between px-4 sm:px-6 py-4 border-b
+                  border-gray-100 sm:rounded-t-2xl shrink-0">
+        <h2 id="py-modal-title"
+            class="text-lg font-bold font-heading text-gray-800">
+          New Payroll Record
+        </h2>
+        <button type="button" onclick="PY.close()"
+                class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition
+                       focus:outline-none focus:ring-2 focus:ring-gray-400"
+                aria-label="Close modal">
+          <i class="fas fa-xmark text-lg" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      {# Form #}
+      <form id="py-form" method="post"
+            action="{% url 'management:staff_payroll_create' %}"
+            class="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1 min-h-0" novalidate>
+        {% csrf_token %}
+
+        <div id="py-err" role="alert" class="hidden px-3 py-2.5 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"></div>
+        {% if form.non_field_errors %}
+          <div role="alert"
+               class="px-3 py-2.5 bg-red-50 border border-red-200
+                      rounded-lg text-red-700 text-sm">
+            {{ form.non_field_errors }}
+          </div>
+        {% endif %}
+
+        {# ── Staff select ── #}
+        <div>
+          <label for="py-staff-id"
+                 class="block text-xs font-semibold text-gray-600
+                        uppercase tracking-wide mb-1.5">
+            Staff Member
+            <span class="text-red-500" aria-hidden="true">*</span>
+          </label>
+          <select id="py-staff-id" name="staff" required
+                  class="searchable-select w-full px-4 py-2.5 border border-gray-300 rounded-lg
+                         text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                  data-ss-placeholder="Type staff name or username…">
+            <option value="">Type staff name or username…</option>
+            {% for s in staff_members %}
+              <option value="{{ s.pk }}">{{ s.get_full_name|default:s.username }} — @{{ s.username }}</option>
+            {% endfor %}
+          </select>
+          {% if form.staff.errors %}
+            <p class="mt-1 text-xs text-red-600" role="alert">
+              {{ form.staff.errors.0 }}
+            </p>
+          {% endif %}
+        </div>
+
+        {# ── Month / Year ── #}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="{{ form.month.id_for_label }}"
+                   class="block text-xs font-semibold text-gray-600
+                          uppercase tracking-wide mb-1.5">
+              Month <span class="text-red-500" aria-hidden="true">*</span>
+            </label>
+            {{ form.month }}
+            {% if form.month.errors %}
+              <p class="mt-1 text-xs text-red-600" role="alert">
+                {{ form.month.errors.0 }}
+              </p>
+            {% endif %}
+          </div>
+          <div>
+            <label for="{{ form.year.id_for_label }}"
+                   class="block text-xs font-semibold text-gray-600
+                          uppercase tracking-wide mb-1.5">
+              Year <span class="text-red-500" aria-hidden="true">*</span>
+            </label>
+            {{ form.year }}
+            {% if form.year.errors %}
+              <p class="mt-1 text-xs text-red-600" role="alert">
+                {{ form.year.errors.0 }}
+              </p>
+            {% endif %}
+          </div>
+        </div>
+
+        {# ── Salary ── #}
+        <fieldset>
+          <legend class="text-xs font-semibold text-gray-600 uppercase
+                         tracking-wide mb-2">
+            Salary Components
+          </legend>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label for="{{ form.base_salary.id_for_label }}"
+                     class="block text-xs text-gray-500 mb-1">
+                Base Salary <span class="text-red-500" aria-hidden="true">*</span>
+              </label>
+              {{ form.base_salary }}
+            </div>
+            <div>
+              <label for="{{ form.allowances.id_for_label }}"
+                     class="block text-xs text-gray-500 mb-1">Allowances</label>
+              {{ form.allowances }}
+            </div>
+            <div>
+              <label for="{{ form.bonuses.id_for_label }}"
+                     class="block text-xs text-gray-500 mb-1">Bonuses</label>
+              {{ form.bonuses }}
+            </div>
+          </div>
+        </fieldset>
+
+        {# ── Deductions ── #}
+        <fieldset>
+          <legend class="text-xs font-semibold text-gray-600 uppercase
+                         tracking-wide mb-2">
+            Deductions
+          </legend>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="{{ form.tax_deduction.id_for_label }}"
+                     class="block text-xs text-gray-500 mb-1">Tax</label>
+              {{ form.tax_deduction }}
+            </div>
+            <div>
+              <label for="{{ form.other_deductions.id_for_label }}"
+                     class="block text-xs text-gray-500 mb-1">Other</label>
+              {{ form.other_deductions }}
+            </div>
+          </div>
+        </fieldset>
+
+        {# ── Payment ── #}
+        <fieldset>
+          <legend class="text-xs font-semibold text-gray-600 uppercase
+                         tracking-wide mb-2">
+            Payment Details
+          </legend>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="{{ form.payment_method.id_for_label }}"
+                     class="block text-xs text-gray-500 mb-1">Method</label>
+              {{ form.payment_method }}
+            </div>
+            <div>
+              <label for="{{ form.payment_date.id_for_label }}"
+                     class="block text-xs text-gray-500 mb-1">Date</label>
+              {{ form.payment_date }}
+            </div>
+            <div>
+              <label for="{{ form.bank_name.id_for_label }}"
+                     class="block text-xs text-gray-500 mb-1">Bank Name</label>
+              {{ form.bank_name }}
+            </div>
+            <div>
+              <label for="{{ form.account_number.id_for_label }}"
+                     class="block text-xs text-gray-500 mb-1">Account Number</label>
+              {{ form.account_number }}
+            </div>
+            <div>
+              <label for="{{ form.currency.id_for_label }}"
+                     class="block text-xs text-gray-500 mb-1">Currency</label>
+              {{ form.currency }}
+            </div>
+          </div>
+        </fieldset>
+
+      </form>
+
+      {# Footer — fixed bottom bar #}
+      <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-100 bg-white sm:rounded-b-2xl shrink-0">
+        <button type="button" onclick="PY.close()"
+                class="w-full sm:w-auto px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                       font-medium text-gray-600 hover:bg-gray-50 transition
+                       focus:outline-none focus:ring-2 focus:ring-gray-400">
+          Cancel
+        </button>
+        <button type="submit" form="py-form" id="py-submit"
+                class="w-full sm:flex-1 px-4 py-2.5 bg-primary-600 hover:bg-primary-700
+                       text-white text-sm font-semibold rounded-lg transition
+                       focus:outline-none focus:ring-2 focus:ring-offset-2
+                       focus:ring-primary-500">
+          Save Record
+        </button>
+      </div>
+    </div>
+</div>
+
+{# Edit data stores (no PK exposed) #}
+{% for p in payroll_records %}
+<template id="pyd-{{ p.payroll_reference }}"
+  data-action="{% url 'management:staff_payroll_edit' p.payroll_reference %}"
+  data-staff-label="{{ p.staff.get_full_name|default:p.staff.username|escapejs }} — @{{ p.staff.username }}"
+  data-staff-id="{{ p.staff.pk }}"
+  data-month="{{ p.month }}"
+  data-year="{{ p.year }}"
+  data-base="{{ p.base_salary }}"
+  data-allowances="{{ p.allowances }}"
+  data-bonuses="{{ p.bonuses }}"
+  data-tax="{{ p.tax_deduction }}"
+  data-other="{{ p.other_deductions }}"
+  data-method="{{ p.payment_method }}"
+  data-date="{{ p.payment_date|date:'Y-m-d' }}"
+  data-bank="{{ p.bank_name|escapejs }}"
+  data-account="{{ p.account_number|escapejs }}"
+  data-currency="{{ p.currency|default:'USD' }}">
+</template>
+{% endfor %}
+
+<script>
+var PY = (function () {
+  'use strict';
+  var CREATE     = '{% url "management:staff_payroll_create" %}';
+  var modal      = document.getElementById('py-modal');
+  var form       = document.getElementById('py-form');
+  var title      = document.getElementById('py-modal-title');
+  var submit     = document.getElementById('py-submit');
+  var staffId    = document.getElementById('py-staff-id');
+
+  function f(n) { return form.querySelector('[name="' + n + '"]'); }
+
+  var errBox = document.getElementById('py-err');
+  function clearError() { errBox.classList.add('hidden'); errBox.textContent = ''; }
+
+  function open(ref) {
+    clearError();
+    if (ref) {
+      var t = document.getElementById('pyd-' + ref);
+      if (!t) return;
+      var d = t.dataset;
+      title.textContent  = 'Edit Payroll Record';
+      submit.textContent = 'Update Record';
+      form.action        = d.action;
+      staffId.value      = d.staffId;
+      staffId.dispatchEvent(new Event('change', { bubbles: true }));
+      f('month').value             = d.month;
+      f('year').value              = d.year;
+      f('base_salary').value       = d.base;
+      f('allowances').value        = d.allowances;
+      f('bonuses').value           = d.bonuses;
+      f('tax_deduction').value     = d.tax;
+      f('other_deductions').value  = d.other;
+      f('payment_method').value    = d.method;
+      f('payment_date').value      = d.date;
+      f('bank_name').value         = d.bank;
+      f('account_number').value    = d.account;
+      f('currency').value          = d.currency;
+    } else {
+      title.textContent  = 'New Payroll Record';
+      submit.textContent = 'Save Record';
+      form.action        = CREATE;
+      form.reset();
+      staffId.value    = '';
+      staffId.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function close() {
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+    form.reset();
+    staffId.value    = '';
+    staffId.dispatchEvent(new Event('change', { bubbles: true }));
+    clearError();
+  }
+
+  // Submitting this used to be a plain form POST — on a validation error
+  // the page reloaded and every field (13 of them) had to be retyped, with
+  // only a generic toast to go on. AJAX keeps the modal open with the
+  // error shown and nothing lost.
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    clearError();
+    submit.disabled = true;
+    try {
+      var resp = await fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      });
+      var data = await resp.json();
+      if (data.success) {
+        window.location.reload();
+        return;
+      }
+      var msgs = [];
+      Object.keys(data.errors || {}).forEach(function (fld) {
+        (data.errors[fld] || []).forEach(function (x) {
+          msgs.push((fld !== '__all__' ? fld.replace(/_/g, ' ') + ': ' : '') + (x.message || x));
+        });
+      });
+      errBox.textContent = msgs.join(' ') || 'Something went wrong. Please try again.';
+      errBox.classList.remove('hidden');
+    } catch (err) {
+      errBox.textContent = 'Something went wrong. Please try again.';
+      errBox.classList.remove('hidden');
+    } finally {
+      submit.disabled = false;
+    }
+  });
+
+  function confirmDelete(e, name) {
+    e.preventDefault();
+    var frm = e.currentTarget;
+    Swal.fire({
+      title: 'Delete payroll record?',
+      html: "<strong>" + name + "</strong>'s record will be removed.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Yes, delete',
+    }).then(function (r) { if (r.isConfirmed) frm.submit(); });
+    return false;
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') close();
+  });
+
+  return { open: open, close: close, confirmDelete: confirmDelete };
+}());
+</script>
+{% endblock %}

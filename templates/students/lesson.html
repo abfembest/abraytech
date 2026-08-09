@@ -1,0 +1,337 @@
+{% extends "management/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - MIU Student Portal{% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="{{ lesson.title }} - {{ lesson.description|truncatewords:20 }}">
+<meta name="keywords" content="lesson, {{ lesson.course.title }}, MIU, online learning">
+{% endblock %}
+
+{% block content %}
+<div class="max-w-12xl mx-auto">
+
+                <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
+
+
+    <!-- Breadcrumb -->
+    <nav class="mb-4 flex items-center text-sm text-gray-600">
+        <a href="{% url 'students:my_courses' %}" class="hover:text-primary-600">My Courses</a>
+        <i class="fas fa-chevron-right mx-2"></i>
+        <a href="{% url 'students:course_detail' lesson.course.slug %}">{{ lesson.course.title|truncatewords:5 }}</a>
+        <i class="fas fa-chevron-right mx-2"></i>
+        <span>{{ lesson.title|truncatewords:5 }}</span>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+        <!-- MAIN -->
+        <div class="lg:col-span-3 space-y-6">
+
+            <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+
+                <!-- VIDEO -->
+                {% if lesson.lesson_type == 'video' %}
+                <div class="bg-black aspect-video">
+
+                    {% if lesson.video_file %}
+                    <video id="lessonVideo" class="w-full h-full" controls>
+                        <source src="{{ lesson.video_file.url }}">
+                    </video>
+
+                    {% elif lesson.video_url %}
+                    <div id="lessonIframeWrapper" class="w-full h-full [&>iframe]:w-full [&>iframe]:h-full">
+                        {{ lesson.video_url|safe }}
+                    </div>
+                    {% endif %}
+
+                </div>
+                {% endif %}
+
+                <!-- HEADER -->
+                <div class="p-6 border-b">
+                    <div class="flex justify-between items-center">
+
+                        <div>
+                            <h1 class="text-2xl font-bold">{{ lesson.title }}</h1>
+                        </div>
+
+                        {% if enrollment %}
+                        <button id="markCompleteBtn"
+                                data-course-slug="{{ lesson.course.slug }}"
+                                data-lesson-slug="{{ lesson.slug }}"
+                                {% if lesson.lesson_type == 'video' and not progress.is_completed %}disabled{% endif %}
+                                class="px-6 py-3 text-white rounded-lg
+                                {% if progress.is_completed %}
+                                    bg-green-500
+                                {% elif lesson.lesson_type == 'text' %}
+                                    bg-primary-600
+                                {% else %}
+                                    bg-gray-400 cursor-not-allowed
+                                {% endif %}">
+                            <i class="fas {% if progress.is_completed %}fa-check-circle{% else %}fa-circle{% endif %} mr-2"></i>
+                            <span>{% if progress.is_completed %}Completed{% else %}Mark as Complete{% endif %}</span>
+                        </button>
+                        {% endif %}
+
+                    </div>
+                </div>
+
+                <!-- DESCRIPTION -->
+                {% if lesson.description %}
+                <div class="p-6 border-b">
+                    {{ lesson.description|linebreaks }}
+                </div>
+                {% endif %}
+
+                <!-- TEXT CONTENT -->
+                {% if lesson.lesson_type == 'text' and lesson.content %}
+                <div class="p-6 border-b">
+                    {{ lesson.content|safe }}
+                </div>
+                {% endif %}
+
+            </div>
+
+            <!-- NAV -->
+            <div class="bg-white p-6 rounded-xl border flex justify-between">
+
+                {% if prev_lesson %}
+                <a href="{% url 'students:lesson_view' lesson.course.slug prev_lesson.slug %}">
+                    ← Previous
+                </a>
+                {% endif %}
+
+                {% if next_lesson %}
+                <a id="nextLessonBtn"
+                   href="{% url 'students:lesson_view' lesson.course.slug next_lesson.slug %}"
+                   class="{% if progress.is_completed %}
+                            text-primary-600
+                          {% else %}
+                            text-gray-400 pointer-events-none
+                          {% endif %}">
+                    Next →
+                </a>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+        <!-- SIDEBAR (UNCHANGED STRUCTURE) -->
+        <div class="space-y-6">
+            <!-- keep your sidebar exactly as before -->
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                {% if enrollment %}
+                <!-- Course Progress — enrolled only -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-chart-line mr-2"></i>
+                        Course Progress
+                    </h3>
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm text-gray-600">Overall</span>
+                            <span class="font-semibold text-gray-900">{{ enrollment.progress_percentage|floatformat:0 }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div class="bg-primary-600 h-3 rounded-full transition-all"
+                                 style="width: {{ enrollment.progress_percentage }}%"></div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-600">
+                        <i class="fas fa-check-circle text-green-500 mr-1"></i>
+                        {{ enrollment.completed_lessons }} of {{ lesson.course.lessons.count }} lessons completed
+                    </p>
+                </div>
+                {% else %}
+                <!-- Enroll CTA — preview users -->
+                <div class="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6 text-center">
+                    <i class="fas fa-lock text-yellow-500 text-3xl mb-3"></i>
+                    <h3 class="font-semibold text-gray-900 mb-2">You're previewing this lesson</h3>
+                    <p class="text-sm text-gray-600 mb-4">Enroll to track your progress, access all lessons, and earn a certificate.</p>
+                    <a href="{% url 'students:course_detail' lesson.course.slug %}"
+                       class="block w-full px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-semibold text-sm transition-colors">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        Enroll in This Course
+                    </a>
+                </div>
+                {% endif %}
+
+                <!-- Course Navigation -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="p-4 bg-gray-50 border-b border-gray-200">
+                        <h3 class="font-semibold text-gray-900 flex items-center">
+                            <i class="fas fa-list mr-2"></i>
+                            Course Content
+                        </h3>
+                    </div>
+                    <div class="max-h-96 overflow-y-auto">
+                        {% for section in lesson.course.sections.all %}
+                        <div class="border-b border-gray-200">
+                            <div class="p-3 bg-gray-50">
+                                <p class="font-medium text-gray-900 text-sm flex items-center">
+                                    <i class="fas fa-folder mr-2 text-gray-500"></i>
+                                    {{ section.title }}
+                                </p>
+                            </div>
+                            {% for course_lesson in section.lessons.all %}
+                            {% if enrollment or course_lesson.is_preview %}
+                            <a href="{% url 'students:lesson_view' lesson.course.slug course_lesson.slug %}"
+                               class="block p-3 hover:bg-gray-50 transition-all {% if course_lesson.slug == lesson.slug %}bg-blue-50 border-l-4 border-primary-600{% endif %}">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center flex-1 min-w-0">
+                                        <i class="fas {% if course_lesson.lesson_type == 'video' %}fa-play-circle text-blue-500{% elif course_lesson.lesson_type == 'text' %}fa-file-alt text-gray-500{% else %}fa-file text-gray-500{% endif %} mr-2 text-sm flex-shrink-0"></i>
+                                        <span class="text-sm text-gray-700 truncate">{{ course_lesson.title }}</span>
+                                    </div>
+                                    {% if enrollment and course_lesson.is_completed %}
+                                    <i class="fas fa-check-circle text-green-500 text-sm flex-shrink-0 ml-2"></i>
+                                    {% elif course_lesson.is_preview and not enrollment %}
+                                    <span class="text-xs text-blue-500 font-medium ml-2">Preview</span>
+                                    {% endif %}
+                                </div>
+                            </a>
+                            {% else %}
+                            <div class="block p-3 opacity-50 cursor-not-allowed">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center flex-1 min-w-0">
+                                        <i class="fas fa-lock mr-2 text-sm flex-shrink-0 text-gray-400"></i>
+                                        <span class="text-sm text-gray-500 truncate">{{ course_lesson.title }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-bolt mr-2"></i>
+                        Quick Actions
+                    </h3>
+                    <div class="space-y-2">
+                        <a href="{% url 'students:course_detail' lesson.course.slug %}"
+                           class="block text-sm text-primary-600 hover:text-primary-700 transition-colors p-2 rounded hover:bg-primary-50">
+                            <i class="fas fa-book mr-2"></i>
+                            Course Overview
+                        </a>
+                        {% if enrollment %}
+                        <a href="{% url 'students:assignments' %}"
+                           class="block text-sm text-primary-600 hover:text-primary-700 transition-colors p-2 rounded hover:bg-primary-50">
+                            <i class="fas fa-tasks mr-2"></i>
+                            View Assignments
+                        </a>
+                        <a href="{% url 'students:quiz_list' %}"
+                           class="block text-sm text-primary-600 hover:text-primary-700 transition-colors p-2 rounded hover:bg-primary-50">
+                            <i class="fas fa-clipboard-list mr-2"></i>
+                            Take Quizzes
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+const video = document.getElementById('lessonVideo');
+const iframe = document.querySelector('#lessonIframeWrapper iframe');
+const markBtn = document.getElementById('markCompleteBtn');
+const nextBtn = document.getElementById('nextLessonBtn');
+
+/* ---------------------------
+   AUTO ENABLE FOR TEXT LESSON
+----------------------------*/
+if ("{{ lesson.lesson_type }}" === "text") {
+    enableMarkComplete();
+}
+
+/* ---------------------------
+   LOCAL VIDEO
+----------------------------*/
+if (video) {
+    video.addEventListener('ended', enableMarkComplete);
+}
+
+/* ---------------------------
+   YOUTUBE IFRAME
+----------------------------*/
+if (iframe && iframe.src.includes("youtube")) {
+
+    if (!iframe.src.includes("enablejsapi=1")) {
+        iframe.src += (iframe.src.includes("?") ? "&" : "?") + "enablejsapi=1";
+    }
+
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.body.appendChild(tag);
+
+    window.onYouTubeIframeAPIReady = function () {
+        new YT.Player(iframe, {
+            events: {
+                'onStateChange': function (event) {
+                    if (event.data === YT.PlayerState.ENDED) {
+                        enableMarkComplete();
+                    }
+                }
+            }
+        });
+    };
+}
+
+/* ---------------------------
+   ENABLE BUTTON
+----------------------------*/
+function enableMarkComplete() {
+    if (!markBtn) return;
+
+    markBtn.disabled = false;
+    markBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+    markBtn.classList.add('bg-primary-600');
+}
+
+/* ---------------------------
+   CLICK HANDLER
+----------------------------*/
+markBtn?.addEventListener('click', async function() {
+
+    if (markBtn.disabled) return;
+
+    const res = await fetch(`/student/courses/${this.dataset.courseSlug}/lessons/${this.dataset.lessonSlug}/complete/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+
+        markBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Completed';
+        markBtn.classList.remove('bg-primary-600');
+        markBtn.classList.add('bg-green-500');
+        markBtn.disabled = true;
+
+        if (nextBtn) {
+            nextBtn.classList.remove('pointer-events-none', 'text-gray-400');
+            nextBtn.classList.add('text-primary-600');
+        }
+    }
+});
+</script>
+{% endblock %}

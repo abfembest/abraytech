@@ -1,0 +1,55 @@
+{% extends "management/base.html" %}
+{% load static %}{% block title %}Announcements{% endblock %}
+{% block breadcrumb %}Support › Communications › Announcements{% endblock %}
+{% block breadcrumb_title %}Announcements{% endblock %}
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8 py-6 max-w-screen-xl mx-auto">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <h1 class="text-2xl font-bold font-heading text-gray-900">Support Announcements</h1>
+        {% if permissions.support_communications.can_create %}
+        <button onclick="$('#annModal').removeClass('hidden')" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-colors"><i class="fas fa-plus" aria-hidden="true"></i> New Announcement</button>
+        {% endif %}
+    </div>
+    <div class="space-y-4">
+        {% for ann in announcements %}
+        <div class="bg-white rounded-xl border {% if ann.is_pinned %}border-primary-200{% else %}border-gray-100{% endif %} shadow-sm p-5">
+            <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                    <div class="flex flex-wrap items-center gap-2 mb-1">
+                        {% if ann.is_pinned %}<i class="fas fa-thumbtack text-primary-500 text-xs" aria-hidden="true"></i>{% endif %}
+                        <h2 class="font-semibold text-gray-800">{{ ann.title }}</h2>
+                        {% if ann.target_role %}<span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded">{{ ann.target_role }}</span>{% endif %}
+                        <span class="text-xs px-2 py-0.5 rounded-full {% if ann.is_active and not ann.is_expired %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-500{% endif %}">{% if ann.is_expired %}Expired{% elif ann.is_active %}Active{% else %}Inactive{% endif %}</span>
+                    </div>
+                    <p class="text-sm text-gray-600">{{ ann.body|truncatechars:200 }}</p>
+                    <p class="text-xs text-gray-400 mt-2">By {{ ann.created_by.get_full_name|default:ann.created_by.username }} · {{ ann.created_at|timesince }} ago{% if ann.expires_at %} · Expires {{ ann.expires_at|date:"M j, Y" }}{% endif %}</p>
+                </div>
+                {% if permissions.support_communications.can_delete %}
+                <form method="post" action="{% url 'support:announcement_delete' ann.pk %}">{% csrf_token %}<button type="submit" class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" onclick="return confirm('Delete this announcement?')"><i class="fas fa-trash text-xs" aria-hidden="true"></i></button></form>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="bg-white rounded-xl border border-gray-100 p-12 text-center text-gray-400"><i class="fas fa-bullhorn text-4xl mb-3 block opacity-20" aria-hidden="true"></i><p>No announcements yet.</p></div>
+        {% endfor %}
+    </div>
+</div>
+<div id="annModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-5"><h2 class="font-semibold text-gray-900">New Announcement</h2><button onclick="$('#annModal').addClass('hidden')" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times" aria-hidden="true"></i></button></div>
+        <form method="post" action="{% url 'support:announcement_create' %}">
+            {% csrf_token %}
+            <div class="mb-4"><label class="block text-sm font-semibold text-gray-700 mb-1.5">Title *</label><input type="text" name="title" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+            <div class="mb-4"><label class="block text-sm font-semibold text-gray-700 mb-1.5">Body *</label><textarea name="body" required rows="4" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none resize-y"></textarea></div>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div><label class="block text-sm font-semibold text-gray-700 mb-1.5">Target Role</label><select name="target_role" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="">All users</option><option value="student">Students</option><option value="instructor">Instructors</option><option value="support">Support staff</option></select></div>
+                <div><label class="block text-sm font-semibold text-gray-700 mb-1.5">Expires At</label><input type="datetime-local" name="expires_at" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+            </div>
+            <div class="mb-5"><label class="flex items-center gap-2 cursor-pointer text-sm text-gray-700"><input type="checkbox" name="is_pinned" value="1" class="rounded text-primary-600"> Pin this announcement</label></div>
+            <div class="flex gap-3"><button type="submit" class="flex-1 py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-colors">Publish</button><button type="button" onclick="$('#annModal').addClass('hidden')" class="flex-1 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">Cancel</button></div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>$(document).ready(function(){lucide.createIcons();});</script>{% endblock %}

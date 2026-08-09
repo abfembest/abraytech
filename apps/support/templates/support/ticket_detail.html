@@ -1,0 +1,562 @@
+{% extends "management/base.html" %}
+{% load static %}
+
+{% block title %}{{ ticket.ticket_id }} — MIU Support{% endblock %}
+{% block breadcrumb %}Support › Tickets › {{ ticket.ticket_id }}{% endblock %}
+{% block breadcrumb_title %}{{ ticket.subject }}{% endblock %}
+
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8 py-6 max-w-screen-2xl mx-auto">
+
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-sm text-gray-500 mb-5" aria-label="Breadcrumb">
+        <a href="{% url 'support:dashboard' %}" class="hover:text-primary-600 transition-colors">Support</a>
+        <i class="fas fa-chevron-right text-xs" aria-hidden="true"></i>
+        <a href="{% url 'support:ticket_list' %}" class="hover:text-primary-600 transition-colors">Tickets</a>
+        <i class="fas fa-chevron-right text-xs" aria-hidden="true"></i>
+        <span class="text-gray-800 font-semibold">{{ ticket.ticket_id }}</span>
+    </nav>
+
+    <!-- Ticket Header -->
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-5">
+        <div class="flex flex-col lg:flex-row lg:items-start gap-4">
+            <div class="flex-1 min-w-0">
+                <div class="flex flex-wrap items-center gap-3 mb-2">
+                    <span class="font-mono text-sm font-bold text-primary-700 bg-primary-50 px-3 py-1 rounded-lg">
+                        {{ ticket.ticket_id }}
+                    </span>
+                    <!-- Status Badge -->
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                        {% if ticket.status == 'open' %}bg-blue-100 text-blue-700
+                        {% elif ticket.status == 'in_progress' %}bg-yellow-100 text-yellow-700
+                        {% elif ticket.status == 'waiting_response' %}bg-purple-100 text-purple-700
+                        {% elif ticket.status == 'resolved' or ticket.status == 'closed' %}bg-green-100 text-green-700
+                        {% else %}bg-gray-100 text-gray-600{% endif %}">
+                        {{ ticket.get_status_display }}
+                    </span>
+                    <!-- Priority Badge -->
+                    <span class="inline-flex items-center px-3 py-1 rounded text-sm font-semibold
+                        {% if ticket.priority == 'urgent' %}bg-red-100 text-red-700
+                        {% elif ticket.priority == 'high' %}bg-orange-100 text-orange-700
+                        {% elif ticket.priority == 'normal' %}bg-yellow-100 text-yellow-700
+                        {% else %}bg-gray-100 text-gray-500{% endif %}">
+                        {{ ticket.get_priority_display }} Priority
+                    </span>
+                    {% if extra.is_escalated %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold bg-red-600 text-white">
+                        <i class="fas fa-level-up-alt" aria-hidden="true"></i> Escalated (L{{ extra.escalation_level }})
+                    </span>
+                    {% endif %}
+                    {% if extra.is_overdue %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold bg-red-50 border border-red-200 text-red-700">
+                        <i class="fas fa-clock" aria-hidden="true"></i> SLA Breached
+                    </span>
+                    {% endif %}
+                </div>
+                <h1 class="text-xl font-bold font-heading text-gray-900 mb-2">{{ ticket.subject }}</h1>
+                <div class="flex flex-wrap items-center gap-4 text-xs text-gray-400">
+                    <span><i class="fas fa-user mr-1" aria-hidden="true"></i>{{ ticket.user.get_full_name|default:ticket.user.username }}</span>
+                    <span><i class="fas fa-tag mr-1" aria-hidden="true"></i>{{ ticket.get_category_display }}</span>
+                    <span><i class="fas fa-clock mr-1" aria-hidden="true"></i>{{ ticket.created_at|timesince }} ago</span>
+                    <span><i class="fas fa-eye mr-1" aria-hidden="true"></i>{{ extra.view_count }} views</span>
+                    {% if extra.source %}<span><i class="fas fa-globe mr-1" aria-hidden="true"></i>{{ extra.get_source_display }}</span>{% endif %}
+                </div>
+            </div>
+            <!-- Quick Actions -->
+            {% if permissions.support_tickets.can_edit %}
+            <div class="flex flex-wrap items-center gap-2">
+                <!-- Update Status -->
+                <div class="relative" x-data="{open:false}">
+                    <button onclick="$('#statusModal').removeClass('hidden')"
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">
+                        <i class="fas fa-exchange-alt" aria-hidden="true"></i> Status
+                    </button>
+                </div>
+                <!-- Assign -->
+                <button onclick="$('#assignModal').removeClass('hidden')"
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 text-sm font-medium rounded-lg hover:bg-indigo-100 transition-colors">
+                    <i class="fas fa-user-check" aria-hidden="true"></i> Assign
+                </button>
+                <!-- Escalate -->
+                {% if not extra.is_escalated %}
+                <button onclick="$('#escalateModal').removeClass('hidden')"
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 text-orange-700 text-sm font-medium rounded-lg hover:bg-orange-100 transition-colors">
+                    <i class="fas fa-level-up-alt" aria-hidden="true"></i> Escalate
+                </button>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+
+        <!-- Ticket Thread (Left/Main) -->
+        <div class="xl:col-span-2 space-y-4">
+
+            <!-- Conversation — fixed height, scrolls internally so the page doesn't grow forever -->
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm">
+                <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+                    <h3 class="font-semibold text-gray-800 text-sm">Conversation</h3>
+                    <span class="text-xs text-gray-400">{{ replies|length|add:1 }} message{{ replies|length|add:1|pluralize }}</span>
+                </div>
+                <div id="ticketThread" class="p-5 space-y-4 max-h-[30rem] overflow-y-auto">
+
+                    <!-- Original Message -->
+                    <div class="border border-gray-100 rounded-xl p-4">
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-700 font-bold text-sm flex-shrink-0">
+                                {{ ticket.user.first_name|slice:":1" }}{{ ticket.user.last_name|slice:":1" }}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex flex-wrap items-center gap-2 mb-3">
+                                    <span class="font-semibold text-gray-800 text-sm">{{ ticket.user.get_full_name|default:ticket.user.username }}</span>
+                                    <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded">Student</span>
+                                    <span class="text-xs text-gray-400 ml-auto">{{ ticket.created_at|date:"N j, Y, g:i a" }}</span>
+                                </div>
+                                <div class="prose prose-sm max-w-none text-gray-700 leading-relaxed">
+                                    {{ ticket.description|linebreaks }}
+                                </div>
+                                {% if extra.related_course %}
+                                <p class="text-xs text-gray-400 mt-3"><i class="fas fa-book mr-1" aria-hidden="true"></i>Related course: {{ extra.related_course }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Replies -->
+                    {% for reply in replies %}
+                    <div class="rounded-xl border {% if reply.is_internal_note %}border-yellow-200 bg-yellow-50{% else %}border-gray-100{% endif %} p-4
+                        {% if reply.author.profile.role in 'admin,support' or reply.author.is_staff %}border-l-4 {% if reply.is_internal_note %}border-l-yellow-400{% else %}border-l-primary-400{% endif %}{% endif %}">
+                        {% if reply.is_internal_note %}
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="text-xs font-semibold text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded-full">
+                                <i class="fas fa-lock mr-1" aria-hidden="true"></i>Internal Note
+                            </span>
+                        </div>
+                        {% endif %}
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 {% if reply.author.is_staff or reply.author.profile.role in 'admin,support' %}bg-primary-600{% else %}bg-gray-200{% endif %} rounded-full flex items-center justify-center text-{% if reply.author.is_staff or reply.author.profile.role in 'admin,support' %}white{% else %}gray-600{% endif %} font-bold text-sm flex-shrink-0">
+                                {{ reply.author.first_name|slice:":1" }}{{ reply.author.last_name|slice:":1" }}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex flex-wrap items-center gap-2 mb-3">
+                                    <span class="font-semibold text-gray-800 text-sm">{{ reply.author.get_full_name|default:reply.author.username }}</span>
+                                    {% if reply.author.is_staff or reply.author.profile.role in 'admin,support' %}
+                                    <span class="text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded">Support Agent</span>
+                                    {% endif %}
+                                    <span class="text-xs text-gray-400 ml-auto">{{ reply.created_at|date:"N j, Y, g:i a" }}</span>
+                                </div>
+                                <div class="prose prose-sm max-w-none text-gray-700 leading-relaxed">
+                                    {{ reply.message|linebreaks }}
+                                </div>
+                                {% if reply.attachments.all %}
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    {% for att in reply.attachments.all %}
+                                    <a href="{{ att.file.url }}" target="_blank" rel="noopener"
+                                       class="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-700 text-xs rounded-lg hover:bg-gray-200 transition-colors">
+                                        <i class="fas fa-paperclip" aria-hidden="true"></i>
+                                        {{ att.original_name|truncatechars:30 }}
+                                        <span class="text-gray-400">({{ att.file_size_display }})</span>
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                </div>
+            </div>
+
+            <!-- Reply Form -->
+            {% if ticket.status != 'closed' %}
+            {% if permissions.support_tickets.can_create %}
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+                <h3 class="font-semibold text-gray-800 mb-4">Post a Reply</h3>
+                <form method="post" enctype="multipart/form-data" action="{% url 'support:ticket_detail' ticket.ticket_id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="reply">
+
+                    <!-- Canned Response Picker -->
+                    {% if canned_responses %}
+                    <div class="mb-3">
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Insert Canned Response</label>
+                        <select id="cannedPicker" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none">
+                            <option value="">— Select a canned response —</option>
+                            {% for cr in canned_responses %}
+                            <option value="{{ cr.pk }}">{{ cr.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-4">
+                        <textarea name="body" id="replyBody" rows="6"
+                                  class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none resize-y"
+                                  placeholder="Type your reply here…" required></textarea>
+                    </div>
+
+                    <!-- Attachments -->
+                    <div class="mb-4">
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Attachments (max 5, 10MB each)</label>
+                        <input type="file" name="attachments" multiple accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.gif,.xlsx,.csv,.txt,.zip"
+                               class="block w-full text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100">
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3">
+                        <button type="submit"
+                                class="inline-flex items-center gap-2 px-5 py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-colors">
+                            <i class="fas fa-paper-plane" aria-hidden="true"></i> Send Reply
+                        </button>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="is_internal" value="1" class="rounded">
+                            <span class="text-sm text-gray-600">Internal note (not visible to student)</span>
+                        </label>
+                        <!-- Status shortcut -->
+                        <button type="submit" form="" onclick="document.querySelector('[name=action]').value='update_status'; this.form.querySelector('[name=status_value]')?.remove(); var h=document.createElement('input'); h.type='hidden'; h.name='status'; h.value='waiting_response'; this.form.appendChild(h);"
+                                class="hidden"></button>
+                        <button type="button" onclick="
+                            document.querySelector('[name=action]').value='reply';
+                            document.getElementById('replyBody').form.querySelector('[name=is_internal]').checked = true;
+                            document.getElementById('replyBody').form.submit();"
+                                class="text-xs text-yellow-600 hover:text-yellow-700 underline">
+                            Send as internal + mark pending user
+                        </button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="bg-gray-50 rounded-xl border border-gray-200 p-4 text-center text-sm text-gray-500">
+                <i class="fas fa-lock mr-2" aria-hidden="true"></i> This ticket is closed.
+                {% if permissions.support_tickets.can_edit %}
+                <a href="{% url 'support:ticket_detail' ticket.ticket_id %}" onclick="event.preventDefault(); document.getElementById('reopenForm').submit();" class="text-primary-600 hover:underline font-medium">Reopen ticket</a> to reply.
+                <form id="reopenForm" method="post" action="{% url 'support:ticket_detail' ticket.ticket_id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="reopen">
+                </form>
+                {% endif %}
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- Right Sidebar: Meta + History -->
+        <div class="space-y-4">
+
+            <!-- Ticket Info Card -->
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+                <h3 class="font-semibold text-gray-800 mb-4 text-sm">Ticket Details</h3>
+                <dl class="space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500">Status</dt>
+                        <dd class="font-medium text-gray-800">{{ ticket.get_status_display }}</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500">Priority</dt>
+                        <dd class="font-medium text-gray-800">{{ ticket.get_priority_display }}</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500">Category</dt>
+                        <dd class="font-medium text-gray-800 text-right max-w-32">{{ ticket.get_category_display }}</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500">Source</dt>
+                        <dd class="font-medium text-gray-800">{{ extra.get_source_display }}</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500">Department</dt>
+                        <dd class="font-medium text-gray-800">{{ extra.department|default:"—" }}</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500">Assigned To</dt>
+                        <dd class="font-medium {% if not ticket.assigned_to %}text-orange-500{% else %}text-gray-800{% endif %}">
+                            {% if ticket.assigned_to %}{{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}{% else %}Unassigned{% endif %}
+                        </dd>
+                    </div>
+                    <div class="border-t border-gray-100 pt-3"></div>
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500">Created</dt>
+                        <dd class="text-gray-600 text-xs">{{ ticket.created_at|date:"N j, Y, g:i a" }}</dd>
+                    </div>
+                    {% if extra.first_response_at %}
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500">First Response</dt>
+                        <dd class="text-gray-600 text-xs">{{ response_time_hours }}h</dd>
+                    </div>
+                    {% endif %}
+                    {% if extra.due_at %}
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500">SLA Deadline</dt>
+                        <dd class="{% if extra.is_overdue %}text-red-600 font-semibold{% else %}text-gray-600{% endif %} text-xs">
+                            {{ extra.due_at|date:"N j, Y, g:i a" }}
+                            {% if extra.is_overdue %} (Overdue){% endif %}
+                        </dd>
+                    </div>
+                    {% endif %}
+                    {% if ticket.resolved_at %}
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500">Resolved</dt>
+                        <dd class="text-green-600 text-xs font-medium">{{ resolution_time_hours }}h total</dd>
+                    </div>
+                    {% endif %}
+                    {% if extra.tags %}
+                    <div class="border-t border-gray-100 pt-3">
+                        <dt class="text-gray-500 mb-2">Tags</dt>
+                        <dd class="flex flex-wrap gap-1">
+                            {% for tag in extra.tag_list %}
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">{{ tag }}</span>
+                            {% endfor %}
+                        </dd>
+                    </div>
+                    {% endif %}
+                </dl>
+            </div>
+
+            <!-- Student Info -->
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+                <h3 class="font-semibold text-gray-800 mb-3 text-sm">Submitter</h3>
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 font-bold text-sm flex-shrink-0">
+                        {{ ticket.user.first_name|slice:":1" }}{{ ticket.user.last_name|slice:":1" }}
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-800 text-sm">{{ ticket.user.get_full_name|default:ticket.user.username }}</p>
+                        <p class="text-xs text-gray-400">{{ ticket.user.email }}</p>
+                    </div>
+                </div>
+                {% comment %} <dl class="space-y-1.5 text-xs">
+                    {% try %}{% if ticket.user.profile.role %}
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500">Role</dt>
+                        <dd class="text-gray-700">{{ ticket.user.profile.get_role_display }}</dd>
+                    </div>
+                    {% endif %}
+                    {% except %}
+                    {% endtry %}
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500">Total Tickets</dt>
+                        <dd class="text-gray-700">{{ ticket.user.support_tickets.count }}</dd>
+                    </div>
+                </dl> {% endcomment %}
+            </div>
+
+            <!-- CSAT Feedback -->
+            {% if feedback %}
+            <div class="bg-white rounded-xl border border-green-100 shadow-sm p-5">
+                <h3 class="font-semibold text-gray-800 mb-3 text-sm">Customer Feedback</h3>
+                <div class="flex items-center gap-1 mb-2">
+                    {% for i in "12345" %}
+                    <i class="fas fa-star text-sm {% if forloop.counter <= feedback.rating %}text-yellow-400{% else %}text-gray-200{% endif %}" aria-hidden="true"></i>
+                    {% endfor %}
+                    <span class="ml-2 text-sm font-semibold text-gray-800">{{ feedback.rating }}/5</span>
+                </div>
+                {% if feedback.comment %}
+                <p class="text-xs text-gray-600 italic">"{{ feedback.comment }}"</p>
+                {% endif %}
+                <p class="text-xs text-gray-400 mt-2">{{ feedback.created_at|timesince }} ago</p>
+            </div>
+            {% endif %}
+
+            <!-- Quick Update Priority Form -->
+            {% if permissions.support_tickets.can_edit %}
+            <form method="post" action="{% url 'support:ticket_detail' ticket.ticket_id %}" class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_priority">
+                <h3 class="font-semibold text-gray-800 mb-3 text-sm">Update Priority</h3>
+                <select name="priority" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none mb-3">
+                    {% for val, label in priority_choices %}
+                    <option value="{{ val }}" {% if val == ticket.priority %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="w-full px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">
+                    Update Priority
+                </button>
+            </form>
+            {% endif %}
+
+            <!-- History -->
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm">
+                <div class="px-5 py-4 border-b border-gray-100">
+                    <h3 class="font-semibold text-gray-800 text-sm">Activity Log</h3>
+                </div>
+                <div class="p-4 space-y-3 max-h-72 overflow-y-auto">
+                    {% for h in history %}
+                    <div class="flex items-start gap-2 text-xs">
+                        <div class="w-1.5 h-1.5 bg-gray-400 rounded-full flex-shrink-0 mt-1.5"></div>
+                        <div>
+                            <p class="text-gray-700">
+                                <span class="font-medium">{% if h.changed_by %}{{ h.changed_by.get_full_name|default:h.changed_by.username }}{% else %}System{% endif %}</span>
+                                changed <span class="font-medium">{{ h.field_name }}</span>
+                                {% if h.old_value %} from <span class="text-gray-500">{{ h.old_value }}</span>{% endif %}
+                                {% if h.new_value %} to <span class="font-semibold text-primary-700">{{ h.new_value }}</span>{% endif %}
+                            </p>
+                            <p class="text-gray-400">{{ h.created_at|timesince }} ago</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-xs text-gray-400 text-center py-2">No history yet</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Status Modal -->
+<div id="statusModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="statusModalTitle">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+        <div class="flex items-center justify-between mb-5">
+            <h2 id="statusModalTitle" class="font-semibold text-gray-900">Update Status</h2>
+            <button onclick="$('#statusModal').addClass('hidden')" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+        </div>
+        <form method="post" action="{% url 'support:ticket_detail' ticket.ticket_id %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_status">
+            <div class="space-y-2 mb-5">
+                {% for val, label in status_choices %}
+                <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors {% if val == ticket.status %}border-primary-300 bg-primary-50{% else %}border-gray-200{% endif %}">
+                    <input type="radio" name="status" value="{{ val }}" {% if val == ticket.status %}checked{% endif %} class="text-primary-600">
+                    <span class="text-sm font-medium text-gray-700">{{ label }}</span>
+                </label>
+                {% endfor %}
+            </div>
+            <div class="flex gap-3">
+                <button type="submit" class="flex-1 py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-colors">Update</button>
+                <button type="button" onclick="$('#statusModal').addClass('hidden')" class="flex-1 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Assign Modal -->
+<div id="assignModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+        <div class="flex items-center justify-between mb-5">
+            <h2 class="font-semibold text-gray-900">Assign Ticket</h2>
+            <button onclick="$('#assignModal').addClass('hidden')" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+        </div>
+        <form method="post" action="{% url 'support:ticket_detail' ticket.ticket_id %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="assign">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Select Agent</label>
+                <select name="agent_id" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none">
+                    <option value="">— Select agent —</option>
+                    {% for agent in agents %}
+                    <option value="{{ agent.pk }}" {% if agent == ticket.assigned_to %}selected{% endif %}>
+                        {{ agent.get_full_name|default:agent.username }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="flex gap-3">
+                <button type="submit" class="flex-1 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 transition-colors">Assign</button>
+                <button type="button" onclick="$('#assignModal').addClass('hidden')" class="flex-1 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Escalate Modal -->
+<div id="escalateModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-5">
+            <h2 class="font-semibold text-gray-900 text-red-700"><i class="fas fa-level-up-alt mr-2" aria-hidden="true"></i>Escalate Ticket</h2>
+            <button onclick="$('#escalateModal').addClass('hidden')" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+        </div>
+        <form method="post" action="{% url 'support:ticket_detail' ticket.ticket_id %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="escalate">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Reason</label>
+                <select name="reason" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 outline-none">
+                    {% for val, label in escalation_reasons %}
+                    <option value="{{ val }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Escalate To</label>
+                <select name="escalated_to_id" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 outline-none">
+                    <option value="">— Optional: select admin —</option>
+                    {% for admin in admin_agents %}
+                    <option value="{{ admin.pk }}">{{ admin.get_full_name|default:admin.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                <textarea name="notes" rows="3" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 outline-none resize-none" placeholder="Describe why this ticket requires escalation…"></textarea>
+            </div>
+            <div class="flex gap-3">
+                <button type="submit" class="flex-1 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition-colors">Escalate</button>
+                <button type="button" onclick="$('#escalateModal').addClass('hidden')" class="flex-1 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>$(document).ready(function () {
+    lucide.createIcons();
+
+    // Scroll the conversation panel to the latest message on load
+    var thread = document.getElementById('ticketThread');
+    if (thread) thread.scrollTop = thread.scrollHeight;
+
+    // Canned response picker
+    $('#cannedPicker').on('change', function () {
+        var pk = $(this).val();
+        if (!pk) return;
+        $.getJSON('{% url "support:api_canned" pk=0 %}'.replace('/0/', '/' + pk + '/'), function (data) {
+            if (data.ok) {
+                var current = $('#replyBody').val();
+                $('#replyBody').val(current ? current + '\n\n' + data.body : data.body);
+                $('#replyBody').focus();
+            }
+        }).fail(function () {
+            Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Failed to load canned response', timer: 3000, showConfirmButton: false });
+        });
+        $(this).val('');
+    });
+
+    // Close modals on backdrop click
+    $('[id$="Modal"]').on('click', function (e) {
+        if ($(e.target).is(this)) $(this).addClass('hidden');
+    });
+
+    // Close on Escape
+    $(document).on('keydown', function (e) {
+        if (e.key === 'Escape') $('[id$="Modal"]').addClass('hidden');
+    });
+
+    // Confirm escalate
+    $('#escalateModal form').on('submit', function (e) {
+        e.preventDefault();
+        var form = this;
+        Swal.fire({
+            title: 'Escalate Ticket?',
+            text: 'This will flag the ticket as escalated and notify the assigned admin.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            confirmButtonText: 'Yes, Escalate',
+        }).then(function (result) {
+            if (result.isConfirmed) form.submit();
+        });
+    });
+});</script>
+{% endblock %}

@@ -1,0 +1,271 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Course Statistics - Analytics{% endblock %}
+
+{% block meta_description %}
+View comprehensive course statistics including enrollment trends, completion rates, and student performance metrics.
+{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<header class="mb-6 sm:mb-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 font-display leading-tight">
+                Course Statistics
+            </h1>
+            <p class="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">
+                Track your course performance and enrollment trends
+            </p>
+        </div>
+        <div class="flex flex-col xs:flex-row items-stretch xs:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+            <button onclick="window.print()"
+                    class="inline-flex items-center justify-center px-3 sm:px-4 py-2 bg-gray-100 text-gray-700
+                           rounded-lg hover:bg-gray-200 transition-colors text-sm sm:text-base font-medium"
+                    aria-label="Print report">
+                <i class="fas fa-print mr-2" aria-hidden="true"></i>
+                Print Report
+            </button>
+            {% if permissions.instructor_analytics.can_export %}
+            <button onclick="exportData()"
+                    class="inline-flex items-center justify-center px-3 sm:px-4 py-2 bg-primary-600 text-white
+                           rounded-lg hover:bg-primary-700 transition-colors text-sm sm:text-base font-medium"
+                    aria-label="Export data">
+                <i class="fas fa-download mr-2" aria-hidden="true"></i>
+                Export Data
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</header>
+
+<!-- Statistics Overview -->
+<section class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8"
+         aria-label="Key statistics">
+
+    <article class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 lg:p-6 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
+            <div class="w-9 h-9 sm:w-11 sm:h-11 lg:w-12 lg:h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-users text-base sm:text-xl lg:text-2xl text-blue-600" aria-hidden="true"></i>
+            </div>
+            <span class="text-xl sm:text-2xl lg:text-2xl font-bold text-gray-900">{{ total_enrollments }}</span>
+        </div>
+        <h2 class="text-xs sm:text-sm font-medium text-gray-600">Total Enrollments</h2>
+        <p class="text-xs text-gray-500 mt-1">All-time total</p>
+    </article>
+
+    <article class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 lg:p-6 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
+            <div class="w-9 h-9 sm:w-11 sm:h-11 lg:w-12 lg:h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-user-check text-base sm:text-xl lg:text-2xl text-green-600" aria-hidden="true"></i>
+            </div>
+            <span class="text-xl sm:text-2xl lg:text-2xl font-bold text-gray-900">{{ active_students }}</span>
+        </div>
+        <h2 class="text-xs sm:text-sm font-medium text-gray-600">Active Students</h2>
+        <p class="text-xs text-gray-500 mt-1">Currently learning</p>
+    </article>
+
+    <article class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 lg:p-6 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
+            <div class="w-9 h-9 sm:w-11 sm:h-11 lg:w-12 lg:h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-graduation-cap text-base sm:text-xl lg:text-2xl text-purple-600" aria-hidden="true"></i>
+            </div>
+            <span class="text-xl sm:text-2xl lg:text-2xl font-bold text-gray-900">{{ completed_courses }}</span>
+        </div>
+        <h2 class="text-xs sm:text-sm font-medium text-gray-600">Completions</h2>
+        <p class="text-xs text-gray-500 mt-1">Finished courses</p>
+    </article>
+
+    <article class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 lg:p-6 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
+            <div class="w-9 h-9 sm:w-11 sm:h-11 lg:w-12 lg:h-12 bg-yellow-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-star text-base sm:text-xl lg:text-2xl text-yellow-600" aria-hidden="true"></i>
+            </div>
+            <span class="text-xl sm:text-2xl lg:text-2xl font-bold text-gray-900">{{ avg_course_rating|floatformat:1 }}</span>
+        </div>
+        <h2 class="text-xs sm:text-sm font-medium text-gray-600">Average Rating</h2>
+        <p class="text-xs text-gray-500 mt-1">Out of 5.0</p>
+    </article>
+</section>
+
+<!-- Enrollment Trend Chart -->
+<section class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
+    <header class="mb-4 sm:mb-6">
+        <h2 class="text-lg sm:text-xl font-bold text-gray-900">Enrollment Trends</h2>
+        <p class="text-gray-600 text-xs sm:text-sm mt-1">Daily enrollments over the last 30 days</p>
+    </header>
+    <div class="h-56 sm:h-64 md:h-72 lg:h-80">
+        <canvas id="enrollmentChart" aria-label="Enrollment trends chart" role="img"></canvas>
+    </div>
+</section>
+
+<!-- Course Performance Table -->
+<section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <header class="p-4 sm:p-6 border-b border-gray-200">
+        <h2 class="text-lg sm:text-xl font-bold text-gray-900">Course Performance</h2>
+        <p class="text-gray-600 text-xs sm:text-sm mt-1">Detailed metrics for each course</p>
+    </header>
+
+    {% if courses %}
+    <div class="overflow-x-auto">
+        <table class="w-full min-w-[640px]" role="table" aria-label="Course performance data">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
+                        Course
+                    </th>
+                    <th scope="col" class="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
+                        Enrollments
+                    </th>
+                    <th scope="col" class="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
+                        Completions
+                    </th>
+                    <th scope="col" class="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
+                        Completion Rate
+                    </th>
+                    <th scope="col" class="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
+                        Avg. Rating
+                    </th>
+                    <th scope="col" class="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
+                        Status
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white">
+                {% for course in courses %}
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-4 sm:px-6 py-3 sm:py-4">
+                        <div class="flex items-center gap-2 sm:gap-3">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-primary-400 to-secondary-500
+                                        rounded-lg flex-shrink-0 flex items-center justify-center">
+                                <i class="fas fa-book text-white text-xs sm:text-sm" aria-hidden="true"></i>
+                            </div>
+                            <div class="min-w-0">
+                                {% if permissions.instructor_courses.can_edit %}
+                                <a href="{% url 'instructor:course_edit' course.slug %}"
+                                   class="text-xs sm:text-sm font-semibold text-gray-900 hover:text-primary-600 transition-colors
+                                          block truncate max-w-[160px] sm:max-w-[220px] md:max-w-none">
+                                    {{ course.title }}
+                                </a>
+                                {% else %}
+                                <span class="text-xs sm:text-sm font-semibold text-gray-900 block truncate max-w-[160px] sm:max-w-[220px] md:max-w-none">{{ course.title }}</span>
+                                {% endif %}
+                                <p class="text-xs text-gray-500">{{ course.code }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 sm:px-6 py-3 sm:py-4 text-center">
+                        <span class="text-xs sm:text-sm font-semibold text-gray-900">{{ course.enrollment_count }}</span>
+                    </td>
+                    <td class="px-4 sm:px-6 py-3 sm:py-4 text-center">
+                        <span class="text-xs sm:text-sm font-semibold text-gray-900">{{ course.completion_count }}</span>
+                    </td>
+                    <td class="px-4 sm:px-6 py-3 sm:py-4 text-center">
+                        {% widthratio course.completion_count course.enrollment_count 100 as completion_rate %}
+                        <div class="flex items-center justify-center gap-1.5 sm:gap-2">
+                            <div class="w-14 sm:w-20 md:w-24 bg-gray-200 rounded-full h-1.5 sm:h-2">
+                                <div class="bg-green-600 h-1.5 sm:h-2 rounded-full"
+                                     style="width: {{ completion_rate }}%"
+                                     role="progressbar"
+                                     aria-valuenow="{{ completion_rate }}"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100"></div>
+                            </div>
+                            <span class="text-xs sm:text-sm font-semibold text-gray-900 whitespace-nowrap">{{ completion_rate }}%</span>
+                        </div>
+                    </td>
+                    <td class="px-4 sm:px-6 py-3 sm:py-4 text-center">
+                        <div class="flex items-center justify-center gap-1">
+                            <i class="fas fa-star text-yellow-400 text-xs sm:text-sm" aria-hidden="true"></i>
+                            <span class="text-xs sm:text-sm font-semibold text-gray-900">
+                                {{ course.avg_rating|default:"N/A"|floatformat:1 }}
+                            </span>
+                        </div>
+                    </td>
+                    <td class="px-4 sm:px-6 py-3 sm:py-4 text-center">
+                        {% if course.is_published %}
+                        <span class="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 whitespace-nowrap">
+                            <i class="fas fa-check-circle" aria-hidden="true"></i>
+                            <span class="hidden xs:inline">Published</span>
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 whitespace-nowrap">
+                            <i class="fas fa-edit" aria-hidden="true"></i>
+                            <span class="hidden xs:inline">Draft</span>
+                        </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="p-8 sm:p-12 text-center">
+        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-chart-bar text-3xl sm:text-4xl text-gray-400" aria-hidden="true"></i>
+        </div>
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-2">No Course Data</h3>
+        <p class="text-sm sm:text-base text-gray-600 mb-4">Create your first course to see statistics</p>
+        <a href="{% url 'instructor:course_list' %}"
+           class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg
+                  hover:bg-primary-700 transition-colors text-sm sm:text-base">
+            <i class="fas fa-plus-circle" aria-hidden="true"></i>
+            Create Course
+        </a>
+    </div>
+    {% endif %}
+</section>
+
+<!-- Chart.js Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const enrollmentData = {{ daily_enrollments|safe }};
+
+    const ctx = document.getElementById('enrollmentChart');
+    if (ctx && enrollmentData.length > 0) {
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: enrollmentData.map(d => new Date(d.date).toLocaleDateString()),
+                datasets: [{
+                    label: 'Daily Enrollments',
+                    data: enrollmentData.map(d => d.count),
+                    borderColor: '#4a6bff',
+                    backgroundColor: 'rgba(74, 107, 255, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { mode: 'index', intersect: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 0,
+                            maxTicksLimit: window.innerWidth < 480 ? 5 : window.innerWidth < 768 ? 8 : 15
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+
+function exportData() {
+    alert('Export functionality will be implemented soon!');
+}
+</script>
+{% endblock %}

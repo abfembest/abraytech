@@ -1,0 +1,521 @@
+{% extends "management/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - {{ site_config.school_short_name }} Student Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Grade badge colours — same palette as Academic Records */
+    .grade-A  { background:#dcfce7; color:#166534; }
+    .grade-B  { background:#dbeafe; color:#1e40af; }
+    .grade-C  { background:#fef9c3; color:#854d0e; }
+    .grade-D  { background:#ffedd5; color:#9a3412; }
+    .grade-F  { background:#fee2e2; color:#991b1b; }
+    .grade-I,
+    .grade-W  { background:#f3f4f6; color:#6b7280; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-screen-9xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+
+                <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
+
+
+    <!-- Page Header -->
+    <header class="mb-4 sm:mb-6 lg:mb-8">
+        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">
+            Grades & Performance
+        </h1>
+        <p class="text-xs sm:text-sm lg:text-base text-gray-600 mt-1 sm:mt-2">
+            Track your academic performance across all courses
+        </p>
+    </header>
+
+    <!-- Stats: 2-col mobile → 4-col md+ -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 mb-4 sm:mb-6 lg:mb-8">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 lg:p-5">
+            <div class="flex items-center justify-between mb-1 sm:mb-2">
+                <p class="text-xs sm:text-sm text-gray-500 font-medium leading-tight">Total Courses</p>
+                <i class="fas fa-book text-blue-500 text-sm sm:text-base lg:text-xl flex-shrink-0" aria-hidden="true"></i>
+            </div>
+            <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{{ enrollments.count }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 lg:p-5">
+            <div class="flex items-center justify-between mb-1 sm:mb-2">
+                <p class="text-xs sm:text-sm text-gray-500 font-medium leading-tight">Completed</p>
+                <i class="fas fa-check-circle text-green-500 text-sm sm:text-base lg:text-xl flex-shrink-0" aria-hidden="true"></i>
+            </div>
+            <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
+                {% for enrollment in enrollments %}{% if enrollment.status == 'completed' %}1{% endif %}{% endfor %}
+            </p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 lg:p-5">
+            <div class="flex items-center justify-between mb-1 sm:mb-2">
+                <p class="text-xs sm:text-sm text-gray-500 font-medium leading-tight">Assignments</p>
+                <i class="fas fa-file-alt text-orange-500 text-sm sm:text-base lg:text-xl flex-shrink-0" aria-hidden="true"></i>
+            </div>
+            <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{{ submissions.count }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 lg:p-5">
+            <div class="flex items-center justify-between mb-1 sm:mb-2">
+                <p class="text-xs sm:text-sm text-gray-500 font-medium leading-tight">CGPA</p>
+                <i class="fas fa-star text-yellow-500 text-sm sm:text-base lg:text-xl flex-shrink-0" aria-hidden="true"></i>
+            </div>
+            <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
+                {% if cgpa %}{{ cgpa }}{% else %}N/A{% endif %}
+            </p>
+            <p class="text-[11px] text-gray-400 mt-1">5-point scale</p>
+        </div>
+    </div>
+
+    <!-- Course Grades -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-4 sm:mb-6 lg:mb-8 overflow-hidden">
+        <div class="p-3 sm:p-4 lg:p-6 border-b border-gray-200">
+            <h2 class="text-sm sm:text-base lg:text-xl font-bold text-gray-900">Course Grades</h2>
+        </div>
+
+        <!-- Mobile cards -->
+        <div class="md:hidden divide-y divide-gray-100">
+            {% for enrollment in enrollments %}
+            <div class="p-3 sm:p-4">
+                <p class="text-xs sm:text-sm font-semibold text-gray-900 leading-snug mb-0.5">{{ enrollment.course.title }}</p>
+                <p class="text-xs text-gray-400 mb-2">{{ enrollment.course.instructor.get_full_name|default:site_config.school_short_name }}</p>
+                <!-- Progress -->
+                <div class="flex items-center gap-2 mb-2.5">
+                    <div class="flex-1 bg-gray-200 rounded-full h-2"
+                         role="progressbar"
+                         aria-valuenow="{{ enrollment.progress_percentage }}"
+                         aria-valuemin="0" aria-valuemax="100">
+                        <div class="h-2 rounded-full {% if enrollment.progress_percentage == 100 %}bg-green-500{% else %}bg-primary-600{% endif %}"
+                             style="width: {{ enrollment.progress_percentage }}%"></div>
+                    </div>
+                    <span class="text-xs font-semibold text-gray-700 w-9 text-right flex-shrink-0">
+                        {{ enrollment.progress_percentage|floatformat:0 }}%
+                    </span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-gray-400 mb-0.5">Grade</p>
+                        {% if enrollment.current_grade %}
+                        <span class="text-sm font-bold
+                            {% if enrollment.current_grade >= 90 %}text-green-600
+                            {% elif enrollment.current_grade >= 70 %}text-blue-600
+                            {% elif enrollment.current_grade >= 50 %}text-orange-500
+                            {% else %}text-red-600{% endif %}">
+                            {{ enrollment.current_grade|floatformat:1 }}%
+                        </span>
+                        {% else %}
+                        <span class="text-xs text-gray-400">Not graded</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center gap-2">
+                        {% if enrollment.status == 'completed' %}
+                        <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">Completed</span>
+                        {% elif enrollment.status == 'active' %}
+                        <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">In Progress</span>
+                        {% else %}
+                        <span class="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">{{ enrollment.get_status_display }}</span>
+                        {% endif %}
+                        <a href="{% url 'students:course_detail' enrollment.course.slug %}"
+                           class="text-xs text-primary-600 hover:text-primary-700 font-medium">View →</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-8 text-center">
+                <i class="fas fa-book-open text-3xl text-gray-200 mb-2 block" aria-hidden="true"></i>
+                <p class="text-xs sm:text-sm text-gray-500">No courses enrolled yet</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Desktop table -->
+        <div class="hidden md:block overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Course</th>
+                        <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Progress</th>
+                        <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Grade</th>
+                        <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100">
+                    {% for enrollment in enrollments %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            <p class="text-sm font-semibold text-gray-900">{{ enrollment.course.title }}</p>
+                            <p class="text-xs text-gray-500 mt-0.5">{{ enrollment.course.instructor.get_full_name|default:site_config.school_short_name }}</p>
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4 min-w-[140px]">
+                            <div class="flex items-center gap-2">
+                                <div class="flex-1 bg-gray-200 rounded-full h-2">
+                                    <div class="h-2 rounded-full {% if enrollment.progress_percentage == 100 %}bg-green-500{% else %}bg-primary-600{% endif %}"
+                                         style="width: {{ enrollment.progress_percentage }}%"></div>
+                                </div>
+                                <span class="text-xs font-semibold text-gray-700 w-9 text-right flex-shrink-0">
+                                    {{ enrollment.progress_percentage|floatformat:0 }}%
+                                </span>
+                            </div>
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            {% if enrollment.current_grade %}
+                            <span class="text-base font-bold
+                                {% if enrollment.current_grade >= 90 %}text-green-600
+                                {% elif enrollment.current_grade >= 70 %}text-blue-600
+                                {% elif enrollment.current_grade >= 50 %}text-orange-500
+                                {% else %}text-red-600{% endif %}">
+                                {{ enrollment.current_grade|floatformat:1 }}%
+                            </span>
+                            {% else %}
+                            <span class="text-sm text-gray-400">Not graded yet</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            {% if enrollment.status == 'completed' %}
+                            <span class="px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Completed</span>
+                            {% elif enrollment.status == 'active' %}
+                            <span class="px-2.5 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">In Progress</span>
+                            {% else %}
+                            <span class="px-2.5 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">{{ enrollment.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            <a href="{% url 'students:course_detail' enrollment.course.slug %}"
+                               class="text-xs sm:text-sm text-primary-600 hover:text-primary-700 font-medium">View Details →</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center">
+                            <i class="fas fa-book-open text-4xl text-gray-200 mb-2 block" aria-hidden="true"></i>
+                            <p class="text-sm text-gray-500">No courses enrolled yet</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Official Course Grades — the authoritative CourseGrade record (weighted
+         exam/quiz/assignment blend). This is the same source the dashboard,
+         Academic Records, and progression decisions all read — everything
+         above/below this section (LMS progress %, raw assignment scores, raw
+         quiz attempts) is supplementary activity detail, not the official grade. -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-4 sm:mb-6 lg:mb-8 overflow-hidden">
+        <div class="p-3 sm:p-4 lg:p-6 border-b border-gray-200 flex items-center justify-between">
+            <div>
+                <h2 class="text-sm sm:text-base lg:text-xl font-bold text-gray-900">Official Course Grades</h2>
+                <p class="text-xs text-gray-500 mt-0.5">Recorded per session — see Academic Records for the full transcript</p>
+            </div>
+            <a href="{% url 'students:academic_records' %}" class="text-xs sm:text-sm text-primary-600 hover:text-primary-700 font-medium whitespace-nowrap">
+                Full Transcript →
+            </a>
+        </div>
+
+        {% if pending_results_count %}
+        <div class="mx-3 sm:mx-4 lg:mx-6 mt-3 sm:mt-4 mb-1 flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+            <i class="fas fa-hourglass-half" aria-hidden="true"></i>
+            {{ pending_results_count }} result{{ pending_results_count|pluralize }} awaiting registrar approval — not shown here yet.
+        </div>
+        {% endif %}
+
+        <!-- Mobile cards -->
+        <div class="md:hidden divide-y divide-gray-100">
+            {% for grade in academic_grades %}
+            <div class="p-3 sm:p-4">
+                <p class="text-xs sm:text-sm font-semibold text-gray-900 leading-snug mb-0.5">{{ grade.course.code }} — {{ grade.course.name }}</p>
+                <p class="text-xs text-gray-400 mb-2">{{ grade.session.name }} &bull; {{ grade.course.get_semester_display }}</p>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-baseline gap-1.5">
+                        {% if grade.grade %}
+                        <span class="text-sm font-bold grade-{{ grade.grade }} px-2 py-0.5 rounded-full">{{ grade.grade }}</span>
+                        <span class="text-xs text-gray-400">{{ grade.score|default:"—" }}%</span>
+                        {% else %}
+                        <span class="text-xs text-gray-400">Pending</span>
+                        {% endif %}
+                    </div>
+                    {% if grade.is_passed %}
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                        <i class="fas fa-check-circle text-xs" aria-hidden="true"></i>Passed
+                    </span>
+                    {% elif grade.grade %}
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                        <i class="fas fa-times-circle text-xs" aria-hidden="true"></i>Failed
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-8 text-center">
+                <i class="fas fa-graduation-cap text-3xl text-gray-200 mb-2 block" aria-hidden="true"></i>
+                <p class="text-xs sm:text-sm text-gray-500">No official grades recorded yet</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Desktop table -->
+        <div class="hidden md:block overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Course</th>
+                        <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Session / Term</th>
+                        <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Score</th>
+                        <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Grade</th>
+                        <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100">
+                    {% for grade in academic_grades %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            <p class="text-sm font-semibold text-gray-900">{{ grade.course.code }}</p>
+                            <p class="text-xs text-gray-500 mt-0.5">{{ grade.course.name }}</p>
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            <p class="text-sm text-gray-600">{{ grade.session.name }}</p>
+                            <p class="text-xs text-gray-400 mt-0.5">{{ grade.course.get_semester_display }}</p>
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            <span class="text-sm text-gray-700">{% if grade.score %}{{ grade.score }}%{% else %}&mdash;{% endif %}</span>
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            {% if grade.grade %}
+                            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold grade-{{ grade.grade }}">{{ grade.grade }}</span>
+                            {% else %}
+                            <span class="text-sm text-gray-400">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            {% if grade.is_passed %}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                                <i class="fas fa-check-circle" aria-hidden="true"></i>Passed
+                            </span>
+                            {% elif grade.grade %}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                                <i class="fas fa-times-circle" aria-hidden="true"></i>Failed
+                            </span>
+                            {% else %}
+                            <span class="text-sm text-gray-400">&mdash;</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center">
+                            <i class="fas fa-graduation-cap text-4xl text-gray-200 mb-2 block" aria-hidden="true"></i>
+                            <p class="text-sm text-gray-500">No official grades recorded yet</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Assignment Grades -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="p-3 sm:p-4 lg:p-6 border-b border-gray-200">
+            <h2 class="text-sm sm:text-base lg:text-xl font-bold text-gray-900">Assignment Grades</h2>
+        </div>
+
+        <!-- Mobile cards -->
+        <div class="md:hidden divide-y divide-gray-100">
+            {% for submission in submissions %}
+            <div class="p-3 sm:p-4">
+                <p class="text-xs sm:text-sm font-semibold text-gray-900 leading-snug mb-0.5">{{ submission.assignment.title }}</p>
+                <p class="text-xs text-gray-500 mb-0.5">{{ submission.assignment.lesson.course.title }}</p>
+                <p class="text-xs text-gray-400 mb-2">Submitted: {{ submission.submitted_at|date:"M d, Y" }}</p>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-sm font-bold {% if submission.passed %}text-green-600{% else %}text-red-600{% endif %}">
+                            {{ submission.score|floatformat:1 }}
+                        </span>
+                        <span class="text-xs text-gray-400">/ {{ submission.assignment.max_score }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        {% if submission.passed %}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                            <i class="fas fa-check-circle text-xs" aria-hidden="true"></i>Passed
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                            <i class="fas fa-times-circle text-xs" aria-hidden="true"></i>Failed
+                        </span>
+                        {% endif %}
+                        <a href="{% url 'students:assignment_detail' submission.assignment.lesson.course.slug submission.assignment.slug %}"
+                           class="text-xs text-primary-600 hover:text-primary-700 font-medium">View →</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-8 text-center">
+                <i class="fas fa-clipboard-list text-3xl text-gray-200 mb-2 block" aria-hidden="true"></i>
+                <p class="text-xs sm:text-sm text-gray-500">No graded assignments yet</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Desktop table -->
+        <div class="hidden md:block overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Assignment</th>
+                        <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Course</th>
+                        <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Submitted</th>
+                        <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Score</th>
+                        <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100">
+                    {% for submission in submissions %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            <p class="text-sm font-semibold text-gray-900">{{ submission.assignment.title }}</p>
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            <p class="text-sm text-gray-600">{{ submission.assignment.lesson.course.title }}</p>
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            <p class="text-sm text-gray-500">{{ submission.submitted_at|date:"M d, Y" }}</p>
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-base font-bold {% if submission.passed %}text-green-600{% else %}text-red-600{% endif %}">
+                                    {{ submission.score|floatformat:1 }}
+                                </span>
+                                <span class="text-xs text-gray-400">/ {{ submission.assignment.max_score }}</span>
+                            </div>
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            {% if submission.passed %}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                                <i class="fas fa-check-circle" aria-hidden="true"></i>Passed
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                                <i class="fas fa-times-circle" aria-hidden="true"></i>Failed
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            <a href="{% url 'students:assignment_detail' submission.assignment.lesson.course.slug submission.assignment.slug %}"
+                               class="text-xs sm:text-sm text-primary-600 hover:text-primary-700 font-medium">View Details →</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center">
+                            <i class="fas fa-clipboard-list text-4xl text-gray-200 mb-2 block" aria-hidden="true"></i>
+                            <p class="text-sm text-gray-500">No graded assignments yet</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+<!-- quiz grades -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-8">
+        <div class="p-3 sm:p-4 lg:p-6 border-b border-gray-200">
+            <h2 class="text-sm sm:text-base lg:text-xl font-bold text-gray-900">quiz grades</h2>
+        </div>
+
+        <!-- mobile cards -->
+        <div class="md:hidden divide-y divide-gray-100">
+            {% for attempt in quiz_attempts %}
+            <div class="p-3 sm:p-4">
+                <p class="text-xs sm:text-sm font-semibold text-gray-900 leading-snug mb-0.5">{{ attempt.quiz.title }}</p>
+                <p class="text-xs text-gray-500 mb-0.5">{{ attempt.quiz.lesson.course.title }}</p>
+                <p class="text-xs text-gray-400 mb-2">{{ attempt.completed_at|date:"m d, y" }}</p>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-sm font-bold {% if attempt.passed %}text-green-600{% else %}text-red-600{% endif %}">
+                            {{ attempt.percentage|floatformat:1 }}%
+                        </span>
+                        <span class="text-xs text-gray-400">/ 100%</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        {% if attempt.passed %}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                            <i class="fas fa-check-circle text-xs" aria-hidden="true"></i>passed
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                            <i class="fas fa-times-circle text-xs" aria-hidden="true"></i>failed
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-8 text-center">
+                <i class="fas fa-question-circle text-3xl text-gray-200 mb-2 block" aria-hidden="true"></i>
+                <p class="text-xs sm:text-sm text-gray-500">no quiz attempts yet</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- desktop table -->
+        <div class="hidden md:block overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">quiz</th>
+                        <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">course</th>
+                        <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">date</th>
+                        <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">score</th>
+                        <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">status</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100">
+                    {% for attempt in quiz_attempts %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            <p class="text-sm font-semibold text-gray-900">{{ attempt.quiz.title }}</p>
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            <p class="text-sm text-gray-600">{{ attempt.quiz.lesson.course.title }}</p>
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            <p class="text-sm text-gray-500">{{ attempt.completed_at|date:"M d, Y" }}</p>
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            <span class="text-base font-bold {% if attempt.passed %}text-green-600{% else %}text-red-600{% endif %}">
+                                {{ attempt.percentage|floatformat:1 }}%
+                            </span>
+                        </td>
+                        <td class="px-4 lg:px-6 py-3 lg:py-4">
+                            {% if attempt.passed %}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                                <i class="fas fa-check-circle" aria-hidden="true"></i>Passed
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                                <i class="fas fa-times-circle" aria-hidden="true"></i>Failed
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center">
+                            <i class="fas fa-question-circle text-4xl text-gray-200 mb-2 block" aria-hidden="true"></i>
+                            <p class="text-sm text-gray-500">No quiz attempts yet</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

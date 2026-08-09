@@ -1,0 +1,407 @@
+{% load static %}
+<div id="programFormFieldsPartial">
+
+  {% if form.non_field_errors %}
+  <div class="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 mb-3">
+    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Tabs -->
+  <div class="flex gap-1 border-b border-gray-200 mb-3" role="tablist">
+    <button type="button" data-tab-btn="academic"
+            class="program-tab-btn flex-1 sm:flex-none flex items-center justify-center sm:justify-start gap-1.5 px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium border-b-2 border-primary-600 text-primary-600 -mb-px whitespace-nowrap">
+      <i class="fas fa-graduation-cap" aria-hidden="true"></i><span class="truncate">Academic &amp; Financial</span>
+    </button>
+    <button type="button" data-tab-btn="content"
+            class="program-tab-btn flex-1 sm:flex-none flex items-center justify-center sm:justify-start gap-1.5 px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 -mb-px whitespace-nowrap">
+      <i class="fas fa-image" aria-hidden="true"></i><span class="truncate">Content &amp; Media</span>
+    </button>
+  </div>
+
+  <!-- ══════════════════ TAB 1: Academic & Financial ══════════════════ -->
+  <div data-tab-panel="academic" class="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start">
+
+    <!-- Section: Basic Info -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div class="px-4 py-2 bg-gray-50 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800 text-sm"><i class="fas fa-info-circle text-primary-500 mr-2" aria-hidden="true"></i>Basic Information</h2>
+      </div>
+      <div class="p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+        <div class="sm:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Department <span class="text-red-500">*</span></label>
+          <select name="{{ form.department.html_name }}" id="id_department" required
+                  class="searchable-select w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm {% if form.department.errors %}border-red-400{% endif %}"
+                  data-ss-placeholder="Search and select department…">
+            <option value="">Search and select department…</option>
+            {% regroup form.department.field.queryset by faculty as faculty_groups %}
+            {% for group in faculty_groups %}
+            <optgroup label="{{ group.grouper.name }}">
+              {% for dept in group.list %}
+              <option value="{{ dept.pk }}" {% if form.department.value|stringformat:"s" == dept.pk|stringformat:"s" %}selected{% endif %}>{{ dept.name }}</option>
+              {% endfor %}
+            </optgroup>
+            {% endfor %}
+          </select>
+          {% if form.department.errors %}<p class="text-xs text-red-500 mt-1">{{ form.department.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Program Name <span class="text-red-500">*</span></label>
+          <input type="text" name="{{ form.name.html_name }}" value="{{ form.name.value|default:'' }}" required
+                 placeholder="e.g., BSc Electrical Engineering"
+                 class="w-full px-3 py-2 border {% if form.name.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          {% if form.name.errors %}<p class="text-xs text-red-500 mt-1">{{ form.name.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Program Code <span class="text-red-500">*</span></label>
+          <input type="text" name="{{ form.code.html_name }}" value="{{ form.code.value|default:'' }}" required
+                 placeholder="e.g., BSC-EEE"
+                 class="w-full px-3 py-2 border {% if form.code.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm uppercase">
+          {% if form.code.errors %}<p class="text-xs text-red-500 mt-1">{{ form.code.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Degree Level <span class="text-red-500">*</span></label>
+          <select name="{{ form.degree_level.html_name }}" required
+                  class="w-full px-3 py-2 border {% if form.degree_level.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+            <option value="">Select…</option>
+            {% for val, label in form.degree_level.field.choices %}
+            {% if val %}<option value="{{ val }}" {% if form.degree_level.value == val %}selected{% endif %}>{{ label }}</option>{% endif %}
+            {% endfor %}
+          </select>
+          {% if form.degree_level.errors %}<p class="text-xs text-red-500 mt-1">{{ form.degree_level.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Duration (Years) <span class="text-red-500">*</span></label>
+          <input type="number" name="{{ form.duration_years.html_name }}" value="{{ form.duration_years.value|default:'' }}" required
+                 step="0.5" min="0.5" placeholder="4.0"
+                 class="w-full px-3 py-2 border {% if form.duration_years.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          {% if form.duration_years.errors %}<p class="text-xs text-red-500 mt-1">{{ form.duration_years.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div class="sm:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Tagline</label>
+          <input type="text" name="{{ form.tagline.html_name }}" value="{{ form.tagline.value|default:'' }}"
+                 placeholder="Short marketing tagline…"
+                 class="w-full px-3 py-2 border {% if form.tagline.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          {% if form.tagline.errors %}<p class="text-xs text-red-500 mt-1">{{ form.tagline.errors.0 }}</p>{% endif %}
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Section: Academic Structure -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div class="px-4 py-2 bg-gray-50 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800 text-sm"><i class="fas fa-calendar-alt text-blue-500 mr-2" aria-hidden="true"></i>Academic Structure</h2>
+      </div>
+      <div class="p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Credits Required <span class="text-red-500">*</span></label>
+          <input type="number" name="{{ form.credits_required.html_name }}" value="{{ form.credits_required.value|default:'120' }}" required
+                 min="0"
+                 class="w-full px-3 py-2 border {% if form.credits_required.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          {% if form.credits_required.errors %}<p class="text-xs text-red-500 mt-1">{{ form.credits_required.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Max Students</label>
+          <input type="number" name="{{ form.max_students.html_name }}" value="{{ form.max_students.value|default:'' }}"
+                 min="1" placeholder="Unlimited"
+                 class="w-full px-3 py-2 border {% if form.max_students.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          {% if form.max_students.errors %}<p class="text-xs text-red-500 mt-1">{{ form.max_students.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Min CGPA to Progress <span class="text-red-500">*</span></label>
+          <input type="number" name="{{ form.min_cgpa_to_progress.html_name }}" value="{{ form.min_cgpa_to_progress.value|default:'1.00' }}" required
+                 step="0.01" min="0" max="5"
+                 class="w-full px-3 py-2 border {% if form.min_cgpa_to_progress.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          {% if form.min_cgpa_to_progress.errors %}<p class="text-xs text-red-500 mt-1">{{ form.min_cgpa_to_progress.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Default Max CU / Semester <span class="text-red-500">*</span></label>
+          <input type="number" name="{{ form.max_credits_per_semester.html_name }}" value="{{ form.max_credits_per_semester.value|default:'24' }}" required
+                 min="1" max="30"
+                 class="w-full px-3 py-2 border {% if form.max_credits_per_semester.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          {% if form.max_credits_per_semester.errors %}<p class="text-xs text-red-500 mt-1">{{ form.max_credits_per_semester.errors.0 }}</p>{% endif %}
+        </div>
+        <div class="col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Study Modes</label>
+          <div class="flex flex-wrap gap-x-4 gap-y-1">
+            {% for val, label in form.available_study_modes.field.choices %}
+            <label class="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
+              <input type="checkbox" name="{{ form.available_study_modes.html_name }}" value="{{ val }}"
+                     {% if val in form.available_study_modes.value %}checked{% endif %}
+                     class="w-4 h-4 rounded text-primary-600 border-gray-300 focus:ring-primary-500">
+              {{ label }}
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="px-3 pb-3">
+        <div class="border border-dashed border-gray-300 rounded-lg p-2.5">
+          <p class="text-xs font-medium text-gray-700">Per-Term Credit Unit Overrides <span class="font-normal text-gray-400">(optional — leave blank to use the default above)</span></p>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2">
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">{{ form.cu_first.label }}</label>
+              <input type="number" name="{{ form.cu_first.html_name }}" value="{{ form.cu_first.value|default:'' }}"
+                     min="1" max="30" placeholder="Default"
+                     class="w-full px-3 py-1.5 border {% if form.cu_first.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+              {% if form.cu_first.errors %}<p class="text-xs text-red-500 mt-1">{{ form.cu_first.errors.0 }}</p>{% endif %}
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">{{ form.cu_second.label }}</label>
+              <input type="number" name="{{ form.cu_second.html_name }}" value="{{ form.cu_second.value|default:'' }}"
+                     min="1" max="30" placeholder="Default"
+                     class="w-full px-3 py-1.5 border {% if form.cu_second.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+              {% if form.cu_second.errors %}<p class="text-xs text-red-500 mt-1">{{ form.cu_second.errors.0 }}</p>{% endif %}
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">{{ form.cu_annual.label }}</label>
+              <input type="number" name="{{ form.cu_annual.html_name }}" value="{{ form.cu_annual.value|default:'' }}"
+                     min="1" max="30" placeholder="Default"
+                     class="w-full px-3 py-1.5 border {% if form.cu_annual.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+              {% if form.cu_annual.errors %}<p class="text-xs text-red-500 mt-1">{{ form.cu_annual.errors.0 }}</p>{% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if sessions_with_terms %}
+    <!-- Section: Per-Session Credit Unit Overrides -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div class="px-4 py-2 bg-gray-50 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800 text-sm"><i class="fas fa-layer-group text-purple-500 mr-2" aria-hidden="true"></i>Per-Session Credit Unit Overrides</h2>
+        <p class="text-xs text-gray-500">Most specific tier — overrides the tiers above for this session's term(s).</p>
+      </div>
+      <div class="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-40 overflow-y-auto">
+        {% for entry in sessions_with_terms %}
+        <div class="border border-gray-200 rounded-lg p-2.5">
+          <p class="text-xs font-semibold text-gray-800 mb-1.5">
+            {{ entry.session.name }}
+            {% if entry.session.is_current %}<span class="ml-1 px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded-full text-[9px] font-semibold uppercase align-middle">Current</span>{% endif %}
+          </p>
+          <div class="grid grid-cols-2 gap-2">
+            {% for t in entry.terms %}
+            <div>
+              <label class="block text-[11px] font-medium text-gray-600 mb-0.5">{{ t.label }}</label>
+              <input type="number" name="session_cap_{{ entry.session.pk }}_{{ t.term }}" value="{{ t.value }}"
+                     min="1" max="30" placeholder="Default"
+                     class="w-full px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Section: Financial -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div class="px-4 py-2 bg-gray-50 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800 text-sm"><i class="fas fa-dollar-sign text-green-500 mr-2" aria-hidden="true"></i>Financial</h2>
+      </div>
+      <div class="p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Tuition Fee / Year ($) <span class="text-red-500">*</span></label>
+          <input type="number" name="{{ form.tuition_fee.html_name }}" value="{{ form.tuition_fee.value|default:'0.00' }}" required
+                 step="0.01" min="0"
+                 class="w-full px-3 py-2 border {% if form.tuition_fee.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          {% if form.tuition_fee.errors %}<p class="text-xs text-red-500 mt-1">{{ form.tuition_fee.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════ TAB 2: Content & Media ══════════════════ -->
+  <div data-tab-panel="content" class="grid grid-cols-1 lg:grid-cols-2 gap-3 hidden items-start">
+
+    <!-- Section: Curriculum & Outcomes -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div class="px-4 py-2 bg-gray-50 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800 text-sm"><i class="fas fa-book-open text-indigo-500 mr-2" aria-hidden="true"></i>Curriculum &amp; Outcomes <span class="font-normal text-gray-400 text-xs">(optional)</span></h2>
+      </div>
+      <div class="p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">{{ form.entry_requirements_text.label }} <span class="text-gray-400 font-normal">(one per line)</span></label>
+          <textarea name="{{ form.entry_requirements_text.html_name }}" rows="2" placeholder="{{ form.entry_requirements_text.field.widget.attrs.placeholder }}"
+                    class="w-full px-3 py-1.5 border {% if form.entry_requirements_text.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm resize-none">{{ form.entry_requirements_text.value|default:'' }}</textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">{{ form.core_courses_text.label }} <span class="text-gray-400 font-normal">(one per line)</span></label>
+          <textarea name="{{ form.core_courses_text.html_name }}" rows="2" placeholder="{{ form.core_courses_text.field.widget.attrs.placeholder }}"
+                    class="w-full px-3 py-1.5 border {% if form.core_courses_text.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm resize-none">{{ form.core_courses_text.value|default:'' }}</textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">{{ form.specialization_tracks_text.label }} <span class="text-gray-400 font-normal">(one per line)</span></label>
+          <textarea name="{{ form.specialization_tracks_text.html_name }}" rows="2" placeholder="{{ form.specialization_tracks_text.field.widget.attrs.placeholder }}"
+                    class="w-full px-3 py-1.5 border {% if form.specialization_tracks_text.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm resize-none">{{ form.specialization_tracks_text.value|default:'' }}</textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">{{ form.learning_outcomes_text.label }} <span class="text-gray-400 font-normal">(one per line)</span></label>
+          <textarea name="{{ form.learning_outcomes_text.html_name }}" rows="2" placeholder="{{ form.learning_outcomes_text.field.widget.attrs.placeholder }}"
+                    class="w-full px-3 py-1.5 border {% if form.learning_outcomes_text.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm resize-none">{{ form.learning_outcomes_text.value|default:'' }}</textarea>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-medium text-gray-700 mb-1">{{ form.career_paths_text.label }} <span class="text-gray-400 font-normal">(one per line)</span></label>
+          <textarea name="{{ form.career_paths_text.html_name }}" rows="2" placeholder="{{ form.career_paths_text.field.widget.attrs.placeholder }}"
+                    class="w-full px-3 py-1.5 border {% if form.career_paths_text.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm resize-none">{{ form.career_paths_text.value|default:'' }}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: Content -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div class="px-4 py-2 bg-gray-50 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800 text-sm"><i class="fas fa-align-left text-purple-500 mr-2" aria-hidden="true"></i>Content</h2>
+      </div>
+      <div class="p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Overview <span class="text-xs text-gray-400">(listing pages)</span></label>
+          <textarea name="{{ form.overview.html_name }}" rows="2"
+                    class="w-full px-3 py-1.5 border {% if form.overview.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm resize-none">{{ form.overview.value|default:'' }}</textarea>
+          {% if form.overview.errors %}<p class="text-xs text-red-500 mt-1">{{ form.overview.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Full Description</label>
+          <textarea name="{{ form.description.html_name }}" rows="2"
+                    class="w-full px-3 py-1.5 border {% if form.description.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm resize-none">{{ form.description.value|default:'' }}</textarea>
+          {% if form.description.errors %}<p class="text-xs text-red-500 mt-1">{{ form.description.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: Media -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div class="px-4 py-2 bg-gray-50 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800 text-sm"><i class="fas fa-image text-blue-500 mr-2" aria-hidden="true"></i>Media</h2>
+      </div>
+      <div class="p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Hero Image <span class="text-gray-400 font-normal">(1200x400px, max 2MB)</span></label>
+          <div class="program-hero-preview-wrap {% if not form.hero_image.value %}hidden{% endif %} mb-1.5">
+            <img class="program-hero-preview-img h-16 w-full object-cover rounded-lg border border-gray-300" src="{% if form.hero_image.value %}{{ form.hero_image.value.url }}{% endif %}" alt="Hero preview">
+          </div>
+          {% if form.hero_image.value %}
+          <label class="mb-1 inline-flex items-center gap-1.5 text-xs text-gray-600">
+            <input type="checkbox" name="hero_image-clear" class="w-3.5 h-3.5">Clear image
+          </label>
+          {% endif %}
+          <input type="file" name="{{ form.hero_image.html_name }}" accept="image/*" class="program-hero-input w-full text-xs border {% if form.hero_image.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg px-2.5 py-1.5">
+          {% if form.hero_image.errors %}<p class="text-xs text-red-500 mt-1">{{ form.hero_image.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Gallery Image 1 <span class="text-gray-400 font-normal">(max 2MB)</span></label>
+          <div class="program-gallery-preview-wrap" data-slot="1">
+            <div class="{% if not form.gallery_image_1.value %}hidden{% endif %} mb-1.5">
+              <img class="program-gallery-preview-img h-16 w-full object-cover rounded-lg border border-gray-300" src="{% if form.gallery_image_1.value %}{{ form.gallery_image_1.value.url }}{% endif %}" alt="Gallery preview 1">
+            </div>
+          </div>
+          {% if form.gallery_image_1.value %}
+          <label class="mb-1 inline-flex items-center gap-1.5 text-xs text-gray-600">
+            <input type="checkbox" name="gallery_image_1-clear" class="w-3.5 h-3.5">Clear image
+          </label>
+          {% endif %}
+          <input type="file" name="{{ form.gallery_image_1.html_name }}" accept="image/*"
+                 class="program-gallery-input w-full text-xs border {% if form.gallery_image_1.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg px-2.5 py-1.5" data-slot="1">
+          {% if form.gallery_image_1.errors %}<p class="text-xs text-red-500 mt-1">{{ form.gallery_image_1.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Gallery Image 2 <span class="text-gray-400 font-normal">(max 2MB)</span></label>
+          <div class="program-gallery-preview-wrap" data-slot="2">
+            <div class="{% if not form.gallery_image_2.value %}hidden{% endif %} mb-1.5">
+              <img class="program-gallery-preview-img h-16 w-full object-cover rounded-lg border border-gray-300" src="{% if form.gallery_image_2.value %}{{ form.gallery_image_2.value.url }}{% endif %}" alt="Gallery preview 2">
+            </div>
+          </div>
+          {% if form.gallery_image_2.value %}
+          <label class="mb-1 inline-flex items-center gap-1.5 text-xs text-gray-600">
+            <input type="checkbox" name="gallery_image_2-clear" class="w-3.5 h-3.5">Clear image
+          </label>
+          {% endif %}
+          <input type="file" name="{{ form.gallery_image_2.html_name }}" accept="image/*"
+                 class="program-gallery-input w-full text-xs border {% if form.gallery_image_2.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg px-2.5 py-1.5" data-slot="2">
+          {% if form.gallery_image_2.errors %}<p class="text-xs text-red-500 mt-1">{{ form.gallery_image_2.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Gallery Image 3 <span class="text-gray-400 font-normal">(max 2MB)</span></label>
+          <div class="program-gallery-preview-wrap" data-slot="3">
+            <div class="{% if not form.gallery_image_3.value %}hidden{% endif %} mb-1.5">
+              <img class="program-gallery-preview-img h-16 w-full object-cover rounded-lg border border-gray-300" src="{% if form.gallery_image_3.value %}{{ form.gallery_image_3.value.url }}{% endif %}" alt="Gallery preview 3">
+            </div>
+          </div>
+          {% if form.gallery_image_3.value %}
+          <label class="mb-1 inline-flex items-center gap-1.5 text-xs text-gray-600">
+            <input type="checkbox" name="gallery_image_3-clear" class="w-3.5 h-3.5">Clear image
+          </label>
+          {% endif %}
+          <input type="file" name="{{ form.gallery_image_3.html_name }}" accept="image/*"
+                 class="program-gallery-input w-full text-xs border {% if form.gallery_image_3.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg px-2.5 py-1.5" data-slot="3">
+          {% if form.gallery_image_3.errors %}<p class="text-xs text-red-500 mt-1">{{ form.gallery_image_3.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-medium text-gray-600 mb-1">Gallery Video <span class="text-gray-400 font-normal">(shown first if present, max 3MB)</span></label>
+          {% if form.gallery_video.value %}
+          <p class="text-xs text-gray-500 mb-1">
+            Current file: <a href="{{ form.gallery_video.value.url }}" target="_blank" class="text-primary-600 hover:underline">{{ form.gallery_video.value.name }}</a>
+            <label class="ml-3 inline-flex items-center gap-1.5">
+              <input type="checkbox" name="gallery_video-clear" class="w-3.5 h-3.5">Clear video
+            </label>
+          </p>
+          {% endif %}
+          <input type="file" name="{{ form.gallery_video.html_name }}" accept="video/*" class="program-video-input w-full text-xs border {% if form.gallery_video.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg px-2.5 py-1.5">
+          <p class="text-xs text-gray-500 mt-1 program-video-filename"></p>
+          {% if form.gallery_video.errors %}<p class="text-xs text-red-500 mt-1">{{ form.gallery_video.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: SEO & Settings -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div class="px-4 py-2 bg-gray-50 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800 text-sm"><i class="fas fa-search text-orange-500 mr-2" aria-hidden="true"></i>SEO &amp; Settings</h2>
+      </div>
+      <div class="p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Meta Description <span class="text-xs text-gray-400">(max 160 chars)</span></label>
+          <textarea name="{{ form.meta_description.html_name }}" rows="1"
+                    class="w-full px-3 py-1.5 border {% if form.meta_description.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm resize-none"
+                    maxlength="160" placeholder="Brief description for search engines">{{ form.meta_description.value|default:'' }}</textarea>
+          {% if form.meta_description.errors %}<p class="text-xs text-red-500 mt-1">{{ form.meta_description.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Meta Keywords <span class="text-xs text-gray-400">(comma separated)</span></label>
+          <input type="text" name="{{ form.meta_keywords.html_name }}" value="{{ form.meta_keywords.value|default:'' }}"
+                 placeholder="e.g., engineering, computer science, degree"
+                 class="w-full px-3 py-2 border {% if form.meta_keywords.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          {% if form.meta_keywords.errors %}<p class="text-xs text-red-500 mt-1">{{ form.meta_keywords.errors.0 }}</p>{% endif %}
+        </div>
+        <div class="sm:col-span-2 flex flex-wrap gap-4 sm:gap-8 pt-1 border-t border-gray-100">
+          <label class="flex items-center gap-2 cursor-pointer pt-2">
+            <input type="checkbox" name="{{ form.is_active.html_name }}" {% if form.is_active.value %}checked{% endif %}
+                   class="w-4 h-4 rounded text-primary-600 border-gray-300 focus:ring-primary-500">
+            <span class="text-sm font-medium text-gray-700">Active</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer pt-2">
+            <input type="checkbox" name="{{ form.is_featured.html_name }}" {% if form.is_featured.value %}checked{% endif %}
+                   class="w-4 h-4 rounded text-primary-600 border-gray-300 focus:ring-primary-500">
+            <span class="text-sm font-medium text-gray-700">Featured</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,209 @@
+{% extends 'management/base.html' %}
+{% load static %}
+{% block title %}Leadership &amp; Staff — MIU Admin{% endblock %}
+{% block content %}
+<div class="max-w-full">
+
+  {# ── Breadcrumb ── #}
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+    <span class="text-gray-400">Site Content</span>
+    <i class="fas fa-chevron-right text-xs"></i>
+    <span class="text-gray-800 font-medium">Leadership &amp; Staff</span>
+  </nav>
+
+  {# ── Page header ── #}
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Leadership &amp; Staff</h1>
+      <p class="text-gray-500 mt-1 text-sm">Board members and staff shown in the Leadership section on the About page. Hover a photo to feature that person in "Who We Are".</p>
+    </div>
+    {% if permissions.site_content.can_create %}
+    <a href="{% url 'management:institution_member_create' %}"
+       class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium shadow-sm flex-shrink-0 transition-colors">
+      <i class="fas fa-plus"></i> Add Member
+    </a>
+    {% endif %}
+  </div>
+
+  {# ── Stats bar ── #}
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 text-center">
+      <div class="text-xl font-bold text-primary-600">{{ admin_board_count }}</div>
+      <div class="text-xs text-gray-500 mt-0.5">Administrative / Management Board</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 text-center">
+      <div class="text-xl font-bold text-primary-600">{{ academic_board_count }}</div>
+      <div class="text-xs text-gray-500 mt-0.5">Academic Board</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 text-center">
+      <div class="text-xl font-bold text-primary-600">{{ advisorate_board_count }}</div>
+      <div class="text-xs text-gray-500 mt-0.5">Advisorate Board</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 text-center">
+      <div class="text-xl font-bold text-primary-600">{{ staff_count }}</div>
+      <div class="text-xs text-gray-500 mt-0.5">Staff</div>
+    </div>
+  </div>
+
+  {# ── Members table ── #}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="overflow-x-auto p-5">
+      <table id="membersDataTable" class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wide">
+          <tr>
+            <th class="py-3 px-4 text-left font-semibold">Photo</th>
+            <th class="py-3 px-4 text-left font-semibold">Name</th>
+            <th class="py-3 px-4 text-left font-semibold">Role</th>
+            <th class="py-3 px-4 text-left font-semibold">Board / Group</th>
+            <th class="py-3 px-4 text-left font-semibold">Status</th>
+            <th class="py-3 px-4 text-left font-semibold">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for m in members %}
+          <tr class="hover:bg-gray-50 transition-colors">
+
+            {# Photo — hover to feature in "Who We Are" #}
+            <td class="py-3 px-4">
+              <div class="relative w-12 h-12 group/avatar">
+                <div class="w-12 h-12 rounded-full overflow-hidden bg-primary-50 border-2 {% if m.is_who_we_are %}border-amber-400{% else %}border-primary-100{% endif %} flex items-center justify-center">
+                  {% if m.photo %}
+                  <img src="{{ m.photo.url }}" class="w-full h-full object-cover object-top" alt="{{ m.name }}">
+                  {% else %}
+                  <span class="text-primary-500 font-bold text-sm">{{ m.name|slice:":2"|upper }}</span>
+                  {% endif %}
+                </div>
+                {% if m.is_who_we_are %}
+                <span class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-400 text-white flex items-center justify-center shadow" title="Featured in &quot;Who We Are&quot;">
+                  <i class="fas fa-star text-[10px]"></i>
+                </span>
+                {% endif %}
+                {% if permissions.site_content.can_edit %}
+                <form method="post" action="{% url 'management:institution_member_set_who_we_are' m.pk %}" class="absolute inset-0">
+                  {% csrf_token %}
+                  <button type="submit"
+                          title="{% if m.is_who_we_are %}Remove from &quot;Who We Are&quot;{% else %}Show in &quot;Who We Are&quot;{% endif %}"
+                          class="absolute inset-0 rounded-full flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity
+                                 {% if m.is_who_we_are %}bg-amber-500/80{% else %}bg-gray-900/60{% endif %}">
+                    <i class="fas fa-star text-white text-xs"></i>
+                  </button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+
+            {# Name #}
+            <td class="py-3 px-4">
+              <div class="font-medium text-gray-800">{{ m.name }}</div>
+              {% if m.is_who_we_are %}
+              <span class="text-xs text-amber-600 font-medium"><i class="fas fa-star text-[10px]"></i> Who We Are</span>
+              {% endif %}
+            </td>
+
+            {# Role #}
+            <td class="py-3 px-4 text-gray-600">{{ m.role }}</td>
+
+            {# Board / Group #}
+            <td class="py-3 px-4 text-gray-600">{{ m.get_member_type_display }}</td>
+
+            {# Status #}
+            <td class="py-3 px-4">
+              {% if m.is_active %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Active
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>Hidden
+              </span>
+              {% endif %}
+            </td>
+
+            {# Actions #}
+            <td class="py-3 px-4">
+              <div class="flex items-center gap-2">
+                {% if permissions.site_content.can_edit %}
+                <a href="{% url 'management:institution_member_edit' m.pk %}"
+                   class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Edit">
+                  <i class="fas fa-edit text-sm"></i>
+                </a>
+                {% endif %}
+                {% if permissions.site_content.can_delete %}
+                <button type="button"
+                        onclick="confirmDelete('{% url 'management:institution_member_delete' m.pk %}', '{{ m.name|escapejs }}')"
+                        class="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors" title="Delete">
+                  <i class="fas fa-trash-alt text-sm"></i>
+                </button>
+                {% endif %}
+              </div>
+            </td>
+
+          </tr>
+          {% empty %}
+          <tr class="empty-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<form id="deleteForm" method="post" action="" style="display:none;">{% csrf_token %}</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(url, name) {
+  Swal.fire({
+    title: 'Remove Member?',
+    html: `Remove <strong>${name}</strong> from the about page?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Yes, Remove',
+    cancelButtonText: 'Cancel',
+  }).then(r => {
+    if (r.isConfirmed) {
+      document.getElementById('deleteForm').action = url;
+      document.getElementById('deleteForm').submit();
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  var tableOpts = {
+    pageLength: 10,
+    order: [[1, 'asc']],
+    columns: [
+      { orderable: false, searchable: false },
+      null, null, null, null,
+      { orderable: false, searchable: false },
+    ],
+    dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4"lf>rt<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-4 pt-4 border-t"ip>',
+    language: {
+      search: '_INPUT_',
+      searchPlaceholder: 'Search by name, role, board…',
+      lengthMenu: 'Show _MENU_',
+      info: '_START_–_END_ of _TOTAL_',
+      paginate: {
+        previous: '<i class="fas fa-chevron-left"></i>',
+        next: '<i class="fas fa-chevron-right"></i>'
+      },
+      emptyTable: 'No members found'
+    },
+    initComplete: function () {
+      var api = this.api();
+      if (api.page.info().recordsTotal === 1) {
+        var firstRow = api.row(0).data();
+        if (firstRow && firstRow[1] === '') { api.clear().draw(); }
+      }
+    }
+  };
+
+  try { $('#membersDataTable').DataTable(tableOpts); } catch (e) {}
+});
+</script>
+{% endblock %}

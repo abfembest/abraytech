@@ -1,0 +1,118 @@
+{% extends "management/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - MIU Student Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <!-- Back -->
+    <div class="mb-6">
+        <a href="{% url 'students:inbox' %}"
+           class="inline-flex items-center text-primary-600 hover:text-primary-800 text-sm font-medium">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Inbox
+        </a>
+    </div>
+
+    <!-- Thread header -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-5 mb-4">
+        <h1 class="text-xl font-bold text-gray-900 mb-3">{{ message.subject }}</h1>
+        <div class="flex flex-wrap gap-x-6 gap-y-1 text-sm text-gray-500">
+            <span>
+                <i class="fas fa-user mr-1"></i>
+                From: <strong class="text-gray-800">
+                    {{ message.sender.get_full_name|default:message.sender.username }}
+                </strong>
+            </span>
+            <span>
+                <i class="fas fa-user-check mr-1"></i>
+                To: <strong class="text-gray-800">
+                    {{ message.recipient.get_full_name|default:message.recipient.username }}
+                </strong>
+            </span>
+            <span>
+                <i class="fas fa-clock mr-1"></i>
+                {{ message.created_at|date:"M d, Y g:i A" }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Original message -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-3">
+        <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-full bg-primary-100 flex items-center
+                        justify-center flex-shrink-0">
+                <i class="fas fa-user text-primary-600 text-sm"></i>
+            </div>
+            <div class="flex-1">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="font-semibold text-sm text-gray-900">
+                        {{ message.sender.get_full_name|default:message.sender.username }}
+                    </span>
+                    <time class="text-xs text-gray-400">{{ message.created_at|timesince }} ago</time>
+                </div>
+                <div class="text-sm text-gray-700 leading-relaxed">
+                    {{ message.body|linebreaks }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thread replies -->
+    {% for reply in thread_replies %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-3
+                {% if reply.sender == request.user %}border-l-4 border-l-primary-400{% else %}border-l-4 border-l-gray-300{% endif %}">
+        <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0
+                        {% if reply.sender == request.user %}bg-primary-100{% else %}bg-gray-100{% endif %}">
+                <i class="fas fa-user text-sm
+                          {% if reply.sender == request.user %}text-primary-600{% else %}text-gray-400{% endif %}"></i>
+            </div>
+            <div class="flex-1">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="font-semibold text-sm text-gray-900">
+                        {{ reply.sender.get_full_name|default:reply.sender.username }}
+                        {% if reply.sender == request.user %}
+                        <span class="text-primary-500 font-normal text-xs ml-1">(You)</span>
+                        {% endif %}
+                    </span>
+                    <time class="text-xs text-gray-400">{{ reply.created_at|timesince }} ago</time>
+                </div>
+                <div class="text-sm text-gray-700 leading-relaxed">
+                    {{ reply.body|linebreaks }}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Reply form -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-4">
+        <h2 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <i class="fas fa-reply text-primary-500"></i>Write a Reply
+        </h2>
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <textarea name="body" rows="5" required
+                      placeholder="Write your reply here..."
+                      class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm
+                             focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                             resize-none"></textarea>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button type="submit"
+                        class="px-8 py-3 bg-primary-600 text-white rounded-lg
+                               hover:bg-primary-700 font-semibold text-sm transition-all
+                               focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                    <i class="fas fa-paper-plane mr-2"></i>Send Reply
+                </button>
+                <a href="{% url 'students:inbox' %}"
+                   class="px-8 py-3 bg-gray-100 text-gray-700 text-center rounded-lg
+                          hover:bg-gray-200 font-medium text-sm transition-all">
+                    Back to Inbox
+                </a>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

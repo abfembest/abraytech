@@ -1,0 +1,238 @@
+{% comment %}
+  support/includes/sidebar_support_menu.html
+  Drop-in support navigation block for base.html.
+
+  Included from base.html, wrapped in the same gate repeated below:
+
+      {% if request.user.is_superuser or permissions.support_tickets.can_view or permissions.support_knowledge_base.can_view or permissions.support_communications.can_view or permissions.support_analytics.can_view or permissions.support_config.can_view %}
+          {% include 'support/includes/sidebar_support_menu.html' %}
+      {% endif %}
+
+  This block renders for anyone with can_view on a support_* module — by
+  default that's superuser and role='support', but an admin can also grant
+  it to any other user via a per-user StaffPermissionsMatrix override on the
+  Roles & Permissions page, without changing their role. is_staff alone does
+  NOT open this block — it only bypasses ADMIN_PORTAL_MODULES (which
+  includes support_config, but not the rest of this agent-facing menu — see
+  the matching note further down, on the "Admin-only items" gate).
+  It auto-highlights the active page using request.path.
+{% endcomment %}
+
+{% if request.user.is_authenticated %}
+{% with role=request.user.profile.role %}
+{% if request.user.is_superuser or permissions.support_tickets.can_view or permissions.support_knowledge_base.can_view or permissions.support_communications.can_view or permissions.support_analytics.can_view or permissions.support_config.can_view %}
+
+{% comment %} <div class="border-t border-white/10 my-3"></div> {% endcomment %}
+{% if request.user.is_superuser %}
+<div class="border-t border-white/10 my-4"></div>
+<div class="sidebar-section-label py-1 px-4 text-base uppercase font-bold text-white/50 tracking-widest">Support Centre</div>
+{% endif %}
+
+<!-- Support Dashboard — shown only to actual support staff, not to someone who
+     merely has a granted permission into one support module -->
+{% if request.user.is_superuser or role == 'support' %}
+<a href="{% url 'support:dashboard' %}"
+   class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1 {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'support' %}bg-white/20{% endif %}"
+   aria-label="Support Dashboard">
+    <div class="flex items-center">
+        <i class="fas fa-headset w-5 text-center" aria-hidden="true"></i>
+        <span class="ml-3 text-[17px] font-semibold">Dashboard </span>
+    </div>
+    {% comment %} {% if support_stats.total_open %}
+    <span class="badge-count bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+        {{ support_stats.total_open }}
+    </span>
+    {% endif %} {% endcomment %}
+</a>
+{% endif %}
+
+<!-- Tickets -->
+{% if permissions.support_tickets.can_view %}
+<div class="mb-1">
+    <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all
+        {% if 'support/tickets' in request.path %}bg-white/20{% endif %}"
+        aria-expanded="{% if 'support/tickets' in request.path %}true{% else %}false{% endif %}">
+        <div class="flex items-center">
+            <i class="fas fa-ticket-alt w-5 text-center" aria-hidden="true"></i>
+            <span class="ml-3 text-[17px] font-semibold">Tickets</span>
+            {% if support_stats.total_open %}
+            <span class="ml-2 badge-count bg-orange-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+                {{ support_stats.total_open }}
+            </span>
+            {% endif %}
+        </div>
+        <i class="fas fa-chevron-down menu-arrow transition-transform {% if 'support/tickets' in request.path %}rotate-180{% endif %}" aria-hidden="true"></i>
+    </button>
+    <div id="supportTicketsMenu" class="mt-1 space-y-1 {% if 'support/tickets' not in request.path %}hidden{% endif %} bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
+        <a href="{% url 'support:ticket_list' %}"
+           class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium
+           {% if request.resolver_match.url_name == 'ticket_list' and not request.GET.status and not request.GET.quick %}bg-white/20{% endif %}">
+            <i class="fas fa-list mr-2" aria-hidden="true"></i>All Tickets
+            {% if support_stats.total_open %}<span class="float-right badge-count bg-orange-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{{ support_stats.total_open }}</span>{% endif %}
+        </a>
+        <a href="{% url 'support:ticket_list' %}?status=open"
+           class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium
+           {% if request.GET.status == 'open' %}bg-white/20{% endif %}">
+            <i class="fas fa-folder-open mr-2 text-green-400" aria-hidden="true"></i>Open
+        </a>
+        <a href="{% url 'support:ticket_list' %}?quick=mine"
+           class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium
+           {% if request.GET.quick == 'mine' %}bg-white/20{% endif %}">
+            <i class="fas fa-user mr-2 text-blue-400" aria-hidden="true"></i>My Tickets
+        </a>
+        <a href="{% url 'support:ticket_list' %}?quick=escalated"
+           class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium
+           {% if request.GET.quick == 'escalated' %}bg-white/20{% endif %}">
+            <i class="fas fa-exclamation-triangle mr-2 text-red-400" aria-hidden="true"></i>Escalated
+            {% if support_stats.escalated %}<span class="float-right badge-count bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{{ support_stats.escalated }}</span>{% endif %}
+        </a>
+        <a href="{% url 'support:ticket_list' %}?quick=sla"
+           class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium
+           {% if request.GET.quick == 'sla' %}bg-white/20{% endif %}">
+            <i class="fas fa-clock mr-2 text-yellow-400" aria-hidden="true"></i>SLA Breached
+            {% if support_stats.sla_breached %}<span class="float-right badge-count bg-yellow-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{{ support_stats.sla_breached }}</span>{% endif %}
+        </a>
+        <a href="{% url 'support:ticket_list' %}?quick=waiting"
+           class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium
+           {% if request.GET.quick == 'waiting' %}bg-white/20{% endif %}">
+            <i class="fas fa-hourglass-half mr-2 text-purple-400" aria-hidden="true"></i>Pending User
+        </a>
+        {% if permissions.support_tickets.can_create %}
+        <div class="border-t border-white/10 my-1"></div>
+        <a href="{% url 'support:ticket_create' %}"
+           class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium text-green-300">
+            <i class="fas fa-plus mr-2" aria-hidden="true"></i>Create Ticket
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}{# /support_tickets #}
+
+<!-- Knowledge Base -->
+{% if permissions.support_knowledge_base.can_view %}
+<div class="mb-1">
+    <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all
+        {% if 'support/kb' in request.path or 'support/faq' in request.path %}bg-white/20{% endif %}"
+        aria-expanded="{% if 'support/kb' in request.path or 'support/faq' in request.path %}true{% else %}false{% endif %}">
+        <div class="flex items-center">
+            <i class="fas fa-book-open w-5 text-center" aria-hidden="true"></i>
+            <span class="ml-3 text-[17px] font-semibold">Knowledge Base</span>
+        </div>
+        <i class="fas fa-chevron-down menu-arrow transition-transform {% if 'support/kb' in request.path or 'support/faq' in request.path %}rotate-180{% endif %}" aria-hidden="true"></i>
+    </button>
+    <div id="supportKBMenu" class="mt-1 space-y-1 {% if 'support/kb' not in request.path and 'support/faq' not in request.path %}hidden{% endif %} bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
+        <a href="{% url 'support:kb_list' %}"
+           class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium
+           {% if request.resolver_match.url_name == 'kb_list' %}bg-white/20{% endif %}">
+            <i class="fas fa-book mr-2" aria-hidden="true"></i>Articles
+        </a>
+        {% if permissions.support_knowledge_base.can_create %}
+        <a href="{% url 'support:kb_list' %}"
+           class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium">
+            <i class="fas fa-plus mr-2" aria-hidden="true"></i>New Article
+        </a>
+        {% endif %}
+        <a href="{% url 'support:faq_list' %}"
+           class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium
+           {% if 'support/faq' in request.path %}bg-white/20{% endif %}">
+            <i class="fas fa-question-circle mr-2" aria-hidden="true"></i>FAQs
+        </a>
+    </div>
+</div>
+{% endif %}{# /support_knowledge_base #}
+
+<!-- Communications -->
+{% if permissions.support_communications.can_view %}
+<div class="mb-1">
+    <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all
+        {% if 'support/chats' in request.path or 'support/announcements' in request.path or 'support/canned' in request.path %}bg-white/20{% endif %}">
+        <div class="flex items-center">
+            <i class="fas fa-comments w-5 text-center" aria-hidden="true"></i>
+            <span class="ml-3 text-[17px] font-semibold">Communications</span>
+        </div>
+        <i class="fas fa-chevron-down menu-arrow transition-transform {% if 'support/chats' in request.path or 'support/announcements' in request.path or 'support/canned' in request.path %}rotate-180{% endif %}" aria-hidden="true"></i>
+    </button>
+    <div id="supportCommsMenu" class="mt-1 space-y-1 {% if 'support/chats' not in request.path and 'support/announcements' not in request.path and 'support/canned' not in request.path %}hidden{% endif %} bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
+        <a href="{% url 'support:chat_list' %}"
+           class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium
+           {% if 'support/chats' in request.path %}bg-white/20{% endif %}">
+            <i class="fas fa-comments mr-2" aria-hidden="true"></i>Live Chat Sessions
+            {% if support_stats.open_chats %}<span class="float-right badge-count bg-green-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{{ support_stats.open_chats }}</span>{% endif %}
+        </a>
+        <a href="{% url 'support:announcement_list' %}"
+           class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium
+           {% if 'support/announcements' in request.path %}bg-white/20{% endif %}">
+            <i class="fas fa-bullhorn mr-2" aria-hidden="true"></i>Announcements
+        </a>
+        <a href="{% url 'support:canned_list' %}"
+           class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium
+           {% if 'support/canned' in request.path %}bg-white/20{% endif %}">
+            <i class="fas fa-reply-all mr-2" aria-hidden="true"></i>Canned Responses
+        </a>
+    </div>
+</div>
+{% endif %}{# /support_communications #}
+
+<!-- Analytics -->
+{% if permissions.support_analytics.can_view %}
+<a href="{% url 'support:analytics' %}"
+   class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1
+   {% if request.resolver_match.url_name == 'analytics' and request.resolver_match.app_name == 'support' %}bg-white/20{% endif %}">
+    <div class="flex items-center">
+        <i class="fas fa-chart-bar w-5 text-center" aria-hidden="true"></i>
+        <span class="ml-3 text-[17px] font-semibold">Analytics</span>
+    </div>
+</a>
+{% endif %}
+
+<!-- Admin-only items -->
+{% comment %}
+    Gate is permissions.support_config.can_view alone — no extra role
+    check. support_config is in StaffPermissionsMatrix.ADMIN_PORTAL_MODULES,
+    so superuser/is_staff/role='admin' already get it True via their
+    existing bypasses in eduweb.security_middleware._load_permissions.
+    A support agent granted support_config specifically via a per-user
+    StaffPermissionsMatrix override now sees this too — that's the point;
+    role='support' alone still doesn't grant it, since it has no entry in
+    ROLE_DEFAULT_PERMISSIONS['support']. It does not grant the rest of the
+    support portal (support_tickets/knowledge_base/etc. still require their
+    own matrix rows).
+{% endcomment %}
+{% if permissions.support_config.can_view %}
+<div class="mb-1">
+    <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all
+        {% if 'support/sla' in request.path or 'support/departments' in request.path or 'support/agents' in request.path or 'support/audit' in request.path %}bg-white/20{% endif %}">
+        <div class="flex items-center">
+            <i class="fas fa-cogs w-5 text-center" aria-hidden="true"></i>
+            <span class="ml-3 text-[17px] font-semibold">Support Config</span>
+        </div>
+        <i class="fas fa-chevron-down menu-arrow transition-transform {% if 'support/sla' in request.path or 'support/departments' in request.path or 'support/agents' in request.path or 'support/audit' in request.path %}rotate-180{% endif %}" aria-hidden="true"></i>
+    </button>
+    <div id="supportConfigMenu" class="mt-1 space-y-1 {% if 'support/sla' not in request.path and 'support/departments' not in request.path and 'support/agents' not in request.path and 'support/audit' not in request.path %}hidden{% endif %} bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
+        <a href="{% url 'support:department_list' %}"
+           class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium
+           {% if 'support/departments' in request.path %}bg-white/20{% endif %}">
+            <i class="fas fa-building-user mr-2" aria-hidden="true"></i>Support Departments
+        </a>
+        <a href="{% url 'support:agent_list' %}"
+           class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium
+           {% if 'support/agents' in request.path %}bg-white/20{% endif %}">
+            <i class="fas fa-user-tie mr-2" aria-hidden="true"></i>Agents
+        </a>
+        <a href="{% url 'support:sla_list' %}"
+           class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium
+           {% if 'support/sla' in request.path %}bg-white/20{% endif %}">
+            <i class="fas fa-stopwatch mr-2" aria-hidden="true"></i>SLA Policies
+        </a>
+        <a href="{% url 'support:audit_log' %}"
+           class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium
+           {% if 'support/audit' in request.path %}bg-white/20{% endif %}">
+            <i class="fas fa-history mr-2" aria-hidden="true"></i>Audit Log
+        </a>
+    </div>
+</div>
+{% endif %}{# /support_config #}
+
+{% endif %}
+{% endwith %}
+{% endif %}

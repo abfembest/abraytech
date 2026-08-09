@@ -1,0 +1,304 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Enrollments — MIU Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-full px-4 sm:px-6 lg:px-8 space-y-5">
+
+  {# ── Header ── #}
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div>
+      <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
+      <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Enrollments</h1>
+      <p class="text-gray-500 text-sm mt-0.5">Manage and monitor student course enrollments</p>
+    </div>
+    {% if permissions.enrollments.can_create %}
+    <a href="{% url 'management:enrollment_create' %}"
+       class="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium text-sm shadow-sm transition-colors self-start sm:self-auto">
+      <i class="fas fa-plus"></i> New Enrollment
+    </a>
+    {% endif %}
+  </div>
+
+  {# ── Stat Cards ── #}
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+    {% with total=enrollments.paginator.count %}
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+      <p class="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-1">Total</p>
+      <p class="text-2xl sm:text-3xl font-bold text-gray-900">{{ total }}</p>
+      <p class="text-xs text-gray-400 mt-1">All enrollments</p>
+    </div>
+    {% endwith %}
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+      <p class="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-1">Active</p>
+      <p class="text-2xl sm:text-3xl font-bold text-green-600" id="statActive">—</p>
+      <p class="text-xs text-gray-400 mt-1">Currently enrolled</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+      <p class="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-1">Completed</p>
+      <p class="text-2xl sm:text-3xl font-bold text-blue-600" id="statCompleted">—</p>
+      <p class="text-xs text-gray-400 mt-1">Finished courses</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+      <p class="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-1">Avg Progress</p>
+      <p class="text-2xl sm:text-3xl font-bold text-primary-600" id="statAvgProgress">—</p>
+      <p class="text-xs text-gray-400 mt-1">Across active</p>
+    </div>
+  </div>
+
+  {# ── Charts ── #}
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-5">
+      <h2 class="text-sm font-semibold text-gray-700 mb-4">Enrollment by Status</h2>
+      <div class="flex items-center justify-center h-48 sm:h-56">
+        <canvas id="statusChart"></canvas>
+      </div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-5">
+      <h2 class="text-sm font-semibold text-gray-700 mb-4">Progress Distribution</h2>
+      <div class="h-48 sm:h-56">
+        <canvas id="progressChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  {# ── Search & Filter ── #}
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-5">
+    <form method="get" class="flex flex-col sm:flex-row gap-3">
+      <input type="search" name="search" value="{{ request.GET.search }}"
+             placeholder="Search by student name or course…"
+             class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+      <select name="status"
+              class="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm bg-white">
+        <option value="">All Statuses</option>
+        <option value="active"    {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+        <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
+        <option value="dropped"   {% if request.GET.status == 'dropped' %}selected{% endif %}>Dropped</option>
+        <option value="suspended" {% if request.GET.status == 'suspended' %}selected{% endif %}>Suspended</option>
+      </select>
+      <div class="flex gap-2">
+        <button type="submit" class="px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors">
+          <i class="fas fa-search mr-1"></i>Filter
+        </button>
+        <a href="{% url 'management:enrollments_list' %}"
+           class="px-3 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm transition-colors" title="Clear">
+          <i class="fas fa-redo"></i>
+        </a>
+      </div>
+    </form>
+  </div>
+
+  {# ── Table ── #}
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+      <h2 class="font-semibold text-gray-800 text-sm sm:text-base">
+        All Enrollments
+        <span class="text-sm font-normal text-gray-400 ml-1">({{ enrollments.paginator.count }})</span>
+      </h2>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="table-card w-full text-sm" id="enrollTable">
+        <thead class="bg-gray-50 border-b border-gray-200 text-xs text-gray-500 uppercase tracking-wide">
+          <tr>
+            <th class="py-3 px-4 text-left font-semibold">Student</th>
+            <th class="py-3 px-4 text-left font-semibold">Course</th>
+            <th class="py-3 px-4 text-left font-semibold">Status</th>
+            <th class="py-3 px-4 text-left font-semibold">Progress</th>
+            <th class="py-3 px-4 text-left font-semibold">Grade</th>
+            <th class="py-3 px-4 text-left font-semibold">Enrolled</th>
+            {% if permissions.enrollments.can_edit or permissions.enrollments.can_delete %}
+            <th class="py-3 px-4 text-right font-semibold">Actions</th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100" id="enrollBody">
+          {% for e in enrollments %}
+          <tr class="hover:bg-gray-50 transition-colors"
+              data-status="{{ e.status }}"
+              data-progress="{{ e.progress_percentage|floatformat:0 }}">
+            <td class="py-3.5 px-4" data-label="Student">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-semibold text-xs flex-shrink-0">
+                  {{ e.student.first_name|slice:":1" }}{{ e.student.last_name|slice:":1" }}
+                </div>
+                <div class="min-w-0">
+                  <div class="font-medium text-gray-800 truncate">{{ e.student.get_full_name|default:e.student.username }}</div>
+                  <div class="text-xs text-gray-400 truncate">{{ e.student.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="py-3.5 px-4" data-label="Course">
+              <div class="font-medium text-gray-800">{{ e.course.title }}</div>
+              <div class="text-xs text-gray-400">{{ e.course.code }}</div>
+            </td>
+            <td class="py-3.5 px-4" data-label="Status">
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium
+                {% if e.status == 'active' %}bg-green-100 text-green-700
+                {% elif e.status == 'completed' %}bg-blue-100 text-blue-700
+                {% elif e.status == 'suspended' %}bg-yellow-100 text-yellow-700
+                {% else %}bg-red-100 text-red-700{% endif %}">
+                <span class="w-1.5 h-1.5 rounded-full
+                  {% if e.status == 'active' %}bg-green-500
+                  {% elif e.status == 'completed' %}bg-blue-500
+                  {% elif e.status == 'suspended' %}bg-yellow-500
+                  {% else %}bg-red-500{% endif %}"></span>
+                {{ e.get_status_display }}
+              </span>
+            </td>
+            <td class="py-3.5 px-4" data-label="Progress">
+              <div class="flex items-center gap-2">
+                <div class="w-20 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                  <div class="h-full bg-primary-500 rounded-full" style="width:{{ e.progress_percentage|floatformat:0 }}%"></div>
+                </div>
+                <span class="text-xs text-gray-600 tabular-nums">{{ e.progress_percentage|floatformat:0 }}%</span>
+              </div>
+            </td>
+            <td class="py-3.5 px-4 text-gray-700" data-label="Grade">
+              {% if e.current_grade is not None %}<span class="font-medium">{{ e.current_grade|floatformat:1 }}</span>
+              {% else %}<span class="text-gray-400">—</span>{% endif %}
+            </td>
+            <td class="py-3.5 px-4 text-gray-500 whitespace-nowrap" data-label="Enrolled">{{ e.enrolled_at|date:"M d, Y" }}</td>
+            {% if permissions.enrollments.can_edit or permissions.enrollments.can_delete %}
+            <td class="py-3.5 px-4 text-right whitespace-nowrap" data-label="Actions">
+              {% if permissions.enrollments.can_edit %}
+              <a href="{% url 'management:enrollment_edit' e.pk %}"
+                 class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs
+                        font-medium text-primary-600 hover:bg-primary-50 rounded-lg
+                        transition-colors focus:outline-none focus:ring-2 focus:ring-primary-400"
+                 aria-label="Edit enrollment for {{ e.student.get_full_name|default:e.student.username }}">
+                <i class="fas fa-pen-to-square" aria-hidden="true"></i>
+                <span class="hidden sm:inline">Edit</span>
+              </a>
+              {% endif %}
+              {% if permissions.enrollments.can_delete %}
+              <form method="post"
+                    action="{% url 'management:enrollment_delete' e.pk %}"
+                    class="inline"
+                    onsubmit="return swalConfirmSubmit(this, {title: 'Delete this enrollment?', text: '{{ e.student.get_full_name|default:e.student.username|escapejs }} — {{ e.course.title|escapejs }}'});">
+                {% csrf_token %}
+                <button type="submit"
+                        class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs
+                               font-medium text-red-500 hover:bg-red-50 rounded-lg
+                               transition-colors focus:outline-none focus:ring-2 focus:ring-red-400"
+                        aria-label="Delete enrollment for {{ e.student.get_full_name|default:e.student.username }}">
+                  <i class="fas fa-trash" aria-hidden="true"></i>
+                  <span class="hidden sm:inline">Delete</span>
+                </button>
+              </form>
+              {% endif %}
+            </td>
+            {% endif %}
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="{% if permissions.enrollments.can_edit or permissions.enrollments.can_delete %}7{% else %}6{% endif %}" class="py-16 text-center text-gray-400">
+              <i class="fas fa-user-graduate text-5xl mb-3 block"></i>
+              <p class="font-medium text-gray-600">No enrollments found</p>
+              {% if permissions.enrollments.can_create %}
+              <a href="{% url 'management:enrollment_create' %}" class="text-sm text-primary-600 hover:underline mt-1 block">Create the first enrollment</a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# ── Pagination ── #}
+    {% if enrollments.has_other_pages %}
+    <div class="px-5 py-4 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-3">
+      <p class="text-sm text-gray-500">Showing {{ enrollments.start_index }}–{{ enrollments.end_index }} of {{ enrollments.paginator.count }}</p>
+      <nav class="flex gap-1">
+        {% if enrollments.has_previous %}
+        <a href="?page={{ enrollments.previous_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}"
+           class="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm"><i class="fas fa-chevron-left"></i></a>
+        {% endif %}
+        {% for num in enrollments.paginator.page_range %}
+          {% if enrollments.number == num %}
+          <span class="px-3 py-1.5 bg-primary-600 text-white rounded-lg text-sm font-medium">{{ num }}</span>
+          {% elif num > enrollments.number|add:"-3" and num < enrollments.number|add:"3" %}
+          <a href="?page={{ num }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}"
+             class="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+        {% if enrollments.has_next %}
+        <a href="?page={{ enrollments.next_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}"
+           class="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm"><i class="fas fa-chevron-right"></i></a>
+        {% endif %}
+      </nav>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+{# ── Chart Data from template (all pages aggregated via Django) ── #}
+<script>
+(function () {
+  // Derive stats from rendered rows (current page) + fall back to totals
+  const rows = document.querySelectorAll('#enrollBody tr[data-status]');
+  const counts = { active:0, completed:0, dropped:0, suspended:0 };
+  let totalProgress = 0, progressRows = 0;
+  const progressBuckets = [0,0,0,0,0]; // 0-20, 21-40, 41-60, 61-80, 81-100
+
+  rows.forEach(r => {
+    const s = r.dataset.status;
+    if (counts[s] !== undefined) counts[s]++;
+    const p = parseInt(r.dataset.progress, 10);
+    if (!isNaN(p)) {
+      totalProgress += p; progressRows++;
+      progressBuckets[Math.min(Math.floor(p / 20), 4)]++;
+    }
+  });
+
+  // Stat cards
+  document.getElementById('statActive').textContent    = counts.active;
+  document.getElementById('statCompleted').textContent = counts.completed;
+  document.getElementById('statAvgProgress').textContent =
+    progressRows ? Math.round(totalProgress / progressRows) + '%' : '—';
+
+  // ── Donut — Status breakdown ──
+  new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Active', 'Completed', 'Dropped', 'Suspended'],
+      datasets: [{
+        data: [counts.active, counts.completed, counts.dropped, counts.suspended],
+        backgroundColor: ['#22c55e','#3b82f6','#ef4444','#eab308'],
+        borderWidth: 2, borderColor: '#fff',
+      }]
+    },
+    options: {
+      cutout: '68%',
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12, boxWidth: 12 } },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed}` } }
+      }
+    }
+  });
+
+  // ── Bar — Progress distribution ──
+  new Chart(document.getElementById('progressChart'), {
+    type: 'bar',
+    data: {
+      labels: ['0–20%','21–40%','41–60%','61–80%','81–100%'],
+      datasets: [{
+        label: 'Students',
+        data: progressBuckets,
+        backgroundColor: ['#fca5a5','#fdba74','#fcd34d','#86efac','#4ade80'],
+        borderRadius: 6, borderSkipped: false,
+      }]
+    },
+    options: {
+      scales: {
+        y: { beginAtZero:true, ticks: { precision:0, font:{size:11} }, grid: { color:'#f3f4f6' } },
+        x: { ticks: { font:{size:11} }, grid: { display:false } }
+      },
+      plugins: { legend: { display:false } }
+    }
+  });
+}());
+</script>
+{% endblock %}

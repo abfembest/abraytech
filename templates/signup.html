@@ -1,0 +1,319 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if blocked_reason %}Application Closed{% else %}Sign Up{% endif %} - {{ program.name }} - {{ site_config.school_short_name|default:"MIU" }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-primary-50 to-gold-100 flex items-center p-4">
+    <div class="container mx-auto">
+
+        {% if blocked_reason %}
+
+        <!-- Wide standalone card — no form, no branding split, needs room to breathe -->
+        <div class="bg-white/98 backdrop-blur-xl shadow-2xl shadow-primary-950/15 rounded-2xl overflow-hidden max-w-2xl mx-auto">
+            <div class="px-8 py-16 sm:px-14 sm:py-20 text-center">
+
+                <div class="w-16 h-16 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto mb-6">
+                    <i data-lucide="alert-triangle" class="w-8 h-8 text-amber-600"></i>
+                </div>
+
+                <h3 class="text-3xl font-bold font-heading text-gray-900 mb-4">
+                    Application Closed
+                </h3>
+
+                <p class="text-base text-gray-600 leading-relaxed max-w-lg mx-auto mb-10">
+                    {% if blocked_reason == 'no_intake' %}
+                        There are currently no enrollment windows scheduled for <strong class="text-gray-900">{{ program.name }}</strong>. Please check back soon or contact admissions.
+                    {% elif blocked_reason == 'closed' or blocked_reason == 'not_open_yet' %}
+                        Application for {{ intake.intake_period|title }} {{ intake.year }} intake for <strong class="text-gray-900">{{ program.name }}</strong> is currently closed.
+                    {% comment %} {% elif blocked_reason == 'not_open_yet' %}
+                        Applications for {{ intake.intake_period|title }} {{ intake.year }} intake for <strong class="text-gray-900">{{ program.name }}</strong> open on {{ intake.application_start_date|date:'d F Y' }}. {% endcomment %}
+                    {% elif blocked_reason == 'deadline_passed' %}
+                        The application deadline for the {{ intake.intake_period|title }} {{ intake.year }} intake of <strong class="text-gray-900">{{ program.name }}</strong> was {{ intake.application_deadline|date:'d F Y' }}. This window is now closed.
+                    {% elif blocked_reason == 'full' %}
+                        All available slots for the {{ intake.intake_period|title }} {{ intake.year }} intake of <strong class="text-gray-900">{{ program.name }}</strong> have been filled.
+                    {% endif %}
+                </p>
+
+                <div class="max-w-sm mx-auto space-y-3">
+                    <a href="{% url 'eduweb:auth_page' %}"
+                       class="w-full py-3.5 bg-gradient-to-r from-primary-950 to-purple-700 text-white rounded-lg font-bold text-base hover:shadow-xl hover:shadow-purple-500/50 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2">
+                        <span>Sign In Instead</span>
+                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                    </a>
+                    <a href="{% url 'eduweb:all_programs' %}"
+                       class="w-full py-3 text-center text-primary-950 font-semibold hover:text-purple-700 transition-all flex items-center justify-center gap-2">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        Back to All Programs
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
+        {% else %}
+
+        <div class="bg-white/98 backdrop-blur-xl shadow-2xl shadow-primary-950/15 max-w-[1400px] w-full mx-auto rounded-2xl overflow-hidden">
+            <div class="grid lg:grid-cols-5 gap-0">
+
+                {% include 'includes/auth_branding_panel.html' %}
+
+                <!-- Right Side - Sign Up -->
+                <div class="lg:col-span-3 p-6 lg:p-8">
+
+                    <h3 class="text-2xl font-bold font-heading text-gray-900 mb-2 text-center">
+                        Create Your Account
+                    </h3>
+                    <p class="text-sm text-gray-500 text-center mb-6">
+                        Applying to <strong class="text-primary-950">{{ program.name }}</strong>{% if intake %} — {{ intake.get_intake_period_display }} {{ intake.year }} intake{% endif %}
+                    </p>
+
+                    <form id="signupFormElement" method="POST" action="?{{ request.META.QUERY_STRING }}" class="space-y-4">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="signup">
+
+                        <!-- Name Fields -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="id_first_name" class="block text-sm font-semibold text-gray-700 mb-2">
+                                    First Name
+                                </label>
+                                {{ signup_form.first_name }}
+                                <div class="error-message text-red-600 text-sm mt-1" id="first_name_error"></div>
+                            </div>
+                            <div>
+                                <label for="id_last_name" class="block text-sm font-semibold text-gray-700 mb-2">
+                                    Last Name
+                                </label>
+                                {{ signup_form.last_name }}
+                                <div class="error-message text-red-600 text-sm mt-1" id="last_name_error"></div>
+                            </div>
+                        </div>
+
+                        <!-- Username -->
+                         <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="id_username" class="block text-sm font-semibold text-gray-700 mb-2">
+                                    Username
+                                </label>
+                                <div class="input-group">
+                                    <i data-lucide="user" class="icon w-5 h-5"></i>
+                                    {{ signup_form.username }}
+                                </div>
+                                <div class="error-message text-red-600 text-sm mt-1" id="username_error"></div>
+                            </div>
+
+                            <!-- Email -->
+                            <div>
+                                <label for="id_email" class="block text-sm font-semibold text-gray-700 mb-2">
+                                    Email Address
+                                </label>
+                                <div class="input-group">
+                                    <i data-lucide="mail" class="icon w-5 h-5"></i>
+                                    {{ signup_form.email }}
+                                </div>
+                                <div class="error-message text-red-600 text-sm mt-1" id="email_error"></div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <!-- Password -->
+                            <div>
+                                <label for="id_password1" class="block text-sm font-semibold text-gray-700 mb-2">
+                                    Password
+                                </label>
+                                <div class="input-group">
+                                    <i data-lucide="lock" class="icon w-5 h-5"></i>
+                                    {{ signup_form.password1 }}
+                                    <i data-lucide="eye" data-target="id_password1"
+                                       class="password-toggle absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 cursor-pointer text-gray-400 hover:text-primary-950 transition-colors"></i>
+                                </div>
+                                <div class="error-message text-red-600 text-sm mt-1" id="password1_error">
+                                    {% if signup_form.password1.errors %}
+                                        {% for error in signup_form.password1.errors %}
+                                            <p class="flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i>{{ error }}</p>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Confirm Password -->
+                            <div>
+                                <label for="id_password2" class="block text-sm font-semibold text-gray-700 mb-2">
+                                    Confirm Password
+                                </label>
+                                <div class="input-group">
+                                    <i data-lucide="lock" class="icon w-5 h-5"></i>
+                                    {{ signup_form.password2 }}
+                                    <i data-lucide="eye" data-target="id_password2"
+                                       class="password-toggle absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 cursor-pointer text-gray-400 hover:text-primary-950 transition-colors"></i>
+                                </div>
+                                <div class="error-message text-red-600 text-sm mt-1" id="password2_error">
+                                    {% if signup_form.password2.errors %}
+                                        {% for error in signup_form.password2.errors %}
+                                            <p class="flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i>{{ error }}</p>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Captcha -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                Security Check
+                            </label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div id="signupCaptchaQuestion"
+                                     class="bg-gradient-to-br from-purple-100 to-amber-100 border-2 border-dashed border-purple-400 rounded-lg flex items-center justify-center py-5 text-2xl font-bold text-primary-950">
+                                    {{ captcha_question }} = ?
+                                </div>
+                                <input type="text"
+                                       inputmode="numeric"
+                                       pattern="[0-9]*"
+                                       name="captcha"
+                                       id="signup_captcha"
+                                       required
+                                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-950 focus:ring-2 focus:ring-purple-200 transition-all"
+                                       placeholder="Your answer">
+                            </div>
+                            <div class="error-message text-red-600 text-sm mt-1" id="captcha_error"></div>
+                        </div>
+
+                        <!-- Terms -->
+                        <div>
+                            <label class="flex items-start gap-3 cursor-pointer">
+                                <input type="checkbox" required class="h-5 w-5 rounded border-gray-300 text-primary-950 focus:ring-primary-950 mt-0.5">
+                                <span class="text-sm text-gray-700">
+                                    I agree to the <a href="#" class="text-primary-950 hover:text-purple-700 font-medium">Terms of Service</a> and <a href="#" class="text-primary-950 hover:text-purple-700 font-medium">Privacy Policy</a>
+                                </span>
+                            </label>
+                        </div>
+
+                        <!-- Form Error Messages -->
+                        <div class="error-message text-red-600 text-sm" id="signup_form_error"></div>
+
+                        <!-- Submit Button -->
+                        <button type="submit"
+                                class="w-full py-3.5 bg-gradient-to-r from-primary-950 to-purple-700 text-white rounded-lg font-bold text-base hover:shadow-xl hover:shadow-purple-500/50 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
+                                id="signupSubmitBtn">
+                            <span>Create Account</span>
+                            <i data-lucide="user-plus" class="w-5 h-5"></i>
+                        </button>
+                    </form>
+
+                    <div class="mt-5 pt-5 border-t border-gray-100 text-center">
+                        <span class="text-sm text-gray-600">Already have an account?</span>
+                        <a href="{% url 'eduweb:auth_page' %}" class="text-sm text-primary-950 hover:text-purple-700 font-bold ml-1">
+                            Sign In
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        {% endif %}
+
+    </div>
+</div>
+
+{% if not blocked_reason %}
+<script>
+function safeLucideIcons() {
+    try {
+        if (window.lucide) lucide.createIcons();
+    } catch (e) {
+        console.warn('lucide icon render failed:', e);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    safeLucideIcons();
+
+    // ========== PASSWORD TOGGLE ==========
+    document.body.addEventListener('click', function(e) {
+        const toggle = e.target.classList.contains('password-toggle') ? e.target : e.target.closest('.password-toggle');
+
+        if (toggle) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const targetId = toggle.dataset.target;
+            const input = document.getElementById(targetId);
+
+            if (input) {
+                const isPassword = input.type === 'password';
+                input.type = isPassword ? 'text' : 'password';
+                toggle.setAttribute('data-lucide', isPassword ? 'eye-off' : 'eye');
+                safeLucideIcons();
+            }
+        }
+    });
+
+    // ========== SIGNUP FORM ==========
+    const signupFormElement = document.getElementById('signupFormElement');
+    signupFormElement.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        clearAllErrors();
+        const submitBtn = document.getElementById('signupSubmitBtn');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span>Creating Account...</span><i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>';
+        submitBtn.disabled = true;
+        safeLucideIcons();
+
+        try {
+            const formData = new FormData(this);
+            const response = await fetch(this.getAttribute('action'), {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showMessage('success', data.message);
+                setTimeout(() => window.location.href = data.redirect_url, 1500);
+            } else {
+                handleFormErrors(data.errors);
+                if (data.captcha_question) {
+                    document.getElementById('signupCaptchaQuestion').textContent = data.captcha_question + ' = ?';
+                    document.getElementById('signup_captcha').value = '';
+                }
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                safeLucideIcons();
+            }
+        } catch (error) {
+            showMessage('error', 'An error occurred. Please try again.');
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+            safeLucideIcons();
+        }
+    });
+
+    // ========== HELPER FUNCTIONS ==========
+    function handleFormErrors(errors) {
+        for (const [field, messages] of Object.entries(errors)) {
+            const errorElement = document.getElementById(`${field}_error`);
+            if (errorElement) {
+                errorElement.textContent = messages.join(' ');
+            } else if (field === '__all__') {
+                document.getElementById('signup_form_error').textContent = messages.join(' ');
+            }
+        }
+    }
+
+    function clearAllErrors() {
+        document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+    }
+
+    function showMessage(type, message) {
+        window.showToast(type, message);
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

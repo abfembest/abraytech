@@ -1,0 +1,108 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Publish Results - MIU Admin Portal{% endblock %}
+{% block meta_description %}Approve and release compiled student results{% endblock %}
+
+{% block content %}
+<div class="max-w-full relative">
+
+  {# ─── Page Header ─────────────────────────────────────────────────────────── #}
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Publish Results</h1>
+      <p class="text-gray-500 mt-1">Students only see a course grade once it's released here — grades, academic records, CGPA, transcripts, and progression all wait on this.</p>
+    </div>
+    <a href="{% url 'management:academic_progression' %}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium">
+      <i class="fas fa-level-up-alt" aria-hidden="true"></i> Academic Progression
+    </a>
+  </div>
+
+  {# ─── Filter ──────────────────────────────────────────────────────────────── #}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
+    <form method="get" class="flex flex-col sm:flex-row gap-3">
+      <div class="flex-1 sm:max-w-xs">
+        <select name="program_id" class="searchable-select w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none" data-ss-placeholder="All Programs">
+          <option value="">All Programs</option>
+          {% for p in programs %}
+          <option value="{{ p.pk }}" {% if program_id == p.pk|stringformat:'s' %}selected{% endif %}>{{ p.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="w-full sm:w-auto px-4 py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-colors">
+        <i class="fas fa-filter mr-1" aria-hidden="true"></i> Filter
+      </button>
+    </form>
+  </div>
+
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="table-card w-full min-w-[760px] text-sm">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wide">
+          <tr>
+            <th class="py-3 px-5 text-left font-semibold">Session</th>
+            <th class="py-3 px-5 text-left font-semibold">Term</th>
+            <th class="py-3 px-5 text-center font-semibold">Total</th>
+            <th class="py-3 px-5 text-center font-semibold">Released</th>
+            <th class="py-3 px-5 text-center font-semibold">Pending</th>
+            <th class="py-3 px-5 text-center font-semibold">Withheld</th>
+            <th class="py-3 px-5 text-left font-semibold">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for g in groups %}
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="py-3 px-5 font-medium text-gray-800" data-label="Session">{{ g.session__name }}</td>
+            <td class="py-3 px-5 text-gray-600 capitalize" data-label="Term">{{ g.term|default:"—" }}</td>
+            <td class="py-3 px-5 text-center" data-label="Total">{{ g.total }}</td>
+            <td class="py-3 px-5 text-center" data-label="Released">
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">{{ g.released }}</span>
+            </td>
+            <td class="py-3 px-5 text-center" data-label="Pending">
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">{{ g.pending }}</span>
+            </td>
+            <td class="py-3 px-5 text-center" data-label="Withheld">
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">{{ g.withheld }}</span>
+            </td>
+            <td class="py-3 px-5 action-buttons" data-label="Actions">
+              <div class="flex items-center gap-2 flex-wrap">
+                <a href="{% url 'management:results_publish_detail' g.session_id %}?term={{ g.term }}&program_id={{ program_id }}"
+                   class="text-xs text-primary-600 hover:underline">
+                  Review students
+                </a>
+                {% if permissions.results_publish.can_approve %}
+                <form method="post" class="inline" onsubmit="return swalConfirmSubmit(this, {title: 'Release all {{ g.total }} result(s)?', text: '{{ g.session__name }} ({{ g.term_label }}) — visible to students immediately.', confirmButtonColor: '#16a34a', confirmButtonText: 'Yes, release'})">
+                  {% csrf_token %}
+                  <input type="hidden" name="session_id" value="{{ g.session_id }}">
+                  <input type="hidden" name="term" value="{{ g.term }}">
+                  <input type="hidden" name="program_id" value="{{ program_id }}">
+                  <input type="hidden" name="action" value="release">
+                  <button type="submit" class="px-2.5 py-1 rounded text-xs font-semibold bg-green-600 text-white hover:bg-green-700">
+                    Release All
+                  </button>
+                </form>
+                <form method="post" class="inline" onsubmit="return swalConfirmSubmit(this, {title: 'Withhold all {{ g.total }} result(s)?', text: '{{ g.session__name }} ({{ g.term_label }}) — hidden from students.', confirmButtonText: 'Yes, withhold'})">
+                  {% csrf_token %}
+                  <input type="hidden" name="session_id" value="{{ g.session_id }}">
+                  <input type="hidden" name="term" value="{{ g.term }}">
+                  <input type="hidden" name="program_id" value="{{ program_id }}">
+                  <input type="hidden" name="action" value="withhold">
+                  <button type="submit" class="px-2.5 py-1 rounded text-xs font-semibold bg-red-50 text-red-700 border border-red-200 hover:bg-red-100">
+                    Withhold All
+                  </button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="py-10 text-center text-gray-400">No compiled results yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

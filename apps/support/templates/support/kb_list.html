@@ -1,0 +1,173 @@
+{% extends "management/base.html" %}
+{% load static %}
+{% block title %}Knowledge Base — MIU Support{% endblock %}
+{% block breadcrumb %}Support › Knowledge Base{% endblock %}
+{% block breadcrumb_title %}Knowledge Base{% endblock %}
+
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8 py-6 max-w-screen-2xl mx-auto">
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+            <h1 class="text-2xl font-bold font-heading text-gray-900">Knowledge Base</h1>
+            <p class="text-sm text-gray-500 mt-1">{{ total_published }} published · {{ total_draft }} drafts</p>
+        </div>
+        {% if permissions.support_knowledge_base.can_create %}
+        <button onclick="$('#addArticleModal').removeClass('hidden')"
+           class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-colors">
+            <i class="fas fa-plus" aria-hidden="true"></i> New Article
+        </button>
+        {% endif %}
+    </div>
+
+    <!-- Filter -->
+    <form method="get" class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-6">
+        <div class="flex flex-col sm:flex-row gap-3">
+            <input type="text" name="search" value="{{ search }}" placeholder="Search articles…"
+                   class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none">
+            <select name="status" class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none">
+                <option value="">All Statuses</option>
+                <option value="published" {% if status_filter == 'published' %}selected{% endif %}>Published</option>
+                <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>Draft</option>
+                <option value="archived" {% if status_filter == 'archived' %}selected{% endif %}>Archived</option>
+            </select>
+            <select name="category" class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none">
+                <option value="">All Categories</option>
+                {% for cat in categories %}
+                <option value="{{ cat.pk }}" {% if cat_filter == cat.pk|stringformat:'s' %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="px-4 py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-colors">
+                <i class="fas fa-filter mr-1" aria-hidden="true"></i> Search
+            </button>
+        </div>
+    </form>
+
+    <!-- Articles Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {% for article in articles %}
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+            <div class="flex items-start justify-between gap-3 mb-3">
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-xs font-medium text-gray-500">{{ article.category.name }}</span>
+                        <span class="px-2 py-0.5 rounded-full text-xs font-medium
+                            {% if article.status == 'published' %}bg-green-100 text-green-700
+                            {% elif article.status == 'draft' %}bg-yellow-100 text-yellow-700
+                            {% else %}bg-gray-100 text-gray-500{% endif %}">
+                            {{ article.get_status_display }}
+                        </span>
+                        {% if article.is_pinned %}
+                        <i class="fas fa-thumbtack text-primary-500 text-xs" title="Pinned" aria-hidden="true"></i>
+                        {% endif %}
+                        {% if article.is_featured %}
+                        <i class="fas fa-star text-yellow-400 text-xs" title="Featured" aria-hidden="true"></i>
+                        {% endif %}
+                    </div>
+                    <h3 class="font-semibold text-gray-800 text-sm leading-snug">
+                        <a href="{% url 'support:kb_article_detail' article.slug %}" class="hover:text-primary-600 transition-colors">
+                            {{ article.title|truncatechars:70 }}
+                        </a>
+                    </h3>
+                </div>
+            </div>
+            {% if article.summary %}
+            <p class="text-xs text-gray-500 mb-3 line-clamp-2">{{ article.summary }}</p>
+            {% endif %}
+            <div class="flex items-center justify-between text-xs text-gray-400">
+                <span>{{ article.view_count }} views</span>
+                <span>Updated {{ article.updated_at|timesince }} ago</span>
+            </div>
+            <div class="flex gap-2 mt-3">
+                <a href="{% url 'support:kb_article_detail' article.slug %}"
+                   class="flex-1 text-center py-1.5 bg-gray-50 text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-eye mr-1" aria-hidden="true"></i> View
+                </a>
+                {% if permissions.support_knowledge_base.can_edit %}
+                <a href="{% url 'support:kb_article_edit' article.slug %}"
+                   class="flex-1 text-center py-1.5 bg-primary-50 text-primary-700 text-xs font-medium rounded-lg hover:bg-primary-100 transition-colors">
+                    <i class="fas fa-edit mr-1" aria-hidden="true"></i> Edit
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-16 text-center text-gray-400">
+            <i class="fas fa-book text-4xl mb-3 block opacity-20" aria-hidden="true"></i>
+            <p class="font-medium text-gray-500">No articles found</p>
+            {% if permissions.support_knowledge_base.can_create %}
+            <a href="{% url 'support:kb_article_create' %}" class="text-primary-600 text-sm hover:underline mt-1 inline-block">Create your first article</a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if articles.paginator.num_pages > 1 %}
+    <div class="mt-6 flex justify-center gap-2">
+        {% if articles.has_previous %}
+        <a href="?page={{ articles.previous_page_number }}&search={{ search }}&status={{ status_filter }}&category={{ cat_filter }}" class="px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50">← Prev</a>
+        {% endif %}
+        <span class="px-3 py-1.5 text-sm bg-primary-600 text-white rounded-lg">{{ articles.number }}</span>
+        {% if articles.has_next %}
+        <a href="?page={{ articles.next_page_number }}&search={{ search }}&status={{ status_filter }}&category={{ cat_filter }}" class="px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Next →</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- New Article Modal -->
+<div id="addArticleModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-5">
+            <h2 class="font-semibold text-gray-900">New Article</h2>
+            <button onclick="$('#addArticleModal').addClass('hidden')" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+        </div>
+        <form method="post" action="{% url 'support:kb_article_create' %}">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Title <span class="text-red-500">*</span></label>
+                <input type="text" name="title" required maxlength="250" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none" placeholder="Article title">
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Category <span class="text-red-500">*</span></label>
+                    <select name="category_id" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none">
+                        {% for cat in categories %}
+                        <option value="{{ cat.pk }}">{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Status</label>
+                    <select name="status" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none">
+                        <option value="draft">Draft</option>
+                        <option value="published">Published</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Summary</label>
+                <input type="text" name="summary" maxlength="300" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none" placeholder="Short description for article listing">
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Body <span class="text-red-500">*</span></label>
+                <textarea name="body" required rows="6" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none resize-y font-mono" placeholder="Article content (supports Markdown)…"></textarea>
+            </div>
+            <div class="mb-5">
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Tags</label>
+                <input type="text" name="tags" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none" placeholder="Comma-separated tags">
+            </div>
+            <div class="flex gap-3">
+                <button type="submit" class="flex-1 py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-colors">Save Article</button>
+                <button type="button" onclick="$('#addArticleModal').addClass('hidden')" class="flex-1 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>$(document).ready(function(){lucide.createIcons();});</script>{% endblock %}

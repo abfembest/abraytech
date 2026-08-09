@@ -1,0 +1,490 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}{% if question %}Edit Question{% else %}Add Question{% endif %} — {{ exam.title }}{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-full px-3 sm:px-5 lg:px-7 xl:px-8 2xl:px-10">
+
+    <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
+    
+    <!-- Breadcrumb -->
+    <nav class="flex mb-5 overflow-x-auto" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center gap-1.5 text-xs whitespace-nowrap text-gray-500">
+            <li><a href="{% url 'instructor:dashboard' %}" class="hover:text-primary-600 transition-colors">Dashboard</a></li>
+            <li class="flex items-center gap-1.5">
+                <i class="fas fa-chevron-right text-gray-300 text-[10px]"></i>
+                <a href="{% url 'instructor:exam_list' %}" class="hover:text-primary-600 transition-colors">My Exams</a>
+            </li>
+            <li class="flex items-center gap-1.5">
+                <i class="fas fa-chevron-right text-gray-300 text-[10px]"></i>
+                <a href="{% url 'instructor:exam_detail' slug=exam.slug %}?tab=questions"
+                   class="hover:text-primary-600 transition-colors truncate max-w-[140px] sm:max-w-xs">{{ exam.title }}</a>
+            </li>
+            <li class="flex items-center gap-1.5">
+                <i class="fas fa-chevron-right text-gray-300 text-[10px]"></i>
+                <span class="text-gray-700 font-medium">{% if question %}Edit Question{% else %}Add Question{% endif %}</span>
+            </li>
+        </ol>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div>
+            <h1 class="text-xl sm:text-2xl font-bold text-gray-900">
+                {% if question %}Edit Question{% else %}Add New Question{% endif %}
+            </h1>
+            <p class="text-gray-500 text-sm mt-1 flex flex-wrap items-center gap-1.5">
+                <span class="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-gray-600 text-xs">{{ exam.reference_code }}</span>
+                <span class="text-gray-300">·</span>
+                <span class="truncate max-w-xs sm:max-w-sm lg:max-w-lg">{{ exam.title }}</span>
+            </p>
+        </div>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold self-start
+            {% if exam.status == 'published' %}bg-green-100 text-green-700
+            {% elif exam.status == 'approved' %}bg-blue-100 text-blue-700
+            {% elif exam.status == 'submitted' %}bg-yellow-100 text-yellow-700
+            {% elif exam.status == 'rejected' %}bg-red-100 text-red-700
+            {% else %}bg-gray-100 text-gray-600{% endif %}">
+            <i class="fas fa-circle text-[6px]"></i>
+            {{ exam.get_status_display }}
+        </span>
+    </div>
+
+    <!-- Flash Messages -->
+    {% if messages %}
+    <div class="mb-5 space-y-2">
+        {% for message in messages %}
+        <div class="flex items-start gap-3 px-4 py-3 rounded-lg border
+            {% if message.tags == 'error' %}bg-red-50 border-red-200 text-red-800
+            {% elif message.tags == 'success' %}bg-green-50 border-green-200 text-green-800
+            {% else %}bg-blue-50 border-blue-200 text-blue-800{% endif %}">
+            <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle text-red-500{% elif message.tags == 'success' %}fa-check-circle text-green-500{% else %}fa-info-circle text-blue-500{% endif %} mt-0.5 flex-shrink-0"></i>
+            <p class="text-sm">{{ message }}</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Exam locked banner -->
+    {% if exam.status == 'published' %}
+    <div class="mb-5 bg-amber-50 border border-amber-300 rounded-xl px-4 py-3 flex items-center gap-3">
+        <i class="fas fa-lock text-amber-500 flex-shrink-0"></i>
+        <p class="text-sm text-amber-800 font-medium">This exam is published. Questions cannot be added or edited.</p>
+    </div>
+    {% endif %}
+
+    <form method="post"
+          action="{% if question %}{% url 'instructor:exam_question_edit' slug=exam.slug question_id=question.pk %}{% else %}{% url 'instructor:exam_question_create' slug=exam.slug %}{% endif %}"
+          enctype="multipart/form-data"
+          id="questionForm">
+        {% csrf_token %}
+
+        <!-- ── Single card: all question fields ──────────────────────────── -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-5">
+
+            <!-- Card header -->
+            <div class="px-4 sm:px-5 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between flex-wrap gap-2">
+                <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <i class="fas fa-question-circle text-primary-500"></i>
+                    {% if question %}Edit Question{% else %}New Question{% endif %}
+                </h3>
+                {% if question %}
+                <div class="text-xs text-gray-400 flex flex-wrap gap-x-4 gap-y-1">
+                    <span><i class="fas fa-clock mr-1"></i>Created: {{ question.created_at|date:"M d, Y H:i" }}</span>
+                    <span><i class="fas fa-edit mr-1"></i>Updated: {{ question.updated_at|date:"M d, Y H:i" }}</span>
+                    {% if question.imported_from_file %}
+                    <span><i class="fas fa-file-import mr-1"></i>{{ question.imported_from_file }}</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="px-4 sm:px-5 py-5 space-y-5">
+
+                <!-- Row 1: Type + Marks side by side -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="sm:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                            Question Type <span class="text-red-500">*</span>
+                        </label>
+                        <select name="question_type" id="questionType" required
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                                onchange="handleTypeChange(this.value)">
+                            <option value="mcq"          {% if question and question.question_type == 'mcq' %}selected{% endif %}>Multiple Choice (single answer)</option>
+                            <option value="multi_select" {% if question and question.question_type == 'multi_select' %}selected{% endif %}>Multiple Choice (multiple answers)</option>
+                            <option value="true_false"   {% if question and question.question_type == 'true_false' %}selected{% endif %}>True / False</option>
+                            <option value="short_answer" {% if question and question.question_type == 'short_answer' %}selected{% endif %}>Short Answer</option>
+                            <option value="essay"        {% if question and question.question_type == 'essay' %}selected{% endif %}>Essay / Long Answer</option>
+                        </select>
+                        <p class="text-xs text-gray-400 mt-1 leading-relaxed">
+                            <strong>MCQ</strong> = 1 correct &nbsp;·&nbsp; <strong>Multi-select</strong> = ≥1 correct &nbsp;·&nbsp; <strong>T/F</strong> = fixed True/False &nbsp;·&nbsp; <strong>Short</strong> = auto/manual &nbsp;·&nbsp; <strong>Essay</strong> = manual only
+                        </p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                            Marks <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" name="marks"
+                               value="{% if question %}{{ question.marks }}{% else %}1{% endif %}"
+                               min="0" step="0.5" required
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                                      focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors">
+                        <p class="text-xs text-gray-400 mt-1">Points for correct answer.</p>
+                    </div>
+                </div>
+
+                <!-- Question Text -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                        Question Text <span class="text-red-500">*</span>
+                    </label>
+                    <textarea name="question_text" id="questionText" rows="4" required
+                              class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors resize-y"
+                              placeholder="Enter the full question text here…">{% if question %}{{ question.question_text }}{% endif %}</textarea>
+                </div>
+
+                <!-- Question Image -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                        Question Image <span class="text-gray-400 font-normal text-xs">(optional — diagram or figure)</span>
+                    </label>
+                    {% if question and question.image %}
+                    <div class="mb-2 flex flex-wrap items-center gap-3">
+                        <img src="{{ question.image.url }}" alt="Question image"
+                             class="h-20 w-auto rounded-lg border border-gray-200 object-cover">
+                        <label class="flex items-center gap-1.5 text-xs text-red-600 cursor-pointer select-none">
+                            <input type="checkbox" name="clear_image" class="w-3.5 h-3.5 rounded border-gray-300">
+                            Remove current image
+                        </label>
+                    </div>
+                    {% endif %}
+                    <input type="file" name="image" accept="image/*"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white
+                                  file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0
+                                  file:text-xs file:font-semibold file:bg-primary-50 file:text-primary-700
+                                  hover:file:bg-primary-100 transition-colors">
+                    <p class="text-xs text-gray-400 mt-1">JPG, PNG, GIF, WebP. Shown above the question.</p>
+                </div>
+
+                <!-- ── Options Section ───────────────────────────────────── -->
+                <div id="optionsSection" class="border border-gray-200 rounded-lg overflow-hidden">
+                    <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
+                        <div>
+                            <span class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                <i class="fas fa-list-ul text-primary-500 text-xs"></i> Answer Options
+                            </span>
+                            <p id="optionHint"  class="text-xs text-gray-500 mt-0.5 hidden"><i class="fas fa-info-circle mr-1 text-blue-400"></i>Select the <strong>radio</strong> next to exactly <strong>one</strong> correct option.</p>
+                            <p id="multiHint"   class="text-xs text-gray-500 mt-0.5 hidden"><i class="fas fa-info-circle mr-1 text-blue-400"></i><strong>Check all</strong> options that are correct.</p>
+                            <p id="tfHint"      class="text-xs text-gray-500 mt-0.5 hidden"><i class="fas fa-info-circle mr-1 text-blue-400"></i>True/False options are fixed. Mark the correct one.</p>
+                        </div>
+                        <button type="button" id="addOptionBtn" onclick="addOption()"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 text-primary-700
+                                       border border-primary-200 rounded-lg text-xs font-semibold hover:bg-primary-100 transition-colors">
+                            <i class="fas fa-plus"></i> Add Option
+                        </button>
+                    </div>
+                    <div class="px-4 py-3">
+                        <!-- True/False preset -->
+                        <div id="trueFalsePreset" class="hidden space-y-2 mb-2">
+                            <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer
+                                          hover:bg-gray-50 has-[:checked]:border-green-400 has-[:checked]:bg-green-50 transition-colors">
+                                <input type="radio" name="tf_correct" value="true"
+                                       class="text-green-600 focus:ring-green-500 w-4 h-4 flex-shrink-0"
+                                       {% if question and question.question_type == 'true_false' %}{% for o in question.options %}{% if o.text == 'True' and o.is_correct %}checked{% endif %}{% endfor %}{% else %}checked{% endif %}>
+                                <span class="text-sm font-medium text-gray-800">True</span>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer
+                                          hover:bg-gray-50 has-[:checked]:border-green-400 has-[:checked]:bg-green-50 transition-colors">
+                                <input type="radio" name="tf_correct" value="false"
+                                       class="text-green-600 focus:ring-green-500 w-4 h-4 flex-shrink-0"
+                                       {% if question and question.question_type == 'true_false' %}{% for o in question.options %}{% if o.text == 'False' and o.is_correct %}checked{% endif %}{% endfor %}{% endif %}>
+                                <span class="text-sm font-medium text-gray-800">False</span>
+                            </label>
+                        </div>
+                        <!-- Dynamic options list -->
+                        <div id="optionsList" class="space-y-2">
+                            {% if question and question.options and question.question_type != 'true_false' %}
+                                {% for opt in question.options %}
+                                <div class="option-row flex items-start gap-3 p-3 border border-gray-200 rounded-lg bg-gray-50 hover:bg-white transition-colors"
+                                     data-index="{{ forloop.counter0 }}">
+                                    {% if question.question_type == 'multi_select' %}
+                                    <input type="checkbox" name="option_correct_{{ forloop.counter0 }}"
+                                           {% if opt.is_correct %}checked{% endif %}
+                                           class="mt-1 w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500 flex-shrink-0" title="Mark as correct">
+                                    {% else %}
+                                    <input type="radio" name="correct_option" value="{{ forloop.counter0 }}"
+                                           {% if opt.is_correct %}checked{% endif %}
+                                           class="mt-1 w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500 flex-shrink-0" title="Mark as correct">
+                                    {% endif %}
+                                    <input type="hidden" name="option_id_{{ forloop.counter0 }}" value="{{ opt.id }}">
+                                    <div class="flex-1 min-w-0">
+                                        <input type="text" name="option_text_{{ forloop.counter0 }}"
+                                               value="{{ opt.text }}" required placeholder="Option text…"
+                                               class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm
+                                                      focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-white">
+                                    </div>
+                                    <button type="button" onclick="removeOption(this)"
+                                            class="flex-shrink-0 mt-1 text-red-400 hover:text-red-600 transition-colors px-1" title="Remove">
+                                        <i class="fas fa-times text-xs"></i>
+                                    </button>
+                                </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        <p id="optionsEmptyHint" class="text-xs text-gray-400 mt-2 hidden">
+                            No options yet. Click <strong>Add Option</strong> to begin.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Short Answer Accepted Answers -->
+                <div id="shortAnswerSection" class="hidden border border-gray-200 rounded-lg overflow-hidden">
+                    <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                        <span class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                            <i class="fas fa-spell-check text-primary-500 text-xs"></i>
+                            Accepted Answers <span class="text-gray-400 font-normal text-xs">(for auto-grading)</span>
+                        </span>
+                    </div>
+                    <div class="px-4 py-3">
+                        <p class="text-xs text-gray-500 mb-2 leading-relaxed">One per line. Include all acceptable variants. Leave blank for manual grading.</p>
+                        <textarea name="accepted_answers" rows="3"
+                                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                                         focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors font-mono resize-y"
+                                  placeholder="binary search&#10;Binary Search&#10;Binary search">{% if question and question.accepted_answers %}{% for ans in question.accepted_answers %}{{ ans }}
+{% endfor %}{% endif %}</textarea>
+                    </div>
+                </div>
+
+                <!-- Essay Info -->
+                <div id="essayInfo" class="hidden bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 flex items-start gap-3">
+                    <i class="fas fa-pen-fancy text-blue-400 mt-0.5 flex-shrink-0"></i>
+                    <p class="text-sm text-blue-700">Essay questions have no options or auto-grading. Students type a long-form response marked manually after the exam.</p>
+                </div>
+
+                <!-- ── Metadata row ────────────────────────────────────────── -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-gray-100">
+
+                    <!-- Source Reference -->
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Source Reference</label>
+                        <input type="text" name="source_reference"
+                               value="{% if question %}{{ question.source_reference }}{% endif %}"
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm
+                                      focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                               placeholder="e.g. 2019 Past Question Q4">
+                    </div>
+
+                    <!-- Year First Used -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Year First Used</label>
+                        <input type="number" name="year_first_used"
+                               value="{% if question %}{{ question.year_first_used }}{% endif %}"
+                               min="2000" max="2100"
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm
+                                      focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                               placeholder="e.g. 2023">
+                    </div>
+
+                    <!-- Tags -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Tags</label>
+                        <input type="text" name="tags_input"
+                               value="{% if question and question.tags %}{{ question.tags|join:", " }}{% endif %}"
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm
+                                      focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                               placeholder="chapter-3, sorting">
+                        <p class="text-xs text-gray-400 mt-1">Comma-separated.</p>
+                    </div>
+
+                </div>
+
+                <!-- Explanation -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                        Explanation <span class="text-gray-400 font-normal text-xs">(shown to students after answers are released)</span>
+                    </label>
+                    <textarea name="explanation" rows="2"
+                              class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                                     focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors resize-y"
+                              placeholder="Explain why the correct answer is right…">{% if question %}{{ question.explanation }}{% endif %}</textarea>
+                </div>
+
+                <!-- Active toggle -->
+                <div class="flex flex-wrap items-center gap-6 pt-2 border-t border-gray-100">
+                    <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                        <input type="checkbox" name="is_active"
+                               {% if not question or question.is_active %}checked{% endif %}
+                               class="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500">
+                        <span class="text-sm text-gray-700">
+                            <span class="font-medium">Active</span>
+                            <span class="text-gray-400 text-xs ml-1">(include in student question draws)</span>
+                        </span>
+                    </label>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Hidden options count -->
+        <input type="hidden" name="options_count" id="optionsCount" value="{{ question.options|length|default:0 }}">
+
+        <!-- ── Actions ──────────────────────────────────────────────────── -->
+        <div class="flex flex-col sm:flex-row justify-between gap-3 pb-6">
+            <a href="{% url 'instructor:exam_detail' slug=exam.slug %}?tab=questions"
+               class="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300
+                      text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
+                <i class="fas fa-arrow-left"></i> Back to Questions
+            </a>
+            <div class="flex flex-col sm:flex-row gap-2">
+                <button type="submit" name="_save_back" value="1"
+                        class="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300
+                               text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
+                    <i class="fas fa-check"></i> Save &amp; Back to Exam
+                </button>
+                <button type="submit"
+                        class="inline-flex items-center justify-center gap-2 px-5 py-2.5
+                               bg-primary-600 text-white rounded-lg hover:bg-primary-700
+                               transition-colors text-sm font-semibold shadow-sm">
+                    <i class="fas fa-save"></i>
+                    {% if question %}Save Changes{% else %}Add Question &amp; Add Another{% endif %}
+                </button>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<script>
+let optionIndex = {{ question.options|length|default:0 }};
+
+function handleTypeChange(type) {
+    const optSec    = document.getElementById('optionsSection');
+    const shortSec  = document.getElementById('shortAnswerSection');
+    const essayInfo = document.getElementById('essayInfo');
+    const tfPreset  = document.getElementById('trueFalsePreset');
+    const optList   = document.getElementById('optionsList');
+    const addBtn    = document.getElementById('addOptionBtn');
+    const optHint   = document.getElementById('optionHint');
+    const multiHint = document.getElementById('multiHint');
+    const tfHint    = document.getElementById('tfHint');
+    const emptyHint = document.getElementById('optionsEmptyHint');
+
+    [optSec, shortSec, essayInfo].forEach(el => el.classList.add('hidden'));
+    [tfPreset, optHint, multiHint, tfHint, emptyHint].forEach(el => el.classList.add('hidden'));
+    addBtn.classList.remove('hidden');
+
+    if (type === 'essay') {
+        essayInfo.classList.remove('hidden');
+    } else if (type === 'short_answer') {
+        shortSec.classList.remove('hidden');
+    } else if (type === 'true_false') {
+        optSec.classList.remove('hidden');
+        tfPreset.classList.remove('hidden');
+        tfHint.classList.remove('hidden');
+        addBtn.classList.add('hidden');
+        optList.innerHTML = '';
+    } else if (type === 'multi_select') {
+        optSec.classList.remove('hidden');
+        multiHint.classList.remove('hidden');
+        if (optList.children.length === 0) { addOption(''); addOption(''); }
+        refreshOptionInputTypes('multi_select');
+    } else {
+        optSec.classList.remove('hidden');
+        optHint.classList.remove('hidden');
+        if (optList.children.length === 0) { addOption(''); addOption(''); }
+        refreshOptionInputTypes('mcq');
+    }
+
+    updateOptionsCount();
+    checkEmptyHint();
+}
+
+function refreshOptionInputTypes(type) {
+    document.querySelectorAll('.option-row').forEach((row, idx) => {
+        const old = row.querySelector('input[type="checkbox"], input[type="radio"]');
+        if (!old) return;
+        const wasChecked = old.checked;
+        const n = document.createElement('input');
+        n.className = 'mt-1 w-4 h-4 focus:ring-green-500 flex-shrink-0';
+        if (type === 'multi_select') {
+            n.type = 'checkbox'; n.name = `option_correct_${idx}`;
+            n.className += ' text-green-600 border-gray-300 rounded';
+        } else {
+            n.type = 'radio'; n.name = 'correct_option'; n.value = idx;
+            n.className += ' text-green-600 border-gray-300';
+        }
+        n.checked = wasChecked; n.title = 'Mark as correct';
+        old.replaceWith(n);
+    });
+}
+
+function addOption(defaultText) {
+    const type = document.getElementById('questionType').value;
+    const list = document.getElementById('optionsList');
+    const idx  = optionIndex++;
+    const div  = document.createElement('div');
+    div.className = 'option-row flex items-start gap-3 p-3 border border-gray-200 rounded-lg bg-gray-50 hover:bg-white transition-colors';
+    div.dataset.index = idx;
+    const ctrlHtml = type === 'multi_select'
+        ? `<input type="checkbox" name="option_correct_${idx}" class="mt-1 w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500 flex-shrink-0" title="Mark as correct">`
+        : `<input type="radio" name="correct_option" value="${idx}" class="mt-1 w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500 flex-shrink-0" title="Mark as correct">`;
+    div.innerHTML = `
+        ${ctrlHtml}
+        <input type="hidden" name="option_id_${idx}" value="">
+        <div class="flex-1 min-w-0">
+            <input type="text" name="option_text_${idx}" value="${defaultText !== undefined ? defaultText : ''}"
+                   placeholder="Option text…"
+                   class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-white">
+        </div>
+        <button type="button" onclick="removeOption(this)" class="flex-shrink-0 mt-1 text-red-400 hover:text-red-600 transition-colors px-1" title="Remove">
+            <i class="fas fa-times text-xs"></i>
+        </button>`;
+    list.appendChild(div);
+    updateOptionsCount();
+    checkEmptyHint();
+    div.querySelector('input[type="text"]').focus();
+}
+
+function removeOption(btn) {
+    if (document.querySelectorAll('.option-row').length <= 2) {
+        alert('At least 2 options are required.');
+        return;
+    }
+    btn.closest('.option-row').remove();
+    updateOptionsCount();
+    checkEmptyHint();
+}
+
+function updateOptionsCount() {
+    const el = document.getElementById('optionsCount');
+    if (el) el.value = document.querySelectorAll('.option-row').length;
+}
+
+function checkEmptyHint() {
+    const hint = document.getElementById('optionsEmptyHint');
+    if (!hint) return;
+    const type = document.getElementById('questionType').value;
+    hint.classList.toggle('hidden', document.querySelectorAll('.option-row').length > 0 || type === 'true_false');
+}
+
+document.getElementById('questionForm').addEventListener('submit', function(e) {
+    const type = document.getElementById('questionType').value;
+    if (type === 'mcq' && document.querySelectorAll('.option-row').length > 0) {
+        if (!document.querySelector('input[name="correct_option"]:checked')) {
+            e.preventDefault();
+            alert('Please mark one option as the correct answer.');
+            return;
+        }
+    }
+    if (type === 'multi_select' && document.querySelectorAll('.option-row').length > 0) {
+        if (!document.querySelector('input[type="checkbox"][name^="option_correct_"]:checked')) {
+            e.preventDefault();
+            alert('Please mark at least one option as correct.');
+        }
+    }
+});
+
+handleTypeChange(document.getElementById('questionType').value);
+</script>
+{% endblock %}

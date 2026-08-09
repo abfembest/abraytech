@@ -1,0 +1,93 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Carry-Over Courses - MIU Admin Portal{% endblock %}
+{% block meta_description %}Manage student course carry-over records{% endblock %}
+
+{% block content %}
+<div class="max-w-full relative">
+
+  {# ─── Page Header ─────────────────────────────────────────────────────────── #}
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Carry-Over Courses</h1>
+      <p class="text-gray-500 mt-1">Courses students still owe from a previous level</p>
+    </div>
+    <a href="{% url 'management:academic_progression' %}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium">
+      <i class="fas fa-level-up-alt" aria-hidden="true"></i> Run Progression
+    </a>
+  </div>
+
+  {# ─── Filters ─────────────────────────────────────────────────────────────── #}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
+    <form method="get" class="flex flex-col sm:flex-row gap-3">
+      <select name="program_id" class="searchable-select border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none" data-ss-placeholder="All Programs">
+        <option value="">All Programs</option>
+        {% for p in programs %}
+        <option value="{{ p.pk }}" {% if program_id == p.pk|stringformat:'s' %}selected{% endif %}>{{ p.name }}</option>
+        {% endfor %}
+      </select>
+      <select name="status" class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none">
+        <option value="open" {% if status_filter == 'open' %}selected{% endif %}>Open</option>
+        <option value="cleared" {% if status_filter == 'cleared' %}selected{% endif %}>Cleared</option>
+        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
+      </select>
+      <button type="submit" class="px-4 py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-colors">
+        <i class="fas fa-filter mr-1" aria-hidden="true"></i> Filter
+      </button>
+    </form>
+  </div>
+
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="table-card w-full min-w-[760px] text-sm">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wide">
+          <tr>
+            <th class="py-3 px-5 text-left font-semibold">Student</th>
+            <th class="py-3 px-5 text-left font-semibold">Course</th>
+            <th class="py-3 px-5 text-left font-semibold">First Failed</th>
+            <th class="py-3 px-5 text-left font-semibold">Attempts</th>
+            <th class="py-3 px-5 text-left font-semibold">Status</th>
+            <th class="py-3 px-5 text-left font-semibold">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for rec in records %}
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="py-3 px-5" data-label="Student">
+              <div class="font-medium text-gray-800">{{ rec.student.get_full_name|default:rec.student.username }}</div>
+              <div class="text-xs text-gray-400">{{ rec.student.username }}</div>
+            </td>
+            <td class="py-3 px-5" data-label="Course">{{ rec.course.code }} — {{ rec.course.name }}</td>
+            <td class="py-3 px-5 text-gray-500" data-label="First Failed">{{ rec.first_failed_session|default:"—" }}</td>
+            <td class="py-3 px-5" data-label="Attempts">{{ rec.attempts }}</td>
+            <td class="py-3 px-5" data-label="Status">
+              {% if rec.is_cleared %}
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Cleared</span>
+              {% else %}
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700">Open</span>
+              {% endif %}
+            </td>
+            <td class="py-3 px-5" data-label="Actions">
+              {% if not rec.is_cleared and permissions.academic_progression.can_edit %}
+              <form method="post" class="inline">
+                {% csrf_token %}
+                <input type="hidden" name="record_id" value="{{ rec.pk }}">
+                <button type="submit" class="text-xs text-primary-600 hover:underline" onclick="return swalConfirmSubmit(this, {title: 'Mark {{ rec.course.code }} cleared for {{ rec.student.username }}?', confirmButtonColor: '#16a34a', confirmButtonText: 'Yes, mark cleared'})">
+                  Mark Cleared
+                </button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="py-10 text-center text-gray-400">No carry-over records found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

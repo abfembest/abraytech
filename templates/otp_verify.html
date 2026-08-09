@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Verify Your Identity{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-primary-50 to-gold-100 flex items-center justify-center px-4">
+  <div class="w-full max-w-md">
+
+    <div class="bg-white rounded-2xl shadow-2xl shadow-primary-950/15 overflow-hidden">
+
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-primary-950 to-purple-700 p-8 text-center text-white">
+        <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="shield-check" class="w-8 h-8"></i>
+        </div>
+        <h1 class="text-2xl font-bold font-heading">Two-Step Verification</h1>
+        <p class="text-purple-200 text-sm mt-2">Confirm it's really you</p>
+      </div>
+
+      <!-- Body -->
+      <div class="p-8">
+        <p class="text-gray-600 text-sm text-center mb-6">
+          We sent a 6-digit code to<br>
+          <strong class="text-gray-800">{{ masked_email }}</strong>
+        </p>
+
+        <!-- OTP Input -->
+        <div id="otpForm">
+          <div class="flex gap-2 justify-center mb-2" id="otpBoxes">
+            {% for i in "123456" %}
+            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]"
+                   class="otp-digit w-12 h-14 text-center text-2xl font-bold border-2 border-gray-300
+                          rounded-xl focus:border-primary-950 focus:ring-2 focus:ring-purple-200
+                          transition-all outline-none"
+                   autocomplete="off">
+            {% endfor %}
+          </div>
+          <input type="hidden" id="otpHidden" value="">
+          <div class="text-red-500 text-sm text-center mt-1 min-h-5" id="otpError"></div>
+
+          <button id="verifyBtn"
+                  class="mt-6 w-full py-3.5 bg-gradient-to-r from-primary-950 to-purple-700
+                         text-white rounded-xl font-bold text-base
+                         hover:shadow-xl hover:shadow-purple-500/40 hover:scale-105
+                         transition-all duration-300 flex items-center justify-center gap-2
+                         disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100">
+            <i data-lucide="check-circle" class="w-5 h-5"></i>
+            <span>Verify Code</span>
+          </button>
+        </div>
+
+        <!-- Resend + Back -->
+        <div class="mt-6 text-center space-y-3">
+          <p class="text-sm text-gray-500">
+            Didn't receive a code?
+            <button id="resendBtn" class="text-primary-950 font-semibold hover:text-purple-700 transition-colors ml-1">
+              Resend
+            </button>
+            <span id="resendTimer" class="text-gray-400 text-xs ml-1"></span>
+          </p>
+          <a href="{% url 'eduweb:auth_page' %}"
+             class="block text-sm text-gray-400 hover:text-gray-600 transition-colors">
+            ← Back to Login
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  lucide.createIcons();
+
+  const digits   = document.querySelectorAll('.otp-digit');
+  const hidden   = document.getElementById('otpHidden');
+  const errorEl  = document.getElementById('otpError');
+  const verifyBtn = document.getElementById('verifyBtn');
+  const resendBtn = document.getElementById('resendBtn');
+  const timerEl  = document.getElementById('resendTimer');
+
+  // ── OTP digit behaviour ──────────────────────────────────────────────────
+  digits.forEach((input, idx) => {
+    input.addEventListener('input', () => {
+      input.value = input.value.replace(/\D/, '');
+      if (input.value && idx < digits.length - 1) digits[idx + 1].focus();
+      updateHidden();
+    });
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !input.value && idx > 0) {
+        digits[idx - 1].focus();
+        digits[idx - 1].value = '';
+        updateHidden();
+      }
+    });
+    input.addEventListener('paste', e => {
+      const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+      if (pasted.length === 6) {
+        pasted.split('').forEach((ch, i) => { if (digits[i]) digits[i].value = ch; });
+        digits[5].focus();
+        updateHidden();
+      }
+      e.preventDefault();
+    });
+  });
+
+  function updateHidden() {
+    hidden.value = Array.from(digits).map(d => d.value).join('');
+  }
+
+  // ── Verify ───────────────────────────────────────────────────────────────
+  verifyBtn.addEventListener('click', async () => {
+    errorEl.textContent = '';
+    const otp = hidden.value.trim();
+    if (otp.length !== 6) {
+      errorEl.textContent = 'Please enter all 6 digits.';
+      return;
+    }
+
+    verifyBtn.disabled = true;
+    verifyBtn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Verifying…</span>';
+    lucide.createIcons();
+
+    const fd = new FormData();
+    fd.append('otp', otp);
+    fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    try {
+      const res  = await fetch('{% url "eduweb:otp_verify" %}', {
+        method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        if (window.showToast) window.showToast('success', data.message);
+        setTimeout(() => window.location.href = data.redirect_url, 1200);
+      } else {
+        errorEl.textContent = (data.errors?.otp || ['Verification failed.']).join(' ');
+        if (data.redirect_login) {
+          setTimeout(() => window.location.href = '{% url "eduweb:auth_page" %}', 2000);
+        }
+        verifyBtn.disabled = false;
+        verifyBtn.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i><span>Verify Code</span>';
+        lucide.createIcons();
+        digits.forEach(d => d.value = '');
+        digits[0].focus();
+        updateHidden();
+      }
+    } catch {
+      errorEl.textContent = 'Network error. Please try again.';
+      verifyBtn.disabled = false;
+      verifyBtn.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i><span>Verify Code</span>';
+      lucide.createIcons();
+    }
+  });
+
+  // ── Resend with 60s cooldown ─────────────────────────────────────────────
+  let cooldown = 0;
+  function startCooldown(secs) {
+    cooldown = secs;
+    resendBtn.disabled = true;
+    resendBtn.classList.add('opacity-40', 'cursor-not-allowed');
+    const tick = setInterval(() => {
+      cooldown--;
+      timerEl.textContent = `(${cooldown}s)`;
+      if (cooldown <= 0) {
+        clearInterval(tick);
+        timerEl.textContent = '';
+        resendBtn.disabled = false;
+        resendBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+      }
+    }, 1000);
+  }
+
+  resendBtn.addEventListener('click', async () => {
+    // Disable immediately — the request takes a couple of seconds (it emails
+    // a fresh code server-side), and without this a second click before the
+    // response lands fires a duplicate send.
+    resendBtn.disabled = true;
+    resendBtn.classList.add('opacity-40', 'cursor-not-allowed');
+    const originalLabel = resendBtn.textContent;
+    resendBtn.textContent = 'Sending…';
+
+    try {
+      const res  = await fetch('{% url "eduweb:otp_verify" %}?resend=1', {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      const data = await res.json();
+      resendBtn.textContent = originalLabel;
+      if (data.success) {
+        if (window.showToast) window.showToast('success', data.message);
+        startCooldown(60);
+        digits.forEach(d => d.value = '');
+        digits[0].focus();
+        updateHidden();
+      } else {
+        if (window.showToast) window.showToast('error', data.message || 'Could not resend code.');
+        resendBtn.disabled = false;
+        resendBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+      }
+    } catch {
+      resendBtn.textContent = originalLabel;
+      resendBtn.disabled = false;
+      resendBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+      if (window.showToast) window.showToast('error', 'Could not resend code.');
+    }
+  });
+
+  // Start with 30s initial cooldown so user can't spam immediately
+  startCooldown(30);
+  digits[0].focus();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,275 @@
+{% extends 'management/base.html' %}
+{% load static %}
+{% block title %}Manage Lessons - {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-12xl mx-auto px-2 sm:px-0">
+
+    <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
+
+    <!-- Breadcrumb -->
+    <nav class="flex mb-4 sm:mb-6 overflow-x-auto" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center whitespace-nowrap text-xs sm:text-sm space-x-1">
+            <li><a href="{% url 'instructor:course_list' %}" class="text-gray-600 hover:text-primary-600 inline-flex items-center"><i class="fas fa-book mr-1"></i>Courses</a></li>
+            <li><i class="fas fa-chevron-right text-gray-400 mx-1.5 text-xs"></i><a href="{% url 'instructor:course_edit' course.slug %}" class="text-gray-600 hover:text-primary-600 truncate max-w-[100px] sm:max-w-none">{{ course.title|truncatewords:5 }}</a></li>
+            <li><i class="fas fa-chevron-right text-gray-400 mx-1.5 text-xs"></i><span class="text-gray-500">Lessons</span></li>
+        </ol>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="mb-6 sm:mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 font-display">Course Content</h1>
+                <p class="text-sm sm:text-base text-gray-600 mt-1">Organize your course into sections and lessons</p>
+            </div>
+            <div class="flex flex-col lg:flex-row xs:flex-row gap-2 sm:gap-3">
+                <button onclick="showTipsModal()"
+                   class="inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-50 border-2 border-blue-600 text-blue-600 text-sm font-medium rounded-lg hover:bg-blue-100 transition-all">
+                    <i class="fas fa-lightbulb mr-2"></i>Quick Tips
+                </button>
+                {% if permissions.instructor_courses.can_create %}
+                <a href="{% url 'instructor:section_create' course.slug %}"
+                   class="inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-white border-2 border-primary-600 text-primary-600 text-sm font-medium rounded-lg hover:bg-primary-50 transition-all">
+                    <i class="fas fa-folder-plus mr-2"></i>Add Section
+                </a>
+                <a href="{% url 'instructor:lesson_create' course.slug %}"
+                   class="inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 shadow-sm hover:shadow-md transition-all">
+                    <i class="fas fa-plus-circle mr-2"></i>Add Lesson
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-gray-600 text-xs sm:text-sm font-medium">Sections</p>
+                    <h3 class="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">{{ sections.count }}</h3>
+                </div>
+                <div class="bg-blue-50 text-blue-600 p-2 sm:p-3 rounded-lg flex-shrink-0">
+                    <i class="fas fa-folder text-lg sm:text-2xl"></i>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-gray-600 text-xs sm:text-sm font-medium">Lessons</p>
+                    <h3 class="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">{{ course.lessons.count }}</h3>
+                </div>
+                <div class="bg-green-50 text-green-600 p-2 sm:p-3 rounded-lg flex-shrink-0">
+                    <i class="fas fa-play-circle text-lg sm:text-2xl"></i>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-gray-600 text-xs sm:text-sm font-medium">Videos</p>
+                    <h3 class="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">{{ video_count }}</h3>
+                </div>
+                <div class="bg-purple-50 text-purple-600 p-2 sm:p-3 rounded-lg flex-shrink-0">
+                    <i class="fas fa-video text-lg sm:text-2xl"></i>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-gray-600 text-xs sm:text-sm font-medium">Quizzes</p>
+                    <h3 class="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">{{ quiz_count }}</h3>
+                </div>
+                <div class="bg-orange-50 text-orange-600 p-2 sm:p-3 rounded-lg flex-shrink-0">
+                    <i class="fas fa-question-circle text-lg sm:text-2xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if sections %}
+    <div class="space-y-4 sm:space-y-6">
+        {% for section in sections %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+
+            <!-- Section Header -->
+            <div class="bg-gradient-to-r from-primary-50 to-blue-50 border-b border-gray-200 p-4 sm:p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                    <div class="flex items-start gap-3 sm:gap-4">
+                        <div class="bg-primary-600 text-white p-2 sm:p-3 rounded-lg flex-shrink-0">
+                            <i class="fas fa-folder text-base sm:text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg sm:text-xl font-bold text-gray-900">{{ section.title }}</h2>
+                            {% if section.description %}
+                            <p class="text-sm text-gray-600 mt-0.5">{{ section.description }}</p>
+                            {% endif %}
+                            <p class="text-xs sm:text-sm text-gray-500 mt-1">
+                                <i class="fas fa-list-ul mr-1"></i>{{ section.lessons.count }} lesson{{ section.lessons.count|pluralize }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        {% if permissions.instructor_courses.can_edit %}
+                        <a href="{% url 'instructor:section_edit' course.slug section.id %}"
+                           class="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-xs sm:text-sm">
+                            <i class="fas fa-edit mr-1 sm:mr-2"></i>Edit
+                        </a>
+                        {% endif %}
+                        {% if permissions.instructor_courses.can_delete %}
+                        <a href="#" onclick="confirmDelete('section', {{ section.id }}, '{{ section.title|escapejs }}'); return false;"
+                           class="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-white text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors text-xs sm:text-sm">
+                            <i class="fas fa-trash mr-1 sm:mr-2"></i>Delete
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lessons in Section -->
+            {% if section.lessons.all %}
+            <div class="divide-y divide-gray-100">
+                {% for lesson in section.lessons.all %}
+                <div class="p-4 sm:p-5 hover:bg-gray-50 transition-colors">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center
+                                {% if lesson.lesson_type == 'video' %}bg-purple-100 text-purple-600
+                                {% elif lesson.lesson_type == 'text' %}bg-blue-100 text-blue-600
+                                {% elif lesson.lesson_type == 'quiz' %}bg-green-100 text-green-600
+                                {% elif lesson.lesson_type == 'assignment' %}bg-orange-100 text-orange-600
+                                {% else %}bg-gray-100 text-gray-600{% endif %}">
+                                <i class="fas fa-{% if lesson.lesson_type == 'video' %}video{% elif lesson.lesson_type == 'text' %}file-alt{% elif lesson.lesson_type == 'quiz' %}question-circle{% elif lesson.lesson_type == 'assignment' %}tasks{% else %}file{% endif %} text-sm sm:text-base"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-semibold text-gray-900 text-sm sm:text-base truncate">{{ lesson.title }}</p>
+                                <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
+                                    <span class="text-xs text-gray-500 capitalize">{{ lesson.lesson_type }}</span>
+                                    {% if lesson.is_preview %}
+                                    <span class="px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-700">Preview</span>
+                                    {% endif %}
+                                    {% if lesson.duration_minutes %}
+                                    <span class="text-xs text-gray-400"><i class="fas fa-clock mr-0.5"></i>{{ lesson.duration_minutes }} min</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 flex-wrap">
+                            {% if permissions.instructor_courses.can_edit %}
+                            <a href="{% url 'instructor:lesson_edit' course.slug lesson.slug %}"
+                               class="inline-flex items-center px-2.5 sm:px-3 py-1.5 bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-colors text-xs sm:text-sm font-medium">
+                                <i class="fas fa-edit mr-1"></i>Edit
+                            </a>
+                            {% endif %}
+                            {% if lesson.lesson_type == 'quiz' %}
+                            <a href="{% url 'instructor:quiz_list' course.slug lesson.slug %}"
+                               class="inline-flex items-center px-2.5 sm:px-3 py-1.5 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors text-xs sm:text-sm font-medium">
+                                <i class="fas fa-question-circle mr-1"></i>Quizzes
+                            </a>
+                            {% endif %}
+                            {% if lesson.lesson_type == 'assignment' %}
+                            <a href="{% url 'instructor:assignment_list' course.slug lesson.slug %}"
+                               class="inline-flex items-center px-2.5 sm:px-3 py-1.5 bg-orange-50 text-orange-700 rounded-lg hover:bg-orange-100 transition-colors text-xs sm:text-sm font-medium">
+                                <i class="fas fa-tasks mr-1"></i>Assignments
+                            </a>
+                            {% endif %}
+                            {% if permissions.instructor_courses.can_delete %}
+                            <a href="#" onclick="confirmDelete('lesson', '{{ lesson.slug }}', '{{ lesson.title|escapejs }}'); return false;"
+                               class="inline-flex items-center px-2.5 sm:px-3 py-1.5 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors text-xs sm:text-sm font-medium">
+                                <i class="fas fa-trash mr-1"></i>Delete
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="p-6 sm:p-8 text-center">
+                <p class="text-xs sm:text-sm text-gray-400 mb-3">No lessons in this section yet.</p>
+                {% if permissions.instructor_courses.can_create %}
+                <a href="{% url 'instructor:lesson_create' course.slug %}"
+                   class="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-colors text-xs sm:text-sm font-medium">
+                    <i class="fas fa-plus-circle mr-1.5"></i>Add Lesson
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 sm:p-12 text-center">
+        <div class="max-w-md mx-auto">
+            <div class="w-16 h-16 sm:w-24 sm:h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                <i class="fas fa-folder-open text-3xl sm:text-5xl text-gray-400"></i>
+            </div>
+            <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">No Course Content Yet</h3>
+            <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">Start building your course by creating sections to organize your lessons, or add lessons directly.</p>
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
+                {% if permissions.instructor_courses.can_create %}
+                <a href="{% url 'instructor:section_create' course.slug %}"
+                   class="inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-white border-2 border-primary-600 text-primary-600 text-sm font-medium rounded-lg hover:bg-primary-50 transition-all">
+                    <i class="fas fa-folder-plus mr-2"></i>Create First Section
+                </a>
+                <a href="{% url 'instructor:lesson_create' course.slug %}"
+                   class="inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 shadow-sm hover:shadow-md transition-all">
+                    <i class="fas fa-plus-circle mr-2"></i>Add First Lesson
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showTipsModal() {
+    Swal.fire({
+        title: '<i class="fas fa-lightbulb text-blue-600"></i> Tips for Organizing Course Content',
+        html: `<div class="text-left space-y-4 px-2 sm:px-4">
+            <div class="flex items-start gap-3"><i class="fas fa-check-circle text-blue-600 mt-1 flex-shrink-0"></i><p class="text-gray-700 text-sm"><strong>Use sections wisely:</strong> Group related lessons together to create a logical learning path.</p></div>
+            <div class="flex items-start gap-3"><i class="fas fa-check-circle text-blue-600 mt-1 flex-shrink-0"></i><p class="text-gray-700 text-sm"><strong>Mix content types:</strong> Combine videos, text, quizzes, and assignments to keep learners engaged.</p></div>
+            <div class="flex items-start gap-3"><i class="fas fa-check-circle text-blue-600 mt-1 flex-shrink-0"></i><p class="text-gray-700 text-sm"><strong>Enable previews:</strong> Allow students to preview introductory lessons to attract enrollments.</p></div>
+            <div class="flex items-start gap-3"><i class="fas fa-check-circle text-blue-600 mt-1 flex-shrink-0"></i><p class="text-gray-700 text-sm"><strong>Control the sequence:</strong> Use display order to ensure lessons appear in the right order.</p></div>
+        </div>`,
+        icon: null,
+        confirmButtonText: 'Got it!',
+        confirmButtonColor: '#3b82f6',
+        width: '600px',
+        customClass: { confirmButton: 'px-6 py-2 rounded-lg font-medium', htmlContainer: 'text-left' }
+    });
+}
+
+function confirmDelete(type, id, title) {
+    const typeText = type === 'section' ? 'Section' : 'Lesson';
+    const deleteUrl = type === 'section'
+        ? "{% url 'instructor:section_delete' course.slug 0 %}".replace('/0/', `/${id}/`)
+        : "{% url 'instructor:lesson_delete' course.slug 'placeholder' %}".replace('placeholder', `${id}`);
+    Swal.fire({
+        title: `Delete ${typeText}?`,
+        html: `Are you sure you want to delete <strong>"${title}"</strong>?<br><span class="text-sm text-gray-600">This action cannot be undone.</span>`,
+        icon: 'warning', showCancelButton: true,
+        confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, delete it!', cancelButtonText: 'Cancel', reverseButtons: true,
+    }).then(result => {
+        if (result.isConfirmed) {
+            const form = document.createElement('form');
+            form.method = 'POST'; form.action = deleteUrl;
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}';
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden'; csrfInput.name = 'csrfmiddlewaretoken'; csrfInput.value = csrfToken;
+            form.appendChild(csrfInput); document.body.appendChild(form); form.submit();
+        }
+    });
+}
+</script>
+{% endblock %}

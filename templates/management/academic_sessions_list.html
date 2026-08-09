@@ -1,0 +1,592 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Academic Sessions - MIU Admin Portal{% endblock %}
+{% block meta_description %}Manage academic sessions and semesters{% endblock %}
+
+{% block content %}
+<div class="max-w-full relative">
+
+  {# ─── Page Header ─────────────────────────────────────────────────────────── #}
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Academic Sessions</h1>
+      <p class="text-gray-500 mt-1">Manage academic years and semester schedules</p>
+    </div>
+    {% if permissions.academics.can_create %}
+    <button type="button" onclick="openSessionModal('create')"
+       class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium shadow-sm focus:outline-none">
+      <i class="fas fa-plus" aria-hidden="true"></i> New Session
+    </button>
+    {% endif %}
+  </div>
+
+  {# ─── Current Session Banner ───────────────────────────────────────────────── #}
+  {% if current_session %}
+  <div class="bg-gradient-to-r from-primary-600 to-secondary-500 text-white rounded-xl p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <i class="fas fa-star text-yellow-300" aria-hidden="true"></i>
+        <span class="font-semibold">Current Session: {{ current_session.name }}</span>
+      </div>
+      <p class="text-sm text-white/80 flex items-center gap-2 flex-wrap">
+        <span>Term: <strong>{{ current_session.get_current_term|default:"N/A"|title }}</strong></span>
+        <span class="opacity-50">|</span>
+        <span>Registration:
+          {% if current_session.is_registration_open %}
+            <span class="text-green-300 font-bold">Open</span>
+          {% else %}
+            Closed
+          {% endif %}
+        </span>
+      </p>
+    </div>
+    <span class="px-3 py-1.5 bg-white/20 rounded-full text-sm font-medium whitespace-nowrap">
+      {{ current_session.get_status_display }}
+    </span>
+  </div>
+  {% endif %}
+
+  {# ─── Sessions Table ───────────────────────────────────────────────────────── #}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="p-5 border-b border-gray-100 flex items-center justify-between">
+      <h2 class="font-semibold text-gray-800">
+        All Sessions
+        <span class="text-sm font-normal text-gray-400 ml-1">({{ sessions|length }} total)</span>
+      </h2>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="table-card w-full min-w-[760px] text-sm">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wide">
+          <tr>
+            <th class="py-3 px-5 text-left font-semibold">Session</th>
+            <th class="py-3 px-5 text-left font-semibold">Registration Window</th>
+            <th class="py-3 px-5 text-left font-semibold">Status</th>
+            <th class="py-3 px-5 text-left font-semibold">Current Term</th>
+            <th class="py-3 px-5 text-left font-semibold">Semesters</th>
+            <th class="py-3 px-5 text-left font-semibold">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for session in sessions %}
+
+          {# Embed term_dates as JSON for JS to read when editing #}
+          {{ session.term_dates|json_script:session.id }}
+
+          <tr class="hover:bg-gray-50 transition-colors {% if session.is_current %}bg-primary-50/50{% endif %}">
+
+            {# Session Name #}
+            <td class="py-4 px-5" data-label="Session">
+              <div class="flex items-center gap-2">
+                <span class="font-semibold text-gray-800">{{ session.name }}</span>
+                {% if session.is_current %}
+                <span class="px-2 py-0.5 bg-primary-100 text-primary-700 rounded-full text-xs font-medium">Current</span>
+                {% endif %}
+              </div>
+            </td>
+
+            {# Registration Window — 3 weeks from each term's start date #}
+            <td class="py-4 px-5 text-xs" data-label="Registration Window">
+              <div class="space-y-1">
+                {% if session.registration_override == 'open' %}
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700 mb-1">FORCED OPEN</span>
+                {% elif session.registration_override == 'closed' %}
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 mb-1">FORCED CLOSED</span>
+                {% endif %}
+                {% for td in session.term_dates %}
+                  {% if session.is_registration_open and session.get_current_term == td.term %}
+                  <div class="whitespace-nowrap text-green-600 font-semibold">
+                    <span class="font-medium text-green-700">{{ td.term|title }}:</span>
+                    {{ td.start|slice:":10" }}
+                    <span class="text-green-400">→ +21 days</span>
+                    <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700">OPEN</span>
+                  </div>
+                  {% else %}
+                  <div class="whitespace-nowrap text-gray-400">
+                    <span class="font-medium text-gray-500">{{ td.term|title }}:</span>
+                    {{ td.start|slice:":10" }}
+                    <span class="text-gray-300">→ +21 days</span>
+                  </div>
+                  {% endif %}
+                {% empty %}
+                  <span class="text-gray-300">—</span>
+                {% endfor %}
+              </div>
+            </td>
+
+            {# Status Badge #}
+            <td class="py-4 px-5" data-label="Status">
+              {% if session.status == 'active' %}
+                <span class="px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Active</span>
+              {% elif session.status == 'upcoming' %}
+                <span class="px-2.5 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">Upcoming</span>
+              {% else %}
+                <span class="px-2.5 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">Closed</span>
+              {% endif %}
+            </td>
+
+            {# Current Term #}
+            <td class="py-4 px-5 text-gray-600 text-xs font-medium" data-label="Current Term">
+              {{ session.get_current_term|default:"—"|title }}
+            </td>
+
+            {# Semester Chips — inline preview of term_dates #}
+            <td class="py-4 px-5" data-label="Semesters">
+              <div class="flex flex-wrap gap-1">
+                {% for td in session.term_dates %}
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded text-xs font-medium whitespace-nowrap">
+                    <i class="fas fa-circle text-[5px]"></i>
+                    {{ td.term|title }}
+                  </span>
+                {% empty %}
+                  <span class="text-gray-300 text-xs">—</span>
+                {% endfor %}
+              </div>
+            </td>
+
+            {# Actions #}
+            <td class="py-4 px-5" data-label="Actions">
+              <div class="flex items-center gap-2">
+                {% if permissions.academics.can_edit %}
+                {% if not session.is_current %}
+                <form method="post" action="{% url 'management:academic_session_set_current' session.pk %}">
+                  {% csrf_token %}
+                  <button type="submit"
+                          class="px-2.5 py-1.5 text-xs bg-primary-50 text-primary-700 border border-primary-200 rounded hover:bg-primary-100 transition-colors font-medium focus:outline-none"
+                          title="Set as current">
+                    Set Current
+                  </button>
+                </form>
+                {% endif %}
+
+                <form method="post" action="{% url 'management:academic_session_registration_override' session.pk %}" class="inline">
+                  {% csrf_token %}
+                  <select name="registration_override" onchange="this.form.submit()"
+                          title="Override the automatic 3-week registration window"
+                          class="px-2 py-1.5 text-xs border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-primary-500">
+                    <option value="auto"   {% if session.registration_override == 'auto' %}selected{% endif %}>Auto window</option>
+                    <option value="open"   {% if session.registration_override == 'open' %}selected{% endif %}>Force Open</option>
+                    <option value="closed" {% if session.registration_override == 'closed' %}selected{% endif %}>Force Closed</option>
+                  </select>
+                </form>
+
+                <button type="button"
+                        onclick="openSessionModal('edit', this)"
+                        data-id="{{ session.id }}"
+                        data-name="{{ session.name }}"
+                        data-status="{{ session.status }}"
+                        data-iscurrent="{{ session.is_current|yesno:'true,false' }}"
+                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors focus:outline-none"
+                        title="Edit">
+                  <i class="fas fa-edit text-sm" aria-hidden="true"></i>
+                </button>
+                {% endif %}
+              </div>
+            </td>
+
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="py-16 text-center text-gray-400">
+              <i class="fas fa-calendar-alt text-5xl mb-3 block" aria-hidden="true"></i>
+              <p class="font-medium text-gray-600">No sessions yet</p>
+              <p class="text-sm mt-1">Click <strong>New Session</strong> to get started.</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="sessionModal"
+     class="hidden fixed inset-0 z-50 bg-black/50 items-stretch sm:items-center justify-center sm:p-3"
+     role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+
+  <div class="bg-white sm:rounded-xl shadow-xl w-full sm:max-w-2xl relative flex flex-col h-full sm:h-auto sm:max-h-[97vh]">
+
+    <form id="sessionForm" method="POST" action="{% url 'management:academic_sessions_list' %}">
+      {% csrf_token %}
+      <input type="hidden" name="action"     id="modalAction"     value="create">
+      <input type="hidden" name="session_id" id="modal_session_id" value="">
+      {# term_dates JSON is written here by JS just before submit #}
+      <input type="hidden" name="term_dates" id="modal_term_dates">
+
+      {# ── Modal Header ──────────────────────────────────────────────────────── #}
+      <div class="flex items-center justify-between px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-100 shrink-0">
+        <h3 id="modalTitle" class="text-xl font-bold text-gray-800">New Academic Session</h3>
+        <button type="button" onclick="closeSessionModal()"
+                class="text-gray-400 hover:text-gray-600 focus:outline-none transition-colors p-1 -m-1"
+                aria-label="Close">
+          <i class="fas fa-times text-lg"></i>
+        </button>
+      </div>
+
+      {# ── Modal Body ────────────────────────────────────────────────────────── #}
+      <div class="px-4 sm:px-6 py-6 space-y-6 overflow-y-auto flex-1 min-h-0">
+
+        {# Server-side validation errors land here, without losing anything the user typed #}
+        <div id="modalFormErrors" class="hidden p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700"></div>
+
+        {# Row 1: Name + Status #}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">
+              Session Name <span class="text-red-500">*</span>
+            </label>
+            <input type="text" name="name" id="modal_name" required
+                   placeholder="e.g., 2024/2025"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm transition">
+            <p id="modal_name_error" class="text-xs text-red-500 mt-1 hidden"></p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
+            <select name="status" id="modal_status"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm bg-white transition">
+              <option value="upcoming">Upcoming</option>
+              <option value="active">Active</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
+        </div>
+
+        {# ── Term Dates Builder ─────────────────────────────────────────────── #}
+        <div class="rounded-lg border border-gray-200 overflow-hidden">
+
+          {# Section header #}
+          <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
+            <div>
+              <h4 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <i class="fas fa-calendar-week text-primary-500 text-xs"></i>
+                Semester / Term Dates
+                <span class="text-red-500">*</span>
+              </h4>
+              <p class="text-xs text-gray-400 mt-0.5">
+                The system checks today's date against these ranges to auto-detect the current term.
+              </p>
+            </div>
+            <button type="button" onclick="addTermRow()"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 border border-primary-200 rounded-lg hover:bg-primary-100 transition-colors focus:outline-none">
+              <i class="fas fa-plus text-[10px]"></i> Add Term
+            </button>
+          </div>
+
+          {# Column labels #}
+          <div class="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_2rem] gap-2 px-4 pt-3 pb-1">
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Term / Semester</span>
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Start Date</span>
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">End Date</span>
+            <span></span>
+          </div>
+
+          {# Dynamic rows injected here #}
+          <div id="termRowsContainer" class="px-4 pb-4 space-y-2 min-h-[3rem]">
+            {# Rows are added by JS #}
+          </div>
+
+          {# Empty state (shown by JS when no rows) #}
+          <div id="termRowsEmpty" class="hidden px-4 pb-4 text-center py-4 text-xs text-gray-400 italic">
+            No terms added yet. Click <strong>Add Term</strong> to begin.
+          </div>
+        </div>
+
+        {# ── Registration Window (auto-computed — read only) ──────────────── #}
+        <div class="p-4 bg-blue-50 border border-blue-100 rounded-lg">
+          <p class="text-sm font-medium text-blue-800 mb-1">
+            <i class="fas fa-info-circle mr-1"></i>Registration Window (auto)
+          </p>
+          <p class="text-xs text-blue-600">
+            Registration automatically opens on the <strong>first day of each term</strong> and
+            closes <strong>21 days later</strong>. Set the term start dates above — no separate
+            registration fields needed.
+          </p>
+        </div>
+
+        {# ── Mark as Current ───────────────────────────────────────────────── #}
+        <div>
+          <label class="flex items-start gap-3 cursor-pointer p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <input type="checkbox" name="is_current" id="modal_is_current"
+                   class="mt-0.5 w-5 h-5 text-primary-600 rounded border-gray-300 focus:ring-primary-500 flex-shrink-0">
+            <span>
+              <span class="block text-sm text-gray-800 font-medium">Mark as Current Active Session</span>
+              <span class="block text-xs text-gray-400 mt-0.5">
+                This will automatically unmark any other session that was previously set as current.
+              </span>
+            </span>
+          </label>
+        </div>
+
+      </div>{# /modal body #}
+
+      {# ── Modal Footer ──────────────────────────────────────────────────────── #}
+      <div class="p-5 border-t border-gray-100 bg-gray-50 rounded-b-xl flex flex-col-reverse sm:flex-row justify-end gap-3">
+        <button type="button" onclick="closeSessionModal()"
+                class="px-5 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors focus:outline-none w-full sm:w-auto">
+          Cancel
+        </button>
+        <button type="submit" id="modalSubmitBtn"
+                class="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium shadow-sm transition-colors focus:outline-none w-full sm:w-auto">
+          Save Changes
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+(function () {
+  'use strict';
+
+  // ─── Term options mirroring TERM_CHOICES in models.py ────────────────────
+  const TERM_OPTIONS = [
+    { value: 'first',  label: 'First Semester' },
+    { value: 'second', label: 'Second Semester' },
+    { value: 'third',  label: 'Third Semester / Harmattan' },
+    { value: 'annual', label: 'Annual' },
+    { value: 'fall',   label: 'Fall' },
+    { value: 'spring', label: 'Spring' },
+    { value: 'summer', label: 'Summer' },
+  ];
+
+  // ─── Build a <select> for the term column ────────────────────────────────
+  function buildTermSelect(selected) {
+    const opts = TERM_OPTIONS.map(o =>
+      `<option value="${o.value}"${o.value === selected ? ' selected' : ''}>${o.label}</option>`
+    ).join('');
+    return `<select class="term-select w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none bg-white transition">${opts}</select>`;
+  }
+
+  // ─── Add one row to the term builder ─────────────────────────────────────
+  window.addTermRow = function (term = 'first', start = '', end = '') {
+    const container = document.getElementById('termRowsContainer');
+    const empty     = document.getElementById('termRowsEmpty');
+
+    const row = document.createElement('div');
+    row.className = 'term-row grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_2rem] gap-2 items-center';
+    row.innerHTML = `
+      <div>${buildTermSelect(term)}</div>
+      <input type="date"
+             value="${start}"
+             class="term-start w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none transition"
+             placeholder="Start date">
+      <input type="date"
+             value="${end}"
+             class="term-end w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none transition"
+             placeholder="End date">
+      <button type="button"
+              onclick="removeTermRow(this)"
+              class="flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors focus:outline-none"
+              title="Remove row">
+        <i class="fas fa-times text-xs"></i>
+      </button>`;
+
+    container.appendChild(row);
+    toggleEmpty();
+  };
+
+  // ─── Remove a row ────────────────────────────────────────────────────────
+  window.removeTermRow = function (btn) {
+    btn.closest('.term-row').remove();
+    toggleEmpty();
+  };
+
+  // ─── Show / hide the empty-state notice ──────────────────────────────────
+  function toggleEmpty() {
+    const container = document.getElementById('termRowsContainer');
+    const empty     = document.getElementById('termRowsEmpty');
+    const hasRows   = container.querySelectorAll('.term-row').length > 0;
+    empty.classList.toggle('hidden', hasRows);
+  }
+
+  // ─── Serialize all rows into the hidden input before submit ──────────────
+  function serializeTermDates() {
+    const rows   = document.querySelectorAll('#termRowsContainer .term-row');
+    const result = [];
+    rows.forEach(row => {
+      const term  = row.querySelector('.term-select').value;
+      const start = row.querySelector('.term-start').value;
+      const end   = row.querySelector('.term-end').value;
+      if (term && start && end) {
+        result.push({ term, start, end });
+      }
+    });
+    document.getElementById('modal_term_dates').value = JSON.stringify(result);
+  }
+
+  // ─── Open modal ──────────────────────────────────────────────────────────
+  window.openSessionModal = function (mode, btn = null) {
+    const modal     = document.getElementById('sessionModal');
+    const form      = document.getElementById('sessionForm');
+    const title     = document.getElementById('modalTitle');
+    const actionInput = document.getElementById('modalAction');
+    const submitBtn = document.getElementById('modalSubmitBtn');
+    const container = document.getElementById('termRowsContainer');
+
+    // Clear previous rows and any errors shown from a prior attempt
+    container.innerHTML = '';
+    clearFormErrors();
+
+    if (mode === 'create') {
+      title.textContent   = 'New Academic Session';
+      actionInput.value   = 'create';
+      submitBtn.innerHTML = '<i class="fas fa-plus mr-2"></i>Create Session';
+      form.reset();
+      document.getElementById('modal_session_id').value = '';
+      // Seed one blank first-semester row
+      addTermRow('first', '', '');
+
+    } else if (mode === 'edit' && btn) {
+      title.textContent   = 'Edit Academic Session';
+      actionInput.value   = 'edit';
+      submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Changes';
+
+      const id = btn.getAttribute('data-id');
+      document.getElementById('modal_session_id').value   = id;
+      document.getElementById('modal_name').value          = btn.getAttribute('data-name') || '';
+      document.getElementById('modal_status').value        = btn.getAttribute('data-status') || 'upcoming';
+      document.getElementById('modal_is_current').checked =
+        btn.getAttribute('data-iscurrent') === 'true';
+
+      // Load existing term_dates from the json_script tag
+      const scriptTag = document.getElementById(id);
+      let terms = [];
+      if (scriptTag) {
+        try { terms = JSON.parse(scriptTag.textContent); } catch (e) {}
+      }
+      if (terms.length === 0) {
+        addTermRow('first', '', '');
+      } else {
+        terms.forEach(t => addTermRow(t.term || 'first', t.start || '', t.end || ''));
+      }
+    }
+
+    toggleEmpty();
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    // Trap focus: move focus to first input
+    setTimeout(() => {
+      const first = modal.querySelector('input[type="text"], input[type="date"], select');
+      if (first) first.focus();
+    }, 50);
+  };
+
+  // ─── Close modal ─────────────────────────────────────────────────────────
+  window.closeSessionModal = function () {
+    const modal = document.getElementById('sessionModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  };
+
+  // ─── Clear previously-shown server errors ─────────────────────────────────
+  function clearFormErrors() {
+    const banner = document.getElementById('modalFormErrors');
+    banner.classList.add('hidden');
+    banner.textContent = '';
+    const nameError = document.getElementById('modal_name_error');
+    nameError.classList.add('hidden');
+    nameError.textContent = '';
+  }
+
+  // ─── Render errors returned by the server without closing the modal or
+  //     touching anything the user already typed ────────────────────────────
+  function showFormErrors(errors) {
+    clearFormErrors();
+    const banner = document.getElementById('modalFormErrors');
+    const generalMessages = [];
+    Object.keys(errors || {}).forEach(function (field) {
+      const fieldErrors = (errors[field] || []).map(function (e) { return e.message || e; });
+      if (field === 'name') {
+        const el = document.getElementById('modal_name_error');
+        el.textContent = fieldErrors.join(' ');
+        el.classList.remove('hidden');
+      } else {
+        generalMessages.push(...fieldErrors);
+      }
+    });
+    if (generalMessages.length) {
+      banner.textContent = generalMessages.join(' ');
+      banner.classList.remove('hidden');
+    } else if (!Object.keys(errors || {}).length) {
+      banner.textContent = 'Something went wrong. Please try again.';
+      banner.classList.remove('hidden');
+    }
+  }
+
+  // ─── Wire up submit ───────────────────────────────────────────────────────
+  document.getElementById('sessionForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    clearFormErrors();
+
+    // Validate: at least one complete term row
+    const rows = document.querySelectorAll('#termRowsContainer .term-row');
+    let valid = false;
+    rows.forEach(row => {
+      const start = row.querySelector('.term-start').value;
+      const end   = row.querySelector('.term-end').value;
+      if (start && end) valid = true;
+    });
+    if (!valid) {
+      // Highlight the section
+      document.getElementById('termRowsContainer').closest('.rounded-lg')
+        .classList.add('ring-2', 'ring-red-400');
+      setTimeout(() => {
+        document.getElementById('termRowsContainer').closest('.rounded-lg')
+          .classList.remove('ring-2', 'ring-red-400');
+      }, 2500);
+      // Add a row to guide user
+      if (rows.length === 0) addTermRow();
+      return;
+    }
+    serializeTermDates();
+
+    const form = document.getElementById('sessionForm');
+    const submitBtn = document.getElementById('modalSubmitBtn');
+    const originalLabel = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = 'Saving…';
+    try {
+      // form.action would resolve to the <input name="action"> element
+      // below (named form controls shadow same-named form DOM properties)
+      // instead of the URL string — read the HTML attribute directly.
+      const resp = await fetch(form.getAttribute('action'), {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      });
+      const data = await resp.json();
+      if (data.success) {
+        window.location.reload();
+        return;
+      }
+      showFormErrors(data.errors);
+    } catch (err) {
+      if (window.Swal) {
+        Swal.fire({ icon: 'error', title: 'Something went wrong', text: 'Please try again.' });
+      }
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalLabel;
+    }
+  });
+
+  // ─── Close on Escape ─────────────────────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeSessionModal();
+  });
+
+  // ─── Close on backdrop click ─────────────────────────────────────────────
+  document.getElementById('sessionModal').addEventListener('click', function (e) {
+    if (e.target === this) closeSessionModal();
+  });
+
+})();
+</script>
+{% endblock %}

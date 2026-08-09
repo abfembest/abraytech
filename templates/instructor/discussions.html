@@ -1,0 +1,96 @@
+{% extends 'management/base.html' %}
+{% load static %}
+{% block title %}Discussions — {{ course.title }}{% endblock %}
+{% block breadcrumb %}Discussions{% endblock %}
+
+{% block content %}
+<div class="px-2 sm:px-0">
+
+    <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
+
+<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
+    <div>
+        <nav class="flex items-center flex-wrap gap-1 text-xs sm:text-sm text-gray-500 mb-1.5 sm:mb-2">
+            <a href="{% url 'instructor:course_list' %}" class="hover:text-primary-600 transition-colors">Courses</a>
+            <i class="fas fa-chevron-right text-xs"></i>
+            <a href="{% url 'instructor:course_edit' course.slug %}" class="hover:text-primary-600 transition-colors truncate max-w-[120px] sm:max-w-none">{{ course.title }}</a>
+            <i class="fas fa-chevron-right text-xs"></i>
+            <span class="text-gray-800 font-medium">Discussions</span>
+        </nav>
+        <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Discussion Forum</h1>
+        <p class="text-gray-500 mt-0.5 text-xs sm:text-sm">Student discussions for <span class="font-medium text-gray-700">{{ course.title }}</span></p>
+    </div>
+    <span class="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 text-gray-700 text-xs sm:text-sm font-medium rounded-lg self-start">
+        {{ discussions|length }} thread{{ discussions|length|pluralize }}
+    </span>
+</div>
+
+{% if discussions %}
+<div class="space-y-2.5 sm:space-y-3">
+    {% for d in discussions %}
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden {% if d.is_pinned %}border-l-4 border-l-primary-500{% endif %}">
+        <div class="p-4 sm:p-5 md:p-6">
+            <div class="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
+
+                <!-- Avatar + Content -->
+                <div class="flex items-start gap-3 flex-1 min-w-0">
+                    <div class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                        <span class="text-gray-600 font-semibold text-xs sm:text-sm">{{ d.author.first_name|slice:":1"|upper }}{{ d.author.last_name|slice:":1"|upper }}</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
+                            {% if d.is_pinned %}<span class="px-1.5 sm:px-2 py-0.5 rounded text-xs font-semibold bg-primary-100 text-primary-700"><i class="fas fa-thumbtack mr-1"></i>Pinned</span>{% endif %}
+                            {% if d.is_locked %}<span class="px-1.5 sm:px-2 py-0.5 rounded text-xs font-semibold bg-orange-100 text-orange-700"><i class="fas fa-lock mr-1"></i>Locked</span>{% endif %}
+                        </div>
+                        <a href="{% url 'instructor:discussion_detail' course.slug d.slug %}" class="text-sm sm:text-base font-bold text-gray-900 hover:text-primary-600 transition-colors block mb-1 truncate">{{ d.title }}</a>
+                        <p class="text-xs sm:text-sm text-gray-500 line-clamp-2 mb-2 sm:mb-3">{{ d.content|truncatewords:20 }}</p>
+                        <div class="flex flex-wrap gap-x-3 sm:gap-x-4 gap-y-0.5 text-xs text-gray-400">
+                            <span><i class="fas fa-user mr-1"></i>{{ d.author.get_full_name }}</span>
+                            <span><i class="fas fa-clock mr-1"></i>{{ d.created_at|date:"M d, Y" }}</span>
+                            <span><i class="fas fa-eye mr-1"></i>{{ d.views_count }} views</span>
+                            <span><i class="fas fa-comments mr-1"></i>{{ d.replies.count }} repl{{ d.replies.count|pluralize:"y,ies" }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 flex-wrap">
+                    {% if permissions.instructor_communications.can_edit %}
+                    <form method="post" action="{% url 'instructor:discussion_toggle_pin' course.slug d.slug %}">
+                        {% csrf_token %}
+                        <button type="submit" class="px-2.5 sm:px-3 py-1.5 text-xs font-medium rounded-lg transition-colors {% if d.is_pinned %}bg-primary-100 text-primary-700 hover:bg-primary-200{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">
+                            <i class="fas fa-thumbtack mr-1"></i>{% if d.is_pinned %}Unpin{% else %}Pin{% endif %}
+                        </button>
+                    </form>
+                    <form method="post" action="{% url 'instructor:discussion_toggle_lock' course.slug d.slug %}">
+                        {% csrf_token %}
+                        <button type="submit" class="px-2.5 sm:px-3 py-1.5 text-xs font-medium rounded-lg transition-colors {% if d.is_locked %}bg-orange-100 text-orange-700 hover:bg-orange-200{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">
+                            <i class="fas fa-{% if d.is_locked %}unlock{% else %}lock{% endif %} mr-1"></i>{% if d.is_locked %}Unlock{% else %}Lock{% endif %}
+                        </button>
+                    </form>
+                    {% endif %}
+                    <a href="{% url 'instructor:discussion_detail' course.slug d.slug %}" class="px-2.5 sm:px-3 py-1.5 text-xs font-medium bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-colors">
+                        <i class="fas fa-arrow-right mr-1"></i>Open
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm p-10 sm:p-16 text-center">
+    <div class="w-16 h-16 sm:w-20 sm:h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-5">
+        <i class="fas fa-comments text-3xl sm:text-4xl text-blue-500"></i>
+    </div>
+    <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-2">No Discussions Yet</h3>
+    <p class="text-gray-500 text-xs sm:text-sm mb-4 sm:mb-6 max-w-sm mx-auto">When students start discussions in this course, they'll appear here. You can pin important threads and lock resolved ones.</p>
+    <a href="{% url 'instructor:course_edit' course.slug %}" class="inline-flex items-center px-4 sm:px-5 py-2 sm:py-2.5 bg-primary-600 text-white text-xs sm:text-sm font-semibold rounded-lg hover:bg-primary-700 shadow-sm transition-all">
+        <i class="fas fa-arrow-left mr-2"></i>Back to Course
+    </a>
+</div>
+{% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,201 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Email Configuration - MIU Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-12xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex items-center gap-4">
+        <a href="{% url 'management:system_config_list' %}"
+           class="p-2 hover:bg-gray-100 rounded-lg transition-all">
+            <i class="fas fa-arrow-left text-gray-600"></i>
+        </a>
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-900 font-display">
+                <i class="fas fa-envelope text-primary-600 mr-3"></i>
+                Email Configuration
+            </h1>
+            <p class="text-gray-600 mt-1">Configure the SMTP server and the accounts used to send outbound email</p>
+        </div>
+    </div>
+
+    <!-- Info Alert -->
+    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
+        <div class="flex items-start">
+            <i class="fas fa-info-circle text-blue-500 text-xl mr-3 mt-1"></i>
+            <div>
+                <h4 class="font-medium text-blue-900 mb-1">One Server, Two Sender Accounts</h4>
+                <p class="text-sm text-blue-800">
+                    The SMTP server (host/port) below is shared by both accounts. <strong>Default</strong> sends
+                    everything except admissions email — OTP, password resets, contact-form replies, payroll, and
+                    LMS notifications. <strong>Admissions</strong> sends application confirmations, decision letters,
+                    document-upload receipts, and transcript notices. Until the admissions account is configured,
+                    admissions email falls back to the default account.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Left column: SMTP Server + provider guide -->
+        <div class="lg:col-span-3 space-y-6">
+            <form method="post" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                {% csrf_token %}
+
+                <div class="px-5 pt-5">
+                    <h2 class="text-lg font-bold text-gray-900 flex items-center">
+                        <i class="fas fa-server mr-2 text-primary-600"></i>
+                        SMTP Server
+                    </h2>
+                    <p class="text-xs text-gray-500 mt-1">Shared by both accounts.</p>
+                </div>
+
+                <div class="p-5 space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            SMTP Host <span class="text-red-500">*</span>
+                        </label>
+                        {{ server_form.smtp_host }}
+                        {% if server_form.smtp_host.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ server_form.smtp_host.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">
+                            e.g., smtp.gmail.com
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            SMTP Port <span class="text-red-500">*</span>
+                        </label>
+                        {{ server_form.smtp_port }}
+                        {% if server_form.smtp_port.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ server_form.smtp_port.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">
+                            587 (TLS), 465 (SSL), 25
+                        </p>
+                    </div>
+                </div>
+
+                <div class="px-5 py-4 bg-gray-50 border-t border-gray-200 space-y-2">
+                    <button type="submit" name="save" value="server"
+                            class="w-full px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all shadow-md hover:shadow-lg">
+                        <i class="fas fa-save mr-2"></i>
+                        Save Server
+                    </button>
+                    <button type="submit" name="save" value="clear_server"
+                            onclick="return swalConfirmSubmit(this, {title: 'Clear the shared SMTP server settings?', text: 'Both accounts will fall back to .env until reconfigured.', confirmButtonText: 'Yes, clear'});"
+                            class="w-full px-4 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-all text-sm">
+                        <i class="fas fa-eraser mr-2"></i>
+                        Clear
+                    </button>
+                </div>
+            </form>
+
+            <!-- Common SMTP Providers Guide -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <h3 class="font-bold text-gray-900 mb-3 text-sm">Common Provider Settings</h3>
+                <div class="space-y-3">
+                    <div class="p-3 bg-gray-50 rounded-lg">
+                        <h4 class="font-semibold text-gray-900 mb-1 text-sm">Gmail</h4>
+                        <p class="text-xs text-gray-600">Host: smtp.gmail.com<br>Port: 587<br>Use app password</p>
+                    </div>
+                    <div class="p-3 bg-gray-50 rounded-lg">
+                        <h4 class="font-semibold text-gray-900 mb-1 text-sm">Office 365</h4>
+                        <p class="text-xs text-gray-600">Host: smtp.office365.com<br>Port: 587<br>TLS enabled</p>
+                    </div>
+                    <div class="p-3 bg-gray-50 rounded-lg">
+                        <h4 class="font-semibold text-gray-900 mb-1 text-sm">SendGrid</h4>
+                        <p class="text-xs text-gray-600">Host: smtp.sendgrid.net<br>Port: 587<br>API key as password</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right column: the two accounts -->
+        <div class="lg:col-span-9 space-y-6">
+            <!-- Default / General account -->
+            <form method="post" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                {% csrf_token %}
+
+                <div class="px-6 pt-6">
+                    <h2 class="text-xl font-bold text-gray-900 flex items-center">
+                        <i class="fas fa-envelope mr-3 text-primary-600"></i>
+                        Default / General Account
+                    </h2>
+                    <p class="text-sm text-gray-500 mt-1">Used for everything except admissions-related email.</p>
+                </div>
+
+                <div class="p-6 space-y-6">
+                    {% include 'management/system_config/_email_account_fields.html' with form=default_form %}
+                </div>
+
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                    <button type="submit" name="save" value="clear_default"
+                            onclick="return swalConfirmSubmit(this, {title: 'Clear the default account?', text: 'It will fall back to .env until reconfigured.', confirmButtonText: 'Yes, clear'});"
+                            class="w-full sm:w-auto px-4 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-all text-sm">
+                        <i class="fas fa-eraser mr-2"></i>
+                        Clear
+                    </button>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <button type="submit" name="save" value="test_default"
+                                formnovalidate
+                                class="w-full sm:w-auto px-4 py-2.5 border border-primary-200 text-primary-700 rounded-lg hover:bg-primary-50 transition-all">
+                            <i class="fas fa-paper-plane mr-2"></i>
+                            Send Test Email
+                        </button>
+                        <button type="submit" name="save" value="default"
+                                class="w-full sm:w-auto px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all shadow-md hover:shadow-lg">
+                            <i class="fas fa-save mr-2"></i>
+                            Save Default Account
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Admissions account -->
+            <form method="post" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                {% csrf_token %}
+
+                <div class="px-6 pt-6">
+                    <h2 class="text-xl font-bold text-gray-900 flex items-center">
+                        <i class="fas fa-envelope-open-text mr-3 text-primary-600"></i>
+                        Admissions Account
+                    </h2>
+                    <p class="text-sm text-gray-500 mt-1">
+                        Used for application confirmations, decision letters, document-upload receipts, and transcript notices.
+                    </p>
+                </div>
+
+                <div class="p-6 space-y-6">
+                    {% include 'management/system_config/_email_account_fields.html' with form=admissions_form %}
+                </div>
+
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                    <button type="submit" name="save" value="clear_admissions"
+                            onclick="return swalConfirmSubmit(this, {title: 'Clear the admissions account?', text: 'It will fall back to the default account until reconfigured.', confirmButtonText: 'Yes, clear'});"
+                            class="w-full sm:w-auto px-4 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-all text-sm">
+                        <i class="fas fa-eraser mr-2"></i>
+                        Clear
+                    </button>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <button type="submit" name="save" value="test_admissions"
+                                formnovalidate
+                                class="w-full sm:w-auto px-4 py-2.5 border border-primary-200 text-primary-700 rounded-lg hover:bg-primary-50 transition-all">
+                            <i class="fas fa-paper-plane mr-2"></i>
+                            Send Test Email
+                        </button>
+                        <button type="submit" name="save" value="admissions"
+                                class="w-full sm:w-auto px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all shadow-md hover:shadow-lg">
+                            <i class="fas fa-save mr-2"></i>
+                            Save Admissions Account
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

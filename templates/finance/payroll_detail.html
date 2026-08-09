@@ -1,0 +1,584 @@
+{% extends 'management/base.html' %}
+{% load static humanize %}
+
+{% block title %}Payroll {{ payroll.payroll_reference }} | Finance Portal{% endblock %}
+{% block breadcrumb %}Finance › Payroll › {{ payroll.payroll_reference }}{% endblock %}
+{% block breadcrumb_title %}Payroll {{ payroll.payroll_reference }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  {# ── Breadcrumb & Header ── #}
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <nav class="flex items-center gap-1.5 text-xs text-gray-500 mb-1.5" aria-label="Breadcrumb">
+        <a href="{% url 'finance:dashboard' %}" class="hover:text-primary-600 transition-colors">Finance</a>
+        <i class="fas fa-chevron-right text-[10px]" aria-hidden="true"></i>
+        <a href="{% url 'finance:payroll_management' %}" class="hover:text-primary-600 transition-colors">Payroll</a>
+        <i class="fas fa-chevron-right text-[10px]" aria-hidden="true"></i>
+        <span class="font-mono text-gray-700">{{ payroll.payroll_reference }}</span>
+      </nav>
+      <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">
+        Payroll Detail
+      </h1>
+      <p class="text-sm text-gray-500 mt-1">
+        {{ payroll.staff.get_full_name|default:payroll.staff.username }} —
+        {{ payroll.get_month_name }} {{ payroll.year }}
+      </p>
+    </div>
+
+    <div class="flex flex-wrap gap-2 self-start sm:self-auto">
+      <a href="{% url 'finance:payroll_management' %}"
+         class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium
+                border border-gray-300 text-gray-700 bg-white rounded-lg
+                hover:bg-gray-50 transition-colors focus:outline-none
+                focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+        <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>
+        Back
+      </a>
+      {% if payroll.can_delete and permissions.finance_payroll.can_delete %}
+      <button onclick="document.getElementById('deleteModal').classList.remove('hidden')"
+              class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium
+                     border border-red-300 text-red-600 bg-white rounded-lg
+                     hover:bg-red-50 transition-colors focus:outline-none
+                     focus:ring-2 focus:ring-red-400 focus:ring-offset-2">
+        <i class="fas fa-trash text-xs" aria-hidden="true"></i>
+        Delete
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ── Django messages ── #}
+  {% if messages %}
+  <div class="space-y-2" role="alert" aria-live="polite">
+    {% for msg in messages %}
+    <div class="flex items-center gap-2 px-4 py-3 rounded-lg text-sm
+                {% if msg.tags == 'success' %}bg-green-50 border border-green-200 text-green-800
+                {% elif msg.tags == 'error' %}bg-red-50 border border-red-200 text-red-800
+                {% else %}bg-blue-50 border border-blue-200 text-blue-800{% endif %}">
+      <i class="fas {% if msg.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"
+         aria-hidden="true"></i>
+      {{ msg }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# ── Summary KPI cards ── #}
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Gross Salary</p>
+      <p class="mt-1 text-2xl font-bold text-gray-900">
+        ${{ payroll.gross_salary|floatformat:2|intcomma }}
+      </p>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Net Salary</p>
+      <p class="mt-1 text-2xl font-bold text-green-600">
+        ${{ payroll.net_salary|floatformat:2|intcomma }}
+      </p>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Deductions</p>
+      <p class="mt-1 text-2xl font-bold text-red-500">
+        ${{ payroll.tax_deduction|add:payroll.other_deductions|floatformat:2|intcomma }}
+      </p>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Status</p>
+      <p class="mt-2">
+        {% if payroll.payment_status == 'paid' %}
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+            <span class="w-1.5 h-1.5 rounded-full bg-green-500" aria-hidden="true"></span>Paid
+          </span>
+        {% elif payroll.payment_status == 'processing' %}
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-500" aria-hidden="true"></span>Processing
+          </span>
+        {% elif payroll.payment_status == 'pending' %}
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-500" aria-hidden="true"></span>Pending
+          </span>
+        {% elif payroll.payment_status == 'failed' %}
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+            <span class="w-1.5 h-1.5 rounded-full bg-red-500" aria-hidden="true"></span>Failed
+          </span>
+        {% else %}
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+            <span class="w-1.5 h-1.5 rounded-full bg-gray-400" aria-hidden="true"></span>
+            {{ payroll.get_payment_status_display }}
+          </span>
+        {% endif %}
+      </p>
+    </div>
+
+  </div>
+
+  {# ── Main 2-column layout ── #}
+  <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+    {# ════ LEFT: Edit form ════ #}
+    <div class="xl:col-span-2">
+      {% if permissions.finance_payroll.can_edit %}
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+          <i class="fas fa-edit text-primary-500" aria-hidden="true"></i>
+          <h2 class="text-base font-semibold text-gray-800">Edit Payroll Record</h2>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="p-6 space-y-6">
+          {% csrf_token %}
+
+          {# Staff & Period #}
+          <div>
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              Staff &amp; Period
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+              <div class="sm:col-span-2 lg:col-span-1">
+                <label for="staff_input_edit"
+                       class="block text-sm font-medium text-gray-700 mb-1.5">
+                  Staff Member <span class="text-red-500" aria-hidden="true">*</span>
+                </label>
+                <input list="staff_list_edit" id="staff_input_edit" autocomplete="off"
+                       value="{{ payroll.staff.get_full_name|default:payroll.staff.username }}"
+                       placeholder="Type to search staff…"
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                              focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                <datalist id="staff_list_edit">
+                  {% for u in form.fields.staff.queryset %}
+                  <option value="{{ u.get_full_name|default:u.username }}" data-id="{{ u.pk }}">
+                  {% endfor %}
+                </datalist>
+                <div class="hidden">{{ form.staff }}</div>
+              </div>
+
+              <div>
+                <label for="month_input_edit"
+                       class="block text-sm font-medium text-gray-700 mb-1.5">
+                  Month <span class="text-red-500" aria-hidden="true">*</span>
+                </label>
+                <input list="month_list_edit" id="month_input_edit" autocomplete="off"
+                       value="{{ payroll.get_month_name }}"
+                       placeholder="e.g. January"
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                              focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                <datalist id="month_list_edit">
+                  <option value="January"><option value="February"><option value="March">
+                  <option value="April"><option value="May"><option value="June">
+                  <option value="July"><option value="August"><option value="September">
+                  <option value="October"><option value="November"><option value="December">
+                </datalist>
+                <div class="hidden">{{ form.month }}</div>
+              </div>
+
+              <div>
+                <label for="year_input_edit"
+                       class="block text-sm font-medium text-gray-700 mb-1.5">
+                  Year <span class="text-red-500" aria-hidden="true">*</span>
+                </label>
+                <input list="year_list_edit" id="year_input_edit" autocomplete="off"
+                       value="{{ payroll.year }}"
+                       placeholder="e.g. 2025"
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                              focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                <datalist id="year_list_edit">
+                  {% for y in available_years %}<option value="{{ y }}">{% endfor %}
+                </datalist>
+                <div class="hidden">{{ form.year }}</div>
+              </div>
+
+            </div>
+          </div>
+
+          {# Salary breakdown #}
+          <div class="border-t border-gray-100 pt-5">
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              Salary Breakdown
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <label for="{{ form.base_salary.id_for_label }}"
+                       class="block text-sm font-medium text-gray-700 mb-1.5">
+                  Base Salary <span class="text-red-500">*</span>
+                </label>
+                {{ form.base_salary }}
+              </div>
+              <div>
+                <label for="{{ form.allowances.id_for_label }}"
+                       class="block text-sm font-medium text-gray-700 mb-1.5">Allowances</label>
+                {{ form.allowances }}
+                <p class="text-xs text-gray-400 mt-1">Housing, transport, etc.</p>
+              </div>
+              <div>
+                <label for="{{ form.bonuses.id_for_label }}"
+                       class="block text-sm font-medium text-gray-700 mb-1.5">Bonuses</label>
+                {{ form.bonuses }}
+              </div>
+              <div>
+                <label for="{{ form.tax_deduction.id_for_label }}"
+                       class="block text-sm font-medium text-gray-700 mb-1.5">Tax Deduction</label>
+                {{ form.tax_deduction }}
+              </div>
+              <div>
+                <label for="{{ form.other_deductions.id_for_label }}"
+                       class="block text-sm font-medium text-gray-700 mb-1.5">Other Deductions</label>
+                {{ form.other_deductions }}
+                <p class="text-xs text-gray-400 mt-1">Insurance, loans, etc.</p>
+              </div>
+            </div>
+          </div>
+
+          {# Payment details #}
+          <div class="border-t border-gray-100 pt-5">
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              Payment Details
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+              <div>
+                <label for="method_input_edit"
+                       class="block text-sm font-medium text-gray-700 mb-1.5">Payment Method</label>
+                <input list="method_list_edit" id="method_input_edit" autocomplete="off"
+                       value="{{ payroll.get_payment_method_display }}"
+                       placeholder="e.g. Bank Transfer"
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                              focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                <datalist id="method_list_edit">
+                  <option value="Bank Transfer">
+                  <option value="Check">
+                  <option value="Cash">
+                  <option value="Mobile Money">
+                </datalist>
+                <div class="hidden">{{ form.payment_method }}</div>
+              </div>
+
+              <div>
+                <label for="{{ form.payment_date.id_for_label }}"
+                       class="block text-sm font-medium text-gray-700 mb-1.5">Payment Date</label>
+                {{ form.payment_date }}
+              </div>
+
+              <div>
+                <label for="{{ form.bank_name.id_for_label }}"
+                       class="block text-sm font-medium text-gray-700 mb-1.5">Bank Name</label>
+                {{ form.bank_name }}
+              </div>
+
+              <div>
+                <label for="{{ form.account_number.id_for_label }}"
+                       class="block text-sm font-medium text-gray-700 mb-1.5">Account Number</label>
+                {{ form.account_number }}
+              </div>
+
+            </div>
+          </div>
+
+          {# Attachments #}
+          <div class="border-t border-gray-100 pt-5">
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              Attachments
+              <span class="text-gray-400 font-normal normal-case">(optional, max 5)</span>
+            </p>
+            <div class="space-y-3">
+              {% for n in "12345" %}
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                <div>
+                  <label class="block text-xs font-medium text-gray-500 mb-1">File {{ n }}</label>
+                  {% if n == "1" %}{{ form.attachment_1 }}
+                  {% elif n == "2" %}{{ form.attachment_2 }}
+                  {% elif n == "3" %}{{ form.attachment_3 }}
+                  {% elif n == "4" %}{{ form.attachment_4 }}
+                  {% elif n == "5" %}{{ form.attachment_5 }}
+                  {% endif %}
+                  {# Delete existing attachment link #}
+                  {% for att in attachments %}
+                    {% if att.number == n|add:0 %}
+                    <div class="mt-1 flex items-center gap-2 text-xs text-gray-500">
+                      <i class="fas fa-paperclip" aria-hidden="true"></i>
+                      <span class="truncate">{{ att.name|default:"Attachment" }}</span>
+                      <form method="post"
+                            action="{% url 'finance:payroll_attachment_delete' payroll.payroll_reference att.number %}"
+                            class="inline">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="text-red-500 hover:text-red-700 transition-colors"
+                                aria-label="Delete attachment {{ n }}">
+                          <i class="fas fa-times-circle" aria-hidden="true"></i>
+                        </button>
+                      </form>
+                    </div>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-gray-500 mb-1">Label {{ n }}</label>
+                  {% if n == "1" %}{{ form.attachment_1_name }}
+                  {% elif n == "2" %}{{ form.attachment_2_name }}
+                  {% elif n == "3" %}{{ form.attachment_3_name }}
+                  {% elif n == "4" %}{{ form.attachment_4_name }}
+                  {% elif n == "5" %}{{ form.attachment_5_name }}
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          {# Notes #}
+          <div class="border-t border-gray-100 pt-5">
+            <label for="{{ form.notes.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1.5">Notes</label>
+            {{ form.notes }}
+          </div>
+
+          {# Form errors #}
+          {% if form.errors %}
+          <div role="alert"
+               class="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
+            <p class="font-semibold mb-1">Please fix the following:</p>
+            {% for field, errors in form.errors.items %}
+              {% for err in errors %}
+              <p>• {{ field|capfirst }}: {{ err }}</p>
+              {% endfor %}
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          {# Submit #}
+          <div class="flex flex-col sm:flex-row justify-end gap-3 border-t border-gray-100 pt-5">
+            <a href="{% url 'finance:payroll_management' %}"
+               class="px-5 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium
+                      rounded-lg hover:bg-gray-50 transition-colors text-center
+                      focus:outline-none focus:ring-2 focus:ring-gray-300">
+              Cancel
+            </a>
+            <button type="submit"
+                    class="px-5 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg
+                           hover:bg-primary-700 shadow-sm transition-colors focus:outline-none
+                           focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
+                           inline-flex items-center gap-2">
+              <i class="fas fa-save" aria-hidden="true"></i>
+              Save Changes
+            </button>
+          </div>
+
+        </form>
+      </div>
+      {% else %}
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 text-sm text-gray-500">
+        You don't have permission to edit payroll records.
+      </div>
+      {% endif %}
+    </div>
+
+    {# ════ RIGHT: Meta info ════ #}
+    <div class="space-y-4">
+
+      {# Reference card #}
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Record Info</p>
+        <dl class="space-y-3 text-sm">
+          <div class="flex justify-between gap-2">
+            <dt class="text-gray-500">Reference</dt>
+            <dd class="font-mono text-xs text-gray-700 bg-gray-100 px-2 py-0.5 rounded">
+              {{ payroll.payroll_reference }}
+            </dd>
+          </div>
+          <div class="flex justify-between gap-2">
+            <dt class="text-gray-500">Period</dt>
+            <dd class="text-gray-700 font-medium">{{ payroll.get_month_name }} {{ payroll.year }}</dd>
+          </div>
+          <div class="flex justify-between gap-2">
+            <dt class="text-gray-500">Method</dt>
+            <dd class="text-gray-700">{{ payroll.get_payment_method_display|default:"—" }}</dd>
+          </div>
+          {% if payroll.payment_date %}
+          <div class="flex justify-between gap-2">
+            <dt class="text-gray-500">Paid on</dt>
+            <dd class="text-gray-700 text-xs">{{ payroll.payment_date|date:"N j, Y" }}</dd>
+          </div>
+          {% endif %}
+          {% if payroll.created_by %}
+          <div class="flex justify-between gap-2">
+            <dt class="text-gray-500">Created by</dt>
+            <dd class="text-gray-700">
+              {{ payroll.created_by.get_full_name|default:payroll.created_by.username }}
+            </dd>
+          </div>
+          {% endif %}
+        </dl>
+      </div>
+
+      {# Salary breakdown card #}
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Salary Breakdown</p>
+        <dl class="space-y-2 text-sm">
+          <div class="flex justify-between">
+            <dt class="text-gray-500">Base</dt>
+            <dd class="font-medium text-gray-800">${{ payroll.base_salary|floatformat:2|intcomma }}</dd>
+          </div>
+          {% if payroll.allowances %}
+          <div class="flex justify-between">
+            <dt class="text-gray-500">Allowances</dt>
+            <dd class="text-gray-700">+${{ payroll.allowances|floatformat:2|intcomma }}</dd>
+          </div>
+          {% endif %}
+          {% if payroll.bonuses %}
+          <div class="flex justify-between">
+            <dt class="text-gray-500">Bonuses</dt>
+            <dd class="text-gray-700">+${{ payroll.bonuses|floatformat:2|intcomma }}</dd>
+          </div>
+          {% endif %}
+          <div class="flex justify-between border-t border-gray-100 pt-2">
+            <dt class="font-medium text-gray-700">Gross</dt>
+            <dd class="font-bold text-gray-900">${{ payroll.gross_salary|floatformat:2|intcomma }}</dd>
+          </div>
+          {% if payroll.tax_deduction %}
+          <div class="flex justify-between">
+            <dt class="text-gray-500">Tax</dt>
+            <dd class="text-red-500">−${{ payroll.tax_deduction|floatformat:2|intcomma }}</dd>
+          </div>
+          {% endif %}
+          {% if payroll.other_deductions %}
+          <div class="flex justify-between">
+            <dt class="text-gray-500">Other deductions</dt>
+            <dd class="text-red-500">−${{ payroll.other_deductions|floatformat:2|intcomma }}</dd>
+          </div>
+          {% endif %}
+          <div class="flex justify-between border-t border-gray-100 pt-2">
+            <dt class="font-semibold text-gray-800">Net Pay</dt>
+            <dd class="font-bold text-green-600 text-base">${{ payroll.net_salary|floatformat:2|intcomma }}</dd>
+          </div>
+        </dl>
+      </div>
+
+      {# Existing attachments card #}
+      {% if attachments %}
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Attachments</p>
+        <ul class="space-y-2">
+          {% for att in attachments %}
+          <li class="flex items-center justify-between gap-2 text-sm">
+            <a href="{{ att.url }}" target="_blank" rel="noopener noreferrer"
+               class="flex items-center gap-2 text-primary-600 hover:text-primary-800
+                      truncate min-w-0 transition-colors">
+              <i class="fas fa-paperclip flex-shrink-0 text-gray-400" aria-hidden="true"></i>
+              <span class="truncate">{{ att.name|default:"Attachment"|truncatechars:30 }}</span>
+            </a>
+            {% if permissions.finance_payroll.can_delete %}
+            <form method="post"
+                  action="{% url 'finance:payroll_attachment_delete' payroll.payroll_reference att.number %}"
+                  class="flex-shrink-0">
+              {% csrf_token %}
+              <button type="submit"
+                      class="text-xs text-red-500 hover:text-red-700 transition-colors"
+                      aria-label="Delete {{ att.name|default:'attachment' }}">
+                Remove
+              </button>
+            </form>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+    </div>{# end right #}
+
+  </div>{# end grid #}
+
+</div>
+
+
+{# ══ Delete confirmation modal ══ #}
+{% if payroll.can_delete %}
+<div id="deleteModal"
+     role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle"
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50
+            backdrop-blur-sm hidden p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+        <i class="fas fa-trash text-red-600" aria-hidden="true"></i>
+      </div>
+      <div>
+        <h3 id="deleteModalTitle" class="font-bold text-gray-900">Delete Payroll Record</h3>
+        <p class="text-xs text-gray-500">This action cannot be undone.</p>
+      </div>
+    </div>
+    <p class="text-sm text-gray-700 mb-6">
+      Are you sure you want to delete record
+      <span class="font-mono font-semibold text-gray-900">{{ payroll.payroll_reference }}</span>?
+    </p>
+    <div class="flex justify-end gap-3">
+      <button onclick="document.getElementById('deleteModal').classList.add('hidden')"
+              class="px-4 py-2 text-sm font-medium border border-gray-300 text-gray-700
+                     rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2
+                     focus:ring-gray-400 transition-colors">
+        Cancel
+      </button>
+      <form method="post" action="{% url 'finance:payroll_delete' payroll.payroll_reference %}">
+        {% csrf_token %}
+        <button type="submit"
+                class="px-4 py-2 text-sm font-medium bg-red-600 text-white rounded-xl
+                       hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500
+                       transition-colors">
+          Yes, Delete
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const monthNames = {
+    january:1,february:2,march:3,april:4,may:5,june:6,
+    july:7,august:8,september:9,october:10,november:11,december:12,
+  };
+  document.getElementById('month_input_edit')?.addEventListener('change', function () {
+    const sel = document.getElementById('id_month');
+    if (sel) sel.value = monthNames[this.value.toLowerCase().trim()] || '';
+  });
+
+  document.getElementById('year_input_edit')?.addEventListener('change', function () {
+    const sel = document.getElementById('id_year');
+    if (sel) sel.value = parseInt(this.value.trim(), 10) || '';
+  });
+
+  const methodMap = {
+    'bank transfer': 'bank_transfer',
+    'check': 'check',
+    'cash': 'cash',
+    'mobile money': 'mobile_money',
+  };
+  document.getElementById('method_input_edit')?.addEventListener('change', function () {
+    const sel = document.getElementById('id_payment_method');
+    if (sel) sel.value = methodMap[this.value.toLowerCase().trim()] || '';
+  });
+
+  const staffOptions = [...document.querySelectorAll('#staff_list_edit option')];
+  document.getElementById('staff_input_edit')?.addEventListener('change', function () {
+    const val = this.value.trim().toLowerCase();
+    const match = staffOptions.find(o => o.value.toLowerCase() === val);
+    const sel = document.getElementById('id_staff');
+    if (match && sel) sel.value = match.dataset.id;
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.getElementById('deleteModal')?.classList.add('hidden');
+    }
+  });
+});
+</script>
+
+{% endblock %}

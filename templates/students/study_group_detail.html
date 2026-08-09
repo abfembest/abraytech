@@ -1,0 +1,303 @@
+{% extends "management/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - {{site_config.school_short_name}} Student Portal{% endblock %}
+
+{% block extra_meta %}
+<meta name="description" content="{{ group.name }} - Study group details and members">
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+
+    <!-- Back Button -->
+    <div class="mb-4 sm:mb-6">
+        <a href="{% url 'students:study_groups' %}"
+           class="inline-flex items-center gap-2 text-sm sm:text-base text-primary-600 hover:text-primary-700 font-medium transition-colors">
+            <i class="fas fa-arrow-left text-xs sm:text-sm"></i>
+            <span>Back to Study Groups</span>
+        </a>
+    </div>
+
+    <!-- Group Header Card -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-4 sm:mb-6">
+
+        <!-- Hero Banner -->
+        <div class="h-28 sm:h-36 md:h-40 bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center">
+            <i class="fas fa-users text-white opacity-75" style="font-size: clamp(2.5rem, 8vw, 4rem);"></i>
+        </div>
+
+        <!-- Group Info -->
+        <div class="p-4 sm:p-5 md:p-6">
+
+            <!-- Title row -->
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-3 sm:mb-4">
+                <div class="flex-1 min-w-0">
+                    <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 leading-tight mb-1 sm:mb-2">
+                        {{ group.name }}
+                    </h1>
+                    {% if group.course %}
+                    <p class="text-sm sm:text-base text-gray-600 flex items-center gap-2 flex-wrap">
+                        <i class="fas fa-book flex-shrink-0"></i>
+                        <span class="break-words">{{ group.course.title }}</span>
+                    </p>
+                    {% endif %}
+                </div>
+
+                <!-- Badges -->
+                <div class="flex flex-wrap items-center gap-2 sm:gap-3 flex-shrink-0">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-gray-100 text-gray-700 rounded-lg text-xs sm:text-sm font-medium">
+                        <i class="fas fa-users"></i>
+                        <span>{{ member_count }} / {{ group.max_members }}</span>
+                    </span>
+                    {% if is_member %}
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-green-100 text-green-700 rounded-lg text-xs sm:text-sm font-medium">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Member</span>
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Description -->
+            {% if group.description %}
+            <div class="mt-3 sm:mt-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
+                <h3 class="font-semibold text-gray-900 text-sm sm:text-base mb-1.5 sm:mb-2">About this group</h3>
+                <p class="text-gray-700 text-sm sm:text-base leading-relaxed">{{ group.description }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Meta info -->
+            <div class="mt-3 sm:mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs sm:text-sm text-gray-500">
+                <span class="flex items-center gap-1.5">
+                    <i class="fas fa-user-circle flex-shrink-0"></i>
+                    <span>{{ group.created_by.get_full_name|default:group.created_by.username }}</span>
+                </span>
+                <span class="flex items-center gap-1.5">
+                    <i class="fas fa-calendar flex-shrink-0"></i>
+                    <time datetime="{{ group.created_at|date:'c' }}">
+                        Created {{ group.created_at|date:"M d, Y" }}
+                    </time>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+
+        <!-- Members List — spans 2 cols on lg -->
+        <div class="lg:col-span-2 order-2 lg:order-1">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 md:p-6">
+                <h2 class="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">
+                    Members ({{ member_count }})
+                </h2>
+
+                {% if members %}
+                <div class="space-y-2 sm:space-y-3">
+                    {% for membership in members %}
+                    <div class="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors gap-3">
+                        <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                            <!-- Avatar -->
+                            <div class="w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-user text-primary-600 text-base sm:text-lg md:text-xl"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-semibold text-gray-900 text-sm sm:text-base truncate">
+                                    {{ membership.user.get_full_name|default:membership.user.username }}
+                                </p>
+                                <p class="text-xs sm:text-sm text-gray-500 truncate">
+                                    {{ membership.user.email }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Role badge -->
+                        <div class="flex-shrink-0">
+                            {% if membership.role == 'admin' %}
+                            <span class="px-2 py-0.5 sm:px-3 sm:py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium whitespace-nowrap">
+                                Admin
+                            </span>
+                            {% elif membership.role == 'moderator' %}
+                            <span class="px-2 py-0.5 sm:px-3 sm:py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium whitespace-nowrap">
+                                Mod
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-8 sm:py-10 text-gray-500">
+                    <i class="fas fa-users text-3xl sm:text-4xl mb-2 sm:mb-3 block text-gray-300"></i>
+                    <p class="text-sm sm:text-base font-medium">No members yet</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="order-1 lg:order-2 space-y-4 sm:space-y-6">
+
+            <!-- Join Card -->
+            {% if not is_member %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 md:p-6">
+                <h3 class="font-semibold text-gray-900 text-sm sm:text-base mb-3 sm:mb-4">Join this group</h3>
+
+                {% if member_count < group.max_members %}
+                <form method="post" action="{% url 'students:join_study_group' group.id %}">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:px-6 sm:py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all font-semibold text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        <i class="fas fa-user-plus"></i>
+                        Join Group
+                    </button>
+                </form>
+                {% else %}
+                <div class="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 text-center">
+                    <i class="fas fa-exclamation-circle text-red-600 text-xl sm:text-2xl mb-1.5 sm:mb-2 block"></i>
+                    <p class="text-red-800 font-medium text-sm sm:text-base">This group is full</p>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Group Stats -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 md:p-6">
+                <h3 class="font-semibold text-gray-900 text-sm sm:text-base mb-3 sm:mb-4">Group Stats</h3>
+                <div class="space-y-2.5 sm:space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600 text-xs sm:text-sm">Total Members</span>
+                        <span class="font-bold text-primary-600 text-sm sm:text-base">{{ member_count }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600 text-xs sm:text-sm">Available Slots</span>
+                        <span class="font-bold text-gray-900 text-sm sm:text-base">{{ available_slots }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600 text-xs sm:text-sm">Status</span>
+                        {% if group.is_active %}
+                        <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">Active</span>
+                        {% else %}
+                        <span class="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-medium">Inactive</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600 text-xs sm:text-sm">Visibility</span>
+                        {% if group.is_public %}
+                        <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">Public</span>
+                        {% else %}
+                        <span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded text-xs font-medium">Private</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Related Course -->
+            {% if group.course %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 md:p-6">
+                <h3 class="font-semibold text-gray-900 text-sm sm:text-base mb-3 sm:mb-4">Related Course</h3>
+                <a href="{% url 'students:course_detail' group.course.slug %}"
+                   class="block p-3 sm:p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                    <h4 class="font-semibold text-blue-900 text-sm sm:text-base mb-0.5 sm:mb-1 leading-snug">
+                        {{ group.course.title }}
+                    </h4>
+                    <p class="text-xs sm:text-sm text-blue-700">View course details →</p>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Group Chat — members only -->
+    {% if is_member %}
+    <div class="mt-4 sm:mt-6 bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 md:p-6">
+        <h2 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
+            <i class="fas fa-comments text-primary-500 text-base sm:text-lg"></i>
+            Group Chat
+        </h2>
+
+        <!-- Django flash messages (non-group-message alerts) -->
+        {% if group_messages %}
+        <div class="mb-3 sm:mb-4 space-y-2">
+            {% for message in messages %}
+            <div class="p-3 sm:p-4 rounded-lg text-sm
+                {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200
+                {% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200
+                {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}"
+                 role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Message Feed -->
+        <div class="mb-4 sm:mb-6 space-y-2 sm:space-y-3 max-h-72 sm:max-h-80 md:max-h-96 overflow-y-auto pr-1 scroll-smooth"
+             id="message-feed">
+            {% if group_messages %}
+                {% for msg in group_messages %}
+                <div class="flex items-end gap-2 sm:gap-3
+                            {% if msg.author == request.user %}flex-row-reverse{% endif %}">
+                    <!-- Avatar -->
+                    <div class="w-7 h-7 sm:w-9 sm:h-9 rounded-full flex-shrink-0 flex items-center justify-center
+                                {% if msg.author == request.user %}bg-primary-100{% else %}bg-gray-100{% endif %}">
+                        <i class="fas fa-user text-xs
+                                  {% if msg.author == request.user %}text-primary-600{% else %}text-gray-500{% endif %}"></i>
+                    </div>
+                    <!-- Bubble -->
+                    <div class="max-w-[78%] sm:max-w-[72%] md:max-w-[65%]">
+                        <div class="{% if msg.author == request.user %}bg-primary-600 text-white{% else %}bg-gray-100 text-gray-800{% endif %}
+                                    rounded-2xl px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm leading-relaxed break-words">
+                            {{ msg.content }}
+                        </div>
+                        <div class="flex items-center gap-1.5 mt-0.5
+                                    {% if msg.author == request.user %}justify-end{% endif %}">
+                            <span class="text-xs text-gray-400 truncate max-w-[80px] sm:max-w-none">
+                                {{ msg.author.get_full_name|default:msg.author.username }}
+                            </span>
+                            <span class="text-xs text-gray-300">·</span>
+                            <time class="text-xs text-gray-400 whitespace-nowrap">
+                                {{ msg.created_at|timesince }} ago
+                            </time>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="py-8 sm:py-10 text-center">
+                <i class="fas fa-comments text-3xl sm:text-4xl text-gray-200 mb-2 sm:mb-3 block"></i>
+                <p class="text-gray-500 font-medium text-sm sm:text-base">No messages yet</p>
+                <p class="text-xs sm:text-sm text-gray-400 mt-1">Be the first to say something!</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Post Message Form -->
+        <form method="post"
+              class="flex items-end gap-2 sm:gap-3 border-t border-gray-100 pt-3 sm:pt-4">
+            {% csrf_token %}
+            <div class="flex-1">
+                {{ message_form.message }}
+            </div>
+            <button type="submit"
+                    class="inline-flex items-center gap-1.5 px-4 py-2.5 sm:px-5 sm:py-3 bg-primary-600 text-white rounded-lg
+                           hover:bg-primary-700 transition-all font-semibold text-xs sm:text-sm flex-shrink-0
+                           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                <i class="fas fa-paper-plane"></i>
+                <span class="hidden xs:inline sm:inline">Send</span>
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var feed = document.getElementById('message-feed');
+    if (feed) feed.scrollTop = feed.scrollHeight;
+});
+</script>
+{% endblock %}

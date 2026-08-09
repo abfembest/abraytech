@@ -1,0 +1,218 @@
+{% comment %}
+Shared media carousel partial — used by faculty_detail.html and
+program_detail.html. `gallery_items` is guaranteed non-empty by
+eduweb.views._build_gallery_items: when a Faculty/Program has no uploaded
+gallery media, that helper falls back to a single static campus photo so
+this section always renders instead of disappearing. The `{% if
+gallery_items %}` guard below is just a defensive no-op for that contract.
+
+Usage:
+  {% include 'includes/media_carousel.html' with gallery_items=gallery_items obj=faculty %}
+
+Expected context:
+  gallery_items — list of dicts: [{'type': 'video'|'image', 'url': '...'}, ...]
+                  (max 4, video-first) built by eduweb.views._build_gallery_items
+  obj           — the Faculty or Program instance (only used for obj.pk, to
+                  namespace element IDs so this partial is safe to include
+                  more than once on the same page)
+{% endcomment %}
+{% if gallery_items %}
+<section class="relative py-14 sm:py-20 bg-gradient-to-b from-gray-50 to-white overflow-hidden" aria-labelledby="media-carousel-heading-{{ obj.pk }}">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-8 sm:mb-12">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#6b026b]/10 text-[#6b026b] text-xs sm:text-sm font-semibold tracking-wide uppercase">
+                <i data-lucide="images" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
+                Gallery
+            </span>
+            <h2 id="media-carousel-heading-{{ obj.pk }}" class="mt-3 text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
+                A Closer Look
+            </h2>
+        </div>
+
+        <div id="media-carousel-{{ obj.pk }}" class="relative w-full max-w-6xl mx-auto" data-carousel-root>
+            <div class="relative aspect-video sm:aspect-[16/9] w-full rounded-xl sm:rounded-2xl overflow-hidden bg-black shadow-xl">
+                {% for item in gallery_items %}
+                <div class="carousel-slide absolute inset-0 transition-opacity duration-500 {% if not forloop.first %}opacity-0 pointer-events-none{% else %}opacity-100{% endif %}"
+                     data-slide-index="{{ forloop.counter0 }}">
+                    {% if item.type == 'video' %}
+                    <video class="w-full h-full object-contain bg-black" controls preload="metadata" playsinline>
+                        <source src="{{ item.url }}">
+                        Your browser does not support the video tag.
+                    </video>
+                    {% else %}
+                    <button type="button"
+                            class="carousel-expand-trigger block w-full h-full cursor-zoom-in group"
+                            data-media-url="{{ item.url }}" data-media-type="image"
+                            aria-label="Expand image">
+                        <img src="{{ item.url }}" alt="Gallery image {{ forloop.counter }}"
+                             class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300">
+                        <span class="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-colors duration-300">
+                            <i data-lucide="maximize-2" class="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 drop-shadow-lg"></i>
+                        </span>
+                    </button>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                {% if gallery_items|length > 1 %}
+                <button type="button" data-carousel-prev
+                        class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-colors"
+                        aria-label="Previous slide">
+                    <i data-lucide="chevron-left" class="w-5 h-5 sm:w-6 sm:h-6 text-gray-800"></i>
+                </button>
+                <button type="button" data-carousel-next
+                        class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-colors"
+                        aria-label="Next slide">
+                    <i data-lucide="chevron-right" class="w-5 h-5 sm:w-6 sm:h-6 text-gray-800"></i>
+                </button>
+                {% endif %}
+            </div>
+
+            {% if gallery_items|length > 1 %}
+            <div class="flex items-center justify-center gap-2 mt-4 sm:mt-5" data-carousel-indicators>
+                {% for item in gallery_items %}
+                <button type="button" data-carousel-goto="{{ forloop.counter0 }}"
+                        class="carousel-dot w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-all duration-300 {% if forloop.first %}bg-[#6b026b] w-6 sm:w-8{% else %}bg-gray-300 hover:bg-gray-400{% endif %}"
+                        aria-label="Go to slide {{ forloop.counter }}"></button>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Lightbox overlay for expanded image view -->
+    <div id="media-lightbox-{{ obj.pk }}" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/70 backdrop-blur-lg p-4 sm:p-8" data-lightbox-root>
+        <button type="button" data-lightbox-close
+                class="absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center transition-colors backdrop-blur-sm"
+                aria-label="Close">
+            <i data-lucide="x" class="w-6 h-6 text-white"></i>
+        </button>
+        <img data-lightbox-image src="" alt="Expanded gallery image" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl ring-1 ring-white/10">
+    </div>
+</section>
+
+<script>
+(function () {
+    var root = document.getElementById('media-carousel-{{ obj.pk }}');
+    if (!root) return;
+
+    var slides = Array.prototype.slice.call(root.querySelectorAll('.carousel-slide'));
+    var dots = Array.prototype.slice.call(root.querySelectorAll('.carousel-dot'));
+    var current = 0;
+
+    function showSlide(index) {
+        if (index < 0) index = slides.length - 1;
+        if (index >= slides.length) index = 0;
+        slides.forEach(function (slide, i) {
+            if (i === index) {
+                slide.classList.remove('opacity-0', 'pointer-events-none');
+                slide.classList.add('opacity-100');
+                var video = slide.querySelector('video');
+                if (!video) return;
+            } else {
+                slide.classList.add('opacity-0', 'pointer-events-none');
+                slide.classList.remove('opacity-100');
+                var vid = slide.querySelector('video');
+                if (vid) vid.pause();
+            }
+        });
+        dots.forEach(function (dot, i) {
+            if (i === index) {
+                dot.classList.add('bg-[#6b026b]', 'w-6', 'sm:w-8');
+                dot.classList.remove('bg-gray-300');
+            } else {
+                dot.classList.remove('bg-[#6b026b]', 'w-6', 'sm:w-8');
+                dot.classList.add('bg-gray-300');
+            }
+        });
+        current = index;
+    }
+
+    /* ── Autoplay — advances automatically, reusing the same opacity
+       cross-fade already on .carousel-slide (fade-out/fade-in). Pauses
+       while a video slide is actively playing, while the lightbox is
+       open, on hover/focus (so users can read/interact), and while the
+       tab is hidden — resumes afterwards. Manual prev/next/dot clicks
+       just restart the timer rather than fighting it. ── */
+    var AUTOPLAY_MS = 5000;
+    var autoplayTimer = null;
+
+    function stopAutoplay() {
+        if (autoplayTimer) {
+            clearInterval(autoplayTimer);
+            autoplayTimer = null;
+        }
+    }
+
+    function startAutoplay() {
+        if (slides.length <= 1) return;
+        stopAutoplay();
+        autoplayTimer = setInterval(function () {
+            var activeVideo = slides[current] ? slides[current].querySelector('video') : null;
+            if (activeVideo && !activeVideo.paused && !activeVideo.ended) return;
+            showSlide(current + 1);
+        }, AUTOPLAY_MS);
+    }
+
+    function restartAutoplay() {
+        startAutoplay();
+    }
+
+    var prevBtn = root.querySelector('[data-carousel-prev]');
+    var nextBtn = root.querySelector('[data-carousel-next]');
+    if (prevBtn) prevBtn.addEventListener('click', function () { showSlide(current - 1); restartAutoplay(); });
+    if (nextBtn) nextBtn.addEventListener('click', function () { showSlide(current + 1); restartAutoplay(); });
+    dots.forEach(function (dot) {
+        dot.addEventListener('click', function () {
+            showSlide(parseInt(dot.getAttribute('data-carousel-goto'), 10));
+            restartAutoplay();
+        });
+    });
+
+    root.addEventListener('mouseenter', stopAutoplay);
+    root.addEventListener('mouseleave', startAutoplay);
+    root.addEventListener('focusin', stopAutoplay);
+    root.addEventListener('focusout', startAutoplay);
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) stopAutoplay();
+        else startAutoplay();
+    });
+
+    // Lightbox (click-to-expand for images)
+    var lightbox = document.getElementById('media-lightbox-{{ obj.pk }}');
+    if (lightbox) {
+        var lightboxImg = lightbox.querySelector('[data-lightbox-image]');
+        var closeBtn = lightbox.querySelector('[data-lightbox-close]');
+
+        root.querySelectorAll('.carousel-expand-trigger').forEach(function (trigger) {
+            trigger.addEventListener('click', function () {
+                lightboxImg.src = trigger.getAttribute('data-media-url');
+                lightbox.classList.remove('hidden');
+                lightbox.classList.add('flex');
+                document.body.classList.add('overflow-hidden');
+                stopAutoplay();
+            });
+        });
+
+        function closeLightbox() {
+            lightbox.classList.add('hidden');
+            lightbox.classList.remove('flex');
+            lightboxImg.src = '';
+            document.body.classList.remove('overflow-hidden');
+            startAutoplay();
+        }
+        if (closeBtn) closeBtn.addEventListener('click', closeLightbox);
+        lightbox.addEventListener('click', function (e) {
+            if (e.target === lightbox) closeLightbox();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !lightbox.classList.contains('hidden')) closeLightbox();
+        });
+    }
+
+    startAutoplay();
+
+    if (window.lucide) { lucide.createIcons(); }
+})();
+</script>
+{% endif %}

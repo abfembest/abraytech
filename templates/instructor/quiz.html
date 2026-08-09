@@ -1,0 +1,162 @@
+{% extends 'management/base.html' %}
+{% block title %}Quiz Questions - {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="px-2 sm:px-0">
+
+    <!-- Breadcrumb -->
+    <nav class="flex mb-4 sm:mb-6 overflow-x-auto" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center whitespace-nowrap text-xs sm:text-sm space-x-1">
+            <li><a href="{% url 'instructor:course_list' %}" class="text-gray-600 hover:text-primary-600">Courses</a></li>
+            <li><i class="fas fa-chevron-right text-gray-400 mx-1.5 text-xs"></i><a href="{% url 'instructor:lesson_list' course.slug %}" class="text-gray-600 hover:text-primary-600 truncate max-w-[80px] sm:max-w-none">{{ course.title }}</a></li>
+            <li><i class="fas fa-chevron-right text-gray-400 mx-1.5 text-xs"></i><span class="text-gray-500 truncate max-w-[80px] sm:max-w-none">{{ quiz.title }}</span></li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="mb-6 sm:mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 font-display">{{ quiz.title }}</h1>
+                <p class="text-sm sm:text-base text-gray-600 mt-1">Manage quiz questions</p>
+            </div>
+            <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <a href="{% url 'instructor:quiz_results' course.slug lesson.slug quiz.slug %}"
+                   class="inline-flex items-center px-3 sm:px-4 py-2 sm:py-3 bg-yellow-50 text-yellow-700 font-medium rounded-lg hover:bg-yellow-100 border border-yellow-200 transition-all text-xs sm:text-sm">
+                    <i class="fas fa-chart-bar mr-1.5 sm:mr-2"></i>View Results
+                </a>
+                {% if permissions.instructor_assessments.can_create %}
+                <a href="{% url 'instructor:question_create' course.slug lesson.slug quiz.slug %}"
+                   class="inline-flex items-center px-3 sm:px-6 py-2 sm:py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 shadow-sm hover:shadow-md transition-all text-xs sm:text-sm">
+                    <i class="fas fa-plus-circle mr-1.5 sm:mr-2"></i>Add Question
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+
+        <!-- Questions -->
+        <div class="lg:col-span-2">
+            {% if questions %}
+            <div class="space-y-3 sm:space-y-4">
+                {% for question in questions %}
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-gray-50 to-gray-100 p-3 sm:p-4 border-b border-gray-200">
+                        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3">
+                            <div>
+                                <h6 class="font-semibold text-gray-900 text-sm sm:text-base">Question {{ forloop.counter }}</h6>
+                                <div class="flex items-center gap-1.5 sm:gap-2 mt-1">
+                                    <span class="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-xs font-medium bg-gray-200 text-gray-800">{{ question.get_question_type_display }}</span>
+                                    <span class="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">{{ question.points }} pts</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap flex-shrink-0">
+                                {% if question.question_type == 'multiple_choice' %}
+                                <a href="{% url 'instructor:question_answers' course.slug lesson.slug quiz.slug question.id %}"
+                                   class="px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-colors font-medium">
+                                    <i class="fas fa-list mr-1"></i>Answers
+                                </a>
+                                {% endif %}
+                                {% if permissions.instructor_assessments.can_delete %}
+                                <button onclick="deleteQuestion({{ question.id }})"
+                                        class="px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors font-medium">
+                                    <i class="fas fa-trash mr-1"></i>Delete
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-3 sm:p-4">
+                        <p class="text-gray-900 mb-2 text-xs sm:text-sm sm:text-base">{{ question.question_text }}</p>
+                        {% if question.question_type == 'multiple_choice' %}
+                        <div class="mt-2 sm:mt-3">
+                            <p class="text-xs sm:text-sm text-gray-600 mb-1.5 sm:mb-2 font-medium">Answer Choices:</p>
+                            {% if question.answers.all %}
+                            <div class="space-y-1.5 sm:space-y-2">
+                                {% for answer in question.answers.all %}
+                                <div class="flex items-start gap-2 sm:gap-3 p-2.5 sm:p-3 bg-gray-50 rounded-lg">
+                                    {% if answer.is_correct %}<i class="fas fa-check-circle text-green-600 mt-0.5 flex-shrink-0 text-sm sm:text-base"></i>
+                                    {% else %}<i class="far fa-circle text-gray-400 mt-0.5 flex-shrink-0 text-sm sm:text-base"></i>{% endif %}
+                                    <span class="text-gray-900 text-xs sm:text-sm {% if answer.is_correct %}font-semibold{% endif %}">{{ answer.answer_text }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="p-3 sm:p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <p class="text-xs sm:text-sm text-yellow-800"><i class="fas fa-exclamation-triangle mr-1"></i>No answer choices added yet.
+                                    <a href="{% url 'instructor:question_answers' course.slug lesson.slug quiz.slug question.id %}" class="underline font-medium">Add answers</a>
+                                </p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        {% if question.explanation %}
+                        <div class="mt-2.5 sm:mt-3 p-2.5 sm:p-3 bg-blue-50 rounded-lg">
+                            <p class="text-xs text-blue-700 font-medium mb-0.5 sm:mb-1">Explanation:</p>
+                            <p class="text-xs sm:text-sm text-blue-900">{{ question.explanation }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 sm:p-12 text-center">
+                <div class="max-w-md mx-auto">
+                    <div class="w-16 h-16 sm:w-24 sm:h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                        <i class="fas fa-question-circle text-3xl sm:text-5xl text-gray-400"></i>
+                    </div>
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">No Questions Yet</h3>
+                    <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">Add questions to your quiz</p>
+                    {% if permissions.instructor_assessments.can_create %}
+                    <a href="{% url 'instructor:question_create' course.slug lesson.slug quiz.slug %}"
+                       class="inline-flex items-center px-5 sm:px-6 py-2.5 sm:py-3 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 shadow-sm hover:shadow-md transition-all">
+                        <i class="fas fa-plus-circle mr-2"></i>Add First Question
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar — Quiz Settings -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 lg:sticky lg:top-6">
+                <div class="p-3 sm:p-4 border-b border-gray-200">
+                    <h6 class="font-semibold text-gray-900 text-sm sm:text-base">Quiz Settings</h6>
+                </div>
+                <div class="p-3 sm:p-4 space-y-3 sm:space-y-4">
+                    <div><p class="text-xs text-gray-600">Passing Score</p><p class="text-xl sm:text-2xl font-bold text-gray-900">{{ quiz.passing_score }}%</p></div>
+                    <div><p class="text-xs text-gray-600">Max Attempts</p><p class="text-xl sm:text-2xl font-bold text-gray-900">{{ quiz.max_attempts }}</p></div>
+                    <div><p class="text-xs text-gray-600">Time Limit</p><p class="text-xl sm:text-2xl font-bold text-gray-900">{% if quiz.time_limit_minutes %}{{ quiz.time_limit_minutes }} min{% else %}No limit{% endif %}</p></div>
+                    <div><p class="text-xs text-gray-600">Questions</p><p class="text-xl sm:text-2xl font-bold text-gray-900">{{ questions|length }}</p></div>
+                    {% if permissions.instructor_assessments.can_edit %}
+                    <div class="pt-3 sm:pt-4 border-t border-gray-200">
+                        <a href="{% url 'instructor:quiz_edit' course.slug lesson.slug quiz.slug %}"
+                           class="w-full inline-flex items-center justify-center px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-xs sm:text-sm font-medium">
+                            <i class="fas fa-cog mr-1.5 sm:mr-2"></i>Edit Settings
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function deleteQuestion(questionId) {
+    if (confirm('Are you sure you want to delete this question? This will also delete all associated answers.')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "{% url 'instructor:delete_question' course.slug lesson.slug quiz.slug 0 %}".replace('/0/', `/${questionId}/`);
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden'; csrfInput.name = 'csrfmiddlewaretoken'; csrfInput.value = '{{ csrf_token }}';
+        form.appendChild(csrfInput); document.body.appendChild(form); form.submit();
+    }
+}
+</script>
+{% endblock %}

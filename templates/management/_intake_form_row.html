@@ -1,0 +1,60 @@
+{% comment %}
+One intake's fields, used both for each bound form in the "Add Another
+Intake" formset and for the hidden empty_form template that JS clones when
+"Add Another Intake" is clicked. Takes `form` in context.
+{% endcomment %}
+<div class="intake-row relative border border-gray-200 rounded-lg p-4 sm:p-5 bg-gray-50/60">
+  <button type="button"
+          class="remove-intake-row hidden absolute top-3 right-3 text-gray-400 hover:text-red-500"
+          onclick="removeIntakeRow(this)" title="Remove this intake">
+    <i class="fas fa-times-circle" aria-hidden="true"></i>
+  </button>
+
+  {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div>
+      <label for="{{ form.program.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1.5">Program <span class="text-red-500">*</span></label>
+      {{ form.program }}
+      {% if form.program.errors %}<p class="text-xs text-red-600 mt-1">{{ form.program.errors.0 }}</p>{% endif %}
+    </div>
+    <div>
+      <label for="{{ form.intake_period.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1.5">Intake Period <span class="text-red-500">*</span></label>
+      {{ form.intake_period }}
+    </div>
+    <div>
+      <label for="{{ form.year.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1.5">Year <span class="text-red-500">*</span></label>
+      {{ form.year }}
+    </div>
+    <div>
+      <label for="{{ form.application_start_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1.5">Applications Open <span class="text-red-500">*</span></label>
+      {{ form.application_start_date }}
+    </div>
+    <div>
+      <label for="{{ form.application_deadline.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1.5">Application Deadline <span class="text-red-500">*</span></label>
+      {{ form.application_deadline }}
+    </div>
+    <div>
+      <label for="{{ form.start_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1.5">Program Start Date <span class="text-red-500">*</span></label>
+      {{ form.start_date }}
+    </div>
+    <div>
+      <label for="{{ form.application_fee.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1.5">Application Fee ($) <span class="text-red-500">*</span></label>
+      {{ form.application_fee }}
+    </div>
+    <div>
+      <label for="{{ form.available_slots.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1.5">Available Slots <span class="text-red-500">*</span></label>
+      {{ form.available_slots }}
+    </div>
+    <div class="flex items-end pb-1">
+      <label class="flex items-center gap-3 cursor-pointer">
+        {{ form.is_active }}
+        <span class="text-sm font-medium text-gray-700">Active</span>
+      </label>
+    </div>
+  </div>
+
+  {% if form.non_field_errors %}
+  <p class="text-xs text-red-600 mt-3">{{ form.non_field_errors.0 }}</p>
+  {% endif %}
+</div>

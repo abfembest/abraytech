@@ -1,0 +1,158 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}{% if quiz %}Edit Quiz{% else %}Create Quiz{% endif %} - {{ lesson.title }}{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<nav class="flex mb-4 sm:mb-6 overflow-x-auto" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 text-sm whitespace-nowrap">
+        <li><a href="{% url 'instructor:course_list' %}" class="text-gray-500 hover:text-primary-600 transition-colors">Courses</a></li>
+        <li class="flex items-center">
+            <i class="fas fa-chevron-right text-gray-400 mx-1.5 text-xs"></i>
+            <a href="{% url 'instructor:lesson_list' course.slug %}" class="text-gray-500 hover:text-primary-600 transition-colors truncate max-w-[100px] sm:max-w-[180px]">{{ course.title }}</a>
+        </li>
+        <li class="flex items-center">
+            <i class="fas fa-chevron-right text-gray-400 mx-1.5 text-xs"></i>
+            <span class="text-gray-800 font-medium">{% if quiz %}Edit{% else %}Create{% endif %} Quiz</span>
+        </li>
+    </ol>
+</nav>
+
+<!-- Page Header -->
+<div class="mb-6 sm:mb-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">
+                {% if quiz %}Edit Quiz{% else %}Create New Quiz{% endif %}
+            </h1>
+            <p class="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">For lesson: <span class="font-medium">{{ lesson.title }}</span></p>
+        </div>
+        <a href="{% url 'instructor:course_manage' course.slug %}"
+           class="inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-white border-2 border-primary-600 text-primary-600 text-sm font-medium rounded-lg hover:bg-primary-50 transition-all whitespace-nowrap">
+            <i class="fas fa-th-large mr-2"></i>Manage Course
+        </a>
+    </div>
+</div>
+
+<div class="w-full max-w-4xl">
+    <form method="post" class="bg-white rounded-xl shadow-sm border border-gray-200">
+        {% csrf_token %}
+
+        <div class="p-4 sm:p-6 space-y-6 sm:space-y-8">
+
+            <!-- Basic Information -->
+            <div>
+                <h2 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 pb-2 border-b border-gray-200">Basic Information</h2>
+                <div class="space-y-4 sm:space-y-5">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Quiz Title *</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                        <p class="mt-1 text-xs sm:text-sm text-red-600">{{ form.title.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                        <p class="mt-1 text-xs sm:text-sm text-red-600">{{ form.description.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Instructions for Students</label>
+                        {{ form.instructions }}
+                        {% if form.instructions.errors %}
+                        <p class="mt-1 text-xs sm:text-sm text-red-600">{{ form.instructions.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Settings -->
+            <div>
+                <h2 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 pb-2 border-b border-gray-200">Quiz Settings</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Time Limit (minutes)</label>
+                        {{ form.time_limit_minutes }}
+                        <p class="mt-1 text-xs text-gray-500">Leave blank for no limit</p>
+                        {% if form.time_limit_minutes.errors %}
+                        <p class="mt-1 text-xs sm:text-sm text-red-600">{{ form.time_limit_minutes.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Passing Score (%) *</label>
+                        {{ form.passing_score }}
+                        {% if form.passing_score.errors %}
+                        <p class="mt-1 text-xs sm:text-sm text-red-600">{{ form.passing_score.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Max Attempts *</label>
+                        {{ form.max_attempts }}
+                        {% if form.max_attempts.errors %}
+                        <p class="mt-1 text-xs sm:text-sm text-red-600">{{ form.max_attempts.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Display Options -->
+            <div>
+                <h2 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 pb-2 border-b border-gray-200">Display Options</h2>
+                <div class="space-y-2 sm:space-y-3">
+                    <label class="flex items-center gap-2 cursor-pointer p-2 sm:p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                        {{ form.shuffle_questions }}
+                        <span class="text-sm font-medium text-gray-700">Shuffle Questions</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer p-2 sm:p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                        {{ form.show_correct_answers }}
+                        <span class="text-sm font-medium text-gray-700">Show Correct Answers After Submission</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Display Order -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">Display Order</label>
+                <div class="w-full sm:w-40">{{ form.display_order }}</div>
+                <p class="mt-1 text-xs text-gray-500">Lower numbers appear first</p>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-t border-gray-200 rounded-b-xl">
+            <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                <a href="{% url 'instructor:quiz_list' course.slug lesson.slug %}"
+                   class="inline-flex items-center justify-center px-4 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium w-full sm:w-auto">
+                    Cancel
+                </a>
+                <button type="submit"
+                        class="inline-flex items-center justify-center px-5 sm:px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 shadow-sm hover:shadow-md transition-all text-sm font-medium w-full sm:w-auto">
+                    <i class="fas fa-save mr-2"></i>Save Quiz
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+    input[type="text"], input[type="number"], textarea, select {
+        width: 100%; padding: .5rem .875rem; border: 1px solid #D1D5DB;
+        border-radius: .5rem; font-size: .875rem; outline: none;
+        transition: border-color .2s, box-shadow .2s; background: white;
+    }
+    input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
+        border-color: #4a6bff; box-shadow: 0 0 0 3px rgba(74,107,255,.1);
+    }
+    textarea { min-height: 90px; resize: vertical; }
+    input[type="checkbox"] { width: 1rem; height: 1rem; accent-color: #4a6bff; cursor: pointer; flex-shrink: 0; }
+    @media (min-width: 640px) {
+        input[type="text"], input[type="number"], textarea, select { padding: .6rem 1rem; font-size: .9375rem; }
+        textarea { min-height: 110px; }
+        input[type="checkbox"] { width: 1.1rem; height: 1.1rem; }
+    }
+</style>
+{% endblock %}

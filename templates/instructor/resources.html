@@ -1,0 +1,384 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Resources - Instructor{% endblock %}
+
+{% block content %}
+<div class="max-w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    {# ── Page Header ── #}
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+            <h1 class="text-xl font-bold text-gray-900 lg:text-2xl xl:text-3xl">Resources</h1>
+            <p class="text-base text-gray-500 mt-1">All your course materials in one place</p>
+        </div>
+    </div>
+
+    {# ── Statistics Cards ── #}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5 flex items-center gap-4">
+            <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-video text-blue-600 text-xl"></i>
+            </div>
+            <div class="min-w-0">
+                <p class="text-base text-gray-500 font-medium truncate">Videos</p>
+                <p class="text-2xl font-bold text-gray-900 xl:text-3xl">{{ stats.total_videos }}</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5 flex items-center gap-4">
+            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-file-alt text-green-600 text-xl"></i>
+            </div>
+            <div class="min-w-0">
+                <p class="text-base text-gray-500 font-medium truncate">Documents</p>
+                <p class="text-2xl font-bold text-gray-900 xl:text-3xl">{{ stats.total_docs }}</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5 flex items-center gap-4">
+            <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-tasks text-purple-600 text-xl"></i>
+            </div>
+            <div class="min-w-0">
+                <p class="text-base text-gray-500 font-medium truncate">Assignments</p>
+                <p class="text-2xl font-bold text-gray-900 xl:text-3xl">{{ stats.total_assignments }}</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5 flex items-center gap-4">
+            <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-book text-orange-600 text-xl"></i>
+            </div>
+            <div class="min-w-0">
+                <p class="text-base text-gray-500 font-medium truncate">Courses</p>
+                <p class="text-2xl font-bold text-gray-900 xl:text-3xl">{{ stats.total_courses }}</p>
+            </div>
+        </div>
+    </div>
+
+    {# ── Search Bar ── #}
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-5">
+        <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+            <div class="relative flex-1">
+                <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input
+                    id="resourceSearch"
+                    type="text"
+                    placeholder="Search resources by name or course…"
+                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                >
+            </div>
+            <span id="resourceCount" class="text-base text-gray-500 font-medium whitespace-nowrap self-center"></span>
+        </div>
+    </div>
+
+    {# ── Tab Navigation + Content ── #}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+
+        {# Tab Nav #}
+        <div class="border-b border-gray-200 overflow-x-auto">
+            <nav class="flex -mb-px min-w-max px-2" role="tablist">
+                <button role="tab" aria-selected="true"
+                        class="res-tab-btn flex items-center gap-2 py-4 px-5 text-base font-semibold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap transition-colors"
+                        data-tab="videos">
+                    <i class="fas fa-video"></i>Videos
+                    <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-base font-bold bg-blue-100 text-blue-700">{{ stats.total_videos }}</span>
+                </button>
+                <button role="tab" aria-selected="false"
+                        class="res-tab-btn flex items-center gap-2 py-4 px-5 text-base font-semibold text-gray-500 hover:text-gray-800 border-b-2 border-transparent whitespace-nowrap transition-colors"
+                        data-tab="documents">
+                    <i class="fas fa-file-alt"></i>Documents
+                    <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-base font-bold bg-gray-100 text-gray-600">{{ stats.total_docs }}</span>
+                </button>
+                <button role="tab" aria-selected="false"
+                        class="res-tab-btn flex items-center gap-2 py-4 px-5 text-base font-semibold text-gray-500 hover:text-gray-800 border-b-2 border-transparent whitespace-nowrap transition-colors"
+                        data-tab="assignments">
+                    <i class="fas fa-tasks"></i>Assignment Files
+                    <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-base font-bold bg-gray-100 text-gray-600">{{ stats.total_assignments }}</span>
+                </button>
+            </nav>
+        </div>
+
+        {# ── Videos Tab ── #}
+        <div id="videos-tab" class="res-tab-content p-4 sm:p-6">
+            {% if lesson_videos %}
+            <div id="videos-list" class="space-y-3">
+                {% for item in lesson_videos %}
+                <div class="resource-item border border-gray-200 rounded-xl p-4 sm:p-5 hover:bg-blue-50 hover:border-blue-200 transition-all"
+                     data-name="{{ item.lesson.title|lower }}" data-course="{{ item.course.title|lower }}">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <div class="flex items-start gap-4 flex-1 min-w-0">
+                            <div class="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-play-circle text-blue-600 text-2xl"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-gray-900 text-base lg:text-lg truncate">{{ item.lesson.title }}</h3>
+                                <p class="text-base text-gray-600 mt-1 truncate">
+                                    <i class="fas fa-book mr-1.5 text-gray-400"></i>{{ item.course.title }}
+                                </p>
+                                <p class="text-base text-gray-400 mt-1">
+                                    <i class="fas fa-calendar mr-1.5"></i>Uploaded {{ item.uploaded|date:"M d, Y" }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0 self-start sm:self-center">
+                            <a href="{{ item.url }}" target="_blank"
+                               class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-base font-semibold transition-colors whitespace-nowrap shadow-sm">
+                                <i class="fas fa-external-link-alt"></i>View Video
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div id="videos-empty-search" class="hidden text-center py-10">
+                <i class="fas fa-search text-gray-300 text-4xl mb-3 block"></i>
+                <p class="text-base text-gray-500 font-medium">No videos match your search</p>
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-video text-blue-400 text-3xl"></i>
+                </div>
+                <p class="text-base font-medium text-gray-500">No videos uploaded yet</p>
+                <p class="text-base text-gray-400 mt-1">Attach video URLs to lessons to see them here</p>
+            </div>
+            {% endif %}
+            {% if lesson_videos.paginator.num_pages > 1 %}
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-5 pt-5 border-t border-gray-100">
+                <p class="text-base text-gray-500">
+                    Page <strong>{{ lesson_videos.number }}</strong> of <strong>{{ lesson_videos.paginator.num_pages }}</strong>
+                    &mdash; {{ lesson_videos.paginator.count }} video{{ lesson_videos.paginator.count|pluralize }}
+                </p>
+                <div class="flex gap-2">
+                    {% if lesson_videos.has_previous %}
+                    <a href="?videos_page={{ lesson_videos.previous_page_number }}"
+                       class="inline-flex items-center gap-1.5 px-4 py-2.5 text-base font-semibold bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 transition-colors">
+                        <i class="fas fa-arrow-left"></i> Previous
+                    </a>
+                    {% endif %}
+                    {% if lesson_videos.has_next %}
+                    <a href="?videos_page={{ lesson_videos.next_page_number }}"
+                       class="inline-flex items-center gap-1.5 px-4 py-2.5 text-base font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        Next <i class="fas fa-arrow-right"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        {# ── Documents Tab ── #}
+        <div id="documents-tab" class="res-tab-content hidden p-4 sm:p-6">
+            {% if lesson_docs %}
+            <div id="documents-list" class="space-y-3">
+                {% for item in lesson_docs %}
+                <div class="resource-item border border-gray-200 rounded-xl p-4 sm:p-5 hover:bg-green-50 hover:border-green-200 transition-all"
+                     data-name="{{ item.name|lower }}" data-course="{{ item.course.title|lower }}">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <div class="flex items-start gap-4 flex-1 min-w-0">
+                            <div class="flex-shrink-0 w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-file-pdf text-red-600 text-2xl"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-gray-900 text-base lg:text-lg truncate">{{ item.name }}</h3>
+                                <p class="text-base text-gray-600 mt-1 truncate">
+                                    <i class="fas fa-book mr-1.5 text-gray-400"></i>{{ item.course.title }}
+                                    <span class="mx-1 text-gray-300">—</span>{{ item.lesson.title }}
+                                </p>
+                                <p class="text-base text-gray-400 mt-1">
+                                    <i class="fas fa-calendar mr-1.5"></i>Uploaded {{ item.uploaded|date:"M d, Y" }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0 self-start sm:self-center">
+                            <a href="{{ item.file.url }}" download
+                               class="inline-flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-base font-semibold transition-colors whitespace-nowrap shadow-sm">
+                                <i class="fas fa-download"></i>Download
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div id="documents-empty-search" class="hidden text-center py-10">
+                <i class="fas fa-search text-gray-300 text-4xl mb-3 block"></i>
+                <p class="text-base text-gray-500 font-medium">No documents match your search</p>
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-file-alt text-green-400 text-3xl"></i>
+                </div>
+                <p class="text-base font-medium text-gray-500">No documents uploaded yet</p>
+            </div>
+            {% endif %}
+            {% if lesson_docs.paginator.num_pages > 1 %}
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-5 pt-5 border-t border-gray-100">
+                <p class="text-base text-gray-500">
+                    Page <strong>{{ lesson_docs.number }}</strong> of <strong>{{ lesson_docs.paginator.num_pages }}</strong>
+                    &mdash; {{ lesson_docs.paginator.count }} document{{ lesson_docs.paginator.count|pluralize }}
+                </p>
+                <div class="flex gap-2">
+                    {% if lesson_docs.has_previous %}
+                    <a href="?docs_page={{ lesson_docs.previous_page_number }}"
+                       class="inline-flex items-center gap-1.5 px-4 py-2.5 text-base font-semibold bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 transition-colors">
+                        <i class="fas fa-arrow-left"></i> Previous
+                    </a>
+                    {% endif %}
+                    {% if lesson_docs.has_next %}
+                    <a href="?docs_page={{ lesson_docs.next_page_number }}"
+                       class="inline-flex items-center gap-1.5 px-4 py-2.5 text-base font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                        Next <i class="fas fa-arrow-right"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        {# ── Assignment Files Tab ── #}
+        <div id="assignments-tab" class="res-tab-content hidden p-4 sm:p-6">
+            {% if assignment_files %}
+            <div id="assignments-list" class="space-y-3">
+                {% for item in assignment_files %}
+                <div class="resource-item border border-gray-200 rounded-xl p-4 sm:p-5 hover:bg-purple-50 hover:border-purple-200 transition-all"
+                     data-name="{{ item.name|lower }}" data-course="{{ item.course.title|lower }}">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <div class="flex items-start gap-4 flex-1 min-w-0">
+                            <div class="flex-shrink-0 w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-paperclip text-purple-600 text-2xl"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-gray-900 text-base lg:text-lg truncate">{{ item.name }}</h3>
+                                <p class="text-base text-gray-600 mt-1 truncate">
+                                    <i class="fas fa-tasks mr-1.5 text-gray-400"></i>{{ item.assignment.title }}
+                                </p>
+                                <p class="text-base text-gray-500 truncate">
+                                    <i class="fas fa-book mr-1.5 text-gray-400"></i>{{ item.course.title }}
+                                    <span class="mx-1 text-gray-300">—</span>{{ item.lesson.title }}
+                                </p>
+                                <p class="text-base text-gray-400 mt-1">
+                                    <i class="fas fa-calendar mr-1.5"></i>Uploaded {{ item.uploaded|date:"M d, Y" }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0 self-start sm:self-center">
+                            <a href="{{ item.file.url }}" download
+                               class="inline-flex items-center gap-2 px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-base font-semibold transition-colors whitespace-nowrap shadow-sm">
+                                <i class="fas fa-download"></i>Download
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div id="assignments-empty-search" class="hidden text-center py-10">
+                <i class="fas fa-search text-gray-300 text-4xl mb-3 block"></i>
+                <p class="text-base text-gray-500 font-medium">No files match your search</p>
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-tasks text-purple-400 text-3xl"></i>
+                </div>
+                <p class="text-base font-medium text-gray-500">No assignment files uploaded yet</p>
+            </div>
+            {% endif %}
+            {% if assignment_files.paginator.num_pages > 1 %}
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-5 pt-5 border-t border-gray-100">
+                <p class="text-base text-gray-500">
+                    Page <strong>{{ assignment_files.number }}</strong> of <strong>{{ assignment_files.paginator.num_pages }}</strong>
+                    &mdash; {{ assignment_files.paginator.count }} file{{ assignment_files.paginator.count|pluralize }}
+                </p>
+                <div class="flex gap-2">
+                    {% if assignment_files.has_previous %}
+                    <a href="?assignments_page={{ assignment_files.previous_page_number }}"
+                       class="inline-flex items-center gap-1.5 px-4 py-2.5 text-base font-semibold bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 transition-colors">
+                        <i class="fas fa-arrow-left"></i> Previous
+                    </a>
+                    {% endif %}
+                    {% if assignment_files.has_next %}
+                    <a href="?assignments_page={{ assignment_files.next_page_number }}"
+                       class="inline-flex items-center gap-1.5 px-4 py-2.5 text-base font-semibold bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                        Next <i class="fas fa-arrow-right"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>{# /tab card #}
+
+</div>{# /page wrapper #}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    const tabBtns     = document.querySelectorAll('.res-tab-btn');
+    const tabContents = document.querySelectorAll('.res-tab-content');
+    let   activeTab   = 'videos';
+
+    // ── Tab switching ─────────────────────────────────────────────────
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', function () {
+            activeTab = this.dataset.tab;
+
+            tabBtns.forEach(b => {
+                b.classList.remove('text-blue-600', 'border-blue-600');
+                b.classList.add('text-gray-500', 'border-transparent');
+                b.setAttribute('aria-selected', 'false');
+            });
+            this.classList.add('text-blue-600', 'border-blue-600');
+            this.classList.remove('text-gray-500', 'border-transparent');
+            this.setAttribute('aria-selected', 'true');
+
+            tabContents.forEach(c => c.classList.add('hidden'));
+            document.getElementById(activeTab + '-tab').classList.remove('hidden');
+
+            applySearch(document.getElementById('resourceSearch').value.trim().toLowerCase());
+        });
+    });
+
+    // ── Real-time search ──────────────────────────────────────────────
+    function applySearch(query) {
+        let visibleInActiveTab = 0;
+
+        ['videos', 'documents', 'assignments'].forEach(tab => {
+            const list    = document.getElementById(tab + '-list');
+            const emptyEl = document.getElementById(tab + '-empty-search');
+            if (!list) return;
+
+            let visible = 0;
+            list.querySelectorAll('.resource-item').forEach(item => {
+                const matches = !query
+                    || (item.dataset.name   || '').includes(query)
+                    || (item.dataset.course || '').includes(query);
+                item.style.display = matches ? '' : 'none';
+                if (matches) visible++;
+            });
+
+            if (tab === activeTab) visibleInActiveTab = visible;
+            if (emptyEl) emptyEl.classList.toggle('hidden', visible > 0 || !query);
+        });
+
+        const countEl = document.getElementById('resourceCount');
+        if (countEl) {
+            countEl.textContent = query
+                ? visibleInActiveTab + ' result' + (visibleInActiveTab !== 1 ? 's' : '')
+                : '';
+        }
+    }
+
+    document.getElementById('resourceSearch').addEventListener('input', function () {
+        applySearch(this.value.trim().toLowerCase());
+    });
+
+})();
+</script>
+{% endblock %}

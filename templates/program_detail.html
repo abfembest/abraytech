@@ -1,0 +1,677 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ program.name }} | {{ faculty.name }} | {{ site_config.school_short_name|default:"MIU" }}{% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="{{ program.meta_description|default:program.overview|truncatechars:160 }}">
+<meta name="keywords" content="{{ program.meta_keywords|default:program.name }}, {{ faculty.name }}, {{ department.name }}, {{ site_config.school_short_name|default:'MIU' }}">
+<meta name="robots" content="index, follow">
+<meta name="author" content="{{ site_config.school_name|default:'Melchisedec International University' }}">
+{% endblock %}
+
+{% block og_tags %}
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ program.name }} | {{ site_config.school_short_name|default:'MIU' }}">
+<meta property="og:description" content="{{ program.overview|default:program.meta_description|truncatechars:200 }}">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+{% if site_config.og_image %}<meta property="og:image" content="{{ site_config.og_image.url }}">{% endif %}
+{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Course",
+  "name": "{{ program.name|escapejs }}",
+  "description": "{{ program.overview|default:''|truncatechars:200|escapejs }}",
+  "url": "{{ request.build_absolute_uri }}",
+  "provider": {
+    "@type": "EducationalOrganization",
+    "name": "{{ site_config.school_name|default:'Melchisedec International University'|escapejs }}"
+  }{% if program.duration_years %},
+  "timeToComplete": "P{{ program.duration_years }}Y"{% endif %}
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<main id="main-content">
+
+<!-- ════════════════════════════════════════════
+     HERO
+════════════════════════════════════════════ -->
+<section class="relative overflow-hidden bg-gradient-to-br from-[#6b026b] via-purple-800 to-fuchsia-800"
+         aria-labelledby="program-heading">
+
+  <!-- Responsive hero background image (behind all hero content).
+       Falls back to a static campus photo when no hero_image is set, so
+       the hero always has a backdrop instead of plain gradient only. -->
+  <div class="absolute inset-0 z-0" aria-hidden="true">
+    <img src="{% if program.hero_image %}{{ program.hero_image.url }}{% else %}{% static 'images/hero.webp' %}{% endif %}"
+         alt="" class="w-full h-full object-cover">
+    <div class="absolute inset-0 bg-gradient-to-br from-[#6b026b]/80 via-purple-900/75 to-fuchsia-900/80"></div>
+    <div class="absolute inset-0 bg-black/25"></div>
+  </div>
+
+  <!-- Orbs + dot texture -->
+  <div class="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+    <div class="absolute inset-0 opacity-[0.04]"
+         style="background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22><circle cx=%221%22 cy=%221%22 r=%221%22 fill=%22white%22/></svg>');"></div>
+    <div class="absolute top-0 right-0 w-48 h-48 sm:w-72 sm:h-72 lg:w-[500px] lg:h-[500px] bg-fuchsia-600 rounded-full opacity-10 blur-3xl"></div>
+    <div class="absolute bottom-0 left-0 w-40 h-40 sm:w-56 sm:h-56 lg:w-72 lg:h-72 bg-purple-600 rounded-full opacity-10 blur-3xl"></div>
+  </div>
+
+  <div class="relative z-10 max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-16 pt-24 sm:pt-28 lg:pt-20 pb-14 sm:pb-18 lg:pb-20">
+
+    <!-- Breadcrumb -->
+    <nav class="mb-6 sm:mb-8 lg:mb-10 fu fu1" aria-label="Breadcrumb">
+      <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm text-white/70"
+          itemscope itemtype="https://schema.org/BreadcrumbList">
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="{% url 'eduweb:index' %}" itemprop="item" class="hover:text-white transition-colors underline-offset-2 hover:underline">
+            <span itemprop="name">Home</span>
+          </a>
+          <meta itemprop="position" content="1">
+        </li>
+        <li aria-hidden="true"><i data-lucide="chevron-right" class="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0"></i></li>
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="{% url 'eduweb:faculty_detail' faculty.slug %}" itemprop="item" class="hover:text-white transition-colors underline-offset-2 hover:underline">
+            <span itemprop="name">{{ faculty.name }}</span>
+          </a>
+          <meta itemprop="position" content="2">
+        </li>
+        <li aria-hidden="true"><i data-lucide="chevron-right" class="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0"></i></li>
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="#" itemprop="item" class="hover:text-white transition-colors underline-offset-2 hover:underline">
+            <span itemprop="name">{{ department.name }}</span>
+          </a>
+          <meta itemprop="position" content="3">
+        </li>
+        <li aria-hidden="true"><i data-lucide="chevron-right" class="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0"></i></li>
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" aria-current="page">
+          <span itemprop="name" class="text-white truncate max-w-[120px] xs:max-w-[180px] sm:max-w-xs inline-block">{{ program.name }}</span>
+          <meta itemprop="position" content="4">
+        </li>
+      </ol>
+    </nav>
+
+    <div class="flex flex-col lg:flex-row gap-8 sm:gap-10 lg:gap-12 xl:gap-16 items-start">
+
+      <!-- Left: title + actions -->
+      <div class="flex-1 fu fu2">
+        <!-- Breadcrumb pills -->
+        <div class="flex flex-wrap items-center gap-2 mb-4 sm:mb-5">
+          <span class="pill-badge bg-white/20 text-white border border-white/30 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs backdrop-blur-sm">
+            {{ faculty.code }}
+          </span>
+          <i data-lucide="chevron-right" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white/50 flex-shrink-0" aria-hidden="true"></i>
+          <span class="pill-badge bg-white/20 text-white border border-white/30 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs truncate max-w-[160px] sm:max-w-none backdrop-blur-sm">
+            {{ department.name }}
+          </span>
+        </div>
+
+        <span class="pill-badge inline-block bg-white/20 text-white border border-white/35 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full mb-4 sm:mb-5 text-xs backdrop-blur-sm shadow-sm">
+          {{ program.get_degree_level_display }}
+        </span>
+        {% if program.is_featured %}
+        <span class="pill-badge inline-flex items-center gap-1.5 bg-yellow-300/90 text-gray-900 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full mb-4 sm:mb-5 ml-2 text-xs font-bold">
+          <i data-lucide="star" class="w-3 h-3 sm:w-3.5 sm:h-3.5" aria-hidden="true"></i>
+          Featured Program
+        </span>
+        {% endif %}
+
+        <h1 id="program-heading"
+            class="font-['Poppins'] text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black text-white leading-tight mb-4 sm:mb-5 drop-shadow-md">
+          {{ program.name }}
+        </h1>
+
+        {% if program.tagline %}
+        <p class="text-white/90 text-base sm:text-lg font-['Inter'] max-w-xl sm:max-w-2xl leading-relaxed mb-6 sm:mb-8 drop-shadow-sm">
+          {{ program.tagline }}
+        </p>
+        {% endif %}
+
+        {% if program.available_study_modes %}
+        <div class="flex flex-wrap gap-2 mb-6 sm:mb-8">
+          {% for mode in program.available_study_modes %}
+          <span class="inline-flex items-center gap-1.5 bg-white/20 border border-white/30 text-white px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-medium backdrop-blur-sm">
+            <i data-lucide="clock" class="w-2.5 h-2.5 sm:w-3 sm:h-3" aria-hidden="true"></i>
+            {{ mode|title }}
+          </span>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="flex flex-row flex-wrap sm:flex-nowrap gap-3 w-full sm:w-auto max-w-md lg:max-w-lg">
+          <a href="{% url 'eduweb:signup_page' %}?program={{ program.slug }}"
+             class="inline-flex items-center justify-center gap-2 bg-white text-[#840384] hover:bg-yellow-300 hover:text-gray-900 px-5 sm:px-7 py-3 sm:py-3.5 rounded-xl font-bold text-sm transition-all shadow-xl focus:outline-none focus:ring-2 focus:ring-yellow-300">
+            <i data-lucide="send" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
+            Apply Now
+          </a>
+          <a href="#curriculum"
+             class="inline-flex items-center justify-center gap-2 bg-white/20 hover:bg-white/30 border border-white/40 text-white px-5 sm:px-7 py-3 sm:py-3.5 rounded-xl font-semibold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-white/30 backdrop-blur-sm shadow-sm">
+            <i data-lucide="book-open" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
+            View Curriculum
+          </a>
+        </div>
+      </div>
+
+      <!-- Right: At-a-glance card -->
+      <div class="w-full sm:w-80 lg:w-72 xl:w-80 xl:w-96 flex-shrink-0 fu fu3">
+        <div class="bg-white border border-gray-100 rounded-2xl sm:rounded-3xl p-5 sm:p-6 lg:p-7 space-y-3 sm:space-y-4 shadow-2xl">
+          <h2 class="font-['Poppins'] text-xs font-bold text-[#840384] uppercase tracking-widest flex items-center gap-2">
+            <i data-lucide="info" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
+            Program At a Glance
+          </h2>
+          <dl class="space-y-3 sm:space-y-3.5">
+            {% if program.duration_years %}
+            <div class="flex items-center justify-between border-b border-gray-100 pb-3 sm:pb-3.5">
+              <dt class="flex items-center gap-2 sm:gap-3 text-gray-500 text-xs sm:text-sm">
+                <i data-lucide="calendar" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#840384]" aria-hidden="true"></i> Duration
+              </dt>
+              <dd class="font-['Poppins'] text-gray-900 font-bold text-sm sm:text-base">{{ program.duration_years }} Year{% if program.duration_years > 1 %}s{% endif %}</dd>
+            </div>
+            {% endif %}
+            {% if program.credits_required %}
+            <div class="flex items-center justify-between border-b border-gray-100 pb-3 sm:pb-3.5">
+              <dt class="flex items-center gap-2 sm:gap-3 text-gray-500 text-xs sm:text-sm">
+                <i data-lucide="award" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#840384]" aria-hidden="true"></i> Credits
+              </dt>
+              <dd class="font-['Poppins'] text-gray-900 font-bold text-sm sm:text-base">{{ program.credits_required }}</dd>
+            </div>
+            {% endif %}
+            {% if program.tuition_fee %}
+            <div class="flex items-center justify-between {% if program.max_students %}border-b border-gray-100 pb-3 sm:pb-3.5{% endif %}">
+              <dt class="flex items-center gap-2 sm:gap-3 text-gray-500 text-xs sm:text-sm">
+                <i data-lucide="dollar-sign" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#840384]" aria-hidden="true"></i> Tuition / yr
+              </dt>
+              <dd class="font-['Poppins'] text-gray-900 font-bold text-sm sm:text-base">${{ program.tuition_fee|floatformat:"0" }}</dd>
+            </div>
+            {% endif %}
+            {% if program.max_students %}
+            <div class="flex items-center justify-between">
+              <dt class="flex items-center gap-2 sm:gap-3 text-gray-500 text-xs sm:text-sm">
+                <i data-lucide="users" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#840384]" aria-hidden="true"></i> Class Size
+              </dt>
+              <dd class="font-['Poppins'] text-gray-900 font-bold text-sm sm:text-base">{{ program.max_students }}</dd>
+            </div>
+            {% endif %}
+          </dl>
+          <a href="{% url 'eduweb:signup_page' %}?program={{ program.slug }}"
+             class="block text-center bg-[#840384] text-white hover:bg-purple-900 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl font-bold text-sm transition-all shadow-lg mt-2 focus:outline-none focus:ring-2 focus:ring-purple-300">
+            Start Application →
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     STICKY SECTION NAV
+════════════════════════════════════════════ -->
+<nav class="sticky top-16 lg:top-20 z-30 bg-white border-b border-gray-200 shadow-sm"
+     aria-label="Page sections">
+  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-16">
+    <div class="flex gap-0 overflow-x-auto scrollbar-none">
+      {% if program.overview or program.description %}
+      <a href="#overview" class="nav-anchor whitespace-nowrap py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-medium text-gray-500 transition-colors hover:text-[#840384]">Overview</a>
+      {% endif %}
+      {% if program.learning_outcomes %}
+      <a href="#outcomes" class="nav-anchor whitespace-nowrap py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-medium text-gray-500 transition-colors hover:text-[#840384]">Outcomes</a>
+      {% endif %}
+      {% if courses %}
+      <a href="#curriculum" class="nav-anchor whitespace-nowrap py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-medium text-gray-500 transition-colors hover:text-[#840384]">Curriculum</a>
+      {% endif %}
+      {% if program.career_paths %}
+      <a href="#careers" class="nav-anchor whitespace-nowrap py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-medium text-gray-500 transition-colors hover:text-[#840384]">Careers</a>
+      {% endif %}
+      {% if active_intakes %}
+      <a href="#intakes" class="nav-anchor whitespace-nowrap py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-medium text-gray-500 transition-colors hover:text-[#840384]">Intakes</a>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════════════
+     OVERVIEW + ENTRY REQUIREMENTS
+════════════════════════════════════════════ -->
+{% if program.overview or program.description or program.entry_requirements %}
+<section id="overview"
+         class="py-12 sm:py-16 lg:py-20 xl:py-28 bg-white scroll-mt-28 lg:scroll-mt-32"
+         aria-labelledby="overview-heading">
+  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-16">
+    <div class="flex flex-col lg:flex-row gap-10 sm:gap-12 xl:gap-20 items-start">
+
+      <!-- Description -->
+      {% if program.overview or program.description %}
+      <div class="flex-1 min-w-0">
+        <p class="text-[#840384] font-semibold text-xs sm:text-sm tracking-widest uppercase mb-2 sm:mb-3">About This Program</p>
+        <h2 id="overview-heading" class="font-['Poppins'] text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 mb-5 sm:mb-6">
+          Program Description
+        </h2>
+
+        {% if program.description %}
+        <div class="text-gray-600 leading-relaxed space-y-3 sm:space-y-4 text-sm sm:text-base lg:text-lg">
+          <p class="text-justify">{{ program.description|linebreaksbr }}</p>
+        </div>
+        {% elif program.overview %}
+        <p class="text-gray-600 leading-relaxed text-sm sm:text-base lg:text-lg text-justify">{{ program.overview }}</p>
+        {% endif %}
+
+        <div class="mt-6 sm:mt-8 space-y-3 sm:space-y-4">
+          {% if program.specialization_tracks %}
+          <div class="rounded-xl sm:rounded-2xl p-5 sm:p-6 bg-purple-50/40 border border-purple-100">
+            <div class="flex items-center gap-3 mb-3 sm:mb-4">
+              <div class="w-8 h-8 sm:w-9 sm:h-9 bg-white rounded-lg sm:rounded-xl flex items-center justify-center shadow-sm flex-shrink-0" aria-hidden="true">
+                <i data-lucide="git-branch" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#840384]"></i>
+              </div>
+              <h3 class="font-['Poppins'] font-bold text-gray-900 text-sm sm:text-base">Specializations</h3>
+            </div>
+            <ul class="space-y-2 sm:space-y-2.5" role="list">
+              {% for track in program.specialization_tracks %}
+              <li class="flex items-center gap-2 sm:gap-2.5 text-xs sm:text-sm text-gray-700">
+                <i data-lucide="check-circle-2" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#840384] flex-shrink-0" aria-hidden="true"></i>
+                {{ track }}
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+
+          {% if program.core_courses %}
+          <div class="rounded-xl sm:rounded-2xl p-5 sm:p-6 bg-purple-50/40 border border-purple-100">
+            <div class="flex items-center gap-3 mb-3 sm:mb-4">
+              <div class="w-8 h-8 sm:w-9 sm:h-9 bg-white rounded-lg sm:rounded-xl flex items-center justify-center shadow-sm flex-shrink-0" aria-hidden="true">
+                <i data-lucide="book-marked" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#840384]"></i>
+              </div>
+              <h3 class="font-['Poppins'] font-bold text-gray-900 text-sm sm:text-base">Core Courses</h3>
+            </div>
+            <ul class="grid grid-cols-1 xs:grid-cols-2 gap-1.5 sm:gap-2" role="list">
+              {% for course in program.core_courses %}
+              <li class="flex items-center gap-2 text-xs sm:text-sm text-gray-700">
+                <span class="w-1.5 h-1.5 bg-[#840384] rounded-full flex-shrink-0" aria-hidden="true"></span>
+                {{ course }}
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Entry Requirements -->
+      {% if program.entry_requirements %}
+      <div id="requirements" class="w-full lg:w-80 xl:w-96 flex-shrink-0 scroll-mt-28 lg:scroll-mt-32">
+        <p class="text-[#840384] font-semibold text-xs sm:text-sm tracking-widest uppercase mb-2 sm:mb-3">Admissions</p>
+        <h2 class="font-['Poppins'] text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 mb-5 sm:mb-6">Entry Requirements</h2>
+        <div class="rounded-2xl sm:rounded-3xl p-5 sm:p-6 lg:p-7 bg-gray-50 border border-gray-100 space-y-3 sm:space-y-4">
+          {% for req in program.entry_requirements %}
+          <div class="flex items-start gap-3 sm:gap-4">
+            <div class="w-6 h-6 sm:w-7 sm:h-7 bg-purple-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" aria-hidden="true">
+              <i data-lucide="check" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#840384]"></i>
+            </div>
+            <p class="text-gray-700 leading-relaxed text-xs sm:text-sm">{{ req }}</p>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="mt-4 sm:mt-6 flex flex-wrap gap-2 sm:gap-3">
+          <a href="{% url 'eduweb:admission_requirement' %}"
+             class="inline-flex items-center gap-2 text-[#840384] border border-[#840384] hover:bg-[#840384] hover:text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2">
+            <i data-lucide="external-link" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
+            Full Requirements
+          </a>
+          <a href="{% url 'eduweb:signup_page' %}?program={{ program.slug }}"
+             class="inline-flex items-center gap-2 bg-[#840384] hover:bg-purple-700 text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all shadow-lg focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2">
+            <i data-lucide="send" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
+            Apply Now
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ════════════════════════════════════════════
+     LEARNING OUTCOMES
+════════════════════════════════════════════ -->
+{% if program.learning_outcomes %}
+<section id="outcomes"
+         class="py-12 sm:py-16 lg:py-20 xl:py-28 bg-purple-50/30 scroll-mt-28 lg:scroll-mt-32"
+         aria-labelledby="outcomes-heading">
+  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-16">
+    <div class="text-center mb-10 sm:mb-12 lg:mb-14">
+      <p class="text-[#840384] font-semibold text-xs sm:text-sm tracking-widest uppercase mb-2">What You'll Achieve</p>
+      <h2 id="outcomes-heading" class="font-['Poppins'] text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-gray-900">
+        Learning Outcomes
+      </h2>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+      {% for outcome in program.learning_outcomes %}
+      <div class="rounded-2xl sm:rounded-3xl p-5 sm:p-6 lg:p-7 bg-white border border-purple-100 hover:border-purple-300 hover:shadow-md transition-all group">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-100 to-fuchsia-100 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-5 group-hover:from-[#840384] group-hover:to-purple-600 transition-all" aria-hidden="true">
+          <span class="font-['Poppins'] font-black text-[#840384] text-xs sm:text-sm group-hover:text-white transition-colors">{{ forloop.counter }}</span>
+        </div>
+        <p class="text-gray-700 leading-relaxed text-xs sm:text-sm">{{ outcome }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ════════════════════════════════════════════
+     CURRICULUM
+════════════════════════════════════════════ -->
+{% if courses %}
+<section id="curriculum"
+         class="py-12 sm:py-16 lg:py-20 xl:py-28 bg-gray-100 scroll-mt-28 lg:scroll-mt-32"
+         aria-labelledby="curriculum-heading">
+  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-16">
+
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-8 sm:mb-10">
+      <div>
+        <p class="text-[#840384] font-semibold text-xs sm:text-sm tracking-widest uppercase mb-2">Academic Structure</p>
+        <h2 id="curriculum-heading" class="font-['Poppins'] text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-gray-900">Curriculum</h2>
+      </div>
+      <span class="text-gray-400 text-xs sm:text-sm" aria-live="polite">
+        {{ courses|length }} course{% if courses|length != 1 %}s{% endif %} total
+      </span>
+    </div>
+
+    {% regroup courses by year_of_study as courses_by_year %}
+
+    <!-- Year tabs -->
+    <div class="flex flex-wrap gap-2 mb-6 sm:mb-8" role="tablist" aria-label="Select academic year">
+      {% for year_group in courses_by_year %}
+      <button onclick="showYear({{ year_group.grouper }}, this)"
+              role="tab"
+              class="yr-tab {% if forloop.first %}active{% else %}border border-gray-200 text-gray-600{% endif %} px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm transition-all"
+              aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+              aria-controls="year-{{ year_group.grouper }}">
+        Year {{ year_group.grouper }}
+      </button>
+      {% endfor %}
+    </div>
+
+    {% for year_group in courses_by_year %}
+    <div id="year-{{ year_group.grouper }}"
+         class="semester-group {% if forloop.first %}show{% endif %} space-y-4 sm:space-y-5 lg:space-y-6"
+         role="tabpanel"
+         aria-label="Year {{ year_group.grouper }} courses">
+      {% regroup year_group.list by semester as by_semester %}
+      {% for sem_group in by_semester %}
+      <div class="rounded-2xl sm:rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
+        <div class="px-4 sm:px-6 lg:px-7 py-4 sm:py-5 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+          <div class="flex items-center gap-2 sm:gap-3">
+            <div class="w-8 h-8 sm:w-9 sm:h-9 bg-white rounded-lg sm:rounded-xl flex items-center justify-center shadow-sm flex-shrink-0" aria-hidden="true">
+              <i data-lucide="calendar-days" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#840384]"></i>
+            </div>
+            <h3 class="font-['Poppins'] font-bold text-gray-900 text-sm sm:text-base">
+              {% if sem_group.grouper == 'first' %}First Semester
+              {% elif sem_group.grouper == 'second' %}Second Semester
+              {% else %}Annual{% endif %}
+            </h3>
+          </div>
+          <span class="text-xs sm:text-sm text-gray-400">{{ sem_group.list|length }} course{% if sem_group.list|length != 1 %}s{% endif %}</span>
+        </div>
+        <div class="divide-y divide-gray-50 bg-white">
+          {% for course in sem_group.list %}
+          <div class="course-row flex items-center justify-between gap-3 sm:gap-4 px-4 sm:px-6 lg:px-7 py-3 sm:py-4 group">
+            <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+              <span class="font-mono text-xs font-bold text-[#840384] bg-purple-50 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-md sm:rounded-lg flex-shrink-0 hidden sm:block">{{ course.code }}</span>
+              <div class="min-w-0">
+                <div class="font-semibold text-gray-800 text-xs sm:text-sm truncate">{{ course.name }}</div>
+                <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
+                  <span class="{% if course.course_type == 'core' %}text-purple-700 bg-purple-50{% elif course.course_type == 'elective' %}text-green-700 bg-green-50{% else %}text-gray-500 bg-gray-100{% endif %} px-1.5 sm:px-2 py-0.5 rounded-md font-bold uppercase" style="font-size:0.6rem;letter-spacing:0.07em;">
+                    {{ course.get_course_type_display }}
+                  </span>
+                  {% comment %} {% if course.lecturer %}
+                  <span class="text-xs text-gray-400 hidden md:inline">{{ course.lecturer.get_full_name|default:course.lecturer.username }}</span>
+                  {% endif %} {% endcomment %}
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 sm:gap-4 flex-shrink-0">
+              <div class="text-right hidden sm:block">
+                <div class="text-xs text-gray-400">Credits</div>
+                <div class="font-['Poppins'] font-bold text-gray-800 text-xs sm:text-sm">{{ course.credit_units }}</div>
+              </div>
+              <!-- Mobile credits -->
+              <span class="text-xs font-bold text-gray-600 sm:hidden">{{ course.credit_units }} cr</span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+
+  </div>
+</section>
+{% endif %}
+
+<!-- ════════════════════════════════════════════
+     CAREER PATHS
+════════════════════════════════════════════ -->
+{% if program.career_paths %}
+<section id="careers"
+         class="py-12 sm:py-16 lg:py-20 xl:py-28 bg-fuchsia-50/25 scroll-mt-28 lg:scroll-mt-32"
+         aria-labelledby="careers-heading">
+  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-16">
+    <div class="text-center mb-10 sm:mb-12 lg:mb-14">
+      <p class="text-[#840384] font-semibold text-xs sm:text-sm tracking-widest uppercase mb-2">After Graduation</p>
+      <h2 id="careers-heading" class="font-['Poppins'] text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-gray-900">Career Opportunities</h2>
+    </div>
+    <div class="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+      {% for path in program.career_paths %}
+      <div class="rounded-xl sm:rounded-2xl p-4 sm:p-5 bg-white border border-fuchsia-100 flex items-center gap-3 hover:border-fuchsia-300 hover:shadow-md transition-all group">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 bg-purple-50 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-[#840384] transition-colors" aria-hidden="true">
+          <i data-lucide="briefcase" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#840384] group-hover:text-white transition-colors"></i>
+        </div>
+        <span class="text-gray-700 font-medium text-xs sm:text-sm">{{ path }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ════════════════════════════════════════════
+     MEDIA CAROUSEL (video/images from Program gallery fields)
+════════════════════════════════════════════ -->
+{% include 'includes/media_carousel.html' with gallery_items=gallery_items obj=program %}
+
+<!-- ════════════════════════════════════════════
+     INTAKES + CTA
+════════════════════════════════════════════ -->
+<section id="intakes"
+         class="py-12 sm:py-16 lg:py-20 xl:py-28 bg-slate-50 scroll-mt-28 lg:scroll-mt-32"
+         aria-labelledby="intakes-heading">
+  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-16">
+
+    <div class="flex flex-col xl:flex-row gap-8 sm:gap-10 lg:gap-12 xl:gap-16 items-start">
+
+      <!-- Intake Cards -->
+      {% if active_intakes %}
+      <div class="flex-1 min-w-0 w-full min-w-0">
+        <div class="mb-6 sm:mb-8">
+          <p class="text-[#840384] font-semibold text-xs sm:text-sm tracking-widest uppercase mb-2">Enrollment Windows</p>
+          <h2 id="intakes-heading" class="font-['Poppins'] text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900">Upcoming Intakes</h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3 gap-4 sm:gap-5">
+          {% for intake in active_intakes %}
+          <div class="rounded-2xl sm:rounded-3xl p-5 sm:p-6 bg-white border border-slate-200 hover:border-purple-200 hover:shadow-md transition-all">
+            <div class="flex items-center justify-between mb-4 sm:mb-5">
+              <span class="pill-badge bg-purple-50 text-[#840384] border border-purple-200 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs">
+                {{ intake.intake_period|title }} {{ intake.year }}
+              </span>
+              {% if intake.is_full %}
+              <span class="text-xs text-red-700 bg-red-50 border border-red-200 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full font-bold">Full</span>
+              {% elif intake.application_start_date and today < intake.application_start_date %}
+              <span class="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full font-bold">Opens {{ intake.application_start_date|date:"d M" }}</span>
+              {% elif today > intake.application_deadline %}
+              <span class="text-xs text-gray-700 bg-gray-100 border border-gray-200 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full font-bold">Closed</span>
+              {% else %}
+              <span class="text-xs text-green-700 bg-green-50 border border-green-200 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full font-bold">Open</span>
+              {% endif %}
+            </div>
+            <dl class="space-y-3 sm:space-y-3.5">
+              {% if intake.application_start_date %}
+              <div class="flex items-center justify-between text-xs sm:text-sm">
+                <dt class="text-gray-500 flex items-center gap-1.5 sm:gap-2">
+                  <i data-lucide="calendar-clock" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#840384]" aria-hidden="true"></i>
+                  Applications Open
+                </dt>
+                <dd class="font-semibold text-gray-800">{{ intake.application_start_date|date:"d M Y" }}</dd>
+              </div>
+              {% endif %}
+              <div class="flex items-center justify-between text-xs sm:text-sm {% if intake.application_start_date %}border-t border-gray-100 pt-3 sm:pt-3.5{% endif %}">
+                <dt class="text-gray-500 flex items-center gap-1.5 sm:gap-2">
+                  <i data-lucide="clock" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-red-500" aria-hidden="true"></i>
+                  Application Deadline
+                </dt>
+                <dd class="font-semibold text-red-600">{{ intake.application_deadline|date:"d M Y" }}</dd>
+              </div>
+              <div class="flex items-center justify-between text-xs sm:text-sm border-t border-gray-100 pt-3 sm:pt-3.5">
+                <dt class="text-gray-500 flex items-center gap-1.5 sm:gap-2">
+                  <i data-lucide="calendar" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#840384]" aria-hidden="true"></i>
+                  Program Start
+                </dt>
+                <dd class="font-semibold text-gray-800">{{ intake.start_date|date:"d M Y" }}</dd>
+              </div>
+              {% if intake.application_fee %}
+              <div class="flex items-center justify-between text-xs sm:text-sm border-t border-gray-100 pt-3 sm:pt-3.5">
+                <dt class="text-gray-500 flex items-center gap-1.5 sm:gap-2">
+                  <i data-lucide="receipt" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#840384]" aria-hidden="true"></i>
+                  Application Fee
+                </dt>
+                <dd class="font-semibold text-gray-800">${{ intake.application_fee|floatformat:"0" }}</dd>
+              </div>
+              {% endif %}
+              <div class="flex items-center justify-between text-xs sm:text-sm border-t border-gray-100 pt-3 sm:pt-3.5">
+                <dt class="text-gray-500 flex items-center gap-1.5 sm:gap-2">
+                  <i data-lucide="users" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#840384]" aria-hidden="true"></i>
+                  Available Slots
+                </dt>
+                <dd class="font-semibold text-gray-800">{% if intake.is_full %}Full{% else %}{{ intake.remaining_slots }} of {{ intake.available_slots }} remaining{% endif %}</dd>
+              </div>
+            </dl>
+            <a href="{% url 'eduweb:signup_page' %}?program={{ program.slug }}&intake={{ intake.id }}"
+               class="mt-4 sm:mt-5 block text-center bg-[#840384] hover:bg-purple-700 text-white py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-semibold text-xs sm:text-sm transition-all focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2">
+              Apply for This Intake
+            </a>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- CTA card -->
+      <div class="w-full {% if active_intakes %}xl:w-72 2xl:w-80 xl:flex-shrink-0{% else %}xl:flex-1{% endif %}">
+        <div class="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#840384] via-purple-700 to-fuchsia-700 p-6 sm:p-8 lg:p-10">
+          <div class="absolute top-0 right-0 w-36 h-36 sm:w-56 sm:h-56 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" aria-hidden="true"></div>
+          <div class="absolute bottom-0 left-0 w-28 h-28 sm:w-40 sm:h-40 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none" aria-hidden="true"></div>
+          <div class="absolute inset-0 pointer-events-none opacity-[0.04]"
+               style="background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22><circle cx=%221%22 cy=%221%22 r=%221%22 fill=%22white%22/></svg>');"
+               aria-hidden="true"></div>
+          <div class="relative">
+            <div class="inline-flex items-center gap-2 bg-white/15 border border-white/20 text-white/70 px-3 py-1 rounded-full text-xs font-semibold tracking-widest uppercase mb-4 sm:mb-5"
+                 aria-hidden="true">
+              <i data-lucide="rocket" class="w-3 h-3 text-yellow-300"></i>
+              Next Steps
+            </div>
+            <h2 class="font-['Poppins'] text-xl sm:text-2xl font-black text-white leading-tight mb-2 sm:mb-3">
+              Ready to Enrol in <span class="text-yellow-300">{{ program.name }}</span>?
+            </h2>
+            <p class="text-purple-200 text-xs sm:text-sm leading-relaxed mb-5 sm:mb-7">
+              Take the first step. Apply today and our admissions team will guide you through every stage.
+            </p>
+            <div class="flex flex-col gap-2 sm:gap-3">
+              <a href="{% url 'eduweb:signup_page' %}?program={{ program.slug }}"
+                 class="inline-flex items-center justify-center gap-2 bg-white text-[#840384] hover:bg-yellow-300 hover:text-gray-900 px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-xl focus:outline-none focus:ring-2 focus:ring-yellow-300">
+                <i data-lucide="send" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
+                Apply Now
+              </a>
+              <a href="{% url 'eduweb:faculty_detail' faculty.slug %}"
+                 class="inline-flex items-center justify-center gap-2 bg-white/15 hover:bg-white/25 text-white border border-white/30 px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl font-semibold text-xs sm:text-sm transition-all focus:outline-none focus:ring-2 focus:ring-white/30">
+                <i data-lucide="arrow-left" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
+                Back to Faculty
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick support mini-cards -->
+        <div class="mt-4 sm:mt-5 grid grid-cols-3 gap-2 sm:gap-3">
+          <div class="rounded-xl sm:rounded-2xl p-3 sm:p-4 bg-gray-50 border border-gray-100 text-center">
+            <i data-lucide="users" class="w-4 h-4 sm:w-5 sm:h-5 text-[#840384] mx-auto mb-1.5 sm:mb-2" aria-hidden="true"></i>
+            <p class="text-gray-500 text-xs leading-tight">Admissions Team</p>
+          </div>
+          <div class="rounded-xl sm:rounded-2xl p-3 sm:p-4 bg-gray-50 border border-gray-100 text-center">
+            <i data-lucide="headphones" class="w-4 h-4 sm:w-5 sm:h-5 text-[#840384] mx-auto mb-1.5 sm:mb-2" aria-hidden="true"></i>
+            <p class="text-gray-500 text-xs leading-tight">24/7 Support</p>
+          </div>
+          <div class="rounded-xl sm:rounded-2xl p-3 sm:p-4 bg-gray-50 border border-gray-100 text-center">
+            <i data-lucide="shield-check" class="w-4 h-4 sm:w-5 sm:h-5 text-[#840384] mx-auto mb-1.5 sm:mb-2" aria-hidden="true"></i>
+            <p class="text-gray-500 text-xs leading-tight">Secure Process</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showYear(year, btn) {
+  document.querySelectorAll('.semester-group').forEach(g => {
+    g.classList.remove('show');
+    g.setAttribute('hidden', '');
+  });
+  document.querySelectorAll('.yr-tab').forEach(b => {
+    b.classList.remove('active');
+    b.classList.add('border', 'border-gray-200', 'text-gray-600');
+    b.setAttribute('aria-selected', 'false');
+  });
+  const target = document.getElementById('year-' + year);
+  if (target) {
+    target.classList.add('show');
+    target.removeAttribute('hidden');
+  }
+  btn.classList.add('active');
+  btn.classList.remove('border', 'border-gray-200', 'text-gray-600');
+  btn.setAttribute('aria-selected', 'true');
+}
+
+// Scroll-spy for sticky nav
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-anchor');
+
+if (sections.length && navLinks.length) {
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.nav-anchor[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(s => observer.observe(s));
+}
+
+if (window.lucide) lucide.createIcons();
+</script>
+{% endblock %}

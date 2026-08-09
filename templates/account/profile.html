@@ -1,0 +1,159 @@
+{% extends "management/base.html" %}
+{% load static %}
+{% block title %}{{ page_title }} - MIU Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-12xl mx-auto px-2 sm:px-4 lg:px-8">
+
+    <div class="mb-6 sm:mb-8">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">My Profile</h1>
+        <p class="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">Manage your account information</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+
+        <!-- Sidebar -->
+        <div class="space-y-4 sm:space-y-6">
+            <!-- Profile Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 text-center">
+                <div class="w-24 h-24 sm:w-32 sm:h-32 mx-auto mb-3 sm:mb-4 rounded-full overflow-hidden border-4 border-primary-100">
+                    {% if request.user.profile.avatar %}
+                    <img src="{{ request.user.profile.avatar.url }}" alt="Profile picture of {{ request.user.get_full_name }}" class="w-full h-full object-cover">
+                    {% else %}
+                    <img src="https://ui-avatars.com/api/?name={{ request.user.get_full_name|urlencode }}&size=128&background=4a6bff&color=fff" alt="Default profile picture" class="w-full h-full object-cover">
+                    {% endif %}
+                </div>
+                <h2 class="text-lg sm:text-xl font-bold text-gray-900 mb-0.5 sm:mb-1">{{ request.user.get_full_name|default:request.user.username }}</h2>
+                <p class="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">{{ request.user.profile.get_role_display }}</p>
+                <div class="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-600">
+                    <div class="flex items-center justify-center gap-2"><i class="fas fa-envelope text-gray-400" aria-hidden="true"></i><span class="truncate max-w-[160px] sm:max-w-none">{{ request.user.email }}</span></div>
+                    {% if request.user.profile.phone %}<div class="flex items-center justify-center gap-2"><i class="fas fa-phone text-gray-400"></i><span>{{ request.user.profile.phone }}</span></div>{% endif %}
+                    {% if request.user.profile.city %}<div class="flex items-center justify-center gap-2"><i class="fas fa-map-marker-alt text-gray-400"></i><span>{{ request.user.profile.city }}, {{ request.user.profile.country }}</span></div>{% endif %}
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+                <h3 class="font-bold text-gray-900 mb-3 sm:mb-4 text-sm sm:text-base">Need help?</h3>
+                <a href="{% url 'support:submit_ticket' %}" class="flex items-start p-2.5 sm:p-3 rounded-lg hover:bg-gray-50 transition-all group">
+                    <div class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 bg-primary-100 rounded-lg flex items-center justify-center group-hover:bg-primary-200 transition-all">
+                        <i class="fas fa-headset text-primary-600 text-sm sm:text-base"></i>
+                    </div>
+                    <div class="ml-2.5 sm:ml-3">
+                        <h4 class="font-semibold text-gray-900 text-xs sm:text-sm">Help &amp; Support</h4>
+                        <p class="text-xs text-gray-600 mt-0.5">Submit a support ticket</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Form -->
+        <div class="lg:col-span-2">
+            <form method="post" enctype="multipart/form-data" class="space-y-4 sm:space-y-6">
+                {% csrf_token %}
+
+                <!-- Personal Information -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+                    <h2 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">Personal Information</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
+                        <div>
+                            <label for="{{ form.first_name.id_for_label }}" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">First Name</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}<p class="mt-1 text-xs sm:text-sm text-red-600">{{ form.first_name.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.last_name.id_for_label }}" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">Last Name</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}<p class="mt-1 text-xs sm:text-sm text-red-600">{{ form.last_name.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.email.id_for_label }}" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">Email Address <span class="text-red-500">*</span></label>
+                            {{ form.email }}
+                            {% if form.email.errors %}<p class="mt-1 text-xs sm:text-sm text-red-600">{{ form.email.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.phone.id_for_label }}" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">Phone Number</label>
+                            {{ form.phone }}
+                        </div>
+                        <div>
+                            <label for="{{ form.city.id_for_label }}" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">City</label>
+                            {{ form.city }}
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.country.id_for_label }}" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">Country</label>
+                            {{ form.country }}
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.bio.id_for_label }}" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">Bio</label>
+                            {{ form.bio }}
+                            {% if form.bio.errors %}<p class="mt-1 text-xs sm:text-sm text-red-600">{{ form.bio.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Picture -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+                    <h2 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">Profile Picture</h2>
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
+                        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-4 border-gray-200 flex-shrink-0">
+                            {% if request.user.profile.avatar %}
+                            <img src="{{ request.user.profile.avatar.url }}" alt="Current profile picture" class="w-full h-full object-cover" id="avatar-preview">
+                            {% else %}
+                            <img src="https://ui-avatars.com/api/?name={{ request.user.get_full_name|urlencode }}&size=96&background=4a6bff&color=fff" alt="Default profile picture" class="w-full h-full object-cover" id="avatar-preview">
+                            {% endif %}
+                        </div>
+                        <div class="flex-1 w-full">
+                            {{ form.avatar }}
+                            {% if form.avatar.errors %}<p class="mt-1 text-xs sm:text-sm text-red-600">{{ form.avatar.errors.0 }}</p>{% endif %}
+                            <p class="text-xs sm:text-sm text-gray-500 mt-1.5 sm:mt-2">JPG, PNG, GIF or WebP (Max 2MB)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social Links -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+                    <h2 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">Social Links (Optional)</h2>
+                    <div class="space-y-3 sm:space-y-4">
+                        <div><label for="{{ form.website.id_for_label }}" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5"><i class="fas fa-globe mr-1.5"></i>Website</label>{{ form.website }}</div>
+                        <div><label for="{{ form.linkedin.id_for_label }}" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5"><i class="fab fa-linkedin mr-1.5"></i>LinkedIn</label>{{ form.linkedin }}</div>
+                        <div><label for="{{ form.twitter.id_for_label }}" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5"><i class="fab fa-twitter mr-1.5"></i>Twitter</label>{{ form.twitter }}</div>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-4">
+                    <button type="button" onclick="history.back()" class="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all text-center text-sm font-medium">Cancel</button>
+                    <button type="submit" class="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        <i class="fas fa-save mr-2"></i>Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    input[type="text"], input[type="email"], input[type="url"], input[type="tel"], textarea, select {
+        @apply w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors text-sm;
+    }
+    input[type="file"] { @apply w-full text-xs sm:text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const avatarInput = document.getElementById('id_avatar');
+    if (avatarInput) {
+        avatarInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('avatar-preview');
+                    if (preview) preview.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

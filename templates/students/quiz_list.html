@@ -1,0 +1,218 @@
+{% extends "management/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - {{site_config.school_short_name}} Student Portal{% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="View and manage your quizzes. Test your knowledge and track your progress across all your enrolled courses at MIU.">
+<meta name="keywords" content="quizzes, assessments, tests, student quizzes, online quizzes, MIU">
+{% endblock %}
+
+{% block content %}
+<div class="max-w-screen-2xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+
+                <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
+
+
+    <!-- Page Header -->
+    <header class="mb-4 sm:mb-6 lg:mb-8">
+        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">Quizzes</h1>
+        <p class="text-xs sm:text-sm lg:text-base text-gray-600 mt-1 sm:mt-2">
+            Test your knowledge and track your progress
+        </p>
+    </header>
+
+    <!-- Filter Tabs -->
+    <nav class="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 mb-4 sm:mb-6"
+         aria-label="Quiz status filter">
+        <div class="flex items-center gap-2 overflow-x-auto pb-0.5 sm:pb-0">
+            <a href="?status=all"
+               class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg
+                      text-xs sm:text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0
+                      {% if status_filter == 'all' %}bg-primary-600 text-white shadow-sm
+                      {% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                <i class="fas fa-list text-xs" aria-hidden="true"></i>
+                <span>All</span>
+            </a>
+            <a href="?status=not_started"
+               class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg
+                      text-xs sm:text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0
+                      {% if status_filter == 'not_started' %}bg-blue-600 text-white shadow-sm
+                      {% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                <i class="fas fa-circle text-xs" aria-hidden="true"></i>
+                <span class="hidden xs:inline">Not Started</span>
+                <span class="xs:hidden">New</span>
+            </a>
+            <a href="?status=pending"
+               class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg
+                      text-xs sm:text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0
+                      {% if status_filter == 'pending' %}bg-orange-500 text-white shadow-sm
+                      {% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                <i class="fas fa-clock text-xs" aria-hidden="true"></i>
+                <span class="hidden xs:inline">In Progress</span>
+                <span class="xs:hidden">Active</span>
+            </a>
+            <a href="?status=passed"
+               class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg
+                      text-xs sm:text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0
+                      {% if status_filter == 'passed' %}bg-green-600 text-white shadow-sm
+                      {% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                <i class="fas fa-check-circle text-xs" aria-hidden="true"></i>
+                Passed
+            </a>
+            <a href="?status=failed"
+               class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg
+                      text-xs sm:text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0
+                      {% if status_filter == 'failed' %}bg-red-600 text-white shadow-sm
+                      {% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                <i class="fas fa-times-circle text-xs" aria-hidden="true"></i>
+                Failed
+            </a>
+        </div>
+    </nav>
+
+    <!-- Quizzes List -->
+    {% if quizzes %}
+    <div class="space-y-3 sm:space-y-4">
+        {% for quiz in quizzes %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 lg:p-6
+                    hover:shadow-md transition-shadow duration-200">
+            <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3 sm:gap-4">
+
+                <!-- Content -->
+                <div class="flex-1 min-w-0">
+
+                    <!-- Title + Status badge -->
+                    <div class="flex flex-wrap items-start gap-2 sm:gap-3 mb-2 sm:mb-3">
+                        <h3 class="text-sm sm:text-base lg:text-lg font-bold text-gray-900 flex-1 min-w-0 leading-snug">
+                            <a href="{% url 'students:quiz_detail' quiz.lesson.course.slug quiz.lesson.slug quiz.slug %}"
+                               class="hover:text-primary-600 transition-colors break-words
+                                      focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 rounded">
+                                {{ quiz.title }}
+                            </a>
+                        </h3>
+
+                        {% if quiz.quiz_status == 'passed' %}
+                        <span class="flex-shrink-0 inline-flex items-center gap-1 px-2 sm:px-3 py-0.5 sm:py-1
+                                     bg-green-100 text-green-700 rounded-full text-xs font-semibold whitespace-nowrap">
+                            <i class="fas fa-check-circle" aria-hidden="true"></i> Passed
+                        </span>
+                        {% elif quiz.quiz_status == 'failed' %}
+                        <span class="flex-shrink-0 inline-flex items-center gap-1 px-2 sm:px-3 py-0.5 sm:py-1
+                                     bg-red-100 text-red-700 rounded-full text-xs font-semibold whitespace-nowrap">
+                            <i class="fas fa-times-circle" aria-hidden="true"></i> Failed
+                        </span>
+                        {% elif quiz.quiz_status == 'pending' %}
+                        <span class="flex-shrink-0 inline-flex items-center gap-1 px-2 sm:px-3 py-0.5 sm:py-1
+                                     bg-orange-100 text-orange-700 rounded-full text-xs font-semibold whitespace-nowrap">
+                            <i class="fas fa-clock" aria-hidden="true"></i> In Progress
+                        </span>
+                        {% else %}
+                        <span class="flex-shrink-0 inline-flex items-center gap-1 px-2 sm:px-3 py-0.5 sm:py-1
+                                     bg-blue-100 text-blue-700 rounded-full text-xs font-semibold whitespace-nowrap">
+                            <i class="fas fa-circle text-xs" aria-hidden="true"></i> Not Started
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Course & Lesson breadcrumb -->
+                    <div class="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500 mb-3">
+                        <span class="flex items-center gap-1.5 min-w-0">
+                            <i class="fas fa-book text-primary-500 flex-shrink-0" aria-hidden="true"></i>
+                            <span class="truncate max-w-[140px] sm:max-w-none">{{ quiz.lesson.course.title }}</span>
+                        </span>
+                        <span class="flex items-center gap-1.5 min-w-0">
+                            <i class="fas fa-layer-group text-primary-500 flex-shrink-0" aria-hidden="true"></i>
+                            <span class="truncate max-w-[140px] sm:max-w-none">{{ quiz.lesson.title }}</span>
+                        </span>
+                    </div>
+
+                    <!-- Stats row: questions / time / pass / best -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 text-xs sm:text-sm">
+                        <div class="flex items-center gap-1.5 text-gray-600">
+                            <i class="fas fa-question-circle text-primary-500 flex-shrink-0" aria-hidden="true"></i>
+                            <span>{{ quiz.questions.count }} Q{{ quiz.questions.count|pluralize }}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-gray-600">
+                            <i class="fas fa-clock text-orange-500 flex-shrink-0" aria-hidden="true"></i>
+                            <span>{% if quiz.time_limit_minutes %}{{ quiz.time_limit_minutes }} min{% else %}No limit{% endif %}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-gray-600">
+                            <i class="fas fa-check-circle text-green-500 flex-shrink-0" aria-hidden="true"></i>
+                            <span>Pass: {{ quiz.passing_score|floatformat:0 }}%</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 font-semibold
+                                    {% if quiz.best_score >= quiz.passing_score %}text-green-600{% else %}text-gray-600{% endif %}">
+                            <i class="fas fa-trophy flex-shrink-0" aria-hidden="true"></i>
+                            <span>Best: {{ quiz.best_score|floatformat:1 }}%</span>
+                        </div>
+                    </div>
+
+                    <!-- Attempt count -->
+                    {% if quiz.attempt_count > 0 %}
+                    <p class="mt-2 text-xs text-gray-500 flex items-center gap-1.5">
+                        <i class="fas fa-redo" aria-hidden="true"></i>
+                        Attempts: <span class="font-semibold text-gray-700">{{ quiz.attempt_count }}</span>
+                        {% if quiz.max_attempts > 0 %}/ {{ quiz.max_attempts }}{% endif %}
+                    </p>
+                    {% endif %}
+                </div>
+
+                <!-- CTA button -->
+                <div class="flex-shrink-0 lg:ml-4">
+                    <a href="{% url 'students:quiz_detail' quiz.lesson.course.slug quiz.lesson.slug quiz.slug %}"
+                       class="flex items-center justify-center gap-2 w-full lg:w-auto
+                              px-4 sm:px-5 py-2 sm:py-2.5 bg-primary-600 text-white rounded-lg
+                              hover:bg-primary-700 transition-colors font-semibold text-xs sm:text-sm
+                              whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+                        {% if quiz.can_attempt %}
+                            <i class="fas fa-play-circle text-xs" aria-hidden="true"></i>
+                            {% if quiz.attempt_count > 0 %}Retake{% else %}Start{% endif %}
+                        {% else %}
+                            <i class="fas fa-eye text-xs" aria-hidden="true"></i>
+                            View Results
+                        {% endif %}
+                    </a>
+                </div>
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-10 sm:p-16">
+        <div class="text-center max-w-sm mx-auto">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-5">
+                <i class="fas fa-question-circle text-2xl sm:text-3xl text-gray-300" aria-hidden="true"></i>
+            </div>
+            <h3 class="text-base sm:text-xl font-semibold text-gray-900 mb-2">
+                {% if status_filter == 'not_started' %}No quizzes to start
+                {% elif status_filter == 'pending' %}No quizzes in progress
+                {% elif status_filter == 'passed' %}No passed quizzes yet
+                {% elif status_filter == 'failed' %}No failed quizzes
+                {% else %}No quizzes available{% endif %}
+            </h3>
+            <p class="text-xs sm:text-sm text-gray-500 mb-6">
+                {% if status_filter != 'all' %}
+                    Try a different filter or start exploring other quizzes
+                {% else %}
+                    Quizzes will appear here as you progress through your courses
+                {% endif %}
+            </p>
+            {% if status_filter != 'all' %}
+            <a href="?status=all"
+               class="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3
+                      bg-primary-600 text-white rounded-lg hover:bg-primary-700
+                      focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
+                      transition-colors font-semibold text-sm">
+                View All Quizzes
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

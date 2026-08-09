@@ -1,0 +1,585 @@
+{% extends 'management/base.html' %}
+{% load static humanize %}
+
+{% block title %}Transaction Reports — Finance Portal{% endblock %}
+{% block meta_description %}Comprehensive transaction reports with advanced filtering and export options{% endblock %}
+{% block breadcrumb %}Finance › Payments › Transaction Reports{% endblock %}
+{% block breadcrumb_title %}Transaction Reports{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* ── DataTables overrides ──────────────────────────────────────────────── */
+  .dataTables_wrapper .dataTables_length,
+  .dataTables_wrapper .dataTables_filter,
+  .dataTables_wrapper .dataTables_info,
+  .dataTables_wrapper .dataTables_paginate {
+    padding: 0.75rem 1rem;
+  }
+  .dataTables_wrapper .dataTables_filter input {
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    padding: 0.4rem 0.875rem;
+    margin-left: 0.5rem;
+    font-size: 0.875rem;
+    max-width: 100%;
+  }
+  .dataTables_wrapper .dataTables_length select {
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    padding: 0.4rem 0.5rem;
+    margin: 0 0.375rem;
+    font-size: 0.875rem;
+  }
+  @media (max-width: 640px) {
+    .dataTables_wrapper .dataTables_filter,
+    .dataTables_wrapper .dataTables_length {
+      text-align: left !important;
+    }
+    .dataTables_wrapper .dataTables_filter input {
+      width: 100%; margin-left: 0; margin-top: 0.375rem; display: block;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+      padding: 0.25rem 0.5rem !important;
+      font-size: 0.75rem !important;
+    }
+  }
+
+  /* Export buttons */
+  div.dt-buttons {
+    margin-bottom: 0.75rem;
+    display: flex;
+    gap: 0.375rem;
+    flex-wrap: wrap;
+  }
+  .dt-button {
+    background: #4a6bff !important; color: white !important;
+    border: none !important; padding: 0.45rem 0.85rem !important;
+    border-radius: 0.5rem !important; font-weight: 500 !important;
+    font-size: 0.8125rem !important; cursor: pointer !important;
+    transition: all 0.2s ease !important;
+  }
+  .dt-button:hover         { background: #3a56d4 !important; }
+  .dt-button.buttons-csv   { background: #10b981 !important; }
+  .dt-button.buttons-csv:hover   { background: #059669 !important; }
+  .dt-button.buttons-excel { background: #3b82f6 !important; }
+  .dt-button.buttons-excel:hover { background: #2563eb !important; }
+  .dt-button.buttons-pdf   { background: #ef4444 !important; }
+  .dt-button.buttons-pdf:hover   { background: #dc2626 !important; }
+  .dt-button.buttons-print { background: #8b5cf6 !important; }
+  .dt-button.buttons-print:hover { background: #7c3aed !important; }
+  .dt-button.buttons-copy  { background: #f59e0b !important; }
+  .dt-button.buttons-copy:hover  { background: #d97706 !important; }
+
+  table.dataTable tbody tr { transition: background-color 0.15s ease; }
+  table.dataTable tbody tr:hover { background-color: #f9fafb !important; }
+  table.dataTable thead th {
+    background: #1e40af; color: white !important;
+    font-weight: 600; padding: 0.75rem 1rem !important;
+    border-bottom: none !important;
+    white-space: nowrap;
+  }
+  table.dataTable tbody td {
+    padding: 0.625rem 0.875rem !important;
+    vertical-align: middle;
+  }
+
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 0.25rem;
+    padding: 0.2rem 0.6rem; border-radius: 9999px;
+    font-size: 0.7rem; font-weight: 600; white-space: nowrap;
+  }
+
+  .stat-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+  .stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 24px -4px rgba(0,0,0,0.12);
+  }
+
+  /* Combo-box (datalist input) clear button on webkit */
+  input::-webkit-search-cancel-button { display: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-6 sm:py-8">
+  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    {# ── Page Header ─────────────────────────────────────────────────────── #}
+    <div class="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center
+                sm:justify-between gap-4">
+      <div class="min-w-0">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-1
+                   flex items-center gap-2 flex-wrap">
+          <i class="fas fa-chart-line text-blue-600 flex-shrink-0"
+             aria-hidden="true"></i>
+          <span>Transaction Reports</span>
+        </h1>
+        <p class="text-gray-600 text-xs sm:text-sm">
+          Comprehensive financial analytics with advanced filtering and export
+        </p>
+      </div>
+      <a href="{% url 'payments:payment_management' %}"
+         class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white
+                text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50
+                transition-colors font-medium shadow-sm self-start flex-shrink-0
+                text-sm focus:outline-none focus:ring-2 focus:ring-blue-500
+                focus:ring-offset-2">
+        <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>
+        All Payments
+      </a>
+    </div>
+
+    {# ── Statistics Cards ─────────────────────────────────────────────────── #}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8"
+         role="region" aria-label="Transaction statistics">
+
+      <article class="stat-card bg-gradient-to-br from-blue-500 to-blue-600
+                      rounded-xl shadow-lg p-4 sm:p-5 text-white">
+        <p class="text-blue-100 text-xs font-medium uppercase tracking-wide
+                  mb-1 leading-tight">
+          Total Transactions
+        </p>
+        <p class="text-2xl sm:text-3xl font-bold">{{ total_count|default:"0" }}</p>
+        <p class="text-blue-200 text-xs mt-1">All time</p>
+      </article>
+
+      <article class="stat-card bg-gradient-to-br from-green-500 to-green-600
+                      rounded-xl shadow-lg p-4 sm:p-5 text-white">
+        <p class="text-green-100 text-xs font-medium uppercase tracking-wide
+                  mb-1 leading-tight">
+          Successful
+        </p>
+        <p class="text-2xl sm:text-3xl font-bold">{{ successful_count|default:"0" }}</p>
+        <p class="text-green-200 text-xs mt-1">Completed payments</p>
+      </article>
+
+      <article class="stat-card bg-gradient-to-br from-purple-500 to-purple-600
+                      rounded-xl shadow-lg p-4 sm:p-5 text-white">
+        <p class="text-purple-100 text-xs font-medium uppercase tracking-wide
+                  mb-1 leading-tight">
+          Total Revenue
+        </p>
+        <p class="text-base sm:text-xl lg:text-2xl font-bold break-all leading-snug">
+          {% for row in revenue_by_currency %}
+            {{ row.currency }}&nbsp;{{ row.total|floatformat:2|intcomma }}{% if not forloop.last %} /
+            {% endif %}
+          {% empty %}
+            0.00
+          {% endfor %}
+        </p>
+        <p class="text-purple-200 text-xs mt-1">Successful only</p>
+      </article>
+
+      <article class="stat-card bg-gradient-to-br from-orange-500 to-orange-600
+                      rounded-xl shadow-lg p-4 sm:p-5 text-white">
+        <p class="text-orange-100 text-xs font-medium uppercase tracking-wide
+                  mb-1 leading-tight">
+          Success Rate
+        </p>
+        <p class="text-2xl sm:text-3xl font-bold">
+          {{ success_rate|floatformat:1 }}%
+        </p>
+        <p class="text-orange-200 text-xs mt-1">
+          {{ failed_count }} failed · {{ pending_count }} pending
+        </p>
+      </article>
+
+    </div>
+
+    {# ── Advanced Filters (all datalist combos) ──────────────────────────── #}
+    <div class="bg-white rounded-xl shadow-sm p-4 sm:p-5 mb-5 sm:mb-6
+                border border-gray-100"
+         role="search" aria-label="Advanced transaction filters">
+
+      <div class="flex items-center justify-between mb-3 sm:mb-4 flex-wrap gap-2">
+        <h2 class="text-sm sm:text-base font-semibold text-gray-900
+                   flex items-center gap-2">
+          <i class="fas fa-filter text-blue-600" aria-hidden="true"></i>
+          Advanced Filters
+        </h2>
+        <button onclick="resetFilters()"
+                type="button"
+                class="text-xs sm:text-sm text-blue-600 hover:text-blue-700
+                       font-medium focus:outline-none focus:underline
+                       inline-flex items-center gap-1">
+          <i class="fas fa-redo text-xs" aria-hidden="true"></i>
+          Reset all
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+
+        {# Date From #}
+        <div>
+          <label for="filter-date-from"
+                 class="block text-xs font-medium text-gray-600 mb-1">
+            Date From
+          </label>
+          <input type="date" id="filter-date-from"
+                 class="w-full px-3 py-2 border border-gray-300 rounded-lg
+                        focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                        text-sm bg-white focus:outline-none"
+                 aria-label="Filter from date">
+        </div>
+
+        {# Date To #}
+        <div>
+          <label for="filter-date-to"
+                 class="block text-xs font-medium text-gray-600 mb-1">
+            Date To
+          </label>
+          <input type="date" id="filter-date-to"
+                 class="w-full px-3 py-2 border border-gray-300 rounded-lg
+                        focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                        text-sm bg-white focus:outline-none"
+                 aria-label="Filter to date">
+        </div>
+
+        {# Status — datalist combo #}
+        <div>
+          <label for="filter-status-input"
+                 class="block text-xs font-medium text-gray-600 mb-1">
+            Status
+          </label>
+          <select id="filter-status-input"
+                  class="searchable-select w-full px-3 py-2 border border-gray-300 rounded-lg
+                         focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                         text-sm bg-white focus:outline-none"
+                  data-ss-placeholder="All statuses…"
+                  aria-label="Filter by status">
+            <option value="">All statuses…</option>
+            <option value="Pending">Pending</option>
+            <option value="Processing">Processing</option>
+            <option value="Success">Success</option>
+            <option value="Failed">Failed</option>
+            <option value="Refunded">Refunded</option>
+          </select>
+        </div>
+
+        {# Method — select combo #}
+        <div>
+          <label for="filter-method-input"
+                 class="block text-xs font-medium text-gray-600 mb-1">
+            Payment Method
+          </label>
+          <select id="filter-method-input"
+                  class="searchable-select w-full px-3 py-2 border border-gray-300 rounded-lg
+                         focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                         text-sm bg-white focus:outline-none"
+                  data-ss-placeholder="All methods…"
+                  aria-label="Filter by payment method">
+            <option value="">All methods…</option>
+            <option value="Credit/Debit Card">Credit/Debit Card</option>
+            <option value="PayPal">PayPal</option>
+            <option value="Bank Transfer">Bank Transfer</option>
+          </select>
+        </div>
+
+      </div>
+    </div>
+
+    {# ── Transactions Table ───────────────────────────────────────────────── #}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+
+      <div class="px-4 sm:px-6 py-4 border-b border-gray-100 flex flex-col
+                  xs:flex-row xs:items-center xs:justify-between gap-2">
+        <div>
+          <h2 class="text-sm sm:text-base font-semibold text-gray-900
+                     flex items-center gap-2">
+            <i class="fas fa-table text-blue-600" aria-hidden="true"></i>
+            Transaction Details
+          </h2>
+          <p class="text-xs text-gray-500 mt-0.5">
+            {{ total_count }} total record{{ total_count|pluralize }}
+          </p>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto p-3 sm:p-4">
+        {% if payments %}
+        <table id="transactionsTable"
+               class="w-full display nowrap"
+               style="width:100%"
+               aria-label="All transaction records">
+          <thead>
+            <tr>
+              <th scope="col">Reference</th>
+              <th scope="col">Date</th>
+              <th scope="col">Applicant</th>
+              <th scope="col">Email</th>
+              <th scope="col">Program</th>
+              <th scope="col">Method</th>
+              <th scope="col">Currency</th>
+              <th scope="col">Amount</th>
+              <th scope="col">Status</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for payment in payments %}
+            <tr>
+
+              {# Reference #}
+              <td>
+                <a href="{% url 'payments:payment_detail' payment.payment_reference %}"
+                   class="text-blue-600 hover:text-blue-700 font-mono text-xs
+                          font-semibold focus:outline-none focus:underline">
+                  {{ payment.payment_reference }}
+                </a>
+              </td>
+
+              {# Date #}
+              <td>
+                <div class="font-medium text-gray-900 text-sm whitespace-nowrap">
+                  {{ payment.created_at|date:"M d, Y" }}
+                </div>
+                <div class="text-xs text-gray-400">
+                  {{ payment.created_at|date:"H:i" }}
+                </div>
+              </td>
+
+              {# Applicant #}
+              <td>
+                {% if payment.application %}
+                <div class="font-medium text-gray-900 text-sm whitespace-nowrap">
+                  {{ payment.application.first_name }}
+                  {{ payment.application.last_name }}
+                </div>
+                {% else %}
+                <span class="text-gray-400 text-xs">N/A</span>
+                {% endif %}
+              </td>
+
+              {# Email #}
+              <td>
+                {% if payment.application %}
+                <span class="text-xs text-gray-600">
+                  {{ payment.application.email }}
+                </span>
+                {% else %}
+                <span class="text-gray-400 text-xs">N/A</span>
+                {% endif %}
+              </td>
+
+              {# Program #}
+              <td>
+                {% if payment.application and payment.application.program %}
+                <span class="text-sm text-gray-800">
+                  {{ payment.application.program.name }}
+                </span>
+                {% else %}
+                <span class="text-gray-400 text-xs">N/A</span>
+                {% endif %}
+              </td>
+
+              {# Payment method #}
+              <td class="text-sm text-gray-700 whitespace-nowrap">
+                {{ payment.get_payment_method_display }}
+              </td>
+
+              {# Currency #}
+              <td class="text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">
+                {{ payment.currency }}
+              </td>
+
+              {# Amount #}
+              <td>
+                <span class="font-semibold text-gray-900 text-sm whitespace-nowrap">
+                  {{ payment.amount|floatformat:2|intcomma }}
+                </span>
+              </td>
+
+              {# Status badge #}
+              <td>
+                {% if payment.status == 'success' %}
+                <span class="status-badge bg-green-100 text-green-700">
+                  <i class="fas fa-check-circle text-xs" aria-hidden="true"></i>
+                  {{ payment.get_status_display }}
+                </span>
+                {% elif payment.status == 'pending' %}
+                <span class="status-badge bg-yellow-100 text-yellow-700">
+                  <i class="fas fa-clock text-xs" aria-hidden="true"></i>
+                  {{ payment.get_status_display }}
+                </span>
+                {% elif payment.status == 'processing' %}
+                <span class="status-badge bg-blue-100 text-blue-700">
+                  <i class="fas fa-spinner text-xs" aria-hidden="true"></i>
+                  {{ payment.get_status_display }}
+                </span>
+                {% elif payment.status == 'failed' %}
+                <span class="status-badge bg-red-100 text-red-700">
+                  <i class="fas fa-times-circle text-xs" aria-hidden="true"></i>
+                  {{ payment.get_status_display }}
+                </span>
+                {% elif payment.status == 'refunded' %}
+                <span class="status-badge bg-purple-100 text-purple-700">
+                  <i class="fas fa-undo text-xs" aria-hidden="true"></i>
+                  {{ payment.get_status_display }}
+                </span>
+                {% else %}
+                <span class="status-badge bg-gray-100 text-gray-600">
+                  {{ payment.get_status_display }}
+                </span>
+                {% endif %}
+              </td>
+
+              {# Actions #}
+              <td>
+                <div class="flex items-center gap-2 whitespace-nowrap">
+                  <a href="{% url 'payments:payment_detail' payment.payment_reference %}"
+                     class="text-blue-600 hover:text-blue-800 text-xs font-medium
+                            focus:outline-none focus:underline"
+                     title="View detail"
+                     aria-label="View {{ payment.payment_reference }}">
+                    <i class="fas fa-eye" aria-hidden="true"></i>
+                  </a>
+                  {% if payment.status == 'success' and permissions.finance_payments.can_export %}
+                  <a href="{% url 'payments:generate_invoice_pdf' payment.payment_reference %}"
+                     class="text-green-600 hover:text-green-800 text-xs font-medium
+                            focus:outline-none focus:underline"
+                     title="Download invoice"
+                     aria-label="Invoice for {{ payment.payment_reference }}"
+                     target="_blank"
+                     rel="noopener noreferrer">
+                    <i class="fas fa-file-pdf" aria-hidden="true"></i>
+                  </a>
+                  {% endif %}
+                </div>
+              </td>
+
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        {% else %}
+        <div class="py-16 sm:py-20 text-center text-gray-400">
+          <i class="fas fa-inbox text-4xl sm:text-5xl mb-4 block"
+             aria-hidden="true"></i>
+          <p class="text-base sm:text-lg font-medium text-gray-500">
+            No transactions found
+          </p>
+          <p class="text-xs sm:text-sm mt-1">
+            Payments will appear here once recorded.
+          </p>
+        </div>
+        {% endif %}
+      </div>
+
+    </div>
+
+  </div>{# end max-w-screen-2xl #}
+</div>{# end min-h-screen #}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function () {
+
+  {% if payments %}
+  var table = $('#transactionsTable').DataTable({
+    responsive: true,
+    pageLength: 25,
+    order: [[1, 'desc']],
+    dom: '{% if permissions.finance_payments.can_export %}Bfrtip{% else %}frtip{% endif %}',
+    buttons: [
+      {
+        extend: 'copy',
+        text: '<i class="fas fa-copy mr-1"></i>Copy',
+        className: 'buttons-copy',
+        exportOptions: { columns: [0,1,2,3,4,5,6,7,8] }
+      },
+      {
+        extend: 'csv',
+        text: '<i class="fas fa-file-csv mr-1"></i>CSV',
+        className: 'buttons-csv',
+        filename: 'transactions_' + new Date().toISOString().slice(0,10),
+        exportOptions: { columns: [0,1,2,3,4,5,6,7,8] }
+      },
+      {
+        extend: 'excel',
+        text: '<i class="fas fa-file-excel mr-1"></i>Excel',
+        className: 'buttons-excel',
+        filename: 'transactions_' + new Date().toISOString().slice(0,10),
+        exportOptions: { columns: [0,1,2,3,4,5,6,7,8] }
+      },
+      {
+        extend: 'pdf',
+        text: '<i class="fas fa-file-pdf mr-1"></i>PDF',
+        className: 'buttons-pdf',
+        filename: 'transactions_' + new Date().toISOString().slice(0,10),
+        orientation: 'landscape',
+        pageSize: 'A4',
+        exportOptions: { columns: [0,1,2,3,4,5,6,7,8] }
+      },
+      {
+        extend: 'print',
+        text: '<i class="fas fa-print mr-1"></i>Print',
+        className: 'buttons-print',
+        exportOptions: { columns: [0,1,2,3,4,5,6,7,8] }
+      }
+    ],
+    language: {
+      search:      "Search:",
+      lengthMenu:  "Show _MENU_ rows",
+      info:        "_START_–_END_ of _TOTAL_",
+      infoEmpty:   "No records",
+      zeroRecords: "No matching transactions"
+    },
+    columnDefs: [
+      { orderable: false, targets: [9] }
+    ]
+  });
+
+  /* ── Datalist filter: Status → column 8 ── */
+  $('#filter-status-input').on('input change', function () {
+    var val = $(this).val().trim();
+    table.column(8).search(val).draw();
+  });
+
+  /* ── Datalist filter: Method → column 5 ── */
+  $('#filter-method-input').on('input change', function () {
+    var val = $(this).val().trim();
+    table.column(5).search(val).draw();
+  });
+
+  /* ── Date range filter → column 1 ── */
+  function applyDateFilter() {
+    var from = $('#filter-date-from').val();
+    var to   = $('#filter-date-to').val();
+
+    $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(
+      function (fn) { return fn._dateRange !== true; }
+    );
+
+    if (from || to) {
+      var fn = function (settings, data) {
+        var d = new Date(data[1].replace(/<[^>]+>/g, '').trim());
+        if (isNaN(d)) return true;
+        if (from && d < new Date(from))              return false;
+        if (to   && d > new Date(to + 'T23:59:59')) return false;
+        return true;
+      };
+      fn._dateRange = true;
+      $.fn.dataTable.ext.search.push(fn);
+    }
+    table.draw();
+  }
+
+  $('#filter-date-from, #filter-date-to').on('change', applyDateFilter);
+
+  window.resetFilters = function () {
+    $('#filter-date-from, #filter-date-to').val('');
+    $('#filter-status-input, #filter-method-input')
+      .val('')
+      .each(function () { this.dispatchEvent(new Event('change', { bubbles: true })); });
+    $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(
+      function (fn) { return fn._dateRange !== true; }
+    );
+    table.search('').columns().search('').draw();
+  };
+  {% endif %}
+
+});
+</script>
+{% endblock %}

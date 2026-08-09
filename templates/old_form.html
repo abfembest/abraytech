@@ -1,0 +1,1536 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Apply Now - Modern International University{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-step {
+        display: none;
+        animation: fadeIn 0.3s ease-out;
+    }
+    .form-step.active {
+        display: block;
+    }
+    
+    .progress-step {
+        transition: all 0.3s ease;
+    }
+    .progress-step.active {
+        background: linear-gradient(135deg, #840384 0%, #a855f7 100%);
+        color: white;
+        border-color: #840384;
+        box-shadow: 0 4px 15px rgba(132, 3, 132, 0.3);
+    }
+    .progress-step.active .step-number {
+        background-color: white;
+        color: #840384;
+    }
+    .progress-step.completed {
+        background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+        color: white;
+        border-color: #10B981;
+    }
+    .progress-step.completed .step-number {
+        background-color: white;
+        color: #10B981;
+    }
+    .progress-step.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="py-20 bg-gradient-to-br from-purple-50 to-pink-50 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4" style="color: #840384;">
+                Course Application Form
+            </h1>
+            <p class="text-gray-600 text-lg max-w-3xl mx-auto">
+                Complete your application in 4 simple steps. Your progress will be saved automatically.
+            </p>
+        </div>
+
+        <!-- Mobile Progress Indicator -->
+        <div class="lg:hidden bg-white rounded-xl shadow-lg p-6 mb-6 max-w-4xl mx-auto">
+            <div class="flex justify-between items-center mb-3">
+                <span class="font-semibold text-gray-800">
+                    Step <span id="mobileCurrentStep">1</span> of 4
+                </span>
+                <span class="font-bold text-sm" style="color: #840384;">
+                    <span id="mobileProgressPercentage">0</span>%
+                </span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div id="mobileProgressBar" class="h-2 rounded-full transition-all duration-300"
+                     style="width: 0%; background-color: #840384;"></div>
+            </div>
+            <p id="mobileStepTitle" class="text-center mt-3 font-medium" style="color: #840384;">
+                Personal Information
+            </p>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto">
+
+            <!-- Desktop Progress Sidebar -->
+            <aside class="hidden lg:block lg:w-1/4">
+                <div class="bg-white rounded-xl shadow-lg p-6 sticky top-24">
+                    <h2 class="text-xl font-bold mb-6 pb-3 border-b" style="color: #840384;">
+                        Application Progress
+                    </h2>
+
+                    <div class="space-y-3" id="progressSteps">
+                        <!-- Steps 1-4: Interactive -->
+                        <div class="progress-step flex items-start gap-3 p-4 rounded-lg border-2 border-gray-300 cursor-pointer hover:shadow-md transition-all" data-step="1">
+                            <div class="step-number w-10 h-10 rounded-full border-2 border-gray-800 flex items-center justify-center flex-shrink-0 font-bold text-gray-800 bg-white">1</div>
+                            <div class="flex-1">
+                                <h3 class="font-bold text-gray-900">Personal Information</h3>
+                                <p class="text-xs text-gray-600 mt-0.5">Basic details</p>
+                            </div>
+                        </div>
+
+                        <div class="progress-step flex items-start gap-3 p-4 rounded-lg border-2 border-gray-300 cursor-pointer hover:shadow-md transition-all" data-step="2">
+                            <div class="step-number w-10 h-10 rounded-full border-2 border-gray-800 flex items-center justify-center flex-shrink-0 font-bold text-gray-800 bg-white">2</div>
+                            <div class="flex-1">
+                                <h3 class="font-bold text-gray-900">Academic History</h3>
+                                <p class="text-xs text-gray-600 mt-0.5">Education background</p>
+                            </div>
+                        </div>
+
+                        <div class="progress-step flex items-start gap-3 p-4 rounded-lg border-2 border-gray-300 cursor-pointer hover:shadow-md transition-all" data-step="3">
+                            <div class="step-number w-10 h-10 rounded-full border-2 border-gray-800 flex items-center justify-center flex-shrink-0 font-bold text-gray-800 bg-white">3</div>
+                            <div class="flex-1">
+                                <h3 class="font-bold text-gray-900">Course Selection</h3>
+                                <p class="text-xs text-gray-600 mt-0.5">Program preferences</p>
+                            </div>
+                        </div>
+
+                        <div class="progress-step flex items-start gap-3 p-4 rounded-lg border-2 border-gray-300 cursor-pointer hover:shadow-md transition-all" data-step="4">
+                            <div class="step-number w-10 h-10 rounded-full border-2 border-gray-800 flex items-center justify-center flex-shrink-0 font-bold text-gray-800 bg-white">4</div>
+                            <div class="flex-1">
+                                <h3 class="font-bold text-gray-900">Review & Save</h3>
+                                <p class="text-xs text-gray-600 mt-0.5">Confirm details</p>
+                            </div>
+                        </div>
+
+                        <!-- Steps 5-6: Preview Only (Disabled) -->
+                        <div class="progress-step disabled flex items-start gap-3 p-4 rounded-lg border-2 border-gray-300" data-step="5">
+                            <div class="step-number w-10 h-10 rounded-full border-2 border-gray-400 flex items-center justify-center flex-shrink-0 font-bold text-gray-400 bg-gray-100">5</div>
+                            <div class="flex-1">
+                                <h3 class="font-bold text-gray-500">Make Payment</h3>
+                                <p class="text-xs text-gray-400 mt-0.5">Application fee</p>
+                            </div>
+                        </div>
+
+                        <div class="progress-step disabled flex items-start gap-3 p-4 rounded-lg border-2 border-gray-300" data-step="6">
+                            <div class="step-number w-10 h-10 rounded-full border-2 border-gray-400 flex items-center justify-center flex-shrink-0 font-bold text-gray-400 bg-gray-100">6</div>
+                            <div class="flex-1">
+                                <h3 class="font-bold text-gray-500">Upload Documents</h3>
+                                <p class="text-xs text-gray-400 mt-0.5">Required files</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Overall Progress Bar -->
+                    <div class="mt-8 pt-6 border-t border-gray-300">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-sm font-semibold text-gray-900">Overall Progress</span>
+                            <span class="font-bold text-lg" style="color: #840384;">
+                                <span id="progressPercentage">0</span>%
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3 shadow-inner">
+                            <div id="progressBar" class="h-3 rounded-full transition-all duration-300 shadow-sm"
+                                 style="width: 0%; background-color: #840384;"></div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Form Content -->
+            <main class="flex-1">
+                <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+
+                    <div class="mb-8">
+                        <h2 id="stepTitle" class="text-2xl font-bold mb-2" style="color: #840384;">
+                            Personal Information
+                        </h2>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-4">
+                            <div id="stepProgressBar" class="h-2 rounded-full transition-all duration-300"
+                                 style="width: 0%; background-color: #840384;"></div>
+                        </div>
+                    </div>
+
+                    <form id="applicationForm" method="POST" action="{% url 'eduweb:save_application_draft' %}">
+                        {% csrf_token %}
+                        
+                        <input type="hidden" id="applicationId" name="application_id">
+                        <input type="hidden" name="academic_history" id="academicHistoryPayload">
+
+                        <!-- STEP 1: Personal Information -->
+                        <div class="form-step active" id="step1">
+                            <p class="text-gray-600 mb-6">Please provide your personal details and contact information.</p>
+
+                            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">
+                                        {{ form.first_name.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.first_name }}
+                                    {% if form.first_name.errors %}
+                                        <div class="text-red-500 text-sm mt-1">{{ form.first_name.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">
+                                        {{ form.last_name.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.last_name }}
+                                    {% if form.last_name.errors %}
+                                        <div class="text-red-500 text-sm mt-1">{{ form.last_name.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mb-6">
+                                <label class="block text-gray-700 font-medium mb-2">
+                                    {{ form.email.label }} <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-red-500 text-sm mt-1">{{ form.email.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">
+                                        {{ form.phone.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.phone }}
+                                    {% if form.phone.errors %}
+                                        <div class="text-red-500 text-sm mt-1">{{ form.phone.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">
+                                        {{ form.date_of_birth.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.date_of_birth }}
+                                    {% if form.date_of_birth.errors %}
+                                        <div class="text-red-500 text-sm mt-1">{{ form.date_of_birth.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">
+                                        {{ form.country.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.country }}
+                                    {% if form.country.errors %}
+                                        <div class="text-red-500 text-sm mt-1">{{ form.country.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">
+                                        {{ form.gender.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.gender }}
+                                    {% if form.gender.errors %}
+                                        <div class="text-red-500 text-sm mt-1">{{ form.gender.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mb-6">
+                                <label class="block text-gray-700 font-medium mb-2">
+                                    Nationality <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.nationality }}
+                                {% if form.nationality.errors %}
+                                    <div class="text-red-500 text-sm mt-1">{{ form.nationality.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-6 py-1.5">
+                                <label class="block text-gray-700 font-medium mb-2">
+                                    Address Line 1 <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.address_line1 }}
+                                {% if form.address_line1.errors %}
+                                    <div class="text-red-500 text-sm mt-1">{{ form.address_line1.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-6">
+                                <label class="block text-gray-700 font-medium mb-2">
+                                    Address Line 2 <span class="text-gray-500 text-sm">(Optional)</span>
+                                </label>
+                                {{ form.address_line2 }}
+                            </div>
+
+                            <div class="grid md:grid-cols-3 gap-6 mb-6">
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">
+                                        City <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.city }}
+                                    {% if form.city.errors %}
+                                        <div class="text-red-500 text-sm mt-1">{{ form.city.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">
+                                        State / Province <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.state }}
+                                    {% if form.state.errors %}
+                                        <div class="text-red-500 text-sm mt-1">{{ form.state.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">
+                                        Postal / ZIP Code <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.postal_code }}
+                                    {% if form.postal_code.errors %}
+                                        <div class="text-red-500 text-sm mt-1">{{ form.postal_code.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- STEP 2: Academic History -->
+                        <div class="form-step" id="step2">
+                            <p class="text-gray-600 mb-6">Please provide details of your previous education.</p>
+
+                            <div id="academicEntriesContainer" class="space-y-6 mb-6"></div>
+
+                            <div class="text-center mb-8">
+                                <button type="button" id="addAcademicEntryBtn"
+                                        class="px-6 py-3 border-2 border-dashed rounded-lg font-medium hover:bg-purple-50"
+                                        style="border-color:#840384;color:#840384;">
+                                    + Add Another Academic Entry
+                                </button>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-3">
+                                        English Language Proficiency <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.language_skill }}
+
+                                    {% if form.english_proficiency_test.errors %}
+                                    <div class="text-red-500 text-sm mt-1">
+                                        {{ form.english_proficiency_test.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div id="scoreContainer">
+                                    <label class="block text-gray-700 font-medium mb-3">
+                                        Test Score <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.language_score }}
+
+                                    {% if form.english_proficiency_score.errors %}
+                                    <div class="text-red-500 text-sm mt-1">
+                                        {{ form.english_proficiency_score.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- STEP 3: Course Selection -->
+                        <div class="form-step" id="step3">
+                            <p class="text-gray-600 mb-6">Select your desired program and preferences.</p>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                                <div class="mb-6">
+                                    <label class="block text-gray-700 font-medium mb-2">
+                                        {{ form.program.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.program }}
+                                    {% if form.program.errors %}
+                                    <div class="text-red-500 text-sm mt-1">{{ form.program.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-6">
+                                    <label class="block text-gray-700 font-medium mb-2">
+                                        {{ form.intake.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.intake }}
+                                    {% if form.intake.errors %}
+                                    <div class="text-red-500 text-sm mt-1">{{ form.intake.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-6">
+                                    <label class="block text-gray-700 font-medium mb-2">
+                                        {{ form.study_mode.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.study_mode }}
+                                    {% if form.study_mode.errors %}
+                                    <div class="text-red-500 text-sm mt-1">{{ form.study_mode.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                            </div>
+
+
+
+                            <!-- Scholarship Option -->
+                            <div class="mb-6 p-4 bg-purple-50 rounded-xl border-2 border-purple-200 hover:border-purple-400 transition">
+                                <label class="flex items-center gap-3 cursor-pointer">
+                                    {{ form.scholarship }}
+                                    <div>
+                                        <span class="font-medium text-purple-800">
+                                            Apply for Scholarship Consideration
+                                        </span>
+                                        <p class="text-sm text-gray-600">
+                                            Check to be considered for merit-based scholarships
+                                        </p>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <!-- Personal Statement & Additional Info -->
+                            <div class="mb-6">
+                                <label class="block text-gray-700 font-medium mb-2">
+                                    {{ form.personal_statement.label }} <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.personal_statement }}
+                                {% if form.personal_statement.errors %}
+                                    <div class="text-red-500 text-sm mt-1">{{ form.personal_statement.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">
+                                        {{ form.work_experience_years.label }}
+                                    </label>
+                                    {{ form.work_experience_years }}
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">
+                                        {{ form.how_did_you_hear.label }}
+                                    </label>
+                                    {{ form.how_did_you_hear }}
+                                </div>
+                            </div>
+
+                            <!-- Emergency Contact -->
+                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 mb-6">
+                                <h4 class="font-semibold text-gray-800 mb-4">Emergency Contact</h4>
+                                <div class="grid md:grid-cols-3 gap-6">
+                                    <div>
+                                        <label class="block text-gray-700 font-medium mb-2">
+                                            {{ form.emergency_contact_name.label }} <span class="text-red-500">*</span>
+                                        </label>
+                                        {{ form.emergency_contact_name }}
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-700 font-medium mb-2">
+                                            {{ form.emergency_contact_phone.label }} <span class="text-red-500">*</span>
+                                        </label>
+                                        {{ form.emergency_contact_phone }}
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-700 font-medium mb-2">
+                                            {{ form.emergency_contact_relationship.label }} <span class="text-red-500">*</span>
+                                        </label>
+                                        {{ form.emergency_contact_relationship }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Terms & Privacy -->
+                            <div class="space-y-4 mb-6">
+
+                                <!-- Terms -->
+                                <div class="p-4 border-2 rounded-xl hover:border-primary-400 transition bg-white">
+                                    <label class="flex items-center gap-3 cursor-pointer text-gray-700">
+                                        {{ form.accept_terms_conditions }}
+
+                                        <span class="text-sm">
+                                            I agree to the
+                                            <a href=""
+                                               class="text-primary-600 font-medium hover:underline" target="_blank">
+                                                Terms & Conditions
+                                            </a>
+                                            <span class="text-red-500">*</span>
+                                        </span>
+                                    </label>
+
+                                    {% if form.accept_terms_conditions.errors %}
+                                    <p class="text-red-500 text-sm mt-1">
+                                        {{ form.accept_terms_conditions.errors.0 }}
+                                    </p>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Privacy -->
+                                <div class="p-4 border-2 rounded-xl hover:border-primary-400 transition bg-white">
+                                    <label class="flex items-center gap-3 cursor-pointer text-gray-700">
+                                        {{ form.accept_privacy_policy }}
+
+                                        <span class="text-sm">
+                                            I agree to the
+                                            <a href=""
+                                               class="text-primary-600 font-medium hover:underline" target="_blank">
+                                                Privacy Policy
+                                            </a>
+                                            <span class="text-red-500">*</span>
+                                        </span>
+                                    </label>
+
+                                    {% if form.accept_privacy_policy.errors %}
+                                    <p class="text-red-500 text-sm mt-1">
+                                        {{ form.accept_privacy_policy.errors.0 }}
+                                    </p>
+                                    {% endif %}
+                                </div>
+
+                            </div>
+
+
+
+
+                        </div>
+
+                        <!-- STEP 4: Review & Save -->
+                        <div class="form-step" id="step4">
+                            <p class="text-gray-600 mb-6">Please review your application details before saving.</p>
+
+                            <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-6">
+                                <h3 class="text-lg font-bold mb-4" style="color: #840384;">Application Summary</h3>
+                                <div id="reviewSummary" class="space-y-3 text-sm"></div>
+                            </div>
+
+                            <div class="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 mb-6">
+                                <div class="flex items-start gap-3">
+                                    <i data-lucide="info" class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5"></i>
+                                    <p class="text-sm text-gray-700">
+                                        Click "Save & Continue" below to save your application and proceed to payment.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Buttons -->
+                        <div class="flex justify-between items-center pt-8 border-t mt-8">
+                            <button type="button" id="prevBtn"
+                                    class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-all hidden">
+                                ← Previous
+                            </button>
+
+                            <button type="button" id="nextBtn"
+                                    class="px-8 py-3 text-white rounded-lg font-semibold hover:opacity-90 transition-all shadow-lg ml-auto"
+                                    style="background-color: #840384;">
+                                <span id="nextBtnText">Next Step →</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </main>
+        </div>
+    </div>
+</section>
+<!--<script src="{% static 'js/form.js' %}"></script>-->
+<script>
+
+
+
+
+    // ================= COMPLETE CORRECTED APPLICATION FORM JAVASCRIPT =================
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Global State
+            let currentStep = 1;
+        const totalSteps = 4; // Only 4 active steps in the form
+
+        // CSRF Token (Django specific)
+        const CSRF_TOKEN = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+
+        // Step titles
+        const stepTitles = {
+            1: "Personal Information",
+        2: "Academic History",
+        3: "Course Selection",
+        4: "Review & Save"
+        };
+
+        // DOM Elements
+        const form = document.getElementById('applicationForm');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const progressSteps = document.querySelectorAll('.progress-step');
+        const formSteps = document.querySelectorAll('.form-step');
+
+        // Progress indicators
+        const progressBar = document.getElementById('progressBar');
+        const mobileProgressBar = document.getElementById('mobileProgressBar');
+        const stepProgressBar = document.getElementById('stepProgressBar');
+        const progressPercentage = document.getElementById('progressPercentage');
+        const mobileProgressPercentage = document.getElementById('mobileProgressPercentage');
+        const currentStepElement = document.getElementById('mobileCurrentStep');
+        const stepTitleElement = document.getElementById('stepTitle');
+        const mobileStepTitleElement = document.getElementById('mobileStepTitle');
+
+        // Academic entries management
+        let academicEntryCount = 0;
+        const addAcademicBtn = document.getElementById('addAcademicEntryBtn');
+
+        // ================= ENHANCED GATING SYSTEM =================
+        let gatingState = {
+            step1Completed: false,
+        step2Completed: false,
+        step3Completed: false,
+        step4Saved: false
+        };
+
+        // ================= VALIDATION MONITORS =================
+        function setupValidationMonitors() {
+            // Step 1 validation monitoring
+            const step1Inputs = document.querySelectorAll('#step1 input, #step1 select, #step1 textarea');
+            step1Inputs.forEach(input => {
+            input.addEventListener('input', validateStep1);
+        input.addEventListener('change', validateStep1);
+            });
+
+        // Step 2 validation monitoring
+        const step2Inputs = document.querySelectorAll('#step2 input, #step2 select');
+            step2Inputs.forEach(input => {
+            input.addEventListener('input', validateStep2);
+        input.addEventListener('change', validateStep2);
+            });
+
+        // Monitor academic entries container
+        const academicContainer = document.getElementById('academicEntriesContainer');
+        if (academicContainer) {
+            let academicObserverLock = false;
+
+            const academicObserver = new MutationObserver(() => {
+                if (academicObserverLock) return;
+                academicObserverLock = true;
+                requestAnimationFrame(() => {
+                    validateStep2();
+                    academicObserverLock = false;
+                });
+            });
+        academicObserver.observe(academicContainer, {childList: true, subtree: true });
+            }
+
+        // Step 3 validation monitoring
+        const step3Inputs = document.querySelectorAll('#step3 input, #step3 select, #step3 textarea');
+            step3Inputs.forEach(input => {
+            input.addEventListener('change', validateStep3);
+            input.addEventListener('input', validateStep3);
+            });
+
+        // Monitor checkboxes in Step 3
+        const acceptTermsCheckbox = form.querySelector('input[name="accept_terms_conditions"]');
+        const acceptPrivacyCheckbox = form.querySelector('input[name="accept_privacy_policy"]');
+        if (acceptTermsCheckbox) acceptTermsCheckbox.addEventListener('change', validateStep3);
+        if (acceptPrivacyCheckbox) acceptPrivacyCheckbox.addEventListener('change', validateStep3);
+        }
+
+        // ================= STEP VALIDATION FUNCTIONS =================
+        function validateStep1() {
+            // Get all required fields from Step 1
+            const requiredFields = [
+        'input[name="first_name"]',
+        'input[name="last_name"]',
+        'input[name="email"]',
+        'input[name="phone"]',
+        'input[name="date_of_birth"]',
+        'input[name="country"]',
+        'select[name="gender"]',
+        'input[name="nationality"]',
+        'textarea[name="address_line1"]',
+        'input[name="city"]',
+        'input[name="state"]',
+        'input[name="postal_code"]'
+        ];
+
+        let allValid = true;
+
+            // Clear previous validation errors
+            document.querySelectorAll('#step1 .error-highlight').forEach(el => {
+            el.classList.remove('error-highlight', 'border-red-500');
+            });
+
+            // Check each required field
+            requiredFields.forEach(selector => {
+                const element = document.querySelector(selector);
+        if (element) {
+                    const errorDiv = element.parentElement.querySelector('.error-message');
+
+        if (element.type === 'checkbox' || element.type === 'radio') {
+                        if (!element.checked) {
+            allValid = false;
+        element.classList.add('error-highlight');
+                        } else {
+            element.classList.remove('error-highlight');
+                        }
+                    } else if (element.tagName === 'SELECT') {
+                        if (!element.value || element.value === '' || element.value === '--------') {
+            allValid = false;
+        element.classList.add('border-red-500', 'error-highlight');
+        if (errorDiv) {
+            errorDiv.textContent = 'This field is required';
+                            }
+                        } else {
+            element.classList.remove('border-red-500', 'error-highlight');
+        if (errorDiv) errorDiv.textContent = '';
+                        }
+                    } else {
+                        if (!element.value || !element.value.trim()) {
+            allValid = false;
+        element.classList.add('border-red-500', 'error-highlight');
+        if (errorDiv) {
+            errorDiv.textContent = 'This field is required';
+                            }
+                        } else {
+            element.classList.remove('border-red-500', 'error-highlight');
+        if (errorDiv) errorDiv.textContent = '';
+
+        // Additional validation for specific fields
+        if (element.name === 'email') {
+                                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(element.value)) {
+            allValid = false;
+        element.classList.add('border-red-500', 'error-highlight');
+        if (errorDiv) {
+            errorDiv.textContent = 'Please enter a valid email address';
+                                    }
+                                }
+                            }
+
+        if (element.name === 'phone') {
+                                const phonePattern = /^[\+]?[0-9\s\-\(\)]{10,}$/;
+        if (!phonePattern.test(element.value.replace(/\s/g, ''))) {
+            allValid = false;
+        element.classList.add('border-red-500', 'error-highlight');
+        if (errorDiv) {
+            errorDiv.textContent = 'Please enter a valid phone number';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+        gatingState.step1Completed = allValid;
+        updateNavigationGating();
+        return allValid;
+        }
+
+        function validateStep2() {
+            // Check for at least one academic entry
+            const academicEntries = document.querySelectorAll('.academic-entry');
+        if (academicEntries.length === 0) {
+            gatingState.step2Completed = false;
+        updateNavigationGating();
+        return false;
+            }
+
+        // Validate each academic entry
+        let allEntriesValid = true;
+            academicEntries.forEach(entry => {
+                const entryId = entry.getAttribute('data-entry');
+        const requiredFields = [
+        `select[name="education_level_${entryId}"]`,
+        `input[name="graduation_year_${entryId}"]`,
+        `input[name="institution_${entryId}"]`,
+        `input[name="field_of_study_${entryId}"]`
+        ];
+
+                requiredFields.forEach(fieldPattern => {
+                    const field = entry.querySelector(fieldPattern);
+        if (field) {
+                        const errorDiv = field.parentElement.querySelector('.error-message');
+
+        if (!field.value || !field.value.trim()) {
+            allEntriesValid = false;
+        field.classList.add('border-red-500', 'error-highlight');
+        if (errorDiv) {
+            errorDiv.textContent = 'This field is required';
+                            }
+                        } else {
+            field.classList.remove('border-red-500', 'error-highlight');
+        if (errorDiv) errorDiv.textContent = '';
+
+        // Additional validation for graduation year
+        if (fieldPattern.includes('graduation_year')) {
+                                const year = parseInt(field.value);
+        const currentYear = new Date().getFullYear();
+        if (isNaN(year) || year < 1950 || year > currentYear + 5) {
+            allEntriesValid = false;
+        field.classList.add('border-red-500', 'error-highlight');
+        if (errorDiv) {
+            errorDiv.textContent = `Please enter a valid year (1950-${currentYear + 5})`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+
+        // Check English language proficiency
+        const languageSkill = document.querySelector('select[name="language_skill"]');
+        const languageScore = document.querySelector('input[name="language_score"]');
+
+        if (!languageSkill || !languageSkill.value || languageSkill.value === '--------') {
+            allEntriesValid = false;
+        if (languageSkill) {
+            languageSkill.classList.add('border-red-500', 'error-highlight');
+        const errorDiv = languageSkill.parentElement.querySelector('.error-message');
+        if (errorDiv) {
+            errorDiv.textContent = 'Please select English language proficiency';
+                    }
+                }
+            } else if (languageSkill) {
+            languageSkill.classList.remove('border-red-500', 'error-highlight');
+        const errorDiv = languageSkill.parentElement.querySelector('.error-message');
+        if (errorDiv) errorDiv.textContent = '';
+
+        // Validate score if test is selected (not 'none')
+        if (languageSkill.value !== 'none') {
+                    if (!languageScore || !languageScore.value || languageScore.value.trim() === '') {
+            allEntriesValid = false;
+        languageScore.classList.add('border-red-500', 'error-highlight');
+        const scoreErrorDiv = languageScore.parentElement.querySelector('.error-message');
+        if (scoreErrorDiv) {
+            scoreErrorDiv.textContent = 'Test score is required';
+                        }
+                    } else {
+            languageScore.classList.remove('border-red-500', 'error-highlight');
+        const scoreErrorDiv = languageScore.parentElement.querySelector('.error-message');
+        if (scoreErrorDiv) scoreErrorDiv.textContent = '';
+
+        // Validate score format
+        const scoreValue = parseFloat(languageScore.value);
+        if (languageSkill.value === 'ielts') {
+                            if (isNaN(scoreValue) || scoreValue < 0 || scoreValue > 9) {
+            allEntriesValid = false;
+        languageScore.classList.add('border-red-500', 'error-highlight');
+        const sErr = languageScore.parentElement.querySelector('.error-message');
+        if (sErr) {
+            sErr.textContent = 'IELTS score must be between 0 and 9';
+                                }
+                            }
+                        } else if (languageSkill.value === 'toefl') {
+                            if (isNaN(scoreValue) || scoreValue < 0 || scoreValue > 120) {
+            allEntriesValid = false;
+        languageScore.classList.add('border-red-500', 'error-highlight');
+        const sErr = languageScore.parentElement.querySelector('.error-message');
+        if (sErr) {
+            sErr.textContent = 'TOEFL score must be between 0 and 120';
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+        gatingState.step2Completed = allEntriesValid;
+        updateNavigationGating();
+        return allEntriesValid;
+        }
+
+        function validateStep3() {
+            // Required program selection
+            const programSelect = document.querySelector('select[name="program"]');
+            const courseValid = programSelect && programSelect.value && programSelect.value !== '' && programSelect.value !== '--------';
+
+        // Required intake
+        const intakeSelect = document.querySelector('select[name="intake"]');
+        const intakeValid = intakeSelect && intakeSelect.value && intakeSelect.value !== '' && intakeSelect.value !== '--------';
+
+        // Required study mode
+        const studyModeSelect = document.querySelector('select[name="study_mode"]');
+        const studyModeValid = studyModeSelect && studyModeSelect.value && studyModeSelect.value !== '' && studyModeSelect.value !== '--------';
+
+        // Required personal statement
+        const personalStatement = document.querySelector('textarea[name="personal_statement"]');
+        const personalStatementValid = personalStatement && personalStatement.value && personalStatement.value.trim() !== '';
+
+        // Required emergency contact
+        const emergencyName = document.querySelector('input[name="emergency_contact_name"]');
+        const emergencyPhone = document.querySelector('input[name="emergency_contact_phone"]');
+        const emergencyRel = document.querySelector('input[name="emergency_contact_relationship"]');
+        const emergencyValid = (emergencyName && emergencyName.value.trim()) &&
+                               (emergencyPhone && emergencyPhone.value.trim()) &&
+                               (emergencyRel && emergencyRel.value.trim());
+
+        // Required declaration and privacy
+        const declaration = document.querySelector('input[name="accept_terms_conditions"]');
+        const privacy = document.querySelector('input[name="accept_privacy_policy"]');
+        const agreementsValid = declaration && declaration.checked && privacy && privacy.checked;
+
+        const allValid = courseValid && intakeValid && studyModeValid && personalStatementValid && emergencyValid && agreementsValid;
+
+        // Update UI for validation errors
+        const fieldsToValidate = [
+        {element: programSelect, valid: courseValid, message: 'Program selection is required' },
+        {element: intakeSelect, valid: intakeValid, message: 'Intake selection is required' },
+        {element: studyModeSelect, valid: studyModeValid, message: 'Study mode is required' },
+        {element: personalStatement, valid: personalStatementValid, message: 'Personal statement is required' },
+        {element: emergencyName, valid: !!(emergencyName && emergencyName.value.trim()), message: 'Emergency contact name is required' },
+        {element: emergencyPhone, valid: !!(emergencyPhone && emergencyPhone.value.trim()), message: 'Emergency contact phone is required' },
+        {element: emergencyRel, valid: !!(emergencyRel && emergencyRel.value.trim()), message: 'Relationship is required' }
+        ];
+
+            fieldsToValidate.forEach(field => {
+                if (field.element) {
+                    if (field.valid) {
+            field.element.classList.remove('border-red-500', 'error-highlight');
+        const errorDiv = field.element.parentElement.querySelector('.error-message');
+        if (errorDiv) errorDiv.textContent = '';
+                    } else {
+            field.element.classList.add('border-red-500', 'error-highlight');
+        const errorDiv = field.element.parentElement.querySelector('.error-message');
+        if (errorDiv) errorDiv.textContent = field.message;
+                    }
+                }
+            });
+
+        // Update checkbox error states
+        const checkboxContainers = document.querySelectorAll('#step3 .p-4.border-2');
+            checkboxContainers.forEach(container => {
+                const checkbox = container.querySelector('input[type="checkbox"]');
+        if (checkbox) {
+                    if (!checkbox.checked) {
+            container.classList.add('border-red-500', 'error-highlight');
+                    } else {
+            container.classList.remove('border-red-500', 'error-highlight');
+                    }
+                }
+            });
+
+        gatingState.step3Completed = allValid;
+        updateNavigationGating();
+        return allValid;
+        }
+
+        // ================= NAVIGATION GATING CONTROL =================
+        function updateNavigationGating() {
+            if (!nextBtn) return;
+
+        let nextEnabled = false;
+
+        switch (currentStep) {
+                case 1:
+        nextEnabled = gatingState.step1Completed;
+        break;
+        case 2:
+        nextEnabled = gatingState.step2Completed;
+        break;
+        case 3:
+        nextEnabled = gatingState.step3Completed;
+        break;
+        case 4:
+        // Step 4: Next button becomes "Save & Continue"
+        nextEnabled = true;
+        break;
+            }
+
+        // Update next button state — keep always enabled, validation fires on click
+        nextBtn.disabled = false;
+        nextBtn.style.opacity = nextEnabled ? '1' : '0.6';
+        nextBtn.style.cursor = nextEnabled ? 'pointer' : 'not-allowed';
+
+        // Update button text for step 4
+        const nextBtnText = document.getElementById('nextBtnText');
+        if (currentStep === 4) {
+            nextBtnText.textContent = 'Save & Continue';
+            } else {
+            nextBtnText.textContent = 'Next Step →';
+            }
+
+        // Update sidebar step states
+        updateSidebarGating();
+        }
+
+        function updateSidebarGating() {
+            progressSteps.forEach(step => {
+                const stepNum = parseInt(step.getAttribute('data-step'));
+
+                // Only enable steps 1-4 (active steps)
+                if (stepNum <= 4) {
+                    if (stepNum <= currentStep) {
+                        // Steps up to current are accessible
+                        step.classList.remove('disabled');
+                        step.style.pointerEvents = 'auto';
+                        step.style.opacity = '1';
+                    } else {
+                        // Future steps are disabled based on gating logic
+                        let isAccessible = false;
+
+                        switch (stepNum) {
+                            case 2:
+                                isAccessible = gatingState.step1Completed;
+                                break;
+                            case 3:
+                                isAccessible = gatingState.step1Completed && gatingState.step2Completed;
+                                break;
+                            case 4:
+                                isAccessible = gatingState.step1Completed && gatingState.step2Completed && gatingState.step3Completed;
+                                break;
+                        }
+
+                        if (!isAccessible) {
+                            step.classList.add('disabled');
+                            step.style.pointerEvents = 'none';
+                            step.style.opacity = '0.5';
+                        } else {
+                            step.classList.remove('disabled');
+                            step.style.pointerEvents = 'auto';
+                            step.style.opacity = '1';
+                        }
+                    }
+                } else {
+                    // Steps 5-6 are always disabled (preview only)
+                    step.classList.add('disabled');
+                    step.style.pointerEvents = 'none';
+                    step.style.opacity = '0.5';
+                }
+            });
+        }
+
+        // ================= ACADEMIC ENTRIES MANAGEMENT =================
+        function addAcademicEntry() {
+            academicEntryCount++;
+        const container = document.getElementById('academicEntriesContainer');
+        if (!container) return;
+
+        const entryHTML = `
+        <div class="academic-entry border-2 border-gray-300 rounded-lg p-6 relative mb-6" data-entry="${academicEntryCount}">
+            ${academicEntryCount > 1 ? `
+                    <button type="button" class="remove-entry absolute top-4 right-4 text-red-600 hover:text-red-800 transition-colors" onclick="removeAcademicEntry(${academicEntryCount})">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </button>
+                    ` : ''}
+
+            <h4 class="font-semibold mb-4 text-gray-800">Academic Entry ${academicEntryCount}</h4>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">
+                        Education Level <span class="text-red-500">*</span>
+                    </label>
+                    <select name="education_level_${academicEntryCount}" required class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all bg-white">
+                        <option value="">Select Level</option>
+                        <option value="high-school">High School</option>
+                        <option value="bachelor">Bachelor's Degree</option>
+                        <option value="master">Master's Degree</option>
+                        <option value="phd">PhD/Doctorate</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <div class="error-message text-red-500 text-sm mt-1"></div>
+                </div>
+
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">
+                        Graduation Year <span class="text-red-500">*</span>
+                    </label>
+                    <input type="number" name="graduation_year_${academicEntryCount}" required min="1950" max="2030" placeholder="2023" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all">
+                        <div class="error-message text-red-500 text-sm mt-1"></div>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-gray-700 font-medium mb-2">
+                    Institution Name <span class="text-red-500">*</span>
+                </label>
+                <input type="text" name="institution_${academicEntryCount}" required placeholder="University/College Name" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all">
+                    <div class="error-message text-red-500 text-sm mt-1"></div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">
+                        Field of Study <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="field_of_study_${academicEntryCount}" required placeholder="Major/Field of Study" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all">
+                        <div class="error-message text-red-500 text-sm mt-1"></div>
+                </div>
+
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">
+                        GPA (Optional)
+                    </label>
+                    <input type="text" name="gpa_${academicEntryCount}" placeholder="3.5/4.0" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all">
+                </div>
+            </div>
+        </div>
+        `;
+
+        container.insertAdjacentHTML('beforeend', entryHTML);
+
+        // Add event listeners to new fields
+        const newEntry = container.querySelector(`.academic-entry[data-entry="${academicEntryCount}"]`);
+        const newInputs = newEntry.querySelectorAll('input, select');
+            newInputs.forEach(input => {
+            input.addEventListener('input', validateStep2);
+        input.addEventListener('change', validateStep2);
+            });
+
+        // Trigger validation
+        validateStep2();
+        }
+
+        // Make removeAcademicEntry available globally
+        window.removeAcademicEntry = function(entryId) {
+            const entry = document.querySelector(`.academic-entry[data-entry="${entryId}"]`);
+            if (entry && academicEntryCount > 1) {
+            entry.remove();
+
+        // Re-index remaining entries
+        const entries = document.querySelectorAll('.academic-entry');
+                entries.forEach((entry, index) => {
+                    const newEntryId = index + 1;
+        entry.setAttribute('data-entry', newEntryId);
+        entry.querySelector('h4').textContent = `Academic Entry ${newEntryId}`;
+
+        // Update all inputs and selects
+        const inputs = entry.querySelectorAll('[name]');
+                    inputs.forEach(input => {
+                        const name = input.getAttribute('name');
+        if (name) {
+                            const baseName = name.replace(/_\d+$/, '');
+        input.setAttribute('name', `${baseName}_${newEntryId}`);
+                        }
+                    });
+
+        // Update remove button onclick
+        const removeBtn = entry.querySelector('.remove-entry');
+        if (removeBtn) {
+            removeBtn.setAttribute('onclick', `removeAcademicEntry(${newEntryId})`);
+                    }
+                });
+
+        academicEntryCount = entries.length;
+        validateStep2();
+            }
+        };
+
+        // ================= NAVIGATION =================
+        function goToNextStep() {
+            // Validate current step before proceeding
+            let isValid = false;
+
+        switch(currentStep) {
+                case 1:
+        isValid = validateStep1();
+        break;
+        case 2:
+        isValid = validateStep2();
+        break;
+        case 3:
+        isValid = validateStep3();
+        break;
+        case 4:
+        // Step 4 doesn't need validation, but we need to ensure all previous steps are valid
+        isValid = gatingState.step1Completed && gatingState.step2Completed && gatingState.step3Completed;
+        break;
+            }
+
+        if (isValid) {
+                if (currentStep < totalSteps) {
+            currentStep++;
+        updateStep();
+                } else if (currentStep === totalSteps) {
+            // Step 4: Show the review section first, don't submit immediately
+            updateReviewSection();
+        updateStep();
+                }
+            } else {
+            // Show validation error
+            showValidationError();
+            }
+        }
+
+        function goToPrevStep() {
+            if (currentStep > 1) {
+            currentStep--;
+        updateStep();
+            }
+        }
+
+        // ================= STEP UPDATE =================
+        function updateStep() {
+            // Update step titles
+            const title = stepTitles[currentStep];
+        if (stepTitleElement) stepTitleElement.textContent = title;
+        if (mobileStepTitleElement) mobileStepTitleElement.textContent = title;
+
+        // Update current step number
+        if (currentStepElement) currentStepElement.textContent = currentStep;
+
+            // Update progress steps in sidebar
+            progressSteps.forEach(step => {
+                const stepNum = parseInt(step.getAttribute('data-step'));
+        step.classList.remove('active', 'completed');
+
+        if (stepNum < currentStep) {
+            step.classList.add('completed');
+                } else if (stepNum === currentStep) {
+            step.classList.add('active');
+                }
+            });
+
+            // Update form step visibility
+            formSteps.forEach((step, index) => {
+                if (index + 1 === currentStep) {
+            step.classList.add('active');
+                } else {
+            step.classList.remove('active');
+                }
+            });
+
+        // Update navigation buttons
+        if (prevBtn) prevBtn.classList.toggle('hidden', currentStep === 1);
+
+        // Calculate progress percentage
+        const progressPercent = ((currentStep - 1) / (totalSteps - 1)) * 100;
+
+        // Update all progress bars
+        if (progressBar) progressBar.style.width = `${progressPercent}%`;
+        if (mobileProgressBar) mobileProgressBar.style.width = `${progressPercent}%`;
+        if (stepProgressBar) stepProgressBar.style.width = `${progressPercent}%`;
+
+        // Update percentage text
+        const percentText = Math.round(progressPercent);
+        if (progressPercentage) progressPercentage.textContent = percentText;
+        if (mobileProgressPercentage) mobileProgressPercentage.textContent = percentText;
+
+        // Update navigation gating
+        updateNavigationGating();
+
+        // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (currentStep === 4) {
+                updateReviewSection();
+            }
+        }
+
+        // ================= REVIEW SECTION =================
+        function updateReviewSection() {
+            const reviewSummary = document.getElementById('reviewSummary');
+        if (!reviewSummary) return;
+
+        // Collect all form data
+        let summaryHTML = '';
+
+        // Step 1: Personal Information
+        const firstName = document.querySelector('input[name="first_name"]')?.value || '';
+        const lastName = document.querySelector('input[name="last_name"]')?.value || '';
+        const email = document.querySelector('input[name="email"]')?.value || '';
+        const phone = document.querySelector('input[name="phone"]')?.value || '';
+        const dateOfBirth = document.querySelector('input[name="date_of_birth"]')?.value || '';
+        const country = document.querySelector('input[name="country"]')?.value || 'Not provided';
+        const genderSelect = document.querySelector('select[name="gender"]');
+        const gender = genderSelect ? genderSelect.options[genderSelect.selectedIndex]?.text : 'Not selected';
+        const address = document.querySelector('textarea[name="address_line1"]')?.value || '';
+
+        summaryHTML += `
+        <div class="mb-6">
+            <h4 class="font-semibold mb-3 text-lg text-purple-900 border-b pb-2">Personal Information</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div><strong>Name:</strong> ${firstName} ${lastName}</div>
+                <div><strong>Email:</strong> ${email}</div>
+                <div><strong>Phone:</strong> ${phone}</div>
+                <div><strong>Date of Birth:</strong> ${dateOfBirth || 'Not provided'}</div>
+                <div><strong>Country:</strong> ${country}</div>
+                <div><strong>Gender:</strong> ${gender}</div>
+                <div><strong>Nationality:</strong> ${document.querySelector('input[name="nationality"]')?.value || 'Not provided'}</div>
+                <div class="md:col-span-2"><strong>Address:</strong> ${address}${document.querySelector('input[name="city"]')?.value ? ', ' + document.querySelector('input[name="city"]')?.value : ''}${document.querySelector('input[name="state"]')?.value ? ', ' + document.querySelector('input[name="state"]')?.value : ''}${document.querySelector('input[name="postal_code"]')?.value ? ' ' + document.querySelector('input[name="postal_code"]')?.value : ''}</div>
+            </div>
+        </div>
+        `;
+
+        // Step 2: Academic History
+        summaryHTML += `<div class="mb-6">
+            <h4 class="font-semibold mb-3 text-lg text-purple-900 border-b pb-2">Academic History</h4>`;
+
+            // Academic entries
+            const academicEntries = document.querySelectorAll('.academic-entry');
+            if (academicEntries.length > 0) {
+                academicEntries.forEach((entry, index) => {
+                    const entryId = index + 1;
+                    const levelSelect = entry.querySelector(`select[name="education_level_${entryId}"]`);
+                    const level = levelSelect ? levelSelect.options[levelSelect.selectedIndex]?.text : '';
+                    const institution = entry.querySelector(`input[name="institution_${entryId}"]`)?.value || '';
+                    const graduationYear = entry.querySelector(`input[name="graduation_year_${entryId}"]`)?.value || '';
+                    const fieldOfStudy = entry.querySelector(`input[name="field_of_study_${entryId}"]`)?.value || '';
+                    const gpa = entry.querySelector(`input[name="gpa_${entryId}"]`)?.value || '';
+
+                    summaryHTML += `
+                        <div class="mb-4 p-3 bg-gray-50 rounded-lg">
+                            <strong>Entry ${entryId}:</strong> ${level}<br>
+                            ${institution ? `<strong>Institution:</strong> ${institution}<br>` : ''}
+                            ${graduationYear ? `<strong>Graduation Year:</strong> ${graduationYear}<br>` : ''}
+                            ${fieldOfStudy ? `<strong>Field of Study:</strong> ${fieldOfStudy}<br>` : ''}
+                            ${gpa ? `<strong>GPA:</strong> ${gpa}` : ''}
+                        </div>
+                    `;
+                });
+            } else {
+                summaryHTML += '<p class="text-gray-600 italic">No academic entries provided</p>';
+            }
+
+            // English Proficiency
+            const languageSkillSelect = document.querySelector('select[name="language_skill"]');
+            const languageSkill = languageSkillSelect ? languageSkillSelect.options[languageSkillSelect.selectedIndex]?.text : 'Not selected';
+            const languageScore = document.querySelector('input[name="language_score"]')?.value || '';
+
+            summaryHTML += `
+            <div class="mt-3">
+                <strong>English Proficiency:</strong> ${languageSkill} ${languageScore ? `(${languageScore})` : ''}
+            </div>
+            `;
+
+            // Additional Qualifications
+            const additionalQuals = document.querySelector('textarea[name="additional_qualifications"]')?.value || '';
+            if (additionalQuals) {
+                summaryHTML += `
+                    <div class="mt-3">
+                        <strong>Additional Qualifications:</strong> ${additionalQuals}
+                    </div>
+                `;
+            }
+
+            summaryHTML += `</div>`;
+
+        // Step 3: Course Selection
+        const programSelect = document.querySelector('select[name="program"]');
+        const course = programSelect ? programSelect.options[programSelect.selectedIndex]?.text : 'Not selected';
+        const intakeSelect = document.querySelector('select[name="intake"]');
+        const intake = intakeSelect ? intakeSelect.options[intakeSelect.selectedIndex]?.text : 'Not selected';
+        const studyModeSelect = document.querySelector('select[name="study_mode"]');
+        const studyMode = studyModeSelect ? studyModeSelect.options[studyModeSelect.selectedIndex]?.text : 'Not selected';
+        const scholarship = document.querySelector('input[name="scholarship"]')?.checked ? 'Yes' : 'No';
+        const acceptTerms = document.querySelector('input[name="accept_terms_conditions"]')?.checked ? 'Yes' : 'No';
+        const acceptPrivacy = document.querySelector('input[name="accept_privacy_policy"]')?.checked ? 'Yes' : 'No';
+
+        summaryHTML += `
+        <div class="mb-6">
+            <h4 class="font-semibold mb-3 text-lg text-purple-900 border-b pb-2">Course Selection</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div><strong>Program:</strong> ${course}</div>
+                <div><strong>Intake:</strong> ${intake}</div>
+                <div><strong>Study Mode:</strong> ${studyMode}</div>
+                <div><strong>Scholarship:</strong> ${scholarship}</div>
+                <div class="md:col-span-2"><strong>Personal Statement:</strong> ${document.querySelector('textarea[name="personal_statement"]')?.value || 'Not provided'}</div>
+                <div><strong>Work Experience (years):</strong> ${document.querySelector('input[name="work_experience_years"]')?.value || '0'}</div>
+                <div><strong>How Did You Hear:</strong> ${document.querySelector('input[name="how_did_you_hear"]')?.value || 'Not provided'}</div>
+                <div><strong>Emergency Contact:</strong> ${document.querySelector('input[name="emergency_contact_name"]')?.value || ''} (${document.querySelector('input[name="emergency_contact_relationship"]')?.value || ''})</div>
+                <div><strong>Emergency Phone:</strong> ${document.querySelector('input[name="emergency_contact_phone"]')?.value || ''}</div>
+                <div class="md:col-span-2"><strong>Terms Accepted:</strong> ${acceptTerms} | <strong>Privacy Policy:</strong> ${acceptPrivacy}</div>
+            </div>
+        </div>
+        `;
+
+        reviewSummary.innerHTML = summaryHTML;
+
+        // Serialize academic history for form submission
+        serializeAcademicHistory();
+        }
+
+        // ================= SERIALIZE ACADEMIC HISTORY =================
+        function serializeAcademicHistory() {
+            const entries = [];
+        const academicEntries = document.querySelectorAll('.academic-entry');
+
+            academicEntries.forEach(entry => {
+                const entryId = entry.getAttribute('data-entry');
+        const level = entry.querySelector(`select[name="education_level_${entryId}"]`)?.value || '';
+        const institution = entry.querySelector(`input[name="institution_${entryId}"]`)?.value || '';
+        const graduationYear = entry.querySelector(`input[name="graduation_year_${entryId}"]`)?.value || '';
+        const fieldOfStudy = entry.querySelector(`input[name="field_of_study_${entryId}"]`)?.value || '';
+        const gpa = entry.querySelector(`input[name="gpa_${entryId}"]`)?.value || '';
+
+        // Only add if at least one field has data
+        if (level || institution || graduationYear || fieldOfStudy) {
+            entries.push({
+                degree: level,
+                institution: institution,
+                graduation_year: graduationYear,
+                field_of_study: fieldOfStudy,
+                gpa: gpa
+            });
+                }
+            });
+
+        // Set to hidden field
+        const payloadField = document.getElementById('academicHistoryPayload');
+        if (payloadField) {
+            payloadField.value = JSON.stringify(entries);
+            }
+        }
+
+        // ================= FORM SUBMISSION =================
+        function submitApplication(event) {
+            event.preventDefault();
+
+        // Ensure all steps are valid
+        if (!gatingState.step1Completed || !gatingState.step2Completed || !gatingState.step3Completed) {
+            showValidationError();
+        return false;
+            }
+
+        // Serialize academic history one final time
+        serializeAcademicHistory();
+
+        // Show loading state
+        const nextBtnText = document.getElementById('nextBtnText');
+        const originalText = nextBtnText.textContent;
+        nextBtnText.innerHTML = '<span class="inline-block animate-spin mr-2">⏳</span> Saving...';
+        nextBtn.disabled = true;
+
+        // Submit the form
+        form.submit();
+
+        return false;
+        }
+
+        // ================= UTILITY FUNCTIONS =================
+        function showValidationError() {
+            // Create error message
+            const errorDiv = document.createElement('div');
+        errorDiv.className = 'bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-6 animate-scale-in';
+        errorDiv.innerHTML = `
+        <div class="flex items-start gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+            <div class="flex-1">
+                <h4 class="font-bold text-red-800 mb-2">Please complete all required fields</h4>
+                <p class="text-sm text-red-700">Some required fields are missing or contain invalid information.</p>
+            </div>
+        </div>
+        `;
+
+        // Remove existing error messages
+        const existingError = document.querySelector('.validation-error-message');
+        if (existingError) existingError.remove();
+
+        errorDiv.classList.add('validation-error-message');
+
+        // Insert error message at the top of the current step
+        const currentFormStep = document.querySelector(`#step${currentStep}`);
+        if (currentFormStep) {
+            currentFormStep.insertBefore(errorDiv, currentFormStep.firstChild);
+            }
+
+            // Scroll to error
+            setTimeout(() => {
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+
+        // ================= EVENT LISTENERS =================
+        if (prevBtn) prevBtn.addEventListener('click', goToPrevStep);
+        if (nextBtn) {
+            nextBtn.addEventListener('click', function (e) {
+                if (currentStep === 4) {
+                    // On step 4, submit the form
+                    submitApplication(e);
+                } else {
+                    // On other steps, go to next step
+                    goToNextStep();
+                }
+            });
+        }
+
+        // Add academic entry button
+        if (addAcademicBtn) {
+            addAcademicBtn.addEventListener('click', addAcademicEntry);
+        }
+
+        // Progress step click handlers (for sidebar navigation)
+        progressSteps.forEach(step => {
+            if (!step.classList.contains('disabled')) {
+            step.addEventListener('click', function () {
+                const stepNum = parseInt(this.getAttribute('data-step'));
+
+                // Only allow navigation to steps 1-4
+                if (stepNum <= 4) {
+                    // Check if we can navigate to this step
+                    let canNavigate = true;
+
+                    if (stepNum > currentStep) {
+                        // Check if all previous steps are completed
+                        for (let i = 1; i < stepNum; i++) {
+                            if (i === 1 && !gatingState.step1Completed) canNavigate = false;
+                            if (i === 2 && !gatingState.step2Completed) canNavigate = false;
+                            if (i === 3 && !gatingState.step3Completed) canNavigate = false;
+                        }
+                    }
+
+                    if (canNavigate) {
+                        currentStep = stepNum;
+                        updateStep();
+
+                        // If moving to step 4, update the review section
+                        if (currentStep === 4) {
+                            updateReviewSection();
+                        }
+                    } else {
+                        showValidationError();
+                    }
+                }
+            });
+            }
+        });
+
+        // ================= INITIALIZATION =================
+        function initForm() {
+            // Add initial academic entry
+            addAcademicEntry();
+
+        // Setup validation monitors
+        setupValidationMonitors();
+
+        // Initial validation
+        validateStep1();
+
+        // Update step
+        updateStep();
+        }
+
+        // Initialize form
+        initForm();
+    });
+</script>
+{% endblock %}

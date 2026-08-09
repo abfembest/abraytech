@@ -1,0 +1,209 @@
+{% extends "management/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - {{ site_config.school_short_name }} Student Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-screen-2xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+
+                <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
+
+
+    <!-- Page Header -->
+    <header class="mb-4 sm:mb-6 lg:mb-8">
+        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">
+            My Certificates
+        </h1>
+        <p class="text-xs sm:text-sm lg:text-base text-gray-600 mt-1 sm:mt-2">
+            View and download your earned certificates
+        </p>
+    </header>
+
+    <!-- Certificates Grid -->
+    {% if certificates %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 mb-6 sm:mb-8">
+        {% for certificate in certificates %}
+        <div class="bg-white rounded-xl shadow-sm border-2 border-yellow-200 overflow-hidden
+                    hover:shadow-md transition-shadow duration-200 flex flex-col">
+
+            <!-- Certificate visual header -->
+            <div class="relative h-32 sm:h-36 lg:h-44 bg-gradient-to-br from-yellow-50 to-yellow-100
+                        flex items-center justify-center p-4 flex-shrink-0">
+                <div class="text-center">
+                    <i class="fas fa-certificate text-yellow-500 text-4xl sm:text-5xl mb-1.5 sm:mb-2" aria-hidden="true"></i>
+                    <p class="text-yellow-800 font-semibold text-xs sm:text-sm">
+                        Certificate of Completion
+                    </p>
+                </div>
+                <!-- Seal badge -->
+                <div class="absolute top-2 right-2 sm:top-3 sm:right-3
+                            w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14
+                            bg-yellow-600 rounded-full flex items-center justify-center shadow">
+                    <i class="fas fa-award text-white text-base sm:text-lg lg:text-xl" aria-hidden="true"></i>
+                </div>
+            </div>
+
+            <!-- Card body -->
+            <div class="p-3 sm:p-4 lg:p-5 flex flex-col flex-1">
+                <!-- Course title -->
+                <h3 class="text-xs sm:text-sm lg:text-base font-bold text-gray-900 mb-2 line-clamp-2 leading-snug">
+                    {{ certificate.display_title }}
+                    {% if certificate.is_program_cert %}
+                    <span class="block text-xs font-normal text-purple-600 mt-0.5">Program Certificate</span>
+                    {% endif %}
+                </h3>
+
+                <!-- Certificate meta -->
+                <div class="space-y-1 mb-3">
+                    <div class="flex items-center gap-2 text-xs text-gray-500">
+                        <i class="fas fa-hashtag w-3.5 flex-shrink-0 text-gray-400" aria-hidden="true"></i>
+                        <span class="truncate">{{ certificate.certificate_id }}</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-gray-500">
+                        <i class="fas fa-calendar w-3.5 flex-shrink-0 text-gray-400" aria-hidden="true"></i>
+                        <span>{{ certificate.issued_date|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-gray-500">
+                        <i class="fas fa-user-tie w-3.5 flex-shrink-0 text-gray-400" aria-hidden="true"></i>
+                        <span class="truncate">{{ certificate.instructor_name }}</span>
+                    </div>
+                </div>
+
+                <!-- Actions: View + Download — requires certificate fee payment -->
+                <div class="flex gap-2 mb-3">
+                    {% if certificate.is_unlocked %}
+                    <a href="{% url 'students:certificate_print' certificate_id=certificate.certificate_id %}"
+                       target="_blank"
+                       class="flex-1 inline-flex items-center justify-center gap-1.5
+                              px-2.5 sm:px-3 py-2 sm:py-2.5 bg-primary-600 text-white rounded-lg
+                              hover:bg-primary-700 transition-colors font-medium text-xs sm:text-sm
+                              focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+                        <i class="fas fa-print text-xs" aria-hidden="true"></i>Print / PDF
+                    </a>
+                    {% else %}
+                    <a href="{% url 'students:my_payments' %}"
+                       class="flex-1 inline-flex items-center justify-center gap-1.5
+                              px-2.5 sm:px-3 py-2 sm:py-2.5 bg-red-500 text-white rounded-lg
+                              hover:bg-red-600 transition-colors font-medium text-xs sm:text-sm">
+                        <i class="fas fa-lock text-xs" aria-hidden="true"></i>Pay to Unlock
+                    </a>
+                    {% endif %}
+                </div>
+
+                <!-- Share row -->
+                <div class="pt-2.5 border-t border-gray-100 mt-auto">
+                    <p class="text-xs text-gray-400 mb-1.5">Share:</p>
+                    <div class="flex gap-1.5">
+                        <button onclick="shareToLinkedIn('{{ certificate.display_title|escapejs }}', '{{ certificate.certificate_id }}')"
+                                class="flex-1 inline-flex items-center justify-center gap-1
+                                       px-1.5 sm:px-2 py-1.5 bg-blue-50 text-blue-600 rounded
+                                       hover:bg-blue-100 transition-colors text-xs font-medium
+                                       focus:outline-none focus:ring-1 focus:ring-blue-400">
+                            <i class="fab fa-linkedin text-xs" aria-hidden="true"></i>
+                            <span class="hidden xs:inline">LinkedIn</span>
+                        </button>
+                        <button onclick="shareToTwitter('{{ certificate.course.title|escapejs }}')"
+                                class="flex-1 inline-flex items-center justify-center gap-1
+                                       px-1.5 sm:px-2 py-1.5 bg-blue-50 text-blue-600 rounded
+                                       hover:bg-blue-100 transition-colors text-xs font-medium
+                                       focus:outline-none focus:ring-1 focus:ring-blue-400">
+                            <i class="fab fa-twitter text-xs" aria-hidden="true"></i>
+                            <span class="hidden xs:inline">Twitter</span>
+                        </button>
+                        <button onclick="copyLink('{{ certificate.certificate_id }}')"
+                                class="flex-1 inline-flex items-center justify-center gap-1
+                                       px-1.5 sm:px-2 py-1.5 bg-gray-50 text-gray-600 rounded
+                                       hover:bg-gray-100 transition-colors text-xs font-medium
+                                       focus:outline-none focus:ring-1 focus:ring-gray-400">
+                            <i class="fas fa-link text-xs" aria-hidden="true"></i>
+                            <span class="hidden xs:inline">Link</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- Empty state -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-10 sm:p-16 mb-6 sm:mb-8">
+        <div class="text-center max-w-sm mx-auto">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-5">
+                <i class="fas fa-certificate text-yellow-500 text-2xl sm:text-3xl" aria-hidden="true"></i>
+            </div>
+            <h3 class="text-base sm:text-xl font-semibold text-gray-900 mb-2">No certificates yet</h3>
+            <p class="text-xs sm:text-sm text-gray-500 mb-4 sm:mb-5">Complete courses to earn certificates</p>
+            <div class="max-w-xs mx-auto mb-5">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+                    <p class="text-xs sm:text-sm text-blue-800 flex items-start gap-2">
+                        <i class="fas fa-lightbulb mt-0.5 flex-shrink-0" aria-hidden="true"></i>
+                        Keep learning! Complete your enrolled courses to earn your first certificate.
+                    </p>
+                </div>
+            </div>
+            <a href="{% url 'students:my_courses' %}"
+               class="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3
+                      bg-primary-600 text-white rounded-lg hover:bg-primary-700
+                      focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
+                      transition-colors font-semibold text-sm">
+                <i class="fas fa-book-open" aria-hidden="true"></i>
+                View My Courses
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- About Certificates info panel -->
+    <div class="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-4 sm:p-5 lg:p-6">
+        <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
+            About Certificates
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 lg:gap-5">
+
+            <div class="flex items-start gap-3">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-check text-white text-sm" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-900 text-xs sm:text-sm mb-0.5">Verified Certificates</h4>
+                    <p class="text-xs text-gray-500">Digitally verified and shareable with employers</p>
+                </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-share-alt text-white text-sm" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-900 text-xs sm:text-sm mb-0.5">Easy Sharing</h4>
+                    <p class="text-xs text-gray-500">Share on LinkedIn, add to resume, or download as PDF</p>
+                </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 bg-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-infinity text-white text-sm" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-900 text-xs sm:text-sm mb-0.5">Lifetime Access</h4>
+                    <p class="text-xs text-gray-500">Certificates never expire and are always accessible</p>
+                </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 bg-yellow-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-award text-white text-sm" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-900 text-xs sm:text-sm mb-0.5">Industry Recognition</h4>
+                    <p class="text-xs text-gray-500">Recognized by top companies and educational institutions</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

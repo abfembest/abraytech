@@ -1,0 +1,44 @@
+@import "../vendor/fonts/cinzel/cinzel.css";
+@import "../vendor/fonts/inter/inter.css";
+@import "../vendor/fonts/poppins/poppins.css";
+@import "../vendor/fonts/cormorant-garamond/cormorant-garamond.css";
+
+@import "tailwindcss";
+
+@source "../templates/students/certificate_print.html";
+
+@theme {
+  --font-cinzel: Cinzel, serif;
+  --font-cormorant: "Cormorant Garamond", Georgia, serif;
+  --font-poppins: Poppins, system-ui, sans-serif;
+  --font-inter: Inter, system-ui, sans-serif;
+
+  --color-gold-50: #fffdf0;
+  --color-gold-100: #fef9d7;
+  --color-gold-200: #fef0a0;
+  --color-gold-300: #fde165;
+  --color-gold-400: #f9c930;
+  --color-gold-500: #d4af37;
+  --color-gold-600: #b7962e;
+  --color-gold-700: #967a20;
+  --color-gold-800: #7a6010;
+  --color-gold-900: #5c470a;
+  --color-parchment: #fdf8ef;
+
+  --animate-fade-in: fadeIn 0.8s ease forwards;
+  --animate-slide-up: slideUp 0.6s ease forwards;
+  --animate-shimmer: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes shimmer {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}

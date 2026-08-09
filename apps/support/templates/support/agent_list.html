@@ -1,0 +1,51 @@
+{% extends "management/base.html" %}{% load static %}{% block title %}Support Agents{% endblock %}
+{% block breadcrumb %}Support › Config › Agents{% endblock %}
+{% block breadcrumb_title %}Support Agents{% endblock %}
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8 py-6 max-w-screen-xl mx-auto">
+    <div class="mb-6"><h1 class="text-2xl font-bold font-heading text-gray-900">Support Agents</h1><p class="text-sm text-gray-500 mt-1">Manage support team members and workloads</p></div>
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {% for agent in agents %}
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="w-12 h-12 rounded-full flex-shrink-0 relative overflow-hidden">
+                    {% if agent.profile.avatar %}
+                    <img src="{{ agent.profile.avatar.url }}" alt="{{ agent.get_full_name|default:agent.username }}" class="w-full h-full object-cover rounded-full">
+                    {% else %}
+                    <img src="https://ui-avatars.com/api/?name={{ agent.get_full_name|default:agent.username|urlencode }}&size=48&background=4a6bff&color=fff" alt="{{ agent.get_full_name|default:agent.username }}" class="w-full h-full object-cover rounded-full">
+                    {% endif %}
+                    <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white {% if agent.agent_profile.is_available %}bg-green-500{% else %}bg-gray-300{% endif %}" title="{% if agent.agent_profile.is_available %}Available{% else %}Unavailable{% endif %}"></span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="font-semibold text-gray-800 truncate">{{ agent.get_full_name|default:agent.username }}</p>
+                    <p class="text-xs text-gray-400 truncate">{{ agent.email }}</p>
+                    <span class="inline-flex items-center gap-1 text-xs {% if agent.profile.role == 'admin' %}text-purple-700 bg-purple-50{% else %}text-primary-700 bg-primary-50{% endif %} px-2 py-0.5 rounded-full font-medium mt-0.5">{{ agent.profile.get_role_display|default:'Staff' }}</span>
+                </div>
+            </div>
+            <dl class="space-y-2 text-sm border-t border-gray-50 pt-4">
+                <div class="flex justify-between"><dt class="text-gray-500">Status</dt><dd class="font-semibold {% if agent.agent_profile.is_available %}text-green-600{% else %}text-gray-400{% endif %}">{% if agent.agent_profile.is_available %}Available{% else %}Unavailable{% endif %}</dd></div>
+                <div class="flex justify-between"><dt class="text-gray-500">Open Tickets</dt><dd class="font-semibold text-gray-800">{{ agent.open_count }}</dd></div>
+                <div class="flex justify-between"><dt class="text-gray-500">Resolved Total</dt><dd class="font-semibold text-green-600">{{ agent.resolved_count }}</dd></div>
+                {% if agent.avg_csat %}
+                <div class="flex justify-between"><dt class="text-gray-500">CSAT</dt><dd class="font-semibold text-yellow-600"><i class="fas fa-star text-yellow-400 text-xs" aria-hidden="true"></i> {{ agent.avg_csat|floatformat:1 }}</dd></div>{% endif %}
+            </dl>
+            {% if permissions.support_config.can_edit %}
+            <div class="flex gap-2 mt-4">
+                <form method="post" action="{% url 'support:agent_toggle_available' agent.pk %}" class="flex-1">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full py-1.5 text-xs font-semibold rounded-lg transition-colors {% if agent.agent_profile.is_available %}bg-gray-100 text-gray-600 hover:bg-gray-200{% else %}bg-green-50 text-green-700 hover:bg-green-100{% endif %}">
+                        {% if agent.agent_profile.is_available %}Mark Unavailable{% else %}Mark Available{% endif %}
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+            <a href="{% url 'support:ticket_list' %}?assigned_to={{ agent.pk }}" class="mt-2 block text-center text-xs text-primary-600 hover:underline font-medium">View assigned tickets</a>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-12 text-center text-gray-400"><p>No support agents found.</p></div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>$(document).ready(function(){lucide.createIcons();});</script>{% endblock %}

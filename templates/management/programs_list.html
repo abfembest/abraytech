@@ -1,0 +1,315 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Programs - MIU Admin Portal{% endblock %}
+{% block meta_description %}Manage academic programs{% endblock %}
+
+{% block content %}
+<div class="max-w-full">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&larr; Back</button>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Programs</h1>
+      <p class="text-gray-500 mt-1">Manage all academic programs across departments</p>
+    </div>
+    {% if permissions.academics.can_create %}
+    <button type="button" id="newProgramBtn"
+            class="js-open-program-modal inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium shadow-sm">
+      <i class="fas fa-plus" aria-hidden="true"></i>New Program
+    </button>
+    {% endif %}
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 mb-6">
+    {% for stat in stats %}
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="text-2xl font-bold {{ stat.color }}">{{ stat.value }}</div>
+      <div class="text-sm text-gray-500">{{ stat.label }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div>
+        <select id="facultyFilterSelect" class="searchable-select w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" data-ss-placeholder="All Faculties">
+          <option value="">All Faculties</option>
+          {% for faculty in faculties %}
+          <option value="{{ faculty.name }}">{{ faculty.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <select id="levelFilterSelect" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          <option value="">All Levels</option>
+          <option value="Certificate">Certificate</option>
+          <option value="Diploma">Diploma</option>
+          <option value="Undergraduate">Undergraduate</option>
+          <option value="Postgraduate">Postgraduate</option>
+          <option value="Masters">Masters</option>
+          <option value="PhD">PhD</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="p-5 border-b border-gray-100">
+      <h2 class="font-semibold text-gray-800">
+        All Programs
+        <span class="text-sm font-normal text-gray-400 ml-1">({{ programs.count }} total)</span>
+      </h2>
+    </div>
+
+    <div class="overflow-x-auto p-5 pt-0">
+      <table id="programsDataTable" class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wide">
+          <tr>
+            <th class="py-3 px-5 text-left font-semibold">Program</th>
+            <th class="py-3 px-5 text-left font-semibold">Code</th>
+            <th class="py-3 px-5 text-left font-semibold">Department / Faculty</th>
+            <th class="py-3 px-5 text-left font-semibold">Level</th>
+            <th class="py-3 px-5 text-left font-semibold">Duration</th>
+            <th class="py-3 px-5 text-left font-semibold">Fee</th>
+            <th class="py-3 px-5 text-left font-semibold">Status</th>
+            <th class="py-3 px-5 text-left font-semibold">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for program in programs %}
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="py-4 px-5">
+              <div class="font-medium text-gray-800">{{ program.name }}</div>
+              {% if program.tagline %}
+              <div class="text-xs text-gray-400 mt-0.5">{{ program.tagline|truncatechars:50 }}</div>
+              {% endif %}
+            </td>
+            <td class="py-4 px-5">
+              <span class="font-mono text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">{{ program.code }}</span>
+            </td>
+            <td class="py-4 px-5">
+              <div class="text-gray-700">{{ program.department.name }}</div>
+              <div class="text-xs text-gray-400">{{ program.department.faculty.name }}</div>
+            </td>
+            <td class="py-4 px-5">
+              {% with level=program.degree_level %}
+              <span class="px-2 py-1 rounded-full text-xs font-medium
+                {% if level == 'phd' %}bg-purple-100 text-purple-700
+                {% elif level == 'masters' %}bg-indigo-100 text-indigo-700
+                {% elif level == 'postgraduate' %}bg-blue-100 text-blue-700
+                {% elif level == 'undergraduate' %}bg-green-100 text-green-700
+                {% elif level == 'diploma' %}bg-yellow-100 text-yellow-700
+                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                {{ program.get_degree_level_display }}
+              </span>
+              {% endwith %}
+            </td>
+            <td class="py-4 px-5 text-gray-600">{{ program.duration_years }} yrs</td>
+            <td class="py-4 px-5 text-gray-700">
+              {% if program.tuition_fee is not None %}&#8358;{{ program.tuition_fee|floatformat:0 }}/yr{% endif %}
+            </td>
+            <td class="py-4 px-5">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                {% if program.is_active %}
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                  <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Active
+                </span>
+                {% else %}
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">
+                  <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>Inactive
+                </span>
+                {% endif %}
+                {% if program.is_featured %}
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">
+                  <i class="fas fa-star text-[10px]" aria-hidden="true"></i>Featured
+                </span>
+                {% endif %}
+              </div>
+            </td>
+            <td class="py-4 px-5">
+              <div class="flex items-center gap-2">
+                <a href="{% url 'management:program_detail' program.pk %}"
+                   class="p-1.5 text-gray-500 hover:bg-gray-100 rounded transition-colors" title="View">
+                  <i class="fas fa-eye text-sm" aria-hidden="true"></i>
+                </a>
+                {% if permissions.academics.can_edit %}
+                <button type="button" onclick="programModal.openForEdit('{{ program.pk }}')"
+                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Edit">
+                  <i class="fas fa-edit text-sm" aria-hidden="true"></i>
+                </button>
+                {% endif %}
+                {% if permissions.academics.can_delete %}
+                <button type="button"
+                        onclick="confirmProgramDelete('{% url 'management:program_delete' program.pk %}', '{{ program.name|escapejs }}', {{ program.application_count }}, {{ program.intake_count }}, {{ program.student_count }})"
+                        class="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors" title="Delete">
+                  <i class="fas fa-trash-alt text-sm" aria-hidden="true"></i>
+                </button>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr class="empty-row">
+            <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if not programs %}
+    <div class="text-center py-6 border-t border-gray-100">
+      {% if permissions.academics.can_create %}
+      <button type="button" class="js-open-program-modal text-primary-600 hover:underline text-sm cursor-pointer bg-transparent border-none">
+        Add the first program
+      </button>
+      {% endif %}
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<form id="deleteForm" method="post" action="" style="display:none;">{% csrf_token %}</form>
+
+<!-- New Program modal -->
+<div id="programCreateModal" class="fixed inset-0 z-50 hidden items-stretch sm:items-center justify-center sm:p-3" style="background: rgba(15,23,42,.55);">
+  <div class="bg-white sm:rounded-xl shadow-2xl w-full sm:max-w-6xl h-full sm:h-auto sm:max-h-[97vh] flex flex-col">
+    <div class="px-4 sm:px-5 py-2.5 border-b border-gray-100 flex items-center justify-between shrink-0">
+      <h2 class="text-base font-semibold text-gray-800 font-display" id="programModalTitle">New Program</h2>
+      <button type="button" id="programModalCloseBtn" data-modal-close class="text-gray-400 hover:text-gray-600 p-1 -m-1" aria-label="Close">
+        <i class="fas fa-times text-lg" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="px-4 sm:px-5 py-3 overflow-y-auto overflow-x-hidden flex-1 min-h-0" id="programModalBody">
+      <form method="post" action="{% url 'management:program_create' %}" enctype="multipart/form-data" id="programModalForm">
+        {% csrf_token %}
+        {% include 'management/_program_form_fields.html' %}
+      </form>
+    </div>
+    <div class="px-4 sm:px-5 py-2.5 border-t border-gray-100 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 shrink-0">
+      <button type="button" id="programModalCancelBtn" data-modal-close
+              class="w-full sm:w-auto px-5 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-medium">
+        Cancel
+      </button>
+      <button type="submit" form="programModalForm" id="programModalSubmitBtn"
+              class="w-full sm:w-auto px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium shadow-sm disabled:opacity-60 disabled:cursor-not-allowed">
+        <i class="fas fa-save mr-1.5" aria-hidden="true"></i>
+        <span id="programModalSubmitLabel">Create Program</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/program_form_admin.js' %}"></script>
+<script>
+function confirmProgramDelete(url, name, applicationCount, intakeCount, studentCount) {
+  var impactLines = '';
+  if (applicationCount || intakeCount || studentCount) {
+    impactLines = '<ul class="text-left text-sm mt-3 mb-1 space-y-0.5">'
+      + (intakeCount ? '<li>' + intakeCount + ' intake(s) will be deleted</li>' : '')
+      + (applicationCount ? '<li>' + applicationCount + ' application(s) will be deleted</li>' : '')
+      + (studentCount ? '<li>' + studentCount + ' enrolled student record(s) will be affected</li>' : '')
+      + '</ul>';
+  }
+  confirmAdminDelete({
+    url: url,
+    title: 'Delete Program?',
+    html: 'Are you sure you want to delete <strong>' + name + '</strong>? This is permanent and cannot be undone.' + impactLines,
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  var programsTable;
+
+  try {
+    programsTable = $('#programsDataTable').DataTable({
+      pageLength: 10,
+      order: [[0, 'asc']],
+      columns: [
+        null, null, null, null, null, null, null,
+        { orderable: false, searchable: false }
+      ],
+      dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4"lf>rt<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-4 pt-4 border-t"ip>',
+      language: {
+        search: '_INPUT_',
+        searchPlaceholder: 'Search by name or code\u2026',
+        lengthMenu: 'Show _MENU_',
+        info: '_START_\u2013_END_ of _TOTAL_',
+        paginate: {
+          previous: '<i class="fas fa-chevron-left"></i>',
+          next: '<i class="fas fa-chevron-right"></i>'
+        },
+        emptyTable: 'No programs found'
+      },
+      initComplete: function () {
+        var api = this.api();
+        if (api.page.info().recordsTotal === 1) {
+          var firstRow = api.row(0).data();
+          if (firstRow && firstRow[0] === '') {
+            api.clear().draw();
+          }
+        }
+      }
+    });
+  } catch (e) {
+    programsTable = null;
+  }
+
+  if (programsTable) {
+    document.getElementById('facultyFilterSelect').addEventListener('change', function () {
+      programsTable.column(2).search(this.value, false, false).draw();
+    });
+    document.getElementById('levelFilterSelect').addEventListener('change', function () {
+      programsTable.column(3).search(this.value, false, false).draw();
+    });
+  }
+
+});
+
+var programModal = createAjaxModal({
+  modalId: 'programCreateModal',
+  bodyId: 'programModalBody',
+  formId: 'programModalForm',
+  titleId: 'programModalTitle',
+  submitBtnId: 'programModalSubmitBtn',
+  submitLabelId: 'programModalSubmitLabel',
+  fieldsPartialId: 'programFormFieldsPartial',
+  createUrl: '{% url "management:program_create" %}',
+  editUrlTemplate: '{% url "management:program_edit" 0 %}',
+  createTitle: 'New Program',
+  createLabel: 'Create Program',
+  editTitle: 'Edit Program',
+  editLabel: 'Save Changes',
+  onEnhance: function (root) { initProgramFormUI(root); },
+});
+
+document.querySelectorAll('.js-open-program-modal').forEach(function (trigger) {
+  trigger.addEventListener('click', function (e) {
+    e.preventDefault();
+    programModal.openForCreate();
+  });
+});
+
+// Deep link from program_detail.html's "Edit Program" action, which
+// navigates here with ?edit=<pk> since edit is a modal on this page now,
+// not its own URL.
+(function () {
+  var editPk = new URLSearchParams(window.location.search).get('edit');
+  if (editPk) {
+    programModal.openForEdit(editPk);
+    var url = new URL(window.location);
+    url.searchParams.delete('edit');
+    history.replaceState({}, '', url);
+  }
+})();
+</script>
+{% endblock %}

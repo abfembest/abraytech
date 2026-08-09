@@ -1,0 +1,102 @@
+{% extends 'management/base.html' %}
+{% block title %}Assignments - {{ lesson.title }}{% endblock %}
+
+{% block content %}
+<div class="px-2 sm:px-0">
+
+                <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
+
+
+    <!-- Breadcrumb -->
+    <nav class="flex mb-4 sm:mb-6 overflow-x-auto" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 whitespace-nowrap text-xs sm:text-sm">
+            <li><a href="{% url 'instructor:course_list' %}" class="text-gray-600 hover:text-primary-600"><i class="fas fa-book mr-1"></i>Courses</a></li>
+            <li><i class="fas fa-chevron-right text-gray-400 mx-1.5 text-xs"></i><a href="{% url 'instructor:lesson_list' course.slug %}" class="text-gray-600 hover:text-primary-600">{{ course.title }}</a></li>
+            <li><i class="fas fa-chevron-right text-gray-400 mx-1.5 text-xs"></i><span class="text-gray-500">{{ lesson.title }} - Assignments</span></li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="mb-6 sm:mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 font-display">Assignments</h1>
+                <p class="text-sm sm:text-base text-gray-600 mt-1">Manage assignments for {{ lesson.title }}</p>
+            </div>
+            <a href="{% url 'instructor:assignment_create' course.slug lesson.slug %}"
+               class="inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 shadow-sm hover:shadow-md transition-all whitespace-nowrap">
+                <i class="fas fa-plus-circle mr-2"></i> Create Assignment
+            </a>
+        </div>
+    </div>
+
+    {% if assignments %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+        {% for assignment in assignments %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
+            <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-4 sm:p-6 border-b border-blue-200">
+                <div class="flex items-start justify-between gap-2">
+                    <h3 class="font-bold text-gray-900 text-base sm:text-lg leading-tight">{{ assignment.title }}</h3>
+                    <span class="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {% if assignment.is_active %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {% if assignment.is_active %}Active{% else %}Inactive{% endif %}
+                    </span>
+                </div>
+                {% if assignment.description %}
+                <p class="text-gray-600 text-xs sm:text-sm mt-1.5 line-clamp-2">{{ assignment.description|truncatewords:20 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="p-4 sm:p-6 flex flex-col flex-1">
+                <div class="grid grid-cols-2 gap-3 mb-3 sm:mb-4">
+                    <div>
+                        <p class="text-xs text-gray-600">Max Score</p>
+                        <p class="text-lg font-bold text-gray-900">{{ assignment.max_score }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-600">Passing Score</p>
+                        <p class="text-lg font-bold text-gray-900">{{ assignment.passing_score }}</p>
+                    </div>
+                    <div class="col-span-2">
+                        <p class="text-xs text-gray-600">Due Date</p>
+                        <p class="text-xs sm:text-sm font-semibold text-gray-900">{{ assignment.due_date|date:"M d, Y H:i" }}</p>
+                        {% if assignment.is_overdue %}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-red-100 text-red-800 mt-1">
+                            <i class="fas fa-exclamation-circle mr-1"></i> Overdue
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-1.5 sm:gap-2 mt-auto">
+                    <a href="{% url 'instructor:assignment_edit' course.slug lesson.slug assignment.slug %}"
+                       class="flex-1 px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 text-center rounded-lg hover:bg-gray-200 transition-colors text-xs sm:text-sm font-medium">
+                        <i class="fas fa-edit mr-1"></i> Edit
+                    </a>
+                    <a href="{% url 'instructor:assignment_submissions' course.slug assignment.slug %}"
+                       class="flex-1 px-3 sm:px-4 py-2 bg-primary-50 text-primary-700 text-center rounded-lg hover:bg-primary-100 transition-colors text-xs sm:text-sm font-medium">
+                        <i class="fas fa-clipboard-check mr-1"></i> Submissions
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 sm:p-12 text-center">
+        <div class="max-w-md mx-auto">
+            <div class="w-16 h-16 sm:w-24 sm:h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                <i class="fas fa-clipboard-check text-3xl sm:text-5xl text-blue-500"></i>
+            </div>
+            <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">No Assignments Yet</h3>
+            <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">Create assignments to test student understanding</p>
+            <a href="{% url 'instructor:assignment_create' course.slug lesson.slug %}"
+               class="inline-flex items-center px-5 sm:px-6 py-2.5 sm:py-3 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 shadow-sm hover:shadow-md transition-all">
+                <i class="fas fa-plus-circle mr-2"></i> Create First Assignment
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

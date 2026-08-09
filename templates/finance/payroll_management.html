@@ -1,0 +1,497 @@
+{% extends 'management/base.html' %}
+{% load static humanize %}
+
+{% block title %}Payroll Management | Finance Portal{% endblock %}
+{% block breadcrumb %}Finance › Payroll{% endblock %}
+{% block breadcrumb_title %}Payroll Management{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  {# ── Page Header ── #}
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Payroll Management</h1>
+      <p class="text-sm text-gray-500 mt-1">Manage staff salary records and disbursements</p>
+    </div>
+    {% if permissions.finance_payroll.can_create %}
+    <button onclick="openCreateModal()"
+            aria-label="Create new payroll record"
+            class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white
+                   text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors
+                   shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500
+                   focus:ring-offset-2">
+      <i class="fas fa-plus" aria-hidden="true"></i>
+      Create Payroll
+    </button>
+    {% endif %}
+  </div>
+
+  {# ── Django messages ── #}
+  {% if messages %}
+  <div class="space-y-2" role="alert" aria-live="polite">
+    {% for msg in messages %}
+    <div class="flex items-center gap-2 px-4 py-3 rounded-lg text-sm
+                {% if msg.tags == 'success' %}bg-green-50 border border-green-200 text-green-800
+                {% elif msg.tags == 'error' %}bg-red-50 border border-red-200 text-red-800
+                {% else %}bg-blue-50 border border-blue-200 text-blue-800{% endif %}">
+      <i class="fas {% if msg.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"
+         aria-hidden="true"></i>
+      {{ msg }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# ── Summary Cards ── #}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-6">
+
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Gross</p>
+      <p class="mt-1 text-2xl font-bold text-gray-900">
+        ${{ total_amount|default:0|floatformat:2|intcomma }}
+      </p>
+      <p class="text-xs text-gray-400 mt-1">All payroll periods</p>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Net</p>
+      <p class="mt-1 text-2xl font-bold text-green-600">
+        ${{ paid_amount|default:0|floatformat:2|intcomma }}
+      </p>
+      <p class="text-xs text-gray-400 mt-1">After all deductions</p>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Deductions</p>
+      <p class="mt-1 text-2xl font-bold text-red-500">
+        ${{ total_deductions|default:0|floatformat:2|intcomma }}
+      </p>
+      <p class="text-xs text-gray-400 mt-1">Tax &amp; other</p>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Records</p>
+      <p class="mt-1 text-2xl font-bold text-gray-900">{{ total_payrolls|default:0|intcomma }}</p>
+      <p class="text-xs text-gray-400 mt-1">Total payroll entries</p>
+    </div>
+
+  </div>
+
+  {# ── Payroll Table ── #}
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+      <i class="fas fa-table text-gray-400" aria-hidden="true"></i>
+      <h2 class="text-base font-semibold text-gray-800">Payroll Records</h2>
+    </div>
+    <div class="p-4 overflow-x-auto">
+      <table id="payrollTable" class="w-full text-sm" aria-label="Payroll records">
+        <thead>
+          <tr class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-100">
+            <th class="pb-3 pr-4 min-w-[160px]">Staff</th>
+            <th class="pb-3 pr-4 min-w-[110px]">Period</th>
+            <th class="pb-3 pr-4 min-w-[130px]">Reference</th>
+            <th class="pb-3 pr-4 text-right min-w-[100px]">Gross</th>
+            <th class="pb-3 pr-4 text-right min-w-[110px]">Deductions</th>
+            <th class="pb-3 pr-4 text-right min-w-[100px]">Net</th>
+            <th class="pb-3 pr-4 min-w-[120px]">Method</th>
+            <th class="pb-3 pr-4 min-w-[100px]">Status</th>
+            <th class="pb-3 min-w-[70px]">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          {% for payroll in payrolls %}
+          <tr class="hover:bg-gray-50 transition-colors">
+
+            <td class="py-3 pr-4">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-primary-100 text-primary-700
+                            font-bold text-xs flex items-center justify-center
+                            flex-shrink-0 uppercase select-none" aria-hidden="true">
+                  {{ payroll.staff.first_name|slice:":1"|default:payroll.staff.username|slice:":1" }}{{ payroll.staff.last_name|slice:":1"|default:"" }}
+                </div>
+                <div class="min-w-0">
+                  <p class="font-medium text-gray-900 truncate max-w-[160px]">
+                    {{ payroll.staff.get_full_name|default:payroll.staff.username }}
+                  </p>
+                  <p class="text-xs text-gray-400 capitalize">
+                    {{ payroll.staff.profile.get_role_display|default:"Staff" }}
+                  </p>
+                </div>
+              </div>
+            </td>
+
+            <td class="py-3 pr-4 whitespace-nowrap text-gray-700">
+              {{ payroll.get_month_name }} {{ payroll.year }}
+            </td>
+
+            <td class="py-3 pr-4">
+              <span class="font-mono text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                {{ payroll.payroll_reference }}
+              </span>
+            </td>
+
+            <td class="py-3 pr-4 text-right font-semibold text-gray-800 whitespace-nowrap">
+              ${{ payroll.gross_salary|floatformat:2|intcomma }}
+            </td>
+
+            <td class="py-3 pr-4 text-right whitespace-nowrap text-red-600 font-medium">
+              ${{ payroll.tax_deduction|floatformat:2|intcomma }}
+              {% if payroll.other_deductions > 0 %}
+              <p class="text-xs text-gray-400 font-normal">
+                +${{ payroll.other_deductions|floatformat:2|intcomma }} other
+              </p>
+              {% endif %}
+            </td>
+
+            <td class="py-3 pr-4 text-right font-bold text-green-600 whitespace-nowrap">
+              ${{ payroll.net_salary|floatformat:2|intcomma }}
+            </td>
+
+            <td class="py-3 pr-4 whitespace-nowrap text-xs text-gray-600">
+              {{ payroll.get_payment_method_display }}
+            </td>
+
+            <td class="py-3 pr-4 whitespace-nowrap">
+              {% if payroll.payment_status == 'paid' %}
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                  <span class="w-1.5 h-1.5 rounded-full bg-green-500" aria-hidden="true"></span>Paid
+                </span>
+              {% elif payroll.payment_status == 'processing' %}
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
+                  <span class="w-1.5 h-1.5 rounded-full bg-blue-500" aria-hidden="true"></span>Processing
+                </span>
+              {% elif payroll.payment_status == 'pending' %}
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500" aria-hidden="true"></span>Pending
+                </span>
+              {% elif payroll.payment_status == 'failed' %}
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                  <span class="w-1.5 h-1.5 rounded-full bg-red-500" aria-hidden="true"></span>Failed
+                </span>
+              {% else %}
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+                  <span class="w-1.5 h-1.5 rounded-full bg-gray-400" aria-hidden="true"></span>{{ payroll.get_payment_status_display }}
+                </span>
+              {% endif %}
+            </td>
+
+            <td class="py-3">
+              <a href="{% url 'finance:payroll_detail' payroll.payroll_reference %}"
+                 class="inline-flex items-center gap-1 text-xs font-medium text-primary-600
+                        hover:text-primary-800 transition-colors"
+                 aria-label="View payroll {{ payroll.payroll_reference }}">
+                <i class="fas fa-eye text-xs" aria-hidden="true"></i>
+                Details
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+
+{# ══ CREATE PAYROLL MODAL ══ #}
+<div id="createModal"
+     role="dialog" aria-modal="true" aria-labelledby="createModalTitle"
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 hidden p-4">
+  <div class="bg-white rounded-2xl w-full max-w-3xl xl:max-w-4xl max-h-[90vh]
+              overflow-y-auto shadow-2xl">
+
+    <div class="sticky top-0 bg-white border-b border-gray-100 px-6 py-4
+                flex justify-between items-center z-10 rounded-t-2xl">
+      <h2 id="createModalTitle" class="text-xl font-bold text-gray-900">
+        <i class="fas fa-plus-circle text-primary-500 mr-2" aria-hidden="true"></i>
+        Create Payroll
+      </h2>
+      <button onclick="closeCreateModal()" aria-label="Close dialog"
+              class="text-gray-400 hover:text-gray-600 p-1 rounded-lg
+                     hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300">
+        <i class="fas fa-times text-lg" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="p-6 space-y-6">
+      {% csrf_token %}
+
+      {# Staff & Period #}
+      <div>
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+          Staff &amp; Period
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+           <div class="sm:col-span-2 lg:col-span-1">
+            <label for="{{ form.staff.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1.5">
+              Staff Member <span class="text-red-500" aria-hidden="true">*</span>
+            </label>
+            {{ form.staff }}
+          </div>
+
+          {# Month #}
+          <div>
+            <label for="{{ form.month.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1.5">
+              Month <span class="text-red-500" aria-hidden="true">*</span>
+            </label>
+            {{ form.month }}
+          </div>
+
+          {# Year #}
+          <div>
+            <label for="{{ form.year.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1.5">
+              Year <span class="text-red-500" aria-hidden="true">*</span>
+            </label>
+            {{ form.year }}
+          </div>
+
+        </div>
+      </div>
+
+      {# Salary #}
+      <div class="border-t border-gray-100 pt-5">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+          Salary Breakdown
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {% for label, field, help in salary_fields %}
+          <div>
+            <label for="{{ field.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1.5">{{ label }}</label>
+            {{ field }}
+            {% if help %}<p class="text-xs text-gray-400 mt-1">{{ help }}</p>{% endif %}
+          </div>
+          {% empty %}
+          {# Fallback direct rendering #}
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">
+              Base Salary <span class="text-red-500">*</span></label>
+            {{ form.base_salary }}
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Allowances</label>
+            {{ form.allowances }}
+            <p class="text-xs text-gray-400 mt-1">Housing, transport, etc.</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Bonuses</label>
+            {{ form.bonuses }}
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Tax Deduction</label>
+            {{ form.tax_deduction }}
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Other Deductions</label>
+            {{ form.other_deductions }}
+            <p class="text-xs text-gray-400 mt-1">Insurance, loans, etc.</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      {# Payment details #}
+      <div class="border-t border-gray-100 pt-5">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+          Payment Details
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+          {# Payment method #}
+          <div>
+            <label for="{{ form.payment_method.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1.5">
+              Payment Method
+            </label>
+            {{ form.payment_method }}
+          </div>
+
+          <div>
+            <label for="{{ form.bank_name.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1.5">Bank Name</label>
+            {{ form.bank_name }}
+          </div>
+          <div>
+            <label for="{{ form.account_number.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700 mb-1.5">Account Number</label>
+            {{ form.account_number }}
+          </div>
+        </div>
+      </div>
+
+      {# Attachments #}
+      <div class="border-t border-gray-100 pt-5">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+          Attachments
+          <span class="text-gray-400 font-normal normal-case">(optional, max 5)</span>
+        </p>
+        <div class="space-y-3">
+          {% for n in "12345" %}
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-gray-50 rounded-lg
+                      border border-gray-100">
+            <div>
+              <label class="block text-xs font-medium text-gray-500 mb-1">
+                File {{ n }}
+              </label>
+              {# Django renders attachment_file_N widgets #}
+              {% if n == "1" %}{{ form.attachment_1 }}
+              {% elif n == "2" %}{{ form.attachment_2 }}
+              {% elif n == "3" %}{{ form.attachment_3 }}
+              {% elif n == "4" %}{{ form.attachment_4 }}
+              {% elif n == "5" %}{{ form.attachment_5 }}
+              {% endif %}
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-500 mb-1">
+                Label {{ n }}
+              </label>
+              {% if n == "1" %}{{ form.attachment_1_name }}
+              {% elif n == "2" %}{{ form.attachment_2_name }}
+              {% elif n == "3" %}{{ form.attachment_3_name }}
+              {% elif n == "4" %}{{ form.attachment_4_name }}
+              {% elif n == "5" %}{{ form.attachment_5_name }}
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      {# Notes #}
+      <div class="border-t border-gray-100 pt-5">
+        <label for="{{ form.notes.id_for_label }}"
+               class="block text-sm font-medium text-gray-700 mb-1.5">Notes</label>
+        {{ form.notes }}
+      </div>
+
+      {# Errors #}
+      {% if form.errors %}
+      <div role="alert"
+           class="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
+        <p class="font-semibold mb-1">Please fix the following:</p>
+        {% for field, errors in form.errors.items %}
+          {% for err in errors %}
+          <p>• {{ field|capfirst }}: {{ err }}</p>
+          {% endfor %}
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {# Submit #}
+      <div class="flex flex-col sm:flex-row justify-end gap-3 border-t border-gray-100 pt-5">
+        <button type="button" onclick="closeCreateModal()"
+                class="px-5 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium
+                       rounded-lg hover:bg-gray-50 transition-colors focus:outline-none
+                       focus:ring-2 focus:ring-gray-300">
+          Cancel
+        </button>
+        <button type="submit"
+                class="px-5 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg
+                       hover:bg-primary-700 shadow-sm transition-colors focus:outline-none
+                       focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
+                       inline-flex items-center gap-2">
+          <i class="fas fa-save" aria-hidden="true"></i>
+          Create Payroll
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+{# jQuery and DataTables core are already loaded by management/base.html #}
+
+<style>
+/* Minimal DataTables + Tailwind glue */
+#payrollTable_wrapper .dataTables_filter input {
+  padding: .5rem .75rem;
+  border: 1px solid #d1d5db;
+  border-radius: .5rem;
+  font-size: .875rem;
+  margin-left: .5rem;
+  outline: none;
+}
+#payrollTable_wrapper .dataTables_filter input:focus {
+  border-color: var(--color-primary-500, #6366f1);
+  box-shadow: 0 0 0 2px rgba(99,102,241,.25);
+}
+#payrollTable_wrapper .dataTables_length select {
+  padding: .375rem .5rem;
+  border: 1px solid #d1d5db;
+  border-radius: .5rem;
+  font-size: .875rem;
+  margin: 0 .25rem;
+  outline: none;
+}
+#payrollTable_wrapper .dataTables_info,
+#payrollTable_wrapper .dataTables_paginate {
+  font-size: .875rem;
+  color: #6b7280;
+  margin-top: .75rem;
+}
+.paginate_button {
+  padding: .25rem .625rem;
+  border: 1px solid #e5e7eb;
+  border-radius: .375rem;
+  margin: 0 .125rem;
+  cursor: pointer;
+  display: inline-block;
+}
+.paginate_button.current,
+.paginate_button:hover {
+  background: #4f46e5;
+  color: #fff !important;
+  border-color: #4f46e5;
+}
+.paginate_button.disabled { opacity: .4; cursor: default; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  /* DataTables */
+  $('#payrollTable').DataTable({
+    order: [[1, 'desc']],
+    pageLength: 25,
+    language: {
+      search: '',
+      searchPlaceholder: 'Search staff, period, ref…',
+      lengthMenu: 'Show _MENU_ entries',
+      info: 'Showing _START_–_END_ of _TOTAL_',
+      emptyTable: 'No payroll records.',
+      zeroRecords: 'No matching records.',
+    },
+    columnDefs: [{ orderable: false, targets: [8] }],
+  });
+
+  /* Re-open modal if Django returned form errors */
+  {% if form.errors %}openCreateModal();{% endif %}
+
+});
+
+function openCreateModal() {
+  document.getElementById('createModal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+function closeCreateModal() {
+  document.getElementById('createModal').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCreateModal(); });
+document.getElementById('createModal')?.addEventListener('click', function (e) {
+  if (e.target === this) closeCreateModal();
+});
+
+const staffOptions = [...document.querySelectorAll('#staff_list option')];
+  document.getElementById('staff_input')?.addEventListener('change', function () {
+    const val = this.value.trim().toLowerCase();
+    const match = staffOptions.find(o => o.value.toLowerCase() === val);
+    const sel = document.getElementById('id_staff');
+    if (match && sel) sel.value = match.dataset.id;
+  });
+</script>
+
+{% endblock %}

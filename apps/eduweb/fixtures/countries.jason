@@ -1,0 +1,2243 @@
+[
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 1,
+    "fields": {
+      "country": "Afghanistan",
+      "country_code": "AF",
+      "country_phonecode": "+93"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 2,
+    "fields": {
+      "country": "Albania",
+      "country_code": "AL",
+      "country_phonecode": "+355"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 3,
+    "fields": {
+      "country": "Algeria",
+      "country_code": "DZ",
+      "country_phonecode": "+213"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 4,
+    "fields": {
+      "country": "American Samoa",
+      "country_code": "AS",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 5,
+    "fields": {
+      "country": "Andorra",
+      "country_code": "AD",
+      "country_phonecode": "+376"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 6,
+    "fields": {
+      "country": "Angola",
+      "country_code": "AO",
+      "country_phonecode": "+244"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 7,
+    "fields": {
+      "country": "Anguilla",
+      "country_code": "AI",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 8,
+    "fields": {
+      "country": "Antarctica",
+      "country_code": "AQ",
+      "country_phonecode": ""
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 9,
+    "fields": {
+      "country": "Antigua and Barbuda",
+      "country_code": "AG",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 10,
+    "fields": {
+      "country": "Argentina",
+      "country_code": "AR",
+      "country_phonecode": "+54"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 11,
+    "fields": {
+      "country": "Armenia",
+      "country_code": "AM",
+      "country_phonecode": "+374"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 12,
+    "fields": {
+      "country": "Aruba",
+      "country_code": "AW",
+      "country_phonecode": "+297"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 13,
+    "fields": {
+      "country": "Australia",
+      "country_code": "AU",
+      "country_phonecode": "+61"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 14,
+    "fields": {
+      "country": "Austria",
+      "country_code": "AT",
+      "country_phonecode": "+43"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 15,
+    "fields": {
+      "country": "Azerbaijan",
+      "country_code": "AZ",
+      "country_phonecode": "+994"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 16,
+    "fields": {
+      "country": "Bahamas",
+      "country_code": "BS",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 17,
+    "fields": {
+      "country": "Bahrain",
+      "country_code": "BH",
+      "country_phonecode": "+973"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 18,
+    "fields": {
+      "country": "Bangladesh",
+      "country_code": "BD",
+      "country_phonecode": "+880"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 19,
+    "fields": {
+      "country": "Barbados",
+      "country_code": "BB",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 20,
+    "fields": {
+      "country": "Belarus",
+      "country_code": "BY",
+      "country_phonecode": "+375"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 21,
+    "fields": {
+      "country": "Belgium",
+      "country_code": "BE",
+      "country_phonecode": "+32"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 22,
+    "fields": {
+      "country": "Belize",
+      "country_code": "BZ",
+      "country_phonecode": "+501"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 23,
+    "fields": {
+      "country": "Benin",
+      "country_code": "BJ",
+      "country_phonecode": "+229"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 24,
+    "fields": {
+      "country": "Bermuda",
+      "country_code": "BM",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 25,
+    "fields": {
+      "country": "Bhutan",
+      "country_code": "BT",
+      "country_phonecode": "+975"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 26,
+    "fields": {
+      "country": "Bolivia, Plurinational State of",
+      "country_code": "BO",
+      "country_phonecode": "+591"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 27,
+    "fields": {
+      "country": "Bonaire, Sint Eustatius and Saba",
+      "country_code": "BQ",
+      "country_phonecode": "+599"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 28,
+    "fields": {
+      "country": "Bosnia and Herzegovina",
+      "country_code": "BA",
+      "country_phonecode": "+387"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 29,
+    "fields": {
+      "country": "Botswana",
+      "country_code": "BW",
+      "country_phonecode": "+267"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 30,
+    "fields": {
+      "country": "Bouvet Island",
+      "country_code": "BV",
+      "country_phonecode": ""
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 31,
+    "fields": {
+      "country": "Brazil",
+      "country_code": "BR",
+      "country_phonecode": "+55"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 32,
+    "fields": {
+      "country": "British Indian Ocean Territory",
+      "country_code": "IO",
+      "country_phonecode": "+246"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 33,
+    "fields": {
+      "country": "Brunei Darussalam",
+      "country_code": "BN",
+      "country_phonecode": "+673"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 34,
+    "fields": {
+      "country": "Bulgaria",
+      "country_code": "BG",
+      "country_phonecode": "+359"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 35,
+    "fields": {
+      "country": "Burkina Faso",
+      "country_code": "BF",
+      "country_phonecode": "+226"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 36,
+    "fields": {
+      "country": "Burundi",
+      "country_code": "BI",
+      "country_phonecode": "+257"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 37,
+    "fields": {
+      "country": "Cabo Verde",
+      "country_code": "CV",
+      "country_phonecode": "+238"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 38,
+    "fields": {
+      "country": "Cambodia",
+      "country_code": "KH",
+      "country_phonecode": "+855"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 39,
+    "fields": {
+      "country": "Cameroon",
+      "country_code": "CM",
+      "country_phonecode": "+237"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 40,
+    "fields": {
+      "country": "Canada",
+      "country_code": "CA",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 41,
+    "fields": {
+      "country": "Cayman Islands",
+      "country_code": "KY",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 42,
+    "fields": {
+      "country": "Central African Republic",
+      "country_code": "CF",
+      "country_phonecode": "+236"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 43,
+    "fields": {
+      "country": "Chad",
+      "country_code": "TD",
+      "country_phonecode": "+235"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 44,
+    "fields": {
+      "country": "Chile",
+      "country_code": "CL",
+      "country_phonecode": "+56"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 45,
+    "fields": {
+      "country": "China",
+      "country_code": "CN",
+      "country_phonecode": "+86"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 46,
+    "fields": {
+      "country": "Christmas Island",
+      "country_code": "CX",
+      "country_phonecode": "+61"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 47,
+    "fields": {
+      "country": "Cocos (Keeling) Islands",
+      "country_code": "CC",
+      "country_phonecode": "+61"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 48,
+    "fields": {
+      "country": "Colombia",
+      "country_code": "CO",
+      "country_phonecode": "+57"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 49,
+    "fields": {
+      "country": "Comoros",
+      "country_code": "KM",
+      "country_phonecode": "+269"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 50,
+    "fields": {
+      "country": "Congo",
+      "country_code": "CG",
+      "country_phonecode": "+242"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 51,
+    "fields": {
+      "country": "Congo, The Democratic Republic of the",
+      "country_code": "CD",
+      "country_phonecode": "+243"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 52,
+    "fields": {
+      "country": "Cook Islands",
+      "country_code": "CK",
+      "country_phonecode": "+682"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 53,
+    "fields": {
+      "country": "Costa Rica",
+      "country_code": "CR",
+      "country_phonecode": "+506"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 54,
+    "fields": {
+      "country": "Croatia",
+      "country_code": "HR",
+      "country_phonecode": "+385"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 55,
+    "fields": {
+      "country": "Cuba",
+      "country_code": "CU",
+      "country_phonecode": "+53"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 56,
+    "fields": {
+      "country": "Curaçao",
+      "country_code": "CW",
+      "country_phonecode": "+599"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 57,
+    "fields": {
+      "country": "Cyprus",
+      "country_code": "CY",
+      "country_phonecode": "+357"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 58,
+    "fields": {
+      "country": "Czechia",
+      "country_code": "CZ",
+      "country_phonecode": "+420"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 59,
+    "fields": {
+      "country": "Côte d'Ivoire",
+      "country_code": "CI",
+      "country_phonecode": "+225"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 60,
+    "fields": {
+      "country": "Denmark",
+      "country_code": "DK",
+      "country_phonecode": "+45"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 61,
+    "fields": {
+      "country": "Djibouti",
+      "country_code": "DJ",
+      "country_phonecode": "+253"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 62,
+    "fields": {
+      "country": "Dominica",
+      "country_code": "DM",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 63,
+    "fields": {
+      "country": "Dominican Republic",
+      "country_code": "DO",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 64,
+    "fields": {
+      "country": "Ecuador",
+      "country_code": "EC",
+      "country_phonecode": "+593"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 65,
+    "fields": {
+      "country": "Egypt",
+      "country_code": "EG",
+      "country_phonecode": "+20"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 66,
+    "fields": {
+      "country": "El Salvador",
+      "country_code": "SV",
+      "country_phonecode": "+503"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 67,
+    "fields": {
+      "country": "Equatorial Guinea",
+      "country_code": "GQ",
+      "country_phonecode": "+240"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 68,
+    "fields": {
+      "country": "Eritrea",
+      "country_code": "ER",
+      "country_phonecode": "+291"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 69,
+    "fields": {
+      "country": "Estonia",
+      "country_code": "EE",
+      "country_phonecode": "+372"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 70,
+    "fields": {
+      "country": "Eswatini",
+      "country_code": "SZ",
+      "country_phonecode": "+268"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 71,
+    "fields": {
+      "country": "Ethiopia",
+      "country_code": "ET",
+      "country_phonecode": "+251"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 72,
+    "fields": {
+      "country": "Falkland Islands (Malvinas)",
+      "country_code": "FK",
+      "country_phonecode": "+500"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 73,
+    "fields": {
+      "country": "Faroe Islands",
+      "country_code": "FO",
+      "country_phonecode": "+298"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 74,
+    "fields": {
+      "country": "Fiji",
+      "country_code": "FJ",
+      "country_phonecode": "+679"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 75,
+    "fields": {
+      "country": "Finland",
+      "country_code": "FI",
+      "country_phonecode": "+358"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 76,
+    "fields": {
+      "country": "France",
+      "country_code": "FR",
+      "country_phonecode": "+33"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 77,
+    "fields": {
+      "country": "French Guiana",
+      "country_code": "GF",
+      "country_phonecode": "+594"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 78,
+    "fields": {
+      "country": "French Polynesia",
+      "country_code": "PF",
+      "country_phonecode": "+689"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 79,
+    "fields": {
+      "country": "French Southern Territories",
+      "country_code": "TF",
+      "country_phonecode": ""
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 80,
+    "fields": {
+      "country": "Gabon",
+      "country_code": "GA",
+      "country_phonecode": "+241"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 81,
+    "fields": {
+      "country": "Gambia",
+      "country_code": "GM",
+      "country_phonecode": "+220"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 82,
+    "fields": {
+      "country": "Georgia",
+      "country_code": "GE",
+      "country_phonecode": "+995"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 83,
+    "fields": {
+      "country": "Germany",
+      "country_code": "DE",
+      "country_phonecode": "+49"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 84,
+    "fields": {
+      "country": "Ghana",
+      "country_code": "GH",
+      "country_phonecode": "+233"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 85,
+    "fields": {
+      "country": "Gibraltar",
+      "country_code": "GI",
+      "country_phonecode": "+350"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 86,
+    "fields": {
+      "country": "Greece",
+      "country_code": "GR",
+      "country_phonecode": "+30"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 87,
+    "fields": {
+      "country": "Greenland",
+      "country_code": "GL",
+      "country_phonecode": "+299"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 88,
+    "fields": {
+      "country": "Grenada",
+      "country_code": "GD",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 89,
+    "fields": {
+      "country": "Guadeloupe",
+      "country_code": "GP",
+      "country_phonecode": "+590"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 90,
+    "fields": {
+      "country": "Guam",
+      "country_code": "GU",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 91,
+    "fields": {
+      "country": "Guatemala",
+      "country_code": "GT",
+      "country_phonecode": "+502"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 92,
+    "fields": {
+      "country": "Guernsey",
+      "country_code": "GG",
+      "country_phonecode": "+44"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 93,
+    "fields": {
+      "country": "Guinea",
+      "country_code": "GN",
+      "country_phonecode": "+224"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 94,
+    "fields": {
+      "country": "Guinea-Bissau",
+      "country_code": "GW",
+      "country_phonecode": "+245"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 95,
+    "fields": {
+      "country": "Guyana",
+      "country_code": "GY",
+      "country_phonecode": "+592"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 96,
+    "fields": {
+      "country": "Haiti",
+      "country_code": "HT",
+      "country_phonecode": "+509"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 97,
+    "fields": {
+      "country": "Heard Island and McDonald Islands",
+      "country_code": "HM",
+      "country_phonecode": ""
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 98,
+    "fields": {
+      "country": "Holy See (Vatican City State)",
+      "country_code": "VA",
+      "country_phonecode": "+39"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 99,
+    "fields": {
+      "country": "Honduras",
+      "country_code": "HN",
+      "country_phonecode": "+504"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 100,
+    "fields": {
+      "country": "Hong Kong",
+      "country_code": "HK",
+      "country_phonecode": "+852"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 101,
+    "fields": {
+      "country": "Hungary",
+      "country_code": "HU",
+      "country_phonecode": "+36"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 102,
+    "fields": {
+      "country": "Iceland",
+      "country_code": "IS",
+      "country_phonecode": "+354"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 103,
+    "fields": {
+      "country": "India",
+      "country_code": "IN",
+      "country_phonecode": "+91"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 104,
+    "fields": {
+      "country": "Indonesia",
+      "country_code": "ID",
+      "country_phonecode": "+62"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 105,
+    "fields": {
+      "country": "Iran, Islamic Republic of",
+      "country_code": "IR",
+      "country_phonecode": "+98"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 106,
+    "fields": {
+      "country": "Iraq",
+      "country_code": "IQ",
+      "country_phonecode": "+964"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 107,
+    "fields": {
+      "country": "Ireland",
+      "country_code": "IE",
+      "country_phonecode": "+353"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 108,
+    "fields": {
+      "country": "Isle of Man",
+      "country_code": "IM",
+      "country_phonecode": "+44"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 109,
+    "fields": {
+      "country": "Israel",
+      "country_code": "IL",
+      "country_phonecode": "+972"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 110,
+    "fields": {
+      "country": "Italy",
+      "country_code": "IT",
+      "country_phonecode": "+39"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 111,
+    "fields": {
+      "country": "Jamaica",
+      "country_code": "JM",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 112,
+    "fields": {
+      "country": "Japan",
+      "country_code": "JP",
+      "country_phonecode": "+81"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 113,
+    "fields": {
+      "country": "Jersey",
+      "country_code": "JE",
+      "country_phonecode": "+44"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 114,
+    "fields": {
+      "country": "Jordan",
+      "country_code": "JO",
+      "country_phonecode": "+962"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 115,
+    "fields": {
+      "country": "Kazakhstan",
+      "country_code": "KZ",
+      "country_phonecode": "+7"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 116,
+    "fields": {
+      "country": "Kenya",
+      "country_code": "KE",
+      "country_phonecode": "+254"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 117,
+    "fields": {
+      "country": "Kiribati",
+      "country_code": "KI",
+      "country_phonecode": "+686"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 118,
+    "fields": {
+      "country": "Korea, Democratic People's Republic of",
+      "country_code": "KP",
+      "country_phonecode": "+850"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 119,
+    "fields": {
+      "country": "Korea, Republic of",
+      "country_code": "KR",
+      "country_phonecode": "+82"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 120,
+    "fields": {
+      "country": "Kuwait",
+      "country_code": "KW",
+      "country_phonecode": "+965"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 121,
+    "fields": {
+      "country": "Kyrgyzstan",
+      "country_code": "KG",
+      "country_phonecode": "+996"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 122,
+    "fields": {
+      "country": "Lao People's Democratic Republic",
+      "country_code": "LA",
+      "country_phonecode": "+856"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 123,
+    "fields": {
+      "country": "Latvia",
+      "country_code": "LV",
+      "country_phonecode": "+371"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 124,
+    "fields": {
+      "country": "Lebanon",
+      "country_code": "LB",
+      "country_phonecode": "+961"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 125,
+    "fields": {
+      "country": "Lesotho",
+      "country_code": "LS",
+      "country_phonecode": "+266"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 126,
+    "fields": {
+      "country": "Liberia",
+      "country_code": "LR",
+      "country_phonecode": "+231"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 127,
+    "fields": {
+      "country": "Libya",
+      "country_code": "LY",
+      "country_phonecode": "+218"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 128,
+    "fields": {
+      "country": "Liechtenstein",
+      "country_code": "LI",
+      "country_phonecode": "+423"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 129,
+    "fields": {
+      "country": "Lithuania",
+      "country_code": "LT",
+      "country_phonecode": "+370"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 130,
+    "fields": {
+      "country": "Luxembourg",
+      "country_code": "LU",
+      "country_phonecode": "+352"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 131,
+    "fields": {
+      "country": "Macao",
+      "country_code": "MO",
+      "country_phonecode": "+853"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 132,
+    "fields": {
+      "country": "Madagascar",
+      "country_code": "MG",
+      "country_phonecode": "+261"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 133,
+    "fields": {
+      "country": "Malawi",
+      "country_code": "MW",
+      "country_phonecode": "+265"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 134,
+    "fields": {
+      "country": "Malaysia",
+      "country_code": "MY",
+      "country_phonecode": "+60"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 135,
+    "fields": {
+      "country": "Maldives",
+      "country_code": "MV",
+      "country_phonecode": "+960"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 136,
+    "fields": {
+      "country": "Mali",
+      "country_code": "ML",
+      "country_phonecode": "+223"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 137,
+    "fields": {
+      "country": "Malta",
+      "country_code": "MT",
+      "country_phonecode": "+356"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 138,
+    "fields": {
+      "country": "Marshall Islands",
+      "country_code": "MH",
+      "country_phonecode": "+692"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 139,
+    "fields": {
+      "country": "Martinique",
+      "country_code": "MQ",
+      "country_phonecode": "+596"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 140,
+    "fields": {
+      "country": "Mauritania",
+      "country_code": "MR",
+      "country_phonecode": "+222"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 141,
+    "fields": {
+      "country": "Mauritius",
+      "country_code": "MU",
+      "country_phonecode": "+230"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 142,
+    "fields": {
+      "country": "Mayotte",
+      "country_code": "YT",
+      "country_phonecode": "+262"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 143,
+    "fields": {
+      "country": "Mexico",
+      "country_code": "MX",
+      "country_phonecode": "+52"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 144,
+    "fields": {
+      "country": "Micronesia, Federated States of",
+      "country_code": "FM",
+      "country_phonecode": "+691"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 145,
+    "fields": {
+      "country": "Moldova, Republic of",
+      "country_code": "MD",
+      "country_phonecode": "+373"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 146,
+    "fields": {
+      "country": "Monaco",
+      "country_code": "MC",
+      "country_phonecode": "+377"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 147,
+    "fields": {
+      "country": "Mongolia",
+      "country_code": "MN",
+      "country_phonecode": "+976"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 148,
+    "fields": {
+      "country": "Montenegro",
+      "country_code": "ME",
+      "country_phonecode": "+382"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 149,
+    "fields": {
+      "country": "Montserrat",
+      "country_code": "MS",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 150,
+    "fields": {
+      "country": "Morocco",
+      "country_code": "MA",
+      "country_phonecode": "+212"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 151,
+    "fields": {
+      "country": "Mozambique",
+      "country_code": "MZ",
+      "country_phonecode": "+258"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 152,
+    "fields": {
+      "country": "Myanmar",
+      "country_code": "MM",
+      "country_phonecode": "+95"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 153,
+    "fields": {
+      "country": "Namibia",
+      "country_code": "NA",
+      "country_phonecode": "+264"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 154,
+    "fields": {
+      "country": "Nauru",
+      "country_code": "NR",
+      "country_phonecode": "+674"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 155,
+    "fields": {
+      "country": "Nepal",
+      "country_code": "NP",
+      "country_phonecode": "+977"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 156,
+    "fields": {
+      "country": "Netherlands",
+      "country_code": "NL",
+      "country_phonecode": "+31"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 157,
+    "fields": {
+      "country": "New Caledonia",
+      "country_code": "NC",
+      "country_phonecode": "+687"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 158,
+    "fields": {
+      "country": "New Zealand",
+      "country_code": "NZ",
+      "country_phonecode": "+64"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 159,
+    "fields": {
+      "country": "Nicaragua",
+      "country_code": "NI",
+      "country_phonecode": "+505"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 160,
+    "fields": {
+      "country": "Niger",
+      "country_code": "NE",
+      "country_phonecode": "+227"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 161,
+    "fields": {
+      "country": "Nigeria",
+      "country_code": "NG",
+      "country_phonecode": "+234"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 162,
+    "fields": {
+      "country": "Niue",
+      "country_code": "NU",
+      "country_phonecode": "+683"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 163,
+    "fields": {
+      "country": "Norfolk Island",
+      "country_code": "NF",
+      "country_phonecode": "+672"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 164,
+    "fields": {
+      "country": "North Macedonia",
+      "country_code": "MK",
+      "country_phonecode": "+389"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 165,
+    "fields": {
+      "country": "Northern Mariana Islands",
+      "country_code": "MP",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 166,
+    "fields": {
+      "country": "Norway",
+      "country_code": "NO",
+      "country_phonecode": "+47"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 167,
+    "fields": {
+      "country": "Oman",
+      "country_code": "OM",
+      "country_phonecode": "+968"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 168,
+    "fields": {
+      "country": "Pakistan",
+      "country_code": "PK",
+      "country_phonecode": "+92"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 169,
+    "fields": {
+      "country": "Palau",
+      "country_code": "PW",
+      "country_phonecode": "+680"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 170,
+    "fields": {
+      "country": "Palestine, State of",
+      "country_code": "PS",
+      "country_phonecode": "+970"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 171,
+    "fields": {
+      "country": "Panama",
+      "country_code": "PA",
+      "country_phonecode": "+507"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 172,
+    "fields": {
+      "country": "Papua New Guinea",
+      "country_code": "PG",
+      "country_phonecode": "+675"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 173,
+    "fields": {
+      "country": "Paraguay",
+      "country_code": "PY",
+      "country_phonecode": "+595"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 174,
+    "fields": {
+      "country": "Peru",
+      "country_code": "PE",
+      "country_phonecode": "+51"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 175,
+    "fields": {
+      "country": "Philippines",
+      "country_code": "PH",
+      "country_phonecode": "+63"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 176,
+    "fields": {
+      "country": "Pitcairn",
+      "country_code": "PN",
+      "country_phonecode": ""
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 177,
+    "fields": {
+      "country": "Poland",
+      "country_code": "PL",
+      "country_phonecode": "+48"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 178,
+    "fields": {
+      "country": "Portugal",
+      "country_code": "PT",
+      "country_phonecode": "+351"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 179,
+    "fields": {
+      "country": "Puerto Rico",
+      "country_code": "PR",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 180,
+    "fields": {
+      "country": "Qatar",
+      "country_code": "QA",
+      "country_phonecode": "+974"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 181,
+    "fields": {
+      "country": "Romania",
+      "country_code": "RO",
+      "country_phonecode": "+40"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 182,
+    "fields": {
+      "country": "Russian Federation",
+      "country_code": "RU",
+      "country_phonecode": "+7"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 183,
+    "fields": {
+      "country": "Rwanda",
+      "country_code": "RW",
+      "country_phonecode": "+250"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 184,
+    "fields": {
+      "country": "Réunion",
+      "country_code": "RE",
+      "country_phonecode": "+262"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 185,
+    "fields": {
+      "country": "Saint Barthélemy",
+      "country_code": "BL",
+      "country_phonecode": "+590"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 186,
+    "fields": {
+      "country": "Saint Helena, Ascension and Tristan da Cunha",
+      "country_code": "SH",
+      "country_phonecode": "+290"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 187,
+    "fields": {
+      "country": "Saint Kitts and Nevis",
+      "country_code": "KN",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 188,
+    "fields": {
+      "country": "Saint Lucia",
+      "country_code": "LC",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 189,
+    "fields": {
+      "country": "Saint Martin (French part)",
+      "country_code": "MF",
+      "country_phonecode": "+590"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 190,
+    "fields": {
+      "country": "Saint Pierre and Miquelon",
+      "country_code": "PM",
+      "country_phonecode": "+508"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 191,
+    "fields": {
+      "country": "Saint Vincent and the Grenadines",
+      "country_code": "VC",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 192,
+    "fields": {
+      "country": "Samoa",
+      "country_code": "WS",
+      "country_phonecode": "+685"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 193,
+    "fields": {
+      "country": "San Marino",
+      "country_code": "SM",
+      "country_phonecode": "+378"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 194,
+    "fields": {
+      "country": "Sao Tome and Principe",
+      "country_code": "ST",
+      "country_phonecode": "+239"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 195,
+    "fields": {
+      "country": "Saudi Arabia",
+      "country_code": "SA",
+      "country_phonecode": "+966"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 196,
+    "fields": {
+      "country": "Senegal",
+      "country_code": "SN",
+      "country_phonecode": "+221"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 197,
+    "fields": {
+      "country": "Serbia",
+      "country_code": "RS",
+      "country_phonecode": "+381"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 198,
+    "fields": {
+      "country": "Seychelles",
+      "country_code": "SC",
+      "country_phonecode": "+248"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 199,
+    "fields": {
+      "country": "Sierra Leone",
+      "country_code": "SL",
+      "country_phonecode": "+232"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 200,
+    "fields": {
+      "country": "Singapore",
+      "country_code": "SG",
+      "country_phonecode": "+65"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 201,
+    "fields": {
+      "country": "Sint Maarten (Dutch part)",
+      "country_code": "SX",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 202,
+    "fields": {
+      "country": "Slovakia",
+      "country_code": "SK",
+      "country_phonecode": "+421"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 203,
+    "fields": {
+      "country": "Slovenia",
+      "country_code": "SI",
+      "country_phonecode": "+386"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 204,
+    "fields": {
+      "country": "Solomon Islands",
+      "country_code": "SB",
+      "country_phonecode": "+677"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 205,
+    "fields": {
+      "country": "Somalia",
+      "country_code": "SO",
+      "country_phonecode": "+252"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 206,
+    "fields": {
+      "country": "South Africa",
+      "country_code": "ZA",
+      "country_phonecode": "+27"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 207,
+    "fields": {
+      "country": "South Georgia and the South Sandwich Islands",
+      "country_code": "GS",
+      "country_phonecode": ""
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 208,
+    "fields": {
+      "country": "South Sudan",
+      "country_code": "SS",
+      "country_phonecode": "+211"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 209,
+    "fields": {
+      "country": "Spain",
+      "country_code": "ES",
+      "country_phonecode": "+34"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 210,
+    "fields": {
+      "country": "Sri Lanka",
+      "country_code": "LK",
+      "country_phonecode": "+94"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 211,
+    "fields": {
+      "country": "Sudan",
+      "country_code": "SD",
+      "country_phonecode": "+249"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 212,
+    "fields": {
+      "country": "Suriname",
+      "country_code": "SR",
+      "country_phonecode": "+597"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 213,
+    "fields": {
+      "country": "Svalbard and Jan Mayen",
+      "country_code": "SJ",
+      "country_phonecode": "+47"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 214,
+    "fields": {
+      "country": "Sweden",
+      "country_code": "SE",
+      "country_phonecode": "+46"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 215,
+    "fields": {
+      "country": "Switzerland",
+      "country_code": "CH",
+      "country_phonecode": "+41"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 216,
+    "fields": {
+      "country": "Syrian Arab Republic",
+      "country_code": "SY",
+      "country_phonecode": "+963"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 217,
+    "fields": {
+      "country": "Taiwan, Province of China",
+      "country_code": "TW",
+      "country_phonecode": "+886"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 218,
+    "fields": {
+      "country": "Tajikistan",
+      "country_code": "TJ",
+      "country_phonecode": "+992"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 219,
+    "fields": {
+      "country": "Tanzania, United Republic of",
+      "country_code": "TZ",
+      "country_phonecode": "+255"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 220,
+    "fields": {
+      "country": "Thailand",
+      "country_code": "TH",
+      "country_phonecode": "+66"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 221,
+    "fields": {
+      "country": "Timor-Leste",
+      "country_code": "TL",
+      "country_phonecode": "+670"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 222,
+    "fields": {
+      "country": "Togo",
+      "country_code": "TG",
+      "country_phonecode": "+228"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 223,
+    "fields": {
+      "country": "Tokelau",
+      "country_code": "TK",
+      "country_phonecode": "+690"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 224,
+    "fields": {
+      "country": "Tonga",
+      "country_code": "TO",
+      "country_phonecode": "+676"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 225,
+    "fields": {
+      "country": "Trinidad and Tobago",
+      "country_code": "TT",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 226,
+    "fields": {
+      "country": "Tunisia",
+      "country_code": "TN",
+      "country_phonecode": "+216"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 227,
+    "fields": {
+      "country": "Turkmenistan",
+      "country_code": "TM",
+      "country_phonecode": "+993"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 228,
+    "fields": {
+      "country": "Turks and Caicos Islands",
+      "country_code": "TC",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 229,
+    "fields": {
+      "country": "Tuvalu",
+      "country_code": "TV",
+      "country_phonecode": "+688"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 230,
+    "fields": {
+      "country": "Türkiye",
+      "country_code": "TR",
+      "country_phonecode": "+90"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 231,
+    "fields": {
+      "country": "Uganda",
+      "country_code": "UG",
+      "country_phonecode": "+256"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 232,
+    "fields": {
+      "country": "Ukraine",
+      "country_code": "UA",
+      "country_phonecode": "+380"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 233,
+    "fields": {
+      "country": "United Arab Emirates",
+      "country_code": "AE",
+      "country_phonecode": "+971"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 234,
+    "fields": {
+      "country": "United Kingdom",
+      "country_code": "GB",
+      "country_phonecode": "+44"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 235,
+    "fields": {
+      "country": "United States",
+      "country_code": "US",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 236,
+    "fields": {
+      "country": "United States Minor Outlying Islands",
+      "country_code": "UM",
+      "country_phonecode": ""
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 237,
+    "fields": {
+      "country": "Uruguay",
+      "country_code": "UY",
+      "country_phonecode": "+598"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 238,
+    "fields": {
+      "country": "Uzbekistan",
+      "country_code": "UZ",
+      "country_phonecode": "+998"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 239,
+    "fields": {
+      "country": "Vanuatu",
+      "country_code": "VU",
+      "country_phonecode": "+678"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 240,
+    "fields": {
+      "country": "Venezuela, Bolivarian Republic of",
+      "country_code": "VE",
+      "country_phonecode": "+58"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 241,
+    "fields": {
+      "country": "Viet Nam",
+      "country_code": "VN",
+      "country_phonecode": "+84"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 242,
+    "fields": {
+      "country": "Virgin Islands, British",
+      "country_code": "VG",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 243,
+    "fields": {
+      "country": "Virgin Islands, U.S.",
+      "country_code": "VI",
+      "country_phonecode": "+1"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 244,
+    "fields": {
+      "country": "Wallis and Futuna",
+      "country_code": "WF",
+      "country_phonecode": "+681"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 245,
+    "fields": {
+      "country": "Western Sahara",
+      "country_code": "EH",
+      "country_phonecode": "+212"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 246,
+    "fields": {
+      "country": "Yemen",
+      "country_code": "YE",
+      "country_phonecode": "+967"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 247,
+    "fields": {
+      "country": "Zambia",
+      "country_code": "ZM",
+      "country_phonecode": "+260"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 248,
+    "fields": {
+      "country": "Zimbabwe",
+      "country_code": "ZW",
+      "country_phonecode": "+263"
+    }
+  },
+  {
+    "model": "eduweb.listofcountry",
+    "pk": 249,
+    "fields": {
+      "country": "Åland Islands",
+      "country_code": "AX",
+      "country_phonecode": "+358"
+    }
+  }
+]

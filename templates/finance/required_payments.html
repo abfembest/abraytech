@@ -1,0 +1,866 @@
+{% extends 'management/base.html' %}
+{% load static humanize %}
+
+{% block title %}Required Payments — {{ site_config.school_short_name|default:"Portal" }}{% endblock %}
+{% block breadcrumb %}Finance › Required Payments{% endblock %}
+{% block breadcrumb_title %}Required Payments{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'vendor/datatables/responsive/responsive.dataTables.min.css' %}">
+<style>
+    /* ── KPI Cards ─────────────────────────────────────────────────────────── */
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(1, 1fr);
+        gap: 1rem;
+    }
+    @media (min-width: 640px)  { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 1024px) { .kpi-grid { grid-template-columns: repeat(4, 1fr); } }
+
+    .kpi-card {
+        background: #fff;
+        border-radius: 1.5rem;
+        border: 1px solid #e5e7eb;
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,.1); }
+
+    .kpi-icon {
+        width: 3rem; height: 3rem;
+        border-radius: 1rem;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+    }
+    .kpi-icon.indigo  { background: #e0e7ff; color: #4f46e5; }
+    .kpi-icon.emerald { background: #d1fae5; color: #059669; }
+    .kpi-icon.red     { background: #fee2e2; color: #dc2626; }
+    .kpi-icon.amber   { background: #fef3c7; color: #d97706; }
+
+    /* ── DataTable container ───────────────────────────────────────────────── */
+    .dt-container {
+        background: #fff;
+        border-radius: 1.5rem;
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+    }
+
+    /* ── DataTables controls override ─────────────────────────────────────── */
+    .dataTables_wrapper .dataTables_length select,
+    .dataTables_wrapper .dataTables_filter input {
+        border-radius: 9999px;
+        border: 1px solid #e5e7eb;
+        padding: .4rem 1rem;
+        font-size: .875rem;
+        background: #fff;
+    }
+    .dataTables_wrapper .dataTables_filter input { min-width: 220px; }
+    .dataTables_wrapper .dataTables_filter { margin-bottom: .5rem; }
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        border-radius: 9999px !important;
+        margin: 0 2px;
+        padding: .4rem .85rem !important;
+        font-size: .8rem;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background: #4f46e5 !important;
+        color: #fff !important;
+        border: none !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.current) {
+        background: #eef2ff !important;
+        color: #4f46e5 !important;
+        border: none !important;
+    }
+    .dataTables_wrapper .dataTables_info { font-size: .8rem; color: #6b7280; }
+    div.dataTables_wrapper div.dataTables_length label,
+    div.dataTables_wrapper div.dataTables_filter label { font-size: .8rem; color: #6b7280; }
+
+    /* ── Table row state ──────────────────────────────────────────────────── */
+    .status-overdue { background-color: #fef2f2 !important; }
+    #paymentsTable tbody tr:hover { background-color: #f8fafc; }
+
+    /* ── Badges ───────────────────────────────────────────────────────────── */
+    .badge {
+        display: inline-flex; align-items: center; gap: .25rem;
+        padding: .2rem .65rem;
+        border-radius: 9999px;
+        font-size: .7rem; font-weight: 600;
+        white-space: nowrap;
+    }
+    .badge-blue    { background: #dbeafe; color: #1d4ed8; }
+    .badge-purple  { background: #f3e8ff; color: #7c3aed; }
+    .badge-amber   { background: #fef3c7; color: #b45309; }
+    .badge-gray    { background: #f3f4f6; color: #6b7280; }
+    .badge-emerald { background: #d1fae5; color: #047857; }
+
+    /* ── Action buttons ───────────────────────────────────────────────────── */
+    .action-btn {
+        padding: .4rem;
+        border-radius: .65rem;
+        transition: all .2s ease;
+        display: inline-flex; align-items: center; justify-content: center;
+        border: none; background: transparent; cursor: pointer;
+        line-height: 1;
+    }
+    .action-btn.edit         { color: #4f46e5; }
+    .action-btn.edit:hover   { background: #eef2ff; }
+    .action-btn.toggle       { color: #d97706; }
+    .action-btn.toggle:hover { background: #fffbeb; }
+    .action-btn.delete       { color: #dc2626; }
+    .action-btn.delete:hover { background: #fef2f2; }
+
+    /* ── Modal ────────────────────────────────────────────────────────────── */
+    .modal-overlay {
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,.55);
+        backdrop-filter: blur(4px);
+        z-index: 500;
+        display: none;
+        align-items: center; justify-content: center;
+        padding: 1rem;
+        overflow-y: auto;
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal-content {
+        background: #fff;
+        border-radius: 1.5rem;
+        width: 100%; max-width: 42rem;
+        display: flex; flex-direction: column;
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,.25);
+        animation: modalSlide .25s ease;
+        margin: auto;
+    }
+    @keyframes modalSlide {
+        from { opacity: 0; transform: translateY(-18px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-header {
+        padding: 1.1rem 1.5rem;
+        background: linear-gradient(135deg,#4f46e5,#7c3aed);
+        color: #fff;
+        border-radius: 1.5rem 1.5rem 0 0;
+        display: flex; align-items: center; justify-content: space-between;
+        flex-shrink: 0;
+    }
+    .modal-body   { padding: 1.5rem; overflow-y: auto; flex: 1; max-height: 70vh; }
+    .modal-footer {
+        padding: .9rem 1.5rem;
+        border-top: 1px solid #e5e7eb;
+        display: flex; justify-content: flex-end; gap: .75rem;
+        background: #f9fafb;
+        border-radius: 0 0 1.5rem 1.5rem;
+        flex-shrink: 0;
+    }
+
+    /* ── Form components ──────────────────────────────────────────────────── */
+    .form-group { margin-bottom: 1.1rem; }
+
+    .form-label {
+        display: block;
+        font-size: .8rem; font-weight: 600; color: #374151;
+        margin-bottom: .4rem;
+    }
+    .form-label .req { color: #dc2626; }
+    .form-label .opt { color: #9ca3af; font-weight: 400; }
+
+    /* Shared input / datalist-input / select styles */
+    .form-input, .form-select, .form-datalist-input {
+        width: 100%;
+        padding: .65rem 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: .9rem;
+        font-size: .875rem;
+        transition: border-color .15s, box-shadow .15s;
+        background: #fff;
+        box-sizing: border-box;
+    }
+    .form-input:focus, .form-select:focus, .form-datalist-input:focus {
+        outline: none;
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79,70,229,.12);
+    }
+
+    /*
+     * Datalist combo-box wrapper.
+     * The hidden <select> is used for server-side value submission;
+     * the visible <input list="…"> is for the user-facing search/select.
+     */
+    .datalist-wrap { position: relative; }
+    .datalist-wrap .dl-clear {
+        position: absolute; right: .7rem; top: 50%;
+        transform: translateY(-50%);
+        background: none; border: none; cursor: pointer;
+        color: #9ca3af; font-size: .8rem; padding: .2rem;
+        display: none;
+    }
+    .datalist-wrap input:not(:placeholder-shown) ~ .dl-clear { display: block; }
+
+    /* Small inline "Clear" link next to a searchable-select label */
+    .ss-clear-link {
+        background: none; border: none; cursor: pointer;
+        color: #6366f1; font-size: .7rem; font-weight: 600;
+        text-decoration: underline; padding: 0 0 0 .5rem;
+    }
+    .ss-clear-link:hover { color: #4338ca; }
+
+    /* Currency $ prefix on amount field */
+    .currency-wrap { position: relative; }
+    .currency-wrap::before {
+        content: '$';
+        position: absolute; left: 1rem; top: 50%;
+        transform: translateY(-50%);
+        color: #6b7280; font-weight: 600;
+        pointer-events: none;
+    }
+    .currency-wrap input { padding-left: 1.9rem; }
+
+    /* DataTables child row (responsive expand) */
+    td.child { background: #f9fafb !important; padding: .75rem 1rem !important; }
+    td.child ul.dtr-details { padding: 0; margin: 0; list-style: none; }
+    td.child ul.dtr-details li { padding: .2rem 0; font-size: .8rem; }
+
+    /* Responsive table wrapper for horizontal scroll on xs */
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 p-4 sm:p-6">
+
+    {% if messages %}
+    <div class="mb-4 space-y-2">
+        {% for msg in messages %}
+        <div class="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium
+            {% if msg.tags == 'error' %}bg-red-50 text-red-700 border border-red-200
+            {% elif msg.tags == 'success' %}bg-emerald-50 text-emerald-700 border border-emerald-200
+            {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+            <i class="fas {% if msg.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %}"></i>
+            {{ msg }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% comment %} Page header {% endcomment %}
+    <div class="mb-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <i class="fas fa-receipt text-indigo-600"></i>
+                    Required Payments
+                </h1>
+                <p class="text-sm text-gray-500 mt-0.5">Manage all programme fee obligations</p>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+                {% if permissions.finance_payments.can_edit %}
+                <form method="post" action="{% url 'payments:required_payment_send_reminders' %}"
+                      onsubmit="return confirm('Send an overdue-payment reminder email to every student with a pending or failed fee past its due date?');">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300
+                                   hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-xl transition-all
+                                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        <i class="fas fa-bell"></i>
+                        <span>Send Overdue Reminders</span>
+                    </button>
+                </form>
+                {% endif %}
+                {% if permissions.finance_payments.can_create %}
+                <button type="button" onclick="openModal('create')"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700
+                               text-white text-sm font-semibold rounded-xl shadow transition-all
+                               focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                    <i class="fas fa-plus"></i>
+                    <span>New Payment</span>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% comment %} KPI cards {% endcomment %}
+    <div class="kpi-grid mb-6">
+        <div class="kpi-card">
+            <div class="kpi-icon indigo"><i class="fas fa-list-alt text-xl"></i></div>
+            <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Records</p>
+                <p class="text-2xl font-bold text-gray-900">{{ total_count }}</p>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon emerald"><i class="fas fa-check-circle text-xl"></i></div>
+            <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Active</p>
+                <p class="text-2xl font-bold text-gray-900">{{ active_count }}</p>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon red"><i class="fas fa-exclamation-triangle text-xl"></i></div>
+            <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Overdue</p>
+                <p class="text-2xl font-bold text-gray-900">{{ overdue_count }}</p>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon amber"><i class="fas fa-dollar-sign text-xl"></i></div>
+            <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Active Value</p>
+                <p class="text-2xl font-bold text-gray-900">${{ total_value|floatformat:2|intcomma }}</p>
+            </div>
+        </div>
+    </div>
+
+    {% comment %} DataTable — all filtering handled client-side {% endcomment %}
+    <div class="dt-container">
+        <div class="table-scroll">
+            <table id="paymentsTable" class="w-full text-sm" style="width:100%">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-200 text-left">
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Purpose</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Programme</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Who Pays</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Amount</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Semester</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Session</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Due Date</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments %}
+                    {# All data-* attrs are needed by the edit modal JS to re-populate the form #}
+                    <tr data-id="{{ payment.pk }}"
+                        data-purpose="{{ payment.purpose|escapejs }}"
+                        data-program-id="{{ payment.program.pk }}"
+                        data-program-label="{{ payment.program.name|escapejs }} ({{ payment.program.code|escapejs }})"
+                        data-course-id="{{ payment.course.pk|default:'' }}"
+                        data-course-label="{% if payment.course %}{{ payment.course.code|escapejs }} — {{ payment.course.name|escapejs }}{% endif %}"
+                        data-session-id="{{ payment.academic_session.pk|default:'' }}"
+                        data-session-label="{% if payment.academic_session %}{{ payment.academic_session.name|escapejs }}{% endif %}"
+                        data-semester="{{ payment.semester }}"
+                        data-who="{{ payment.who_to_pay }}"
+                        data-amount="{{ payment.amount }}"
+                        data-due="{{ payment.due_date|date:'Y-m-d' }}"
+                        data-active="{{ payment.is_active|yesno:'true,false' }}"
+                        data-toggle-url="{% url 'payments:required_payment_toggle' payment.pk %}"
+                        data-delete-url="{% url 'payments:required_payment_delete' payment.pk %}"
+                        class="border-b border-gray-100 transition-colors{% if payment.is_active and payment.due_date < today %} status-overdue{% endif %}">
+
+                        <td class="px-4 py-3">
+                            <div class="font-medium text-gray-900">{{ payment.purpose }}</div>
+                            {% if payment.course %}
+                            <div class="text-xs text-gray-400 mt-0.5">{{ payment.course.code }} — {{ payment.course.name }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="font-medium text-gray-800">{{ payment.program.name }}</span>
+                            <span class="text-xs text-gray-400 ml-1">({{ payment.program.code }})</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="badge
+                                {% if payment.who_to_pay == 'student' %}badge-blue
+                                {% elif payment.who_to_pay == 'staff' %}badge-purple
+                                {% elif payment.who_to_pay == 'applicant' %}badge-amber
+                                {% else %}badge-gray{% endif %}">
+                                {{ payment.get_who_to_pay_display }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-right font-semibold text-gray-900">
+                            ${{ payment.amount|floatformat:2|intcomma }}
+                        </td>
+                        <td class="px-4 py-3 capitalize text-gray-600 text-xs">{{ payment.get_semester_display }}</td>
+                        <td class="px-4 py-3 text-gray-600 text-xs">
+                            {% if payment.academic_session %}{{ payment.academic_session.name }}{% else %}<span class="text-gray-400">—</span>{% endif %}
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="text-xs {% if payment.is_active and payment.due_date < today %}text-red-600 font-semibold{% else %}text-gray-700{% endif %}">
+                                {{ payment.due_date|date:"d M Y" }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            {% if payment.is_active %}
+                            <span class="badge badge-emerald">
+                                <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse inline-block"></span>
+                                Active
+                            </span>
+                            {% else %}
+                            <span class="badge badge-gray">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <div class="flex items-center justify-center gap-1">
+                                {% if permissions.finance_payments.can_edit %}
+                                <button type="button"
+                                        onclick="openModal('edit', {{ payment.pk }})"
+                                        class="action-btn edit"
+                                        title="Edit payment">
+                                    <i class="fas fa-edit fa-sm"></i>
+                                </button>
+                                <button type="button"
+                                        onclick="confirmToggle({{ payment.pk }}, '{{ payment.purpose|escapejs }}', {{ payment.is_active|yesno:'true,false' }})"
+                                        class="action-btn toggle"
+                                        title="{% if payment.is_active %}Deactivate{% else %}Activate{% endif %}">
+                                    <i class="fas {% if payment.is_active %}fa-toggle-on{% else %}fa-toggle-off{% endif %} fa-sm"></i>
+                                </button>
+                                {% endif %}
+                                {% if permissions.finance_payments.can_delete %}
+                                <button type="button"
+                                        onclick="confirmDelete({{ payment.pk }}, '{{ payment.purpose|escapejs }}')"
+                                        class="action-btn delete"
+                                        title="Delete payment">
+                                    <i class="fas fa-trash fa-sm"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+
+{% comment %} ── Create / Edit Modal ───────────────────────────────────────── {% endcomment %}
+<div id="paymentModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-content">
+
+        <div class="modal-header">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-receipt text-xl opacity-90"></i>
+                <div>
+                    <h3 id="modalTitle" class="font-bold text-base leading-tight">New Required Payment</h3>
+                    <p id="modalSubtitle" class="text-indigo-100 text-xs mt-0.5">Create a new fee obligation</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeModal()"
+                    class="w-8 h-8 flex items-center justify-center hover:bg-white/20 rounded-xl transition-colors"
+                    aria-label="Close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form id="paymentForm" method="post" class="modal-body" novalidate>
+            {% csrf_token %}
+
+            {% comment %} ── Purpose with datalist autocomplete ────────────────── {% endcomment %}
+            <div class="form-group">
+                <label class="form-label" for="fieldPurpose">
+                    Purpose <span class="req">*</span>
+                </label>
+                <input type="text" id="fieldPurpose" name="purpose" required
+                       list="purposeSuggestions" class="form-datalist-input"
+                       placeholder="e.g., School Fees, Library Fees, Exam Fees"
+                       maxlength="255" autocomplete="off">
+                <datalist id="purposeSuggestions">
+                    {% for s in suggestions %}
+                    <option value="{{ s }}">
+                    {% endfor %}
+                </datalist>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {% comment %}
+                  Programme — datalist combo-box.
+                  A hidden <input name="program"> carries the PK for form submission.
+                  The visible <input list="…"> lets the user search by name/code.
+                {% endcomment %}
+                <div class="form-group">
+                    <label class="form-label" for="fieldProgram">
+                        Programme <span class="req">*</span>
+                        <button type="button" class="ss-clear-link" tabindex="-1"
+                                onclick="clearSelect('fieldProgram'); filterCourses(null);">Clear</button>
+                    </label>
+                    <select id="fieldProgram" name="program" required
+                            class="searchable-select form-datalist-input"
+                            data-ss-placeholder="Search programme…">
+                        <option value="">Search programme…</option>
+                        {% for p in all_programs %}
+                        <option value="{{ p.pk }}">{{ p.name }} ({{ p.code }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                {% comment %}
+                  Specific Course — real <select>, optional, options rebuilt
+                  client-side to match the chosen programme (see filterCourses()).
+                {% endcomment %}
+                <div class="form-group">
+                    <label class="form-label" for="fieldCourse">
+                        Specific Course <span class="opt">(optional)</span>
+                        <button type="button" class="ss-clear-link" tabindex="-1"
+                                onclick="clearSelect('fieldCourse');">Clear</button>
+                    </label>
+                    <select id="fieldCourse" name="course"
+                            class="searchable-select form-datalist-input"
+                            data-ss-placeholder="All courses in programme">
+                        <option value="">All courses in programme</option>
+                        {% comment %} populated/filtered by JS via ALL_COURSES data below {% endcomment %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {% comment %}
+                  Academic Session — real <select>, optional.
+                {% endcomment %}
+                <div class="form-group">
+                    <label class="form-label" for="fieldSession">
+                        Academic Session <span class="opt">(optional)</span>
+                        <button type="button" class="ss-clear-link" tabindex="-1"
+                                onclick="clearSelect('fieldSession');">Clear</button>
+                    </label>
+                    <select id="fieldSession" name="academic_session"
+                            class="searchable-select form-datalist-input"
+                            data-ss-placeholder="No specific session">
+                        <option value="">No specific session</option>
+                        {% for s in all_sessions %}
+                        <option value="{{ s.pk }}">{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="fieldSemester">Semester</label>
+                    <select id="fieldSemester" name="semester" class="form-select">
+                        <option value="annual">Annual</option>
+                        <option value="first">First Semester</option>
+                        <option value="second">Second Semester</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label class="form-label" for="fieldWho">Who Pays</label>
+                    <select id="fieldWho" name="who_to_pay" class="form-select">
+                        <option value="student">Student</option>
+                        <option value="staff">Staff</option>
+                        <option value="applicant">Applicant</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="fieldAmount">
+                        Amount <span class="req">*</span>
+                    </label>
+                    <div class="currency-wrap">
+                        <input type="number" id="fieldAmount" name="amount"
+                               step="0.01" min="0.01" required
+                               class="form-input" placeholder="0.00">
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label class="form-label" for="fieldDueDate">
+                        Due Date <span class="req">*</span>
+                    </label>
+                    <input type="date" id="fieldDueDate" name="due_date"
+                           required class="form-input">
+                </div>
+                <div class="form-group flex items-end pb-1">
+                    <label class="flex items-center gap-3 cursor-pointer select-none">
+                        <input type="checkbox" id="fieldIsActive" name="is_active"
+                               class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        <div>
+                            <span class="text-sm font-medium text-gray-700">Active</span>
+                            <span class="text-xs text-gray-400 block">Visible to applicable users</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </form>
+
+        <div class="modal-footer">
+            <button type="button" onclick="closeModal()"
+                    class="px-5 py-2 text-gray-700 hover:bg-gray-100 font-medium rounded-xl transition-colors text-sm">
+                Cancel
+            </button>
+            <button type="submit" form="paymentForm"
+                    class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold
+                           rounded-xl transition-all text-sm flex items-center gap-2
+                           focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                <i class="fas fa-save fa-sm"></i>
+                <span id="submitText">Create Payment</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+{% comment %} ── Hidden forms for toggle & delete (outside DataTable tbody) ─ {% endcomment %}
+<form id="toggleForm" method="post" style="display:none">{% csrf_token %}</form>
+<form id="deleteForm" method="post" style="display:none">{% csrf_token %}</form>
+
+<script id="allCoursesData" type="application/json">
+[
+{% for c in all_courses %}
+  {"pk": {{ c.pk }}, "programPk": {{ c.program.pk }}, "label": "{{ c.code|escapejs }} \u2014 {{ c.name|escapejs }}"}{% if not forloop.last %},{% endif %}
+
+{% endfor %}
+]
+</script>
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="{% static 'vendor/datatables/responsive/dataTables.responsive.min.js' %}"></script>
+<script>
+(function () {
+    'use strict';
+
+    /* ── DataTable init ────────────────────────────────────────────────────── */
+    var table = $('#paymentsTable').DataTable({
+        responsive: {
+            details: {
+                type: 'inline',
+                target: 'tr',
+                renderer: function (api, rowIdx, columns) {
+                    var data = columns.map(function (col) {
+                        return col.hidden
+                            ? '<li class="flex gap-2 py-0.5 text-xs">'
+                              + '<span class="font-semibold text-gray-500 min-w-[80px]">' + col.title + ':</span>'
+                              + '<span>' + col.data + '</span></li>'
+                            : '';
+                    }).join('');
+                    return data
+                        ? $('<div class="p-3"><ul class="list-none m-0 p-0">' + data + '</ul></div>')
+                        : false;
+                }
+            }
+        },
+        pageLength: 25,
+        order: [[6, 'asc']],
+        language: {
+            search: 'Search:',
+            searchPlaceholder: 'Filter records…',
+            lengthMenu: 'Show _MENU_',
+            info: 'Showing _START_–_END_ of _TOTAL_',
+            infoEmpty: 'No records',
+            infoFiltered: '(filtered from _MAX_)',
+            paginate: { first: '«', last: '»', next: '›', previous: '‹' },
+            /* DataTables renders this itself with a correctly-computed colspan —
+               replaces the old server-rendered <td colspan="9"> placeholder row,
+               which DataTables doesn't support in the tbody and was the cause of
+               the "Incorrect column count" warning when the table was empty. */
+            emptyTable: 'No required payments configured yet.'
+        },
+        columnDefs: [
+            { responsivePriority: 1, targets: [0, 3, 8] },
+            { responsivePriority: 2, targets: [1, 7] },
+            { responsivePriority: 3, targets: [2, 4, 5, 6] },
+            { orderable: false, targets: [8] },
+            { className: 'text-right', targets: [3] },
+            { className: 'text-center', targets: [8] }
+        ],
+        dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 pt-4 pb-2"lf>rtip',
+        drawCallback: function () {
+            if (window.lucide) { lucide.createIcons(); }
+        }
+    });
+
+    /* ── Course data (embedded JSON) ───────────────────────────────────────── */
+    var ALL_COURSES = JSON.parse(
+        document.getElementById('allCoursesData').textContent
+    );
+
+    /* ── DOM refs ──────────────────────────────────────────────────────────── */
+    var modal           = document.getElementById('paymentModal');
+    var form            = document.getElementById('paymentForm');
+    var programSelect   = document.getElementById('fieldProgram');
+    var courseSelect    = document.getElementById('fieldCourse');
+    var sessionSelect   = document.getElementById('fieldSession');
+    var toggleForm      = document.getElementById('toggleForm');
+    var deleteForm      = document.getElementById('deleteForm');
+
+    /* ── Select helpers ────────────────────────────────────────────────────── */
+
+    /**
+     * Rebuild the course <select>'s options to only contain courses
+     * belonging to programPk. Pass null/'' to show all courses.
+     * The shared searchable-select enhancer re-reads a select's live
+     * <option> list every time its dropdown opens, so simply replacing
+     * these options is enough — no re-initialisation needed.
+     */
+    function filterCourses(programPk) {
+        courseSelect.innerHTML = '<option value="">All courses in programme</option>';
+        ALL_COURSES.forEach(function (c) {
+            if (!programPk || String(c.programPk) === String(programPk)) {
+                var opt = document.createElement('option');
+                opt.value = c.pk;
+                opt.textContent = c.label;
+                courseSelect.appendChild(opt);
+            }
+        });
+        courseSelect.value = '';
+        courseSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    /** Reset a <select> to its blank option and notify any listeners/UI. */
+    window.clearSelect = function (id) {
+        var el = document.getElementById(id);
+        el.value = '';
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+
+    /* ── Programme change → filter courses ─────────────────────────────────── */
+    programSelect.addEventListener('change', function () {
+        filterCourses(this.value);
+    });
+
+    /* ── Modal open ────────────────────────────────────────────────────────── */
+    window.openModal = function (mode, pk) {
+        var title      = document.getElementById('modalTitle');
+        var subtitle   = document.getElementById('modalSubtitle');
+        var submitText = document.getElementById('submitText');
+
+        form.reset();
+        /* Reset programme/course/session selects and notify the enhancer */
+        programSelect.value = '';
+        sessionSelect.value = '';
+        programSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        sessionSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        filterCourses(null); /* rebuild full course list */
+
+        if (mode === 'create') {
+            title.textContent      = 'New Required Payment';
+            subtitle.textContent   = 'Create a new fee obligation';
+            submitText.textContent = 'Create Payment';
+            form.action = "{% url 'payments:required_payment_create' %}";
+            document.getElementById('fieldIsActive').checked = true;
+
+        } else if (mode === 'edit' && pk) {
+            var row = document.querySelector('tr[data-id="' + pk + '"]');
+            if (!row) { return; }
+
+            title.textContent      = 'Edit Required Payment';
+            subtitle.textContent   = 'Update payment details';
+            submitText.textContent = 'Update Payment';
+            form.action = "{% url 'payments:required_payment_update' pk=0 %}".replace('/0/', '/' + pk + '/');
+
+            /* Purpose */
+            document.getElementById('fieldPurpose').value = row.dataset.purpose;
+
+            /* Programme */
+            programSelect.value = row.dataset.programId;
+            programSelect.dispatchEvent(new Event('change', { bubbles: true }));
+
+            /* Filter course list to this programme, then set course */
+            filterCourses(row.dataset.programId);
+            if (row.dataset.courseId) {
+                courseSelect.value = row.dataset.courseId;
+                courseSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+
+            /* Session */
+            if (row.dataset.sessionId) {
+                sessionSelect.value = row.dataset.sessionId;
+                sessionSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+
+            /* Simple selects */
+            document.getElementById('fieldSemester').value  = row.dataset.semester;
+            document.getElementById('fieldWho').value       = row.dataset.who;
+            document.getElementById('fieldAmount').value    = row.dataset.amount;
+            document.getElementById('fieldDueDate').value   = row.dataset.due;
+            document.getElementById('fieldIsActive').checked = row.dataset.active === 'true';
+        }
+
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    };
+
+    /* ── Modal close ───────────────────────────────────────────────────────── */
+    window.closeModal = function () {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+        form.reset();
+        programSelect.value = '';
+        courseSelect.value  = '';
+        sessionSelect.value = '';
+        programSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        courseSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        sessionSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+
+    /* Close on backdrop click */
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) { closeModal(); }
+    });
+
+    /* ── Toggle (activate / deactivate) via SweetAlert2 ───────────────────── */
+    window.confirmToggle = function (pk, purpose, isActive) {
+        var label = isActive ? 'Deactivate' : 'Activate';
+        var icon  = isActive ? 'warning'    : 'question';
+
+        Swal.fire({
+            title: label + ' payment?',
+            text: '"' + purpose + '" will be ' + (isActive ? 'hidden from' : 'visible to') + ' applicable users.',
+            icon: icon,
+            showCancelButton: true,
+            confirmButtonColor: isActive ? '#d97706' : '#059669',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Yes, ' + label,
+            cancelButtonText: 'Cancel'
+        }).then(function (result) {
+            if (result.isConfirmed) {
+                var row = document.querySelector('tr[data-id="' + pk + '"]');
+                toggleForm.action = row ? row.dataset.toggleUrl : '';
+                toggleForm.submit();
+            }
+        });
+    };
+
+    /* ── Delete via SweetAlert2 ────────────────────────────────────────────── */
+    window.confirmDelete = function (pk, purpose) {
+        Swal.fire({
+            title: 'Delete record?',
+            html: 'This will permanently delete <strong>' + purpose + '</strong>. This cannot be undone.',
+            icon: 'error',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Yes, Delete',
+            cancelButtonText: 'Cancel'
+        }).then(function (result) {
+            if (result.isConfirmed) {
+                var row = document.querySelector('tr[data-id="' + pk + '"]');
+                deleteForm.action = row ? row.dataset.deleteUrl : '';
+                deleteForm.submit();
+            }
+        });
+    };
+
+    /* ── ESC key closes modal ──────────────────────────────────────────────── */
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { closeModal(); }
+    });
+
+    /* ── Client-side form validation before submit ─────────────────────────── */
+    form.addEventListener('submit', function (e) {
+        /* fieldProgram is now a real required <select>, so the browser's
+           own validation (via form.checkValidity()) covers it — no manual
+           hidden-field check needed. */
+        if (!form.checkValidity()) {
+            e.preventDefault();
+            form.reportValidity();
+        }
+    });
+
+    /* Initialise course list on page load (full list, no filter) */
+    filterCourses(null);
+
+}());
+</script>
+{% endblock %}

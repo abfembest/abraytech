@@ -1,0 +1,596 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% comment %}
+  exam_responses.html — Student Exam Responses
+  ─────────────────────────────────────────────
+  Model:  StudentExamResponse (FK → Exam, FK → User as student)
+  View:   admin_exam_responses(request, slug)
+
+  Context variables received from view:
+    exam                  — Exam instance
+    page_obj              — Page of StudentExamResponse objects (25/page)
+    summary               — dict: total, in_progress, submitted, graded, avg_score
+    status_filter         — str: current GET ?status= filter value
+    ATTEMPT_STATUS_CHOICES — list of (value, label) tuples from StudentExamResponse
+
+  CORRECTED DATA MAPPINGS (vs original template errors):
+  ─────────────────────────────────────────────────────────
+  ✅  r.student.get_full_name  — correct. User.get_full_name()
+  ✅  r.student.email          — correct direct field
+  ✅  r.status                 — correct CharField on StudentExamResponse
+  ✅  r.auto_submitted         — correct BooleanField
+  ✅  r.exam_started_at        — correct DateTimeField (when questions revealed)
+  ✅  r.submitted_at           — correct DateTimeField
+  ✅  r.time_spent_seconds     — correct PositiveIntegerField (nullable)
+  ✅  r.questions_answered     — correct @property: len(self.answers)
+  ✅  r.assigned_question_ids|length — correct: JSONField list of PKs
+  ✅  r.score_percentage       — correct DecimalField (nullable until graded)
+  ✅  r.total_score            — correct DecimalField (nullable)
+  ✅  r.passed                 — correct BooleanField (nullable)
+  ✅  r.tab_switch_count       — correct PositiveIntegerField
+  ✅  r.pending_manual_count   — correct PositiveIntegerField
+  ✅  exam.computed_total_marks — correct @property (Sum of active question marks)
+  ✅  exam.total_marks         — correct DecimalField (stored, manual or auto-summed)
+  ✅  exam.pass_mark           — correct DecimalField (nullable)
+  ✅  summary.avg_score        — correct: aggregated from score_percentage
+
+  REMOVED fields that do NOT exist on the model:
+  ✗   exam.venue              — REMOVED. Exam is online/CBT only — no venue field.
+  ✗   exam.academic_session   — REMOVED. Derived via exam.course.session
+  ✗   exam.department         — REMOVED. Derived via exam.course.academic_course.program.department
+
+  TYPOGRAPHY: All text starts at text-md (text-base), scales up only.
+  LAYOUT: max-w-full, px-4 sm:px-6 lg:px-8
+  TABLE: overflow-x-auto, whitespace-nowrap on data cells, truncate on text
+{% endcomment %}
+
+{% block title %}Responses — {{ exam.reference_code }}{% endblock %}
+{% block breadcrumb %}Exam Management / {{ exam.reference_code }} / Responses{% endblock %}
+{% block breadcrumb_title %}{{ exam.reference_code }} — Responses{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-full space-y-6 px-4 sm:px-6 lg:px-8">
+
+    {% comment %} ── Breadcrumb ── {% endcomment %}
+    <nav class="flex items-center gap-2 text-base text-gray-400 flex-wrap">
+        <a href="{% url 'management:admin_exam_list' %}"
+           class="hover:text-primary-600 transition-colors flex items-center gap-1.5">
+            <i class="fas fa-file-alt text-sm"></i>
+            <span>Exam Management</span>
+        </a>
+        <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
+        <a href="{% url 'management:admin_exam_detail' exam.slug %}"
+           class="hover:text-primary-600 transition-colors font-medium text-gray-600">
+            {{ exam.reference_code }}
+        </a>
+        <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
+        <span class="text-gray-700 font-semibold">Student Responses</span>
+    </nav>
+
+    {% comment %} ── Page Header ── {% endcomment %}
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 font-heading flex items-center gap-3">
+                <span class="inline-flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-xl
+                             bg-gradient-to-br from-primary-500 to-secondary-500 text-white shadow shrink-0">
+                    <i class="fas fa-users text-lg"></i>
+                </span>
+                Student Responses
+            </h1>
+            <p class="text-base text-gray-500 mt-1.5 ml-14 sm:ml-16 line-clamp-2 max-w-xl">
+                {{ exam.title }}
+                <span class="font-mono text-sm text-gray-400 ml-1.5">{{ exam.reference_code }}</span>
+            </p>
+        </div>
+        <a href="{% url 'management:admin_exam_detail' exam.slug %}"
+           class="inline-flex items-center gap-2 px-5 py-2.5 text-base font-medium
+                  border border-gray-300 bg-white text-gray-700 hover:bg-gray-50
+                  rounded-xl transition-colors self-start shrink-0">
+            <i class="fas fa-arrow-left text-sm text-gray-400"></i> Back to Exam
+        </a>
+    </div>
+
+    {% comment %} ── Summary Cards ── {% endcomment %}
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+
+        {% comment %} Total {% endcomment %}
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-5 text-center">
+            <div class="text-2xl lg:text-3xl font-bold text-gray-800">{{ summary.total|default:"0" }}</div>
+            <div class="text-base text-gray-400 font-medium mt-1 uppercase tracking-wide">Total</div>
+        </div>
+
+        {% comment %} In Progress {% endcomment %}
+        <div class="bg-blue-50 rounded-2xl border border-blue-100 shadow-sm p-4 sm:p-5 text-center">
+            <div class="text-2xl lg:text-3xl font-bold text-blue-700">{{ summary.in_progress|default:"0" }}</div>
+            <div class="text-base text-blue-500 font-medium mt-1 uppercase tracking-wide">In Progress</div>
+        </div>
+
+        {% comment %} Submitted {% endcomment %}
+        <div class="bg-primary-50 rounded-2xl border border-primary-100 shadow-sm p-4 sm:p-5 text-center">
+            <div class="text-2xl lg:text-3xl font-bold text-primary-700">{{ summary.submitted|default:"0" }}</div>
+            <div class="text-base text-primary-500 font-medium mt-1 uppercase tracking-wide">Submitted</div>
+        </div>
+
+        {% comment %} Graded {% endcomment %}
+        <div class="bg-green-50 rounded-2xl border border-green-100 shadow-sm p-4 sm:p-5 text-center">
+            <div class="text-2xl lg:text-3xl font-bold text-green-700">{{ summary.graded|default:"0" }}</div>
+            <div class="text-base text-green-500 font-medium mt-1 uppercase tracking-wide">Graded</div>
+        </div>
+
+        {% comment %}
+          avg_score: aggregated from score_percentage (DecimalField on StudentExamResponse)
+          via Avg('score_percentage') in view — may be None if no graded responses.
+        {% endcomment %}
+        <div class="bg-gray-50 rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-5 text-center col-span-2 sm:col-span-1">
+            <div class="text-2xl lg:text-3xl font-bold text-gray-700">
+                {% if summary.avg_score %}{{ summary.avg_score|floatformat:1 }}%{% else %}—{% endif %}
+            </div>
+            <div class="text-base text-gray-400 font-medium mt-1 uppercase tracking-wide">Avg Score</div>
+        </div>
+    </div>
+
+    {% comment %} ── Exam Info Strip ── {% endcomment %}
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm px-5 py-4
+                flex flex-wrap items-center gap-x-6 gap-y-2 text-base text-gray-600">
+        <div class="flex items-center gap-2">
+            <i class="fas fa-book text-primary-400 text-sm"></i>
+            <span class="font-medium">{{ exam.course.title }}</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <i class="fas fa-tag text-gray-400 text-sm"></i>
+            <span>{{ exam.get_exam_type_display }}</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <i class="fas fa-calendar text-gray-400 text-sm"></i>
+            <span class="tabular-nums">{{ exam.start_datetime|date:"D d M Y" }}</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <i class="fas fa-clock text-gray-400 text-sm"></i>
+            <span class="tabular-nums">{{ exam.start_datetime|time:"H:i" }} – {{ exam.end_datetime|time:"H:i" }}</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <i class="fas fa-stopwatch text-gray-400 text-sm"></i>
+            {% comment %} duration_minutes is a computed @property on Exam — safe to use {% endcomment %}
+            <span>{{ exam.duration_minutes }} min</span>
+        </div>
+        {% comment %}
+          computed_total_marks: @property → Sum of active ExamQuestion.marks
+          total_marks: stored DecimalField on Exam
+          pass_mark: stored DecimalField (nullable)
+        {% endcomment %}
+        {% if exam.pass_mark %}
+        <div class="flex items-center gap-2">
+            <i class="fas fa-check-circle text-green-400 text-sm"></i>
+            <span>Pass: {{ exam.pass_mark }}/{{ exam.computed_total_marks }}</span>
+        </div>
+        {% endif %}
+    </div>
+
+    {% comment %} ── Filters ── {% endcomment %}
+    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <div class="flex items-center gap-2 text-base text-gray-600 font-medium shrink-0">
+            <i class="fas fa-filter text-gray-400 text-sm"></i> Filter by status:
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a href="?{% if request.GET.page %}page={{ request.GET.page }}&{% endif %}"
+               class="inline-flex items-center gap-1.5 px-4 py-2 text-base font-medium rounded-xl border transition-colors
+                      {% if not status_filter %}bg-primary-600 text-white border-primary-600{% else %}bg-white text-gray-600 border-gray-300 hover:bg-gray-50{% endif %}">
+                All
+            </a>
+            {% for val, label in ATTEMPT_STATUS_CHOICES %}
+            <a href="?status={{ val }}"
+               class="inline-flex items-center gap-1.5 px-4 py-2 text-base font-medium rounded-xl border transition-colors
+                      {% if status_filter == val %}bg-primary-600 text-white border-primary-600{% else %}bg-white text-gray-600 border-gray-300 hover:bg-gray-50{% endif %}">
+                {{ label }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% comment %} ── Responses Table ── {% endcomment %}
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+
+        {% comment %} Table header context {% endcomment %}
+        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+                <span class="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
+                    <i class="fas fa-table text-primary-500 text-sm"></i>
+                </span>
+                <h2 class="text-base font-bold text-gray-800">
+                    Response Records
+                    {% if status_filter %}
+                        <span class="ml-2 text-base font-normal text-gray-500">— filtered by <em>{{ status_filter|title }}</em></span>
+                    {% endif %}
+                </h2>
+            </div>
+            <span class="text-base text-gray-400 tabular-nums">
+                {{ page_obj.paginator.count }} record{{ page_obj.paginator.count|pluralize }}
+            </span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="table-card w-full min-w-[700px]">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-200">
+                        <th class="text-left px-5 py-3.5 font-semibold text-gray-500 text-base uppercase tracking-wider whitespace-nowrap">
+                            Student
+                        </th>
+                        <th class="text-left px-5 py-3.5 font-semibold text-gray-500 text-base uppercase tracking-wider whitespace-nowrap">
+                            Status
+                        </th>
+                        <th class="text-left px-5 py-3.5 font-semibold text-gray-500 text-base uppercase tracking-wider whitespace-nowrap">
+                            Started
+                        </th>
+                        <th class="text-left px-5 py-3.5 font-semibold text-gray-500 text-base uppercase tracking-wider whitespace-nowrap">
+                            Submitted
+                        </th>
+                        <th class="text-center px-5 py-3.5 font-semibold text-gray-500 text-base uppercase tracking-wider whitespace-nowrap">
+                            Answered
+                        </th>
+                        <th class="text-right px-5 py-3.5 font-semibold text-gray-500 text-base uppercase tracking-wider whitespace-nowrap">
+                            Score
+                        </th>
+                        <th class="text-center px-5 py-3.5 font-semibold text-gray-500 text-base uppercase tracking-wider whitespace-nowrap">
+                            Correct / Missed
+                        </th>
+                        <th class="text-center px-5 py-3.5 font-semibold text-gray-500 text-base uppercase tracking-wider whitespace-nowrap">
+                            Flags
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for r in page_obj %}
+                    <tr class="hover:bg-gray-50/60 transition-colors">
+
+                        {% comment %} ── Student Column ── {% endcomment %}
+                        <td class="px-5 py-4" data-label="Student">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary-400 to-secondary-500
+                                            flex items-center justify-center text-white text-base font-bold shrink-0 select-none">
+                                    {% comment %} student.first_name and last_name are User fields — safe {% endcomment %}
+                                    {{ r.student.first_name|first|upper }}{{ r.student.last_name|first|upper }}
+                                </div>
+                                <div class="min-w-0">
+                                    {% comment %}
+                                      get_full_name(): Django built-in → "First Last"
+                                      Falls back to username if both names are blank.
+                                    {% endcomment %}
+                                    <div class="font-semibold text-gray-900 text-base leading-tight truncate max-w-[160px] sm:max-w-[220px]">
+                                        {{ r.student.get_full_name|default:r.student.username }}
+                                    </div>
+                                    <div class="text-base text-gray-400 truncate max-w-[160px] sm:max-w-[220px]">{{ r.student.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+
+                        {% comment %} ── Status Column ── {% endcomment %}
+                        <td class="px-5 py-4" data-label="Status">
+                            <div class="flex flex-col gap-1 min-w-[110px]">
+                                {% comment %}
+                                  r.status values (StudentExamResponse.ATTEMPT_STATUS_CHOICES):
+                                  not_started | instructions | in_progress | submitted | graded | absent
+                                {% endcomment %}
+                                {% if r.status == 'not_started' %}
+                                <span class="inline-flex items-center gap-1.5 text-base px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full font-medium w-fit whitespace-nowrap">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-gray-400 shrink-0"></span>Not Started
+                                </span>
+                                {% elif r.status == 'instructions' %}
+                                <span class="inline-flex items-center gap-1.5 text-base px-2.5 py-1 bg-blue-100 text-blue-700 rounded-full font-medium w-fit whitespace-nowrap">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0"></span>Instructions
+                                </span>
+                                {% elif r.status == 'in_progress' %}
+                                <span class="inline-flex items-center gap-1.5 text-base px-2.5 py-1 bg-yellow-100 text-yellow-700 rounded-full font-semibold w-fit whitespace-nowrap">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse shrink-0"></span>In Progress
+                                </span>
+                                {% elif r.status == 'submitted' %}
+                                <span class="inline-flex items-center gap-1.5 text-base px-2.5 py-1 bg-primary-100 text-primary-700 rounded-full font-medium w-fit whitespace-nowrap">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-primary-500 shrink-0"></span>Submitted
+                                </span>
+                                {% elif r.status == 'graded' %}
+                                <span class="inline-flex items-center gap-1.5 text-base px-2.5 py-1 bg-green-100 text-green-700 rounded-full font-medium w-fit whitespace-nowrap">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0"></span>Graded
+                                </span>
+                                {% elif r.status == 'absent' %}
+                                <span class="inline-flex items-center gap-1.5 text-base px-2.5 py-1 bg-red-100 text-red-600 rounded-full font-medium w-fit whitespace-nowrap">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0"></span>Absent
+                                </span>
+                                {% endif %}
+
+                                {% comment %}
+                                  auto_submitted: BooleanField on StudentExamResponse
+                                  True when the server timer fired submission.
+                                {% endcomment %}
+                                {% if r.auto_submitted %}
+                                <span class="inline-flex items-center gap-1 text-base text-gray-400 w-fit whitespace-nowrap" title="Auto-submitted by server timer">
+                                    <i class="fas fa-robot text-gray-300 text-xs"></i> Auto-submit
+                                </span>
+                                {% endif %}
+
+                                {% comment %}
+                                  pending_manual_count: PositiveIntegerField
+                                  Questions still needing human review.
+                                {% endcomment %}
+                                {% if r.pending_manual_count > 0 %}
+                                <span class="inline-flex items-center gap-1 text-base text-orange-600 bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-full w-fit whitespace-nowrap" title="Pending manual grading">
+                                    <i class="fas fa-pen text-xs"></i> {{ r.pending_manual_count }} manual
+                                </span>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        {% comment %} ── Started Column ── {% endcomment %}
+                        <td class="px-5 py-4" data-label="Started">
+                            {% comment %}
+                              exam_started_at: DateTimeField — when questions were revealed
+                              (countdown hit 0). May be null if still in instructions phase.
+                            {% endcomment %}
+                            <span class="text-base text-gray-600 tabular-nums whitespace-nowrap">
+                                {{ r.exam_started_at|date:"d M, H:i"|default:"—" }}
+                            </span>
+                        </td>
+
+                        {% comment %} ── Submitted Column ── {% endcomment %}
+                        <td class="px-5 py-4" data-label="Submitted">
+                            {% comment %}
+                              submitted_at: DateTimeField — when student or server submitted.
+                              time_spent_seconds: PositiveIntegerField (nullable)
+                              Shows total exam duration in minutes for readability.
+                            {% endcomment %}
+                            <div>
+                                <div class="text-base text-gray-600 tabular-nums whitespace-nowrap">
+                                    {{ r.submitted_at|date:"d M, H:i"|default:"—" }}
+                                </div>
+                                {% if r.time_spent_seconds %}
+                                <div class="text-base text-gray-400 mt-0.5 whitespace-nowrap tabular-nums">
+                                    {% widthratio r.time_spent_seconds 60 1 %} min spent
+                                </div>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        {% comment %} ── Answered Column ── {% endcomment %}
+                        <td class="px-5 py-4 text-center" data-label="Answered">
+                            {% comment %}
+                              questions_answered: @property → len(self.answers) dict
+                              assigned_question_ids: JSONField list of ExamQuestion PKs drawn for this student
+                              |length filter is safe on JSON lists in Django templates.
+                            {% endcomment %}
+                            <div class="inline-flex flex-col items-center gap-0.5 whitespace-nowrap">
+                                <span class="text-base font-bold text-gray-700">{{ r.questions_answered }}</span>
+                                <span class="text-base text-gray-400">/ {{ r.assigned_question_ids|length }}</span>
+                            </div>
+                        </td>
+
+                        {% comment %} ── Score Column ── {% endcomment %}
+                        <td class="px-5 py-4 text-right" data-label="Score">
+                            {% if r.score_percentage is not None %}
+                            <div>
+                                <div class="font-bold text-base whitespace-nowrap
+                                            {% if r.passed %}text-green-600
+                                            {% elif r.passed == False %}text-red-600
+                                            {% else %}text-gray-700{% endif %}">
+                                    {{ r.score_percentage|floatformat:1 }}%
+                                </div>
+                                <div class="text-base text-gray-400 mt-0.5 tabular-nums whitespace-nowrap">
+                                    {{ r.total_score|floatformat:1 }} / {{ exam.computed_total_marks }}
+                                </div>
+                                {% if r.passed is True %}
+                                <div class="text-base text-green-500 whitespace-nowrap"><i class="fas fa-check text-xs mr-0.5"></i>Passed</div>
+                                {% elif r.passed is False %}
+                                <div class="text-base text-red-400 whitespace-nowrap"><i class="fas fa-times text-xs mr-0.5"></i>Failed</div>
+                                {% endif %}
+                            </div>
+                            {% else %}
+                            <span class="text-base text-gray-300">—</span>
+                            {% endif %}
+                        </td>
+
+                        {% comment %} ── Correct / Missed Column ── {% endcomment %}
+                        <td class="px-5 py-4 text-center" data-label="Correct / Missed">
+                            {% if r.status == 'graded' or r.status == 'submitted' %}
+                            <div class="inline-flex flex-col items-center gap-1">
+                                <div class="flex items-center gap-3 whitespace-nowrap">
+                                    <span class="inline-flex items-center gap-1 text-base font-semibold text-green-700"
+                                          title="Correct answers">
+                                        <i class="fas fa-check-circle text-green-400 text-xs"></i>
+                                        {{ r.q_correct }}
+                                    </span>
+                                    <span class="text-gray-300">|</span>
+                                    <span class="inline-flex items-center gap-1 text-base font-semibold text-red-600"
+                                          title="Missed / wrong answers">
+                                        <i class="fas fa-times-circle text-red-400 text-xs"></i>
+                                        {{ r.q_missed }}
+                                    </span>
+                                    {% if r.q_pending %}
+                                    <span class="text-gray-300">|</span>
+                                    <span class="inline-flex items-center gap-1 text-base font-semibold text-orange-500"
+                                          title="Pending manual grading">
+                                        <i class="fas fa-clock text-orange-400 text-xs"></i>
+                                        {{ r.q_pending }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                <span class="text-base text-gray-400 whitespace-nowrap">
+                                    of {{ r.questions_answered }} answered
+                                </span>
+                            </div>
+                            {% else %}
+                            <span class="text-base text-gray-300">—</span>
+                            {% endif %}
+                        </td>
+
+                        {% comment %} ── Flags Column ── {% endcomment %}
+                        <td class="px-5 py-4 text-center" data-label="Flags">
+                            {% comment %}
+                              tab_switch_count: PositiveIntegerField on StudentExamResponse
+                              Counts how many times the student switched away from the exam tab.
+                            {% endcomment %}
+                            {% if r.tab_switch_count > 0 %}
+                            <span class="inline-flex items-center gap-1.5 text-base text-amber-700
+                                         bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full font-semibold whitespace-nowrap"
+                                  title="Tab switches detected">
+                                <i class="fas fa-exclamation-triangle text-xs"></i>
+                                {{ r.tab_switch_count }}
+                            </span>
+                            {% else %}
+                            <span class="text-base text-gray-200">—</span>
+                            {% endif %}
+                        </td>
+
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="px-5 py-16 text-center">
+                            <div class="flex flex-col items-center gap-3">
+                                <div class="w-16 h-16 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-center">
+                                    <i class="fas fa-users text-3xl text-gray-300"></i>
+                                </div>
+                                <p class="text-base font-semibold text-gray-500">No responses found</p>
+                                <p class="text-base text-gray-400">
+                                    {% if status_filter %}
+                                        No students have a status of <strong>{{ status_filter|title }}</strong> for this exam.
+                                    {% else %}
+                                        No students have opened this exam yet.
+                                    {% endif %}
+                                </p>
+                                {% if status_filter %}
+                                <a href="?" class="inline-flex items-center gap-1.5 px-4 py-2 text-base font-medium
+                                                   text-primary-600 bg-primary-50 border border-primary-200 rounded-xl hover:bg-primary-100 transition-colors">
+                                    <i class="fas fa-times text-xs"></i> Clear filter
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% comment %} ── Pagination ── {% endcomment %}
+        {% if page_obj.has_other_pages %}
+        <div class="px-5 py-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <p class="text-base text-gray-500">
+                Showing
+                <span class="font-semibold text-gray-700">{{ page_obj.start_index }}</span>–<span class="font-semibold text-gray-700">{{ page_obj.end_index }}</span>
+                of <span class="font-semibold text-gray-700">{{ page_obj.paginator.count }}</span>
+            </p>
+            <div class="flex gap-2 flex-wrap">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}"
+                   class="px-4 py-2 text-base font-semibold border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors text-gray-700 whitespace-nowrap">
+                    <i class="fas fa-chevron-left mr-1 text-xs"></i> Previous
+                </a>
+                {% endif %}
+
+                {% comment %} Page number buttons — show window around current {% endcomment %}
+                {% for i in page_obj.paginator.page_range %}
+                    {% if i == page_obj.number %}
+                    <span class="px-4 py-2 text-base font-bold bg-primary-600 text-white rounded-xl">{{ i }}</span>
+                    {% elif i == 1 or i == page_obj.paginator.num_pages or i == page_obj.number|add:"-1" or i == page_obj.number|add:"1" %}
+                    <a href="?page={{ i }}{% if status_filter %}&status={{ status_filter }}{% endif %}"
+                       class="px-4 py-2 text-base font-semibold border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors text-gray-700">{{ i }}</a>
+                    {% elif i == page_obj.number|add:"-2" or i == page_obj.number|add:"2" %}
+                    <span class="px-3 py-2 text-base text-gray-300">…</span>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}"
+                   class="px-4 py-2 text-base font-semibold bg-primary-600 hover:bg-primary-700 text-white rounded-xl transition-colors whitespace-nowrap">
+                    Next <i class="fas fa-chevron-right ml-1 text-xs"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% comment %} ── Results Release Panel ── {% endcomment %}
+    <div class="bg-white rounded-2xl border shadow-sm overflow-hidden
+        {% if exam.show_result_immediately %}border-green-300{% elif all_graded %}border-primary-300{% else %}border-gray-200{% endif %}">
+
+        <div class="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
+            <!-- Left: status + explanation -->
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0
+                    {% if exam.show_result_immediately %}bg-green-100{% elif all_graded %}bg-primary-50{% else %}bg-gray-100{% endif %}">
+                    <i class="fas {% if exam.show_result_immediately %}fa-eye text-green-600{% elif all_graded %}fa-check-circle text-primary-500{% else %}fa-eye-slash text-gray-400{% endif %}"></i>
+                </div>
+                <div>
+                    <p class="text-base font-semibold text-gray-800">
+                        Results are currently
+                        <span class="{% if exam.show_result_immediately %}text-green-600{% else %}text-gray-500{% endif %}">
+                            {% if exam.show_result_immediately %}visible to students{% else %}hidden from students{% endif %}
+                        </span>
+                    </p>
+                    {% if exam.show_result_immediately %}
+                    <p class="text-base text-gray-500 mt-0.5">
+                        Students can view their score, percentage, and pass/fail status on their dashboard.
+                    </p>
+                    {% elif all_graded %}
+                    <p class="text-base text-gray-500 mt-0.5">
+                        All responses are fully graded. Results are ready to release.
+                    </p>
+                    {% elif pending_any_manual %}
+                    <p class="text-base text-amber-600 mt-0.5">
+                        <i class="fas fa-exclamation-triangle text-xs mr-1"></i>
+                        Some responses still have pending manual questions. Release anyway only if you're sure.
+                    </p>
+                    {% else %}
+                    <p class="text-base text-gray-500 mt-0.5">
+                        Grading is not yet complete. Release when all responses are graded.
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Right: action button -->
+            {% if permissions.exams.can_approve %}
+            <form method="post" action="{% url 'management:admin_exam_release_results' exam.slug %}">
+                {% csrf_token %}
+                {% if exam.show_result_immediately %}
+                <input type="hidden" name="action" value="retract">
+                <button type="submit"
+                        onclick="return swalConfirmSubmit(this, {title: 'Hide results from students?', confirmButtonText: 'Yes, hide'})"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 text-base font-semibold
+                               bg-red-50 text-red-700 border border-red-300 rounded-xl
+                               hover:bg-red-100 transition-colors whitespace-nowrap shrink-0">
+                    <i class="fas fa-eye-slash"></i> Retract Results
+                </button>
+                {% else %}
+                <input type="hidden" name="action" value="release">
+                <button type="submit"
+                        onclick="return swalConfirmSubmit(this, {title: 'Release results to all students?', confirmButtonColor: '#16a34a', confirmButtonText: 'Yes, release'})"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 text-base font-semibold
+                               {% if all_graded %}bg-green-600 hover:bg-green-700 text-white border-green-600
+                               {% else %}bg-primary-600 hover:bg-primary-700 text-white border-primary-600{% endif %}
+                               border rounded-xl transition-colors whitespace-nowrap shrink-0">
+                    <i class="fas fa-eye"></i> Release Results to Students
+                </button>
+                {% endif %}
+            </form>
+            {% endif %}
+        </div>
+
+        <!-- Grading summary bar at bottom of panel -->
+        <div class="px-5 py-3 border-t border-gray-100 bg-gray-50 flex flex-wrap gap-x-6 gap-y-1 text-base text-gray-500">
+            <span><span class="font-semibold text-gray-700">{{ summary.graded }}</span> graded</span>
+            <span><span class="font-semibold text-gray-700">{{ summary.submitted }}</span> awaiting grading</span>
+            <span><span class="font-semibold text-gray-700">{{ summary.in_progress }}</span> in progress</span>
+            {% if summary.avg_score %}
+            <span>Avg: <span class="font-semibold text-gray-700">{{ summary.avg_score|floatformat:1 }}%</span></span>
+            {% endif %}
+        </div>
+    </div>
+
+    {% comment %} Security notice {% endcomment %}
+    <p class="text-base text-gray-400 text-center flex items-center justify-center gap-2">
+        <i class="fas fa-lock text-gray-300"></i>
+        Read-only view. Correct answers are never exposed here — all grading is server-side.
+    </p>
+
+</div>
+{% endblock %}

@@ -1,0 +1,248 @@
+{% extends "management/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - {{site_config.school_short_name}} Student Portal{% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="Quiz results for {{ attempt.quiz.title }}">
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
+{% block content %}
+<div class="max-w-screen-2xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+
+                <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
+
+
+    {% if attempt.pending_manual_grading %}
+    <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 mb-4 sm:mb-6 flex items-start gap-3">
+        <i class="fas fa-user-clock text-amber-500 mt-0.5" aria-hidden="true"></i>
+        <div>
+            <p class="text-sm font-semibold text-amber-800">
+                {{ pending_grading_count }} question{{ pending_grading_count|pluralize }} awaiting manual grading
+            </p>
+            <p class="text-xs text-amber-700 mt-0.5">
+                Your instructor needs to review your short-answer/essay response{{ pending_grading_count|pluralize }}
+                before your final score is complete. The score below only reflects auto-graded questions so far.
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Results Hero card -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 sm:p-6 lg:p-8 mb-4 sm:mb-6 text-center">
+
+        <!-- Pass / Fail icon + headline -->
+        <div class="mb-5 sm:mb-6">
+            {% if attempt.pending_manual_grading %}
+            <div class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mx-auto mb-3 sm:mb-4
+                        bg-amber-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-hourglass-half text-amber-500 text-3xl sm:text-4xl lg:text-5xl" aria-hidden="true"></i>
+            </div>
+            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-amber-600 mb-1 sm:mb-2">
+                Grading In Progress
+            </h1>
+            <p class="text-xs sm:text-sm text-gray-500">Your final result isn't ready yet</p>
+            {% elif attempt.passed %}
+            <div class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mx-auto mb-3 sm:mb-4
+                        bg-green-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-check-circle text-green-600 text-3xl sm:text-4xl lg:text-5xl" aria-hidden="true"></i>
+            </div>
+            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600 mb-1 sm:mb-2">
+                Congratulations!
+            </h1>
+            <p class="text-xs sm:text-sm text-gray-500">You passed the quiz</p>
+            {% else %}
+            <div class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mx-auto mb-3 sm:mb-4
+                        bg-red-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-times-circle text-red-600 text-3xl sm:text-4xl lg:text-5xl" aria-hidden="true"></i>
+            </div>
+            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-red-600 mb-1 sm:mb-2">
+                Keep Trying!
+            </h1>
+            <p class="text-xs sm:text-sm text-gray-500">You didn't pass this time</p>
+            {% endif %}
+        </div>
+
+        <!-- Score Cards: 2-col on mobile → 4-col on md+ -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 max-w-2xl mx-auto">
+            <div class="p-3 sm:p-4 bg-gray-50 rounded-lg">
+                <p class="text-xs text-gray-400 mb-1">Your Score</p>
+                <p class="text-2xl sm:text-3xl font-bold {% if attempt.passed %}text-green-600{% else %}text-red-600{% endif %}">
+                    {{ attempt.percentage|floatformat:1 }}%
+                </p>
+            </div>
+            <div class="p-3 sm:p-4 bg-gray-50 rounded-lg">
+                <p class="text-xs text-gray-400 mb-1">Passing Score</p>
+                <p class="text-2xl sm:text-3xl font-bold text-gray-900">
+                    {{ attempt.quiz.passing_score|floatformat:0 }}%
+                </p>
+            </div>
+            <div class="p-3 sm:p-4 bg-gray-50 rounded-lg">
+                <p class="text-xs text-gray-400 mb-1">Correct</p>
+                <p class="text-2xl sm:text-3xl font-bold text-gray-900">
+                    {{ correct_answers }}/{{ total_questions }}
+                </p>
+            </div>
+            <div class="p-3 sm:p-4 bg-gray-50 rounded-lg">
+                <p class="text-xs text-gray-400 mb-1">Time Taken</p>
+                <p class="text-2xl sm:text-3xl font-bold text-gray-900">
+                    {{ attempt.time_taken_minutes }}<span class="text-base font-normal text-gray-500 ml-0.5">min</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Answer Review -->
+    {% if attempt.quiz.show_correct_answers %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 lg:p-6 mb-4 sm:mb-6">
+        <h2 class="text-base sm:text-lg lg:text-xl font-bold text-gray-900 mb-4 sm:mb-5 flex items-center gap-2">
+            <i class="fas fa-clipboard-list text-gray-400" aria-hidden="true"></i>
+            Answer Review
+        </h2>
+
+        <div class="space-y-4 sm:space-y-5">
+            {% for answer in answers %}
+            <div class="border-l-4 rounded-r-lg pl-3 sm:pl-4 pr-3 sm:pr-4 py-3 sm:py-4
+                        {% if answer.needs_grading %}border-amber-400 bg-amber-50
+                        {% elif answer.is_correct %}border-green-500 bg-green-50{% else %}border-red-500 bg-red-50{% endif %}
+                        hover:shadow-sm transition-shadow">
+
+                <!-- Question text + status badge -->
+                <div class="flex flex-col xs:flex-row xs:items-start justify-between gap-2 mb-3">
+                    <div class="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+                        <span class="flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 bg-white border border-gray-200 rounded-full
+                                     flex items-center justify-center text-xs font-bold text-gray-700">
+                            {{ forloop.counter }}
+                        </span>
+                        <p class="text-xs sm:text-sm font-semibold text-gray-900 leading-snug pt-0.5">
+                            {{ answer.question.question_text }}
+                        </p>
+                    </div>
+                    {% if answer.needs_grading %}
+                    <span class="flex-shrink-0 inline-flex items-center gap-1 px-2 py-0.5 bg-amber-500 text-white
+                                 rounded-full text-xs font-medium whitespace-nowrap">
+                        <i class="fas fa-hourglass-half text-xs" aria-hidden="true"></i> Pending grading
+                    </span>
+                    {% elif answer.is_correct %}
+                    <span class="flex-shrink-0 inline-flex items-center gap-1 px-2 py-0.5 bg-green-600 text-white
+                                 rounded-full text-xs font-medium whitespace-nowrap">
+                        <i class="fas fa-check text-xs" aria-hidden="true"></i> Correct
+                    </span>
+                    {% else %}
+                    <span class="flex-shrink-0 inline-flex items-center gap-1 px-2 py-0.5 bg-red-600 text-white
+                                 rounded-full text-xs font-medium whitespace-nowrap">
+                        <i class="fas fa-times text-xs" aria-hidden="true"></i> Incorrect
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Answers block -->
+                <div class="sm:ml-9 space-y-2">
+                    <!-- Your answer -->
+                    <div class="p-2.5 sm:p-3 bg-white rounded-lg border
+                                {% if answer.needs_grading %}border-amber-300
+                                {% elif answer.is_correct %}border-green-300{% else %}border-red-300{% endif %}">
+                        <p class="text-xs font-semibold text-gray-600 mb-1 flex items-center gap-1.5">
+                            <i class="fas fa-user text-gray-400" aria-hidden="true"></i>
+                            Your answer:
+                        </p>
+                        {% if answer.question.question_type == 'short_answer' or answer.question.question_type == 'essay' %}
+                        <p class="text-xs sm:text-sm text-gray-900 whitespace-pre-wrap">{{ answer.text_response|default:"No answer provided" }}</p>
+                        {% if not answer.needs_grading %}
+                        <p class="text-xs text-gray-500 mt-1.5">Score: {{ answer.points_earned|floatformat:1 }} / {{ answer.question.points|floatformat:1 }} pts</p>
+                        {% endif %}
+                        {% else %}
+                        <p class="text-xs sm:text-sm text-gray-900">{{ answer.selected_answer.answer_text }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Correct answer (if wrong, and it's an auto-graded question) -->
+                    {% if not answer.is_correct and not answer.needs_grading and answer.selected_answer %}
+                    <div class="p-2.5 sm:p-3 bg-green-100 rounded-lg border border-green-300">
+                        <p class="text-xs font-semibold text-green-800 mb-1 flex items-center gap-1.5">
+                            <i class="fas fa-check-circle" aria-hidden="true"></i>
+                            Correct answer:
+                        </p>
+                        <p class="text-xs sm:text-sm text-green-900">
+                            {% for option in answer.question.answers.all %}
+                                {% if option.is_correct %}{{ option.answer_text }}{% endif %}
+                            {% endfor %}
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Explanation -->
+                {% if answer.question.explanation %}
+                <div class="mt-2 sm:ml-9 p-2.5 sm:p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p class="text-xs text-blue-900 flex items-start gap-1.5">
+                        <i class="fas fa-info-circle mt-0.5 flex-shrink-0" aria-hidden="true"></i>
+                        <span>{{ answer.question.explanation }}</span>
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Action Bar -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 mb-4 sm:mb-6">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <a href="{% url 'students:quiz_detail' course_slug lesson_slug quiz_slug %}"
+               class="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5
+                      bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors
+                      font-medium text-xs sm:text-sm
+                      focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+                <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>
+                Back to Quiz
+            </a>
+
+            <div class="flex flex-col xs:flex-row gap-2 sm:gap-3">
+                {% if not attempt.passed %}
+                    {% if attempt.quiz.max_attempts == 0 or attempt_count < attempt.quiz.max_attempts %}
+                    <a href="{% url 'students:quiz_take' course_slug lesson_slug quiz_slug %}"
+                       class="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5
+                              bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors
+                              font-medium text-xs sm:text-sm
+                              focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2">
+                        <i class="fas fa-redo text-xs" aria-hidden="true"></i>
+                        Try Again
+                    </a>
+                    {% endif %}
+                {% endif %}
+                <a href="{% url 'students:lesson_view' course_slug lesson_slug %}"
+                   class="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5
+                          bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors
+                          font-medium text-xs sm:text-sm
+                          focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+                    <i class="fas fa-book-reader text-xs" aria-hidden="true"></i>
+                    Review Lesson
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Summary: 3 cards -->
+    <div class="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 lg:p-6 text-center">
+            <i class="fas fa-check-circle text-green-500 text-xl sm:text-2xl lg:text-3xl mb-2 sm:mb-3" aria-hidden="true"></i>
+            <p class="text-xl sm:text-2xl font-bold text-gray-900 mb-0.5 sm:mb-1">{{ correct_answers }}</p>
+            <p class="text-xs sm:text-sm text-gray-500">Correct</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 lg:p-6 text-center">
+            <i class="fas fa-times-circle text-red-500 text-xl sm:text-2xl lg:text-3xl mb-2 sm:mb-3" aria-hidden="true"></i>
+            <p class="text-xl sm:text-2xl font-bold text-gray-900 mb-0.5 sm:mb-1">{{ incorrect_answers }}</p>
+            <p class="text-xs sm:text-sm text-gray-500">Incorrect</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 lg:p-6 text-center">
+            <i class="fas fa-percentage text-blue-500 text-xl sm:text-2xl lg:text-3xl mb-2 sm:mb-3" aria-hidden="true"></i>
+            <p class="text-xl sm:text-2xl font-bold text-gray-900 mb-0.5 sm:mb-1">{{ attempt.percentage|floatformat:0 }}%</p>
+            <p class="text-xs sm:text-sm text-gray-500">Accuracy</p>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

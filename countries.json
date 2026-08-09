@@ -1,0 +1,102 @@
+[
+  {
+    "model": "your_app.listofcountry",
+    "pk": 1,
+    "fields": {
+      "country": "United Kingdom",
+      "country_code": "GB",
+      "country_phonecode": "+44",
+      "nationality": "British"
+    }
+  },
+  {
+    "model": "your_app.listofcountry",
+    "pk": 2,
+    "fields": {
+      "country": "United States",
+      "country_code": "US",
+      "country_phonecode": "+1",
+      "nationality": "American"
+    }
+  },
+  {
+    "model": "your_app.listofcountry",
+    "pk": 3,
+    "fields": {
+      "country": "Nigeria",
+      "country_code": "NG",
+      "country_phonecode": "+234",
+      "nationality": "Nigerian"
+    }
+  },
+  {
+    "model": "your_app.listofcountry",
+    "pk": 4,
+    "fields": {
+      "country": "Canada",
+      "country_code": "CA",
+      "country_phonecode": "+1",
+      "nationality": "Canadian"
+    }
+  },
+  {
+    "model": "your_app.listofcountry",
+    "pk": 5,
+    "fields": {
+      "country": "India",
+      "country_code": "IN",
+      "country_phonecode": "+91",
+      "nationality": "Indian"
+    }
+  },
+  {
+    "model": "your_app.listofcountry",
+    "pk": 6,
+    "fields": {
+      "country": "Germany",
+      "country_code": "DE",
+      "country_phonecode": "+49",
+      "nationality": "German"
+    }
+  },
+  {
+    "model": "your_app.listofcountry",
+    "pk": 7,
+    "fields": {
+      "country": "France",
+      "country_code": "FR",
+      "country_phonecode": "+33",
+      "nationality": "French"
+    }
+  },
+  {
+    "model": "your_app.listofcountry",
+    "pk": 8,
+    "fields": {
+      "country": "Italy",
+      "country_code": "IT",
+      "country_phonecode": "+39",
+      "nationality": "Italian"
+    }
+  },
+  {
+    "model": "your_app.listofcountry",
+    "pk": 9,
+    "fields": {
+      "country": "Spain",
+      "country_code": "ES",
+      "country_phonecode": "+34",
+      "nationality": "Spanish"
+    }
+  },
+  {
+    "model": "your_app.listofcountry",
+    "pk": 10,
+    "fields": {
+      "country": "Australia",
+      "country_code": "AU",
+      "country_phonecode": "+61",
+      "nationality": "Australian"
+    }
+  }
+]

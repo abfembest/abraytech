@@ -1,0 +1,144 @@
+{% extends 'management/base.html' %}
+{% load static %}
+{% block title %}Create Announcement - {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-full lg:max-w-4xl mx-auto px-2 sm:px-0">
+
+                <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
+
+
+    <!-- Breadcrumb -->
+    <nav class="flex mb-4 sm:mb-6 overflow-x-auto" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center whitespace-nowrap text-xs sm:text-sm space-x-1">
+            <li><a href="{% url 'instructor:course_list' %}" class="text-gray-600 hover:text-primary-600">Courses</a></li>
+            <li><i class="fas fa-chevron-right text-gray-400 mx-1.5 text-xs"></i><a href="{% url 'instructor:course_edit' course.slug %}" class="text-gray-600 hover:text-primary-600">{{ course.title }}</a></li>
+            <li><i class="fas fa-chevron-right text-gray-400 mx-1.5 text-xs"></i><span class="text-gray-500">Create Announcement</span></li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="mb-6 sm:mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 font-display">Create Course Announcement</h1>
+                <p class="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">
+                    Send an important message to all students enrolled in {{ course.title }}
+                </p>
+            </div>
+            <a href="{% url 'instructor:course_manage' course.slug %}"
+               class="inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-white border-2 border-primary-600 text-primary-600 text-sm font-medium rounded-lg hover:bg-primary-50 transition-all whitespace-nowrap">
+                <i class="fas fa-th-large mr-2"></i>Manage Course
+            </a>
+        </div>
+    </div>
+
+    <!-- Form Card -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-4 sm:mb-6">
+        <div class="p-4 sm:p-8">
+            <form method="post" class="space-y-4 sm:space-y-6">
+                {% csrf_token %}
+
+                <div>
+                    <label for="{{ form.title.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
+                        Title <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.title }}
+                    {% if form.title.errors %}<p class="mt-1 text-xs sm:text-sm text-red-600">{{ form.title.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.content.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
+                        Message <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.content }}
+                    {% if form.content.errors %}<p class="mt-1 text-xs sm:text-sm text-red-600">{{ form.content.errors.0 }}</p>{% endif %}
+                    <p class="mt-1 text-xs sm:text-sm text-gray-500">Students will see this on their course dashboard.</p>
+                </div>
+
+                <div>
+                    <label for="{{ form.priority.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
+                        Priority <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.priority }}
+                    {% if form.priority.errors %}<p class="mt-1 text-xs sm:text-sm text-red-600">{{ form.priority.errors.0 }}</p>{% endif %}
+                    <p class="mt-1 text-xs sm:text-sm text-gray-500">High and urgent priority announcements will be displayed prominently.</p>
+                </div>
+
+                <!-- Date Fields -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
+                    <div>
+                        <label for="{{ form.publish_date.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
+                            Publish Date <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.publish_date }}
+                        {% if form.publish_date.errors %}<p class="mt-1 text-xs sm:text-sm text-red-600">{{ form.publish_date.errors.0 }}</p>{% endif %}
+                        <p class="mt-1 text-xs sm:text-sm text-gray-500">When to publish this announcement</p>
+                    </div>
+                    <div>
+                        <label for="{{ form.expiry_date.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
+                            Expiry Date <span class="text-gray-500 text-xs font-normal">(Optional)</span>
+                        </label>
+                        {{ form.expiry_date }}
+                        {% if form.expiry_date.errors %}<p class="mt-1 text-xs sm:text-sm text-red-600">{{ form.expiry_date.errors.0 }}</p>{% endif %}
+                        <p class="mt-1 text-xs sm:text-sm text-gray-500">Leave blank to keep active indefinitely</p>
+                    </div>
+                </div>
+
+                <!-- Info Box -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+                    <div class="flex gap-3">
+                        <i class="fas fa-info-circle text-blue-600 text-lg sm:text-xl flex-shrink-0 mt-0.5"></i>
+                        <div>
+                            <h3 class="text-xs sm:text-sm font-semibold text-blue-900">Notification Info</h3>
+                            <div class="mt-1.5 text-xs sm:text-sm text-blue-800">
+                                <p>All enrolled students will be notified via:</p>
+                                <ul class="list-disc list-inside mt-1 space-y-0.5">
+                                    <li>Course dashboard notification</li>
+                                    <li>Email (if enabled in student preferences)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-4 pt-4 sm:pt-6 border-t border-gray-200">
+                    <a href="{% url 'instructor:course_edit' course.slug %}"
+                       class="px-5 sm:px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm text-center">
+                        Cancel
+                    </a>
+                    <button type="submit"
+                            class="px-5 sm:px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 shadow-sm hover:shadow-md transition-all font-medium text-sm inline-flex items-center justify-center">
+                        <i class="fas fa-paper-plane mr-2"></i> Create Announcement
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Preview -->
+    <div class="bg-gray-50 rounded-xl border border-gray-200 p-4 sm:p-6">
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">
+            <i class="fas fa-eye mr-2 text-gray-500"></i> How It Will Look
+        </h3>
+        <p class="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">Your announcement will appear like this to students:</p>
+        <div class="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 shadow-sm">
+            <div class="flex items-start gap-3">
+                <div class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                    <i class="fas fa-bullhorn text-primary-600 text-sm sm:text-base"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-1">
+                        <h4 class="text-xs sm:text-sm font-semibold text-gray-900">Announcement Title</h4>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 w-fit">Normal</span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-gray-600 mb-1.5">Your announcement message will appear here with all the content you write in the form above.</p>
+                    <p class="text-xs text-gray-500"><i class="fas fa-clock mr-1"></i>Just now</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

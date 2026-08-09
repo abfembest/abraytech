@@ -1,0 +1,2262 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block meta_description %}MIU Portal - Manage your learning journey{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}portal, dashboard, university, management{% endblock %}">
+    <meta name="author" content="MIU Administration">
+    {% block meta_tags %}{% endblock %}
+
+    <title>{% block title %}Dashboard - MIU Portal{% endblock %}</title>
+
+    <!-- CRITICAL: runs sync before any CSS/JS — sets sidebar state with zero flash -->
+    <script>try{if(localStorage.getItem('sidebarCollapsed')==='true'){document.documentElement.setAttribute('data-sidebar','collapsed');}}catch(e){}</script>
+    <style>
+        /* Default sidebar dimensions — before Tailwind loads */
+        #sidebar { width: 20rem; transition: width 0.3s cubic-bezier(0.4,0,0.2,1); }
+        #mainContent { margin-left: 20rem; transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1); }
+        /* Collapsed state applied instantly by the script above */
+        html[data-sidebar="collapsed"] #sidebar { width: 5.5rem; }
+        html[data-sidebar="collapsed"] #mainContent { margin-left: 5.5rem; }
+        /* Mobile override */
+        @media (max-width: 767px) {
+            #sidebar { width: 75vw !important; max-width: 16rem; }
+            #mainContent { margin-left: 0 !important; }
+        }
+        /* Font guarantee */
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        .font-heading, h1, h2, h3, h4, h5, h6 { font-family: 'Poppins', system-ui, -apple-system, sans-serif; }
+
+        /* Make management forms behave predictably on mobile */
+        *, *::before, *::after { box-sizing: border-box; }
+        #mainContent form input,
+        #mainContent form textarea,
+        #mainContent form select {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        #mainContent form input[type="checkbox"],
+        #mainContent form input[type="radio"] {
+            display: inline-block;
+            width: auto;
+            max-width: none;
+        }
+        #mainContent form label,
+        #mainContent form .field-label {
+            display: block;
+        }
+    </style>
+
+    <!-- Fonts (Inter & Poppins) are bundled into styles.css via @import — see static/src/styles.css -->
+
+    <!-- Tailwind CSS - Local build (compiled from src/styles.css) -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+
+    <!-- Font Awesome (vendored) -->
+    <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
+
+    <!-- Chart.js (vendored) -->
+    <script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+
+    <!-- DataTables CSS & JS (vendored) -->
+    <link rel="stylesheet" href="{% static 'vendor/datatables/jquery.dataTables.min.css' %}">
+    <link rel="stylesheet" href="{% static 'vendor/datatables/buttons/buttons.dataTables.min.css' %}">
+    <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'vendor/datatables/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'vendor/datatables/buttons/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'vendor/jszip/jszip.min.js' %}"></script>
+    <script src="{% static 'vendor/pdfmake/pdfmake.min.js' %}"></script>
+    <script src="{% static 'vendor/pdfmake/vfs_fonts.js' %}"></script>
+    <script src="{% static 'vendor/datatables/buttons/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'vendor/datatables/buttons/buttons.print.min.js' %}"></script>
+
+    <!-- SweetAlert2 (vendored) -->
+    <link rel="stylesheet" href="{% static 'vendor/sweetalert2/sweetalert2.min.css' %}">
+    <script src="{% static 'vendor/sweetalert2/sweetalert2.all.min.js' %}"></script>
+    <script src="{% static 'js/confirm-submit.js' %}"></script>
+
+    <script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
+
+    <style>
+        /* ==================== MANAGEMENT DASHBOARD COLOR OVERRIDE ==================== */
+        /* Remap colors to use blue/purple/pink palette for management dashboard */
+        :root {
+            --color-primary-50: #eff6ff;
+            --color-primary-100: #dbeafe;
+            --color-primary-200: #bfdbfe;
+            --color-primary-300: #93c5fd;
+            --color-primary-400: #60a5fa;
+            --color-primary-500: #4a6bff;
+            --color-primary-600: #3a56d4;
+            --color-primary-700: #1d4ed8;
+            --color-primary-800: #1e40af;
+            --color-primary-900: #1e3a8a;
+            --color-primary-950: #4a6bff;
+
+            --color-secondary-50: #f5f3ff;
+            --color-secondary-100: #ede9fe;
+            --color-secondary-200: #ddd6fe;
+            --color-secondary-300: #c4b5fd;
+            --color-secondary-400: #a78bfa;
+            --color-secondary-500: #6c63ff;
+            --color-secondary-600: #5a52d5;
+            --color-secondary-700: #4c1d95;
+            --color-secondary-800: #3d0064;
+            --color-secondary-900: #2d0a4e;
+
+            --color-accent-50: #fff7f8;
+            --color-accent-100: #ffe4e9;
+            --color-accent-200: #ffc7d3;
+            --color-accent-300: #ffadbb;
+            --color-accent-400: #ff8fa3;
+            --color-accent-500: #ff6584;
+            --color-accent-600: #e5577a;
+            --color-accent-700: #cc4d70;
+            --color-accent-800: #b34366;
+            --color-accent-900: #9a395c;
+        }
+
+        /* ==================== SIDEBAR BASE STYLES ==================== */
+        #sidebar {
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-x: hidden;
+            overflow-y: auto;
+            width: 20rem; /* Increased from 16rem to 20rem (288px) */
+        }
+
+        #mainContent {
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ==================== SCROLLBAR STYLING - SLIM & SUBTLE ==================== */
+        #sidebar::-webkit-scrollbar {
+            width: 2px; /* Ultra-slim scrollbar */
+        }
+
+        #sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+        }
+
+        #sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        /* Firefox scrollbar */
+        #sidebar {
+            scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+            scrollbar-width: thin;
+        }
+
+        /* ==================== SIDEBAR COLLAPSED STYLES ==================== */
+        .sidebar-collapsed {
+            width: 5.5rem !important;
+        }
+
+        /* sidebar-hover-expanded: applied by JS on mouseenter (removes sidebar-collapsed first)
+           So this class operates on a fully normal sidebar — just needs width + overlay shadow */
+        .sidebar-hover-expanded {
+            width: 20rem !important;
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.25);
+            z-index: 50;
+        }
+
+        /* SHOW MENUS WHEN SIDEBAR IS HOVER-EXPANDED */
+        .sidebar-hover-expanded [id$="Menu"]:not(.hidden) {
+            display: block !important;
+            pointer-events: auto !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        /* RESTORE NORMAL LAYOUT FOR MENU ITEMS ON HOVER-EXPAND */
+        .sidebar-hover-expanded [id$="Menu"]:not(.hidden) a,
+        .sidebar-hover-expanded [id$="Menu"]:not(.hidden) button {
+            pointer-events: auto !important;
+            display: block !important;
+            width: 100%;
+            text-align: left;
+            visibility: visible !important;
+            opacity: 1 !important;
+            justify-content: flex-start !important;
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+        }
+
+        /* Restore normal header layout on hover-expand */
+        .sidebar-hover-expanded .sidebar-header {
+            justify-content: space-between !important;
+            padding-left: 1.25rem !important;
+            padding-right: 1.25rem !important;
+        }
+
+        /* Restore nav items to spread layout */
+        .sidebar-hover-expanded nav a,
+        .sidebar-hover-expanded nav button,
+        .sidebar-hover-expanded .menu-toggle {
+            justify-content: space-between !important;
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+        }
+
+        .sidebar-hover-expanded nav i {
+            margin: 0 0.75rem 0 0 !important;
+            width: auto !important;
+            display: inline !important;
+        }
+
+        .sidebar-hover-expanded .badge-count {
+            position: static !important;
+            margin-left: auto !important;
+        }
+
+        /* HIDE CONTENT WHEN COLLAPSED */
+        .sidebar-collapsed .sidebar-header span,
+        .sidebar-collapsed nav span:not(.badge-count),
+        .sidebar-collapsed .sidebar-section-label,
+        .sidebar-collapsed .menu-arrow {
+            display: none !important;
+        }
+
+        /* HIDE SUBMENUS WHEN COLLAPSED */
+        .sidebar-collapsed [id$="Menu"] {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        /* CENTER HEADER WHEN COLLAPSED */
+        .sidebar-collapsed .sidebar-header {
+            justify-content: center !important;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+        }
+
+        .sidebar-collapsed .sidebar-header a {
+            margin: 0 auto;
+        }
+
+        .sidebar-collapsed .sidebar-header a i {
+            margin-right: 0 !important;
+        }
+
+        /* CENTER ALL NAV ITEMS WHEN COLLAPSED */
+        .sidebar-collapsed nav a,
+        .sidebar-collapsed nav button,
+        .sidebar-collapsed .menu-toggle {
+            justify-content: center !important;
+            padding-left: 0.8rem !important;
+            padding-right: 0.8rem !important;
+        }
+
+        .sidebar-collapsed nav a > div,
+        .sidebar-collapsed nav button > div,
+        .sidebar-collapsed .menu-toggle > div {
+            justify-content: center !important;
+        }
+
+        /* CENTER ICONS AND REMOVE MARGINS */
+        .sidebar-collapsed nav i {
+            margin: 0 !important;
+            width: 1.5rem;
+            height: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* BADGE COUNT POSITIONING */
+        .sidebar-collapsed .badge-count {
+            position: absolute !important;
+            top: 0.25rem !important;
+            right: 0.25rem !important;
+            min-width: 1.25rem !important;
+            height: 1.25rem !important;
+            font-size: 0.625rem !important;
+            padding: 0.125rem !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        /* HIDE MOBILE CLOSE BUTTON WHEN COLLAPSED */
+        .sidebar-collapsed #closeSidebar {
+            display: none !important;
+        }
+
+        /* USER INFO AT BOTTOM WHEN COLLAPSED */
+        .sidebar-collapsed .user-info-bottom {
+            padding: 0.75rem 0.5rem !important;
+        }
+
+        .sidebar-collapsed .user-info-bottom > div {
+            justify-content: center !important;
+        }
+
+        .sidebar-collapsed .user-info-bottom .flex-1 {
+            display: none !important;
+        }
+
+        .sidebar-collapsed .user-info-bottom .user-avatar {
+            margin: 0 auto;
+        }
+
+        /* ENSURE PROPER STRUCTURE */
+        nav a, nav button {
+            position: relative;
+        }
+
+        /* ==================== RESPONSIVE DESIGN ==================== */
+        /* Tablet and up */
+        @media (min-width: 768px) {
+            #mainContent {
+                margin-left: 20rem;
+            }
+        }
+
+        /* Mobile - Full width sidebar overlay */
+        @media (max-width: 767px) {
+            #sidebar {
+                width: 75vw !important;
+                max-width: 16rem;
+                box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .sidebar-collapsed {
+                width: 75vw !important;
+            }
+
+            #mainContent {
+                margin-left: 0 !important;
+            }
+
+            /* Hide collapse button on mobile - use close button instead */
+            #collapseSidebar {
+                display: none;
+            }
+        }
+
+        /* Landscape mobile */
+        @media (max-width: 896px) and (orientation: landscape) {
+            #sidebar {
+                height: 100vh;
+                overflow-y: auto;
+            }
+        }
+
+        /* ==================== DROPDOWN STYLES ==================== */
+        .dropdown-menu {
+            display: none;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            pointer-events: none;
+        }
+
+            .dropdown-menu.show {
+                display: block;
+                opacity: 1;
+                transform: translateY(0);
+                pointer-events: auto;
+            }
+
+        /* ==================== ACTIVE STATES ==================== */
+        .sidebar-item-active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* ==================== SUBMENU BACKGROUND ==================== */
+        /* Deeper blended purple for all dropdown submenus */
+        #sidebar [id$="Menu"] {
+            background-color: rgba(76, 29, 149, 0.45) !important;
+        }
+
+        /* ==================== SIDEBAR OVERLAY (mobile backdrop) ==================== */
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 35;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+        .sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* ==================== DROPDOWN — MOBILE OVERFLOW FIX ==================== */
+        /* Clamp both dropdowns so they never exceed the viewport width */
+        #notificationMenu,
+        #profileMenu {
+            max-width: min(20rem, calc(100vw - 1rem));
+        }
+
+        /* On small phones: switch to fixed positioning so they cannot overflow left */
+        @media (max-width: 480px) {
+            #notificationMenu {
+                position: fixed !important;
+                top: 3.6rem;
+                right: 0.5rem;
+                left: auto;
+                width: calc(100vw - 1rem);
+                max-width: 22rem;
+                max-height: calc(100dvh - 4.5rem);
+                overflow-y: auto;
+                z-index: 50;
+            }
+            #profileMenu {
+                position: fixed !important;
+                top: 3.6rem;
+                right: 0.5rem;
+                left: auto;
+                width: calc(100vw - 1rem);
+                max-width: 16rem;
+                max-height: calc(100dvh - 4.5rem);
+                overflow-y: auto;
+                z-index: 50;
+            }
+        }
+
+        /* ==================== SMOOTH SCROLLBARS - SLIM & SUBTLE ==================== */
+        /* WebKit browsers (Chrome, Safari, Edge) */
+        #sidebar::-webkit-scrollbar {
+            width: 2px; /* Ultra-slim scrollbar */
+        }
+
+        #sidebar::-webkit-scrollbar-track {
+            background: transparent; /* Invisible track */
+        }
+
+        #sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15); /* Very subtle */
+            border-radius: 10px;
+            transition: background 0.3s ease;
+        }
+
+        #sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.25); /* Slightly more visible on hover */
+        }
+
+        /* Firefox */
+        #sidebar {
+            scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+            scrollbar-width: thin;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased">
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebarOverlay" class="sidebar-overlay md:hidden"></div>
+
+    <div class="flex min-h-screen">
+        <!-- Sidebar Navigation - Fixed positioning -->
+        <aside id="sidebar" class="bg-gradient-to-b from-purple-600 via-violet-700 to-indigo-900 text-white flex-shrink-0 fixed inset-y-0 left-0 z-40 transform -translate-x-full md:translate-x-0">
+            <div class="flex flex-col h-full">
+                <!-- Header -->
+                <div class="sidebar-header p-5 border-b border-white/10 flex items-center justify-between flex-shrink-0">
+                    <a href="{% if request.user.profile.role == 'student' %}{% url 'students:dashboard' %}{% elif request.user.profile.role == 'instructor' %}{% url 'instructor:dashboard' %}{% elif request.user.profile.role == 'finance' %}{% url 'finance:dashboard' %}{% elif request.user.profile.role == 'support' %}{% url 'support:dashboard' %}{% elif request.user.is_staff or request.user.is_superuser or request.user.profile.role == 'admin' %}{% url 'management:dashboard' %}{% else %}{% url 'management:dashboard' %}{% endif %}" class="text-xl font-bold flex items-center font-heading hover:opacity-80 transition-opacity">
+                        <i class="fas fa-graduation-cap mr-3" aria-hidden="true"></i>
+                        <span class="whitespace-nowrap">{{ site_config.school_short_name|default:"MIU" }}
+                            {% if request.user.profile.role == 'student' %}Student
+                            {% elif request.user.profile.role == 'instructor' %}Instructor
+                            {% elif request.user.profile.role == 'finance' %}Finance
+                            {% elif request.user.profile.role == 'support' %}Support
+                            {% elif request.user.is_staff or request.user.is_superuser or request.user.profile.role == 'admin' %}Admin
+                            {% endif %}</span>
+                    </a>
+                    <button id="closeSidebar" class="text-white hover:text-gray-300 focus:outline-none md:hidden" aria-label="Close navigation">
+                        <i class="fas fa-times text-xl" aria-hidden="true"></i>
+                    </button>
+                </div>
+
+                <!-- Navigation Menu - Scrollable -->
+                <nav class="flex-1 overflow-y-auto py-4 px-3" role="navigation" aria-label="Main navigation">
+
+                    {% if request.user.is_superuser or request.user.is_staff or permissions.user_management.can_view or permissions.academics.can_view or permissions.lms_courses.can_view or permissions.applications.can_view or permissions.exams.can_view or permissions.enrollments.can_view or permissions.finance.can_view or permissions.communications.can_view or permissions.blog.can_view or permissions.library.can_view or permissions.site_content.can_view or permissions.security_audit.can_view or permissions.support_config.can_view or permissions.academic_progression.can_view or permissions.role_permissions.can_view %}
+                    {% comment %}
+                        Gate is "does this user have can_view on ANY module
+                        that belongs to this portal" rather than a role check
+                        — so an admin can grant a finance/support/instructor
+                        user access to a specific admin-portal module (e.g.
+                        user_management) via a per-user StaffPermissionsMatrix
+                        override on the Roles & Permissions page, and this
+                        whole block opens up for them without their role
+                        changing. Every item inside is still separately gated
+                        by permissions.<module>.can_view, same as before.
+                    {% endcomment %}
+                    <!-- ================================================ -->
+                    <!-- ADMIN / MANAGEMENT MENU                          -->
+                    <!-- ================================================ -->
+                    <!-- 1. Dashboard — shown only to actual admin/staff, not to someone who
+                         merely has a granted permission into one admin module -->
+                    {% if request.user.is_superuser or request.user.is_staff or request.user.profile.role == 'admin' %}
+                    <a href="{% url 'management:dashboard' %}"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1 {% if request.resolver_match.url_name == 'dashboard' %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-tachometer-alt w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Dashboard</span>
+                        </div>
+                    </a>
+                    {% endif %}
+
+                    <!-- 2. User Management -->
+                    {% if permissions.user_management.can_view or permissions.role_permissions.can_view %}
+                    <div class="border-t border-white/10 my-3"></div>
+                    <div class="sidebar-section-label py-1 px-4 text-base uppercase font-bold text-white/50 tracking-widest">User Management</div>
+                    <div class="mb-1">
+                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all {% if 'users' in request.path %}bg-white/20{% endif %}">
+                            <div class="flex items-center">
+                                <i class="fas fa-users w-5 text-center" aria-hidden="true"></i>
+                                <span class="ml-3 text-[17px] font-semibold">Users</span>
+                            </div>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform {% if 'users' in request.path %}rotate-180{% endif %}" aria-hidden="true"></i>
+                        </button>
+                        <div id="userManagementMenu" class="mt-1 space-y-1 {% if 'users' not in request.path %}hidden{% endif %} bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                            {% if permissions.user_management.can_view %}
+                            <a href="{% url 'management:users_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.resolver_match.url_name == 'users_list' and not request.GET.role %}bg-white/20{% endif %}">
+                                <i class="fas fa-list mr-2" aria-hidden="true"></i>All Users
+                            </a>
+                            <a href="{% url 'management:users_list' %}?role=admin"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.GET.role == 'admin' %}bg-white/20{% endif %}">
+                                <i class="fas fa-user-shield mr-2" aria-hidden="true"></i>Admins
+                            </a>
+                            <a href="{% url 'management:users_list' %}?role=instructor"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.GET.role == 'instructor' %}bg-white/20{% endif %}">
+                                <i class="fas fa-chalkboard-teacher mr-2" aria-hidden="true"></i>Lecturers
+                            </a>
+                            <a href="{% url 'management:users_list' %}?role=student"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.GET.role == 'student' %}bg-white/20{% endif %}">
+                                <i class="fas fa-user-graduate mr-2" aria-hidden="true"></i>Students
+                            </a>
+                            <a href="{% url 'management:users_list' %}?role=finance"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.GET.role == 'finance' %}bg-white/20{% endif %}">
+                                <i class="fas fa-dollar-sign mr-2" aria-hidden="true"></i>Finance Staff
+                            </a>
+                            {% endif %}
+                            {% if permissions.role_permissions.can_view %}
+                            <a href="{% url 'management:role_assign' %}" class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.resolver_match.url_name == 'role_assign' %}bg-white/20{% endif %}">
+                                <i class="fas fa-user-shield mr-2"></i>Roles & Permissions
+                            </a>
+                            {% endif %}
+                            {% if permissions.user_management.can_create %}
+                            <div class="border-t border-white/10 my-1"></div>
+                            <a href="{% url 'management:users_list' %}?open_modal=create"
+                               class="block w-full text-left py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-sm text-white">
+                                <i class="fas fa-user-plus mr-2" aria-hidden="true"></i>Add New User
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- 3. Academics -->
+                    {% if permissions.academics.can_view or permissions.applications.can_view %}
+                    <div class="border-t border-white/10 my-3"></div>
+                    <div class="sidebar-section-label py-1 px-4 text-base uppercase font-bold text-white/50 tracking-widest">Academics</div>
+                    {% endif %}
+
+                    {% if permissions.academics.can_view %}
+                    <div class="mb-1">
+                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all {% if 'faculties' in request.path or 'management/departments' in request.path or 'programs' in request.path or 'academic-sessions' in request.path or 'intakes' in request.path or 'progression' in request.path or 'categories' in request.path and 'blog' not in request.path or request.resolver_match.url_name == 'courses_list' %}bg-white/20{% endif %}">
+                            <div class="flex items-center">
+                                <i class="fas fa-university w-5 text-center" aria-hidden="true"></i>
+                                <span class="ml-3 text-[17px] font-semibold">Acads Structure</span>
+                            </div>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform {% if 'faculties' in request.path or 'management/departments' in request.path or 'programs' in request.path or 'academic-sessions' in request.path or 'intakes' in request.path or 'progression' in request.path or 'categories' in request.path and 'blog' not in request.path or request.resolver_match.url_name == 'courses_list' %}rotate-180{% endif %}" aria-hidden="true"></i>
+                        </button>
+                        <div id="academicMenu" class="mt-1 space-y-1 {% if 'faculties' in request.path or 'management/departments' in request.path or 'programs' in request.path or 'academic-sessions' in request.path or 'intakes' in request.path or 'progression' in request.path or 'categories' in request.path and 'blog' not in request.path or request.resolver_match.url_name == 'courses_list' %}{% else %}hidden {% endif %}bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                            <p class="px-4 text-[10px] uppercase tracking-widest text-white/40 font-semibold py-1">Structure</p>
+                            <a href="{% url 'management:faculties_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'faculties' in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-building mr-2" aria-hidden="true"></i>Faculties
+                            </a>
+                            <a href="{% url 'management:departments_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'management/departments' in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-sitemap mr-2" aria-hidden="true"></i>Departments
+                            </a>
+                            <a href="{% url 'management:programs_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'programs' in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-graduation-cap mr-2" aria-hidden="true"></i>Programs
+                            </a>
+                            <div class="border-t border-white/10 my-1"></div>
+                            <p class="px-4 text-[10px] uppercase tracking-widest text-white/40 font-semibold py-1">Sessions & Courses</p>
+                            <a href="{% url 'management:academic_sessions_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'academic-sessions' in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-calendar-alt mr-2" aria-hidden="true"></i>Academic Sessions
+                            </a>
+                            <a href="{% url 'management:courses_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.resolver_match.url_name == 'courses_list' %}bg-white/20{% endif %}">
+                                <i class="fas fa-book mr-2" aria-hidden="true"></i>Course Catalog
+                            </a>
+                            {% if permissions.academic_progression.can_view %}
+                            <a href="{% url 'management:academic_progression' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'progression' in request.path and 'progression/results' not in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-level-up-alt mr-2" aria-hidden="true"></i>Progression &amp; Carry-Over
+                            </a>
+                            {% endif %}
+                            {% if permissions.results_publish.can_view %}
+                            <a href="{% url 'management:results_publish' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'progression/results' in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-unlock-alt mr-2" aria-hidden="true"></i>Publish Results
+                            </a>
+                            {% endif %}
+                            <a href="{% url 'management:intakes_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'intakes' in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-door-open mr-2" aria-hidden="true"></i>Open Applications
+                            </a>
+                            {% comment %} <a href="{% url 'management:course_categories_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'categories' in request.path and 'blog' not in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-tags mr-2" aria-hidden="true"></i>Course Categories
+                            </a> {% endcomment %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Applications under Academics -->
+                    {% if permissions.applications.can_view %}
+                    <a href="{% url 'management:applications_list' %}"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1 {% if 'applications' in request.path %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-file-alt w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Admissions</span>
+                        </div>
+                    </a>
+                    {% endif %}
+
+                    <!-- 4. Lectures Portal -->
+                    {% if permissions.lms_courses.can_view or permissions.exams.can_view %}
+                    <div class="border-t border-white/10 my-3"></div>
+                    <div class="sidebar-section-label py-1 px-4 text-base uppercase font-bold text-white/50 tracking-widest">Lectures Portal</div>
+                    {% endif %}
+
+                    {% if permissions.lms_courses.can_view %}
+                    <a href="{% url 'management:lms_courses_list' %}"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1 {% if 'lms_course' in request.resolver_match.url_name %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-chalkboard-teacher w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">LMS Courses</span>
+                        </div>
+                    </a>
+                    {% endif %}
+
+                    {% if permissions.exams.can_view %}
+                    <div class="mb-1">
+                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all {% if 'exams' in request.path %}bg-white/20{% endif %}">
+                            <div class="flex items-center">
+                                <i class="fas fa-pen-square w-5 text-center" aria-hidden="true"></i>
+                                <span class="ml-3 text-[17px] font-semibold">Examinations</span>
+                            </div>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform {% if 'exams' in request.path %}rotate-180{% endif %}" aria-hidden="true"></i>
+                        </button>
+                        <div id="examsMenu" class="mt-1 space-y-1 {% if 'exams' not in request.path %}hidden{% endif %} bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                            <a href="{% url 'management:admin_exam_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.resolver_match.url_name == 'admin_exam_list' and request.GET.status != 'submitted' or request.resolver_match.url_name == 'admin_exam_detail' or request.resolver_match.url_name == 'admin_question_moderation' or request.resolver_match.url_name == 'admin_exam_timetable_update' or request.resolver_match.url_name == 'admin_exam_responses' %}bg-white/20{% endif %}">
+                                <i class="fas fa-list mr-2" aria-hidden="true"></i>All Exams
+                            </a>
+                            <a href="{% url 'management:admin_exam_list' %}?status=submitted"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.resolver_match.url_name == 'admin_exam_list' and request.GET.status == 'submitted' %}bg-white/20{% endif %}">
+                                <i class="fas fa-clock mr-2" aria-hidden="true"></i>Pending Approval
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- 5. Finance -->
+                    {% if permissions.finance.can_view %}
+                    <div class="border-t border-white/10 my-3"></div>
+                    <div class="sidebar-section-label py-1 px-4 text-base uppercase font-bold text-white/50 tracking-widest">Finance</div>
+                    <div class="mb-1">
+                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all {% if 'payroll' in request.path or 'transactions' in request.path or 'payment/required' in request.path or 'analytics/financial' in request.path %}bg-white/20{% endif %}">
+                            <div class="flex items-center">
+                                <i class="fas fa-dollar-sign w-5 text-center" aria-hidden="true"></i>
+                                <span class="ml-3 text-[17px] font-semibold">Finance</span>
+                            </div>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform {% if 'payroll' in request.path or 'transactions' in request.path or 'payment/required' in request.path or 'analytics/financial' in request.path %}rotate-180{% endif %}" aria-hidden="true"></i>
+                        </button>
+                        <div id="financeMenu" class="mt-1 space-y-1 {% if 'payroll' not in request.path and 'transactions' not in request.path and 'payment/required' not in request.path and 'analytics/financial' not in request.path %}hidden{% endif %} bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                            <a href="{% url 'management:financial_analytics' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'analytics/financial' in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-chart-line mr-2" aria-hidden="true"></i>Analytics Dashboard
+                            </a>
+                            <a href="{% url 'management:staff_payroll_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'payroll' in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-wallet mr-2" aria-hidden="true"></i>Staff Payroll
+                            </a>
+                            <a href="{% url 'payments:required_payments_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.resolver_match.url_name == 'required_payments_list' %}bg-white/20{% endif %}">
+                                <i class="fas fa-receipt mr-2" aria-hidden="true"></i>Required Payments
+                            </a>
+                            <a href="{% url 'management:transactions_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'transactions' in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-exchange-alt mr-2" aria-hidden="true"></i>Transactions
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- 6. Student Portal -->
+                    {% if permissions.enrollments.can_view %}
+                    <div class="border-t border-white/10 my-3"></div>
+                    <div class="sidebar-section-label py-1 px-4 text-base uppercase font-bold text-white/50 tracking-widest">Student Portal</div>
+                    <div class="mb-1">
+                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all {% if 'enrollments' in request.path or 'student-badges' in request.path or 'badges' in request.path or 'certificates' in request.path or 'reviews' in request.path %}bg-white/20{% endif %}">
+                            <div class="flex items-center">
+                                <i class="fas fa-user-graduate w-5 text-center" aria-hidden="true"></i>
+                                <span class="ml-3 text-[17px] font-semibold">Student Records</span>
+                            </div>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform {% if 'enrollments' in request.path or 'badges' in request.path or 'certificates' in request.path or 'reviews' in request.path %}rotate-180{% endif %}" aria-hidden="true"></i>
+                        </button>
+                        <div id="studentDataMenu" class="mt-1 space-y-1 {% if 'enrollments' not in request.path and 'badges' not in request.path and 'certificates' not in request.path and 'reviews' not in request.path %}hidden{% endif %} bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                            <a href="{% url 'management:enrollments_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'enrollments' in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-sign-in-alt mr-2" aria-hidden="true"></i>Enrollments
+                            </a>
+                            <a href="{% url 'management:certificates_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'certificates' in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-certificate mr-2" aria-hidden="true"></i>Certificates
+                            </a>
+                            <a href="{% url 'management:badges_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'badges' in request.path and 'student-badges' not in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-medal mr-2" aria-hidden="true"></i>Badges
+                            </a>
+                            <a href="{% url 'management:student_badges_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'student-badges' in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-award mr-2" aria-hidden="true"></i>Assign Badges
+                            </a>
+                            <a href="{% url 'management:reviews_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'reviews' in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-star mr-2" aria-hidden="true"></i>Reviews
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- 7. Communications -->
+                    {% if permissions.communications.can_view %}
+                    <div class="border-t border-white/10 my-3"></div>
+                    <div class="sidebar-section-label py-1 px-4 text-base uppercase font-bold text-white/50 tracking-widest">Communications</div>
+                    <!-- Inbox (standalone) -->
+                    <a href="{% url 'management:admin_inbox' %}"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1 {% if 'inbox' in request.path and request.resolver_match.app_name == 'management' %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-inbox w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Inbox</span>
+                        </div>
+                        {% if unread_messages_count > 0 %}
+                        <span class="badge-count bg-blue-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+                            {{ unread_messages_count }}
+                        </span>
+                        {% endif %}
+                    </a>
+
+                    <!-- Notifications (standalone) -->
+                    <a href="{% url 'management:notifications_view' %}"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1 {% if request.resolver_match.url_name == 'notifications_view' %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-bell w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Notifications</span>
+                        </div>
+                        {% if unread_notifications_count > 0 %}
+                        <span class="badge-count bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+                            {{ unread_notifications_count }}
+                        </span>
+                        {% endif %}
+                    </a>
+
+                    <!-- Announcements (standalone) -->
+                    <a href="{% url 'management:announcements_list' %}"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1 {% if 'management/announcements' in request.path %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-bullhorn w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Announcements</span>
+                        </div>
+                    </a>
+
+                    <!-- Broadcast Center (standalone) -->
+                    <a href="{% url 'management:broadcast_center' %}"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1 {% if 'broadcast' in request.path %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-satellite-dish w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Broadcast Center</span>
+                        </div>
+                    </a>
+
+                    <!-- Contact Messages — public "Contact Us" form submissions (ContactMessage).
+                         NOTE: ticket badges/links live in the Support Centre section below
+                         (sidebar_support_menu.html) — not duplicated here any more. -->
+                    <a href="{% url 'management:contact_messages_list' %}"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1 {% if 'contact-messages' in request.path %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-inbox w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Contact Messages</span>
+                        </div>
+                        {% if unread_contact_count %}
+                        <span class="badge-count bg-orange-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{{ unread_contact_count }}</span>
+                        {% endif %}
+                    </a>
+
+                    {% endif %}{# /COMMUNICATIONS #}
+
+                    <!-- Blog -->
+                    {% if permissions.blog.can_view %}
+                    <div class="mb-1">
+                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all {% if 'blog' in request.path %}bg-white/20{% endif %}">
+                            <div class="flex items-center">
+                                <i class="fas fa-blog w-5 text-center" aria-hidden="true"></i>
+                                <span class="ml-3 text-[17px] font-semibold">Blog</span>
+                            </div>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform {% if 'blog' in request.path %}rotate-180{% endif %}" aria-hidden="true"></i>
+                        </button>
+                        <div id="blogMenu" class="mt-1 space-y-1 {% if 'blog' not in request.path %}hidden{% endif %} bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                            <a href="{% url 'management:blog_posts_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.resolver_match.url_name == 'blog_posts_list' or request.resolver_match.url_name == 'blog_post_edit' %}bg-white/20{% endif %}">
+                                <i class="fas fa-list mr-2" aria-hidden="true"></i>All Posts
+                            </a>
+                            <a href="{% url 'management:blog_post_create' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.resolver_match.url_name == 'blog_post_create' %}bg-white/20{% endif %}">
+                                <i class="fas fa-plus mr-2" aria-hidden="true"></i>Create Post
+                            </a>
+                            <a href="{% url 'management:blog_categories_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.resolver_match.url_name == 'blog_categories_list' or request.resolver_match.url_name == 'blog_category_edit' or request.resolver_match.url_name == 'blog_category_create' %}bg-white/20{% endif %}">
+                                <i class="fas fa-tags mr-2" aria-hidden="true"></i>Categories
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}{# /blog #}
+
+                    <!-- 9. Reports -->
+                    {% if permissions.library.can_view %}
+                    <div class="border-t border-white/10 my-3"></div>
+                    <div class="sidebar-section-label py-1 px-4 text-base uppercase font-bold text-white/50 tracking-widest">reports</div>
+                    <a href="{% url 'management:library_items_list' %}"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1 {% if 'library' in request.path %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-book-open w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Library</span>
+                        </div>
+                    </a>
+                    {% endif %}
+
+                    <!-- 10. Settings / System -->                    <!-- 8. Systems + 9. Reports + 10. Settings -->
+                    {% if permissions.site_content.can_view or permissions.security_audit.can_view or request.user.is_superuser %}
+                    <div class="border-t border-white/10 my-3"></div>
+                    <div class="sidebar-section-label py-1 px-4 text-base uppercase font-bold text-white/50 tracking-widest">Systems</div>
+                    {% endif %}
+
+                    <!-- System Configuration — superuser-only. Add "or request.user.is_staff"
+                         below to extend to staff accounts; add new <a> links inside this same
+                         block for future items (e.g. Payment Gateway, Subscriptions). -->
+                    {% if request.user.is_superuser %}
+                    <div class="mb-1">
+                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all {% if 'config' in request.path and 'site-config' not in request.path or 'payment-gateways' in request.path or 'subscriptions' in request.path %}bg-white/20{% endif %}">
+                            <div class="flex items-center">
+                                <i class="fas fa-cogs w-5 text-center" aria-hidden="true"></i>
+                                <span class="ml-3 text-[17px] font-semibold">System Config</span>
+                            </div>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform {% if 'config' in request.path and 'site-config' not in request.path or 'payment-gateways' in request.path or 'subscriptions' in request.path %}rotate-180{% endif %}" aria-hidden="true"></i>
+                        </button>
+                        <div id="configMenu" class="mt-1 space-y-1 {% if 'config' in request.path and 'site-config' not in request.path or 'payment-gateways' in request.path or 'subscriptions' in request.path %}{% else %}hidden {% endif %}bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                            <a href="{% url 'management:system_config_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.resolver_match.url_name == 'system_config_list' or request.resolver_match.url_name == 'system_config_create' or request.resolver_match.url_name == 'system_config_edit' %}bg-white/20{% endif %}">
+                                <i class="fas fa-list mr-2" aria-hidden="true"></i>All Settings
+                            </a>
+                            {% comment %} <a href="{% url 'management:branding_config' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.resolver_match.url_name == 'branding_config' %}bg-white/20{% endif %}">
+                                <i class="fas fa-paint-brush mr-2" aria-hidden="true"></i>Branding
+                            </a> {% endcomment %}
+                            <a href="{% url 'management:email_config' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.resolver_match.url_name == 'email_config' %}bg-white/20{% endif %}">
+                                <i class="fas fa-envelope mr-2" aria-hidden="true"></i>Email Setup
+                            </a>
+                            <a href="{% url 'management:notification_config' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.resolver_match.url_name == 'notification_config' %}bg-white/20{% endif %}">
+                                <i class="fas fa-bell mr-2" aria-hidden="true"></i>Notifications
+                            </a>
+                            <a href="{% url 'management:payment_gateways_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'payment-gateways' in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-credit-card mr-2" aria-hidden="true"></i>Payment Gateways
+                            </a>
+                            <a href="{% url 'finance:subscription_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'subscriptions' in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-crown mr-2" aria-hidden="true"></i>Subscriptions
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Site Content -->
+                    {% if permissions.site_content.can_view %}
+                    <div class="mb-1">
+                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all {% if 'site-config' in request.path %}bg-white/20{% endif %}">
+                            <div class="flex items-center">
+                                <i class="fas fa-globe w-5 text-center" aria-hidden="true"></i>
+                                <span class="ml-3 text-[17px] font-semibold">Site Settings</span>
+                            </div>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform {% if 'site-config' in request.path %}rotate-180{% endif %}" aria-hidden="true"></i>
+                        </button>
+                        <div id="siteConfigMenu" class="mt-1 space-y-1 {% if 'site-config' not in request.path %}hidden{% endif %} bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                            <a href="{% url 'management:site_config_general' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.resolver_match.url_name == 'site_config_general' %}bg-white/20{% endif %}">
+                                <i class="fas fa-id-card mr-2" aria-hidden="true"></i>General &amp; Identity
+                            </a>
+                            <a href="{% url 'management:site_config_index' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.resolver_match.url_name == 'site_config_index' %}bg-white/20{% endif %}">
+                                <i class="fas fa-home mr-2" aria-hidden="true"></i>Home Page
+                            </a>
+                            <a href="{% url 'management:site_config_about' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.resolver_match.url_name == 'site_config_about' %}bg-white/20{% endif %}">
+                                <i class="fas fa-info-circle mr-2" aria-hidden="true"></i>About Page
+                            </a>
+                            <a href="{% url 'management:site_milestones_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'milestones' in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-clock mr-2" aria-hidden="true"></i>History Timeline
+                            </a>
+                            <a href="{% url 'management:testimonials_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'testimonials' in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-quote-right mr-2" aria-hidden="true"></i>Testimonials
+                            </a>
+                            <a href="{% url 'management:institution_members_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'members' in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-user-tie mr-2" aria-hidden="true"></i>Leadership &amp; Staff
+                            </a>
+                            <a href="{% url 'management:institution_partners_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'partners' in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-award mr-2" aria-hidden="true"></i>Accreditation &amp; Partners
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}{# /site_content #}
+
+                    <!-- Security & Audit -->
+                    {% if permissions.security_audit.can_view %}
+                    <div class="mb-1">
+                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all {% if 'management/audit' in request.path or 'security' in request.path %}bg-white/20{% endif %}">
+                            <div class="flex items-center">
+                                <i class="fas fa-shield-alt w-5 text-center" aria-hidden="true"></i>
+                                <span class="ml-3 text-[17px] font-semibold">Security &amp; Audit</span>
+                            </div>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform {% if 'management/audit' in request.path or 'security' in request.path %}rotate-180{% endif %}" aria-hidden="true"></i>
+                        </button>
+                        <div id="securityMenu" class="mt-1 space-y-1 {% if 'management/audit' not in request.path and 'security' not in request.path %}hidden{% endif %} bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                            <a href="{% url 'management:security_dashboard' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.resolver_match.url_name == 'security_dashboard' %}bg-white/20{% endif %}">
+                                <i class="fas fa-lock mr-2" aria-hidden="true"></i>Security Dashboard
+                            </a>
+                            <a href="{% url 'management:audit_logs_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'audit-logs' in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-history mr-2" aria-hidden="true"></i>Audit Logs
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}{# /security_audit #}
+                    {% endif %}{# /admin menu block #}
+
+                    {% if request.user.is_superuser or request.user.profile.role == 'student' %}
+                    {% if request.user.is_superuser %}<div class="border-t border-white/10 my-4"></div><div class="sidebar-section-label py-1 px-4 text-base uppercase font-bold text-white/50 tracking-widest">Student Portal</div>{% endif %}
+
+                    <!-- STUDENT/LEARNER MENU -->
+                    <!-- Dashboard -->
+                    <a href="{% url 'students:dashboard' %}"
+                       class="flex items-center py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1 {% if request.resolver_match.url_name == 'dashboard' %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-tachometer-alt w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Dashboard</span>
+                        </div>
+                    </a>
+
+                    <!-- My Courses -->
+                    {% with active=request.resolver_match.url_name|default:'' %}
+                    <div class="mb-1">
+                        {% if active == 'my_courses' or active == 'course_catalog' or active == 'course_detail' or active == 'register_semester_course' or active == 'drop_semester_course' or active == 'register_all_semester_courses' or active == 'enroll_course' or active == 'retry_lms_enrollment' or active == 'lesson_view' or active == 'mark_lesson_complete' or active == 'submit_review' %}
+                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all bg-white/20">
+                            <div class="flex items-center">
+                                <i class="fas fa-book w-5 text-center" aria-hidden="true"></i>
+                                <span class="ml-3 text-[17px] font-semibold">Course Registration</span>
+                            </div>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform rotate-180" aria-hidden="true"></i>
+                        </button>
+                        <div id="coursesMenu" class="mt-1 space-y-1 bg-white/20 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                        {% else %}
+                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <div class="flex items-center">
+                                <i class="fas fa-book w-5 text-center" aria-hidden="true"></i>
+                                <span class="ml-3 text-[17px] font-semibold">Course Registration</span>
+                            </div>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform" aria-hidden="true"></i>
+                        </button>
+                        <div id="coursesMenu" class="mt-1 space-y-1 hidden bg-white/20 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                        {% endif %}
+                            <a href="{% url 'students:my_courses' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if active == 'my_courses' %}bg-white/20{% endif %}">
+                                <i class="fas fa-list mr-2" aria-hidden="true"></i> Register Courses
+                            </a>
+                            <a href="{% url 'students:course_catalog' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if active == 'course_catalog' %}bg-white/20{% endif %}">
+                                <i class="fas fa-search mr-2" aria-hidden="true"></i> Session / Semester Courses
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Tasks -->
+                    <div class="mb-1">
+                        {% if active == 'assignments' or active == 'assignment_detail' or active == 'submit_assignment' or active == 'quiz_list' or active == 'quiz_detail' or active == 'quiz_take' or active == 'quiz_submit' or active == 'quiz_result' or active == 'exam_list' or active == 'exam_instructions' or active == 'start_exam' or active == 'get_exam_data' or active == 'save_answer' or active == 'flag_tab_switch' or active == 'submit_exam' %}
+                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all bg-white/20">
+                            <div class="flex items-center">
+                                <i class="fas fa-tasks w-5 text-center" aria-hidden="true"></i>
+                                <span class="ml-3 text-[17px] font-semibold">Assessment</span>
+                            </div>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform rotate-180" aria-hidden="true"></i>
+                        </button>
+                        <div id="tasksMenu" class="mt-1 space-y-1 bg-white/20 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                        {% else %}
+                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <div class="flex items-center">
+                                <i class="fas fa-tasks w-5 text-center" aria-hidden="true"></i>
+                                <span class="ml-3 text-[17px] font-semibold">Assessment</span>
+                            </div>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform" aria-hidden="true"></i>
+                        </button>
+                        <div id="tasksMenu" class="mt-1 space-y-1 hidden bg-white/20 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                        {% endif %}
+                            <a href="{% url 'students:assignments' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if active == 'assignments' or active == 'assignment_detail' or active == 'submit_assignment' %}bg-white/20{% endif %}">
+                                <i class="fas fa-file-alt mr-2" aria-hidden="true"></i> Assignments
+                            </a>
+                            <a href="{% url 'students:quiz_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if active == 'quiz_list' or active == 'quiz_detail' or active == 'quiz_take' or active == 'quiz_submit' or active == 'quiz_result' %}bg-white/20{% endif %}">
+                                <i class="fas fa-question-circle mr-2" aria-hidden="true"></i> Quizzes
+                            </a>
+                            <a href="{% url 'students:exam_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if active == 'exam_list' or active == 'exam_instructions' or active == 'start_exam' or active == 'get_exam_data' or active == 'save_answer' or active == 'flag_tab_switch' or active == 'submit_exam' %}bg-white/20{% endif %}">
+                                <i class="fas fa-question-circle mr-2" aria-hidden="true"></i>Examinations
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Performance -->
+                    <div class="mb-1">
+                        {% if active == 'grades' or active == 'progress' or active == 'achievements' or active == 'certificates' or active == 'certificate_print' %}
+                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all bg-white/20">
+                            <div class="flex items-center">
+                                <i class="fas fa-chart-line w-5 text-center" aria-hidden="true"></i>
+                                <span class="ml-3 text-[17px] font-semibold">Performance</span>
+                            </div>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform rotate-180" aria-hidden="true"></i>
+                        </button>
+                        <div id="performanceMenu" class="mt-1 space-y-1 bg-white/20 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                        {% else %}
+                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <div class="flex items-center">
+                                <i class="fas fa-chart-line w-5 text-center" aria-hidden="true"></i>
+                                <span class="ml-3 text-[17px] font-semibold">Performance</span>
+                            </div>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform" aria-hidden="true"></i>
+                        </button>
+                        <div id="performanceMenu" class="mt-1 space-y-1 hidden bg-white/20 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                        {% endif %}
+                            <a href="{% url 'students:grades' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if active == 'grades' %}bg-white/20{% endif %}">
+                                <i class="fas fa-graduation-cap mr-2" aria-hidden="true"></i> Grades
+                            </a>
+                            <a href="{% url 'students:progress' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if active == 'progress' %}bg-white/20{% endif %}">
+                                <i class="fas fa-chart-bar mr-2" aria-hidden="true"></i> Progress
+                            </a>
+                            <a href="{% url 'students:achievements' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if active == 'achievements' %}bg-white/20{% endif %}">
+                                <i class="fas fa-trophy mr-2" aria-hidden="true"></i> Achievements
+                            </a>
+                            <a href="{% url 'students:certificates' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if active == 'certificates' or active == 'certificate_print' %}bg-white/20{% endif %}">
+                                <i class="fas fa-certificate mr-2" aria-hidden="true"></i> Certificates
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Academic Record -->
+                    <a href="{% url 'students:academic_records' %}"
+                       class="flex items-center py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1 {% if active == 'academic_records' %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-graduation-cap w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Academic Records</span>
+                        </div>
+                    </a>
+
+                    <!-- Community -->
+                    <div class="mb-1">
+                        {% if active == 'community' or active == 'thread_detail' or active == 'create_thread' or active == 'study_groups' or active == 'create_study_group' or active == 'study_group_detail' or active == 'join_study_group' %}
+                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all bg-white/20">
+                            <div class="flex items-center">
+                                <i class="fas fa-comments w-5 text-center" aria-hidden="true"></i>
+                                <span class="ml-3 text-[17px] font-semibold">Community</span>
+                            </div>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform rotate-180" aria-hidden="true"></i>
+                        </button>
+                        <div id="communityMenu" class="mt-1 space-y-1 bg-white/20 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                        {% else %}
+                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <div class="flex items-center">
+                                <i class="fas fa-comments w-5 text-center" aria-hidden="true"></i>
+                                <span class="ml-3 text-[17px] font-semibold">Community</span>
+                            </div>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform" aria-hidden="true"></i>
+                        </button>
+                        <div id="communityMenu" class="mt-1 space-y-1 hidden bg-white/20 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                        {% endif %}
+                            <a href="{% url 'students:community' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if active == 'community' or active == 'thread_detail' or active == 'create_thread' %}bg-white/20{% endif %}">
+                                <i class="fas fa-comment-dots mr-2" aria-hidden="true"></i> Discussions
+                            </a>
+                            <a href="{% url 'students:study_groups' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if active == 'study_groups' or active == 'create_study_group' or active == 'study_group_detail' or active == 'join_study_group' %}bg-white/20{% endif %}">
+                                <i class="fas fa-users mr-2" aria-hidden="true"></i> Study Groups
+                            </a>
+                        </div>
+                    </div>
+                    {% endwith %}{# /active #}
+
+                    <!-- Inbox -->
+                    <a href="{% url 'students:inbox' %}"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1 {% if 'inbox' in request.path %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-inbox w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Inbox</span>
+                        </div>
+                        {% if unread_messages_count > 0 %}
+                        <span class="badge-count bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                            {{ unread_messages_count }}
+                        </span>
+                        {% endif %}
+                    </a>
+
+                    <!-- Notifications -->
+                    <a href="{% url 'students:notifications_view' %}"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1 {% if 'notifications' in request.path %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-bell w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Notifications</span>
+                        </div>
+                        {% if unread_notifications_count > 0 %}
+                        <span class="badge-count bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                            {{ unread_notifications_count }}
+                        </span>
+                        {% endif %}
+                    </a>
+
+                    <!-- Payments -->
+                    <a href="{% url 'students:my_payments' %}"
+                       class="flex items-center py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1 {% if 'payments' in request.path or request.resolver_match.url_name == 'stddebt_by_id' %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-credit-card w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Payments</span>
+                        </div>
+                    </a>
+
+                    {% endif %}{# /student menu block #}
+
+                    {% if request.user.is_superuser or permissions.instructor_courses.can_view or permissions.instructor_assessments.can_view or permissions.instructor_analytics.can_view or permissions.instructor_resources.can_view or permissions.instructor_communications.can_view %}
+                    {% comment %}
+                        Outer gate is "can_view on any instructor_* module"
+                        rather than role=='instructor' — mirrors the admin
+                        menu block above, so an admin can grant e.g. a support
+                        agent into instructor_courses without a role change.
+                        Everything inside is separately gated by
+                        permissions.<module>.can_view.
+                    {% endcomment %}
+                    {% if request.user.is_superuser %}<div class="border-t border-white/10 my-4"></div><div class="sidebar-section-label py-1 px-4 text-base uppercase font-bold text-white/50 tracking-widest">Instructor Portal</div>{% endif %}
+                    <!-- ================================================ -->
+                    <!-- INSTRUCTOR MENU                                   -->
+                    <!-- ================================================ -->
+                    <!-- Dashboard — shown only to actual instructors, not to someone who
+                         merely has a granted permission into one instructor module -->
+                    {% if request.user.is_superuser or request.user.profile.role == 'instructor' %}
+                    <a href="{% url 'instructor:dashboard' %}"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1 {% if request.resolver_match.url_name == 'dashboard' %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-tachometer-alt w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Dashboard</span>
+                        </div>
+                    </a>
+                    {% endif %}
+
+                    {% with active=request.resolver_match.url_name|default:'' %}
+                    {% if permissions.instructor_courses.can_view %}
+                    <!-- My Courses — single link (create is disabled) -->
+                    <a href="{% url 'instructor:course_list' %}"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1
+                              {% if active == 'course_list' %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-book-open w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">My Courses</span>
+                        </div>
+                    </a>
+
+                    <!-- Active course chip — shown when a course is in context -->
+                    {% if course %}
+                    <div class="mb-1 bg-white/10 rounded-lg px-3 py-2.5 sidebar-course-chip">
+                        <div class="min-w-0">
+                            <p class="text-xs font-bold text-white truncate leading-tight">{{ course.title|truncatechars:26 }}</p>
+                            <p class="text-[10px] text-white/60 truncate">{{ course.code }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Manage Course — auto-selects first course. Also covers the
+                         legacy dedicated course-admin views reachable from its
+                         overview/students/announcements/discussions tabs. -->
+                    <a href="{% url 'instructor:course_manage_default' %}"
+                       class="relative flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1
+                            {% if active == 'course_manage' and request.GET.tab != 'content' or active == 'course_edit' or active == 'course_objectives' or active == 'students_list' or active == 'student_progress' or active == 'enroll_student' or active == 'announcement_list' or active == 'announcement_create' or active == 'announcement_edit' or active == 'announcement_delete' or active == 'discussions' or active == 'discussion_detail' or active == 'discussion_reply' or active == 'discussion_toggle_pin' or active == 'discussion_toggle_lock' or active == 'discussion_delete' or active == 'reply_toggle_solution' or active == 'reply_delete' %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-th-large w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Manage Course</span>
+                        </div>
+                    </a>
+
+                    <!-- Lessons & Sections — single link, no orphaned section label -->
+                    <a href="{% url 'instructor:course_manage_default' %}?tab=content"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1
+                              {% if active == 'course_manage' and request.GET.tab == 'content' or active == 'lesson_list' or active == 'lesson_create' or active == 'lesson_edit' or active == 'lesson_delete' or active == 'section_create' or active == 'section_edit' or active == 'section_delete' %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-layer-group w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Lessons & Sections</span>
+                        </div>
+                    </a>
+                    {% endif %}{# /instructor_courses #}
+
+                    {% if permissions.instructor_assessments.can_view %}
+                    <!-- Divider -->
+                    <div class="border-t border-white/10 my-3"></div>
+                    <div class="sidebar-section-label py-1 px-4 text-base uppercase font-bold text-white/50 tracking-widest">Assessments</div>
+
+                    <!-- Assessments -->
+                    <div class="mb-1">
+                        {% if active == 'create_assessment' or active == 'all_quizzes' or active == 'quiz_list' or active == 'quiz_create' or active == 'quiz_edit' or active == 'quiz_questions' or active == 'question_create' or active == 'question_answers' or active == 'delete_answer' or active == 'delete_question' or active == 'quiz_results' or active == 'quiz_attempt_detail' or active == 'all_assignments' or active == 'assignment_list' or active == 'assignment_create' or active == 'assignment_edit' or active == 'assignment_submissions' or active == 'grade_submission' or active == 'exam_list' or active == 'exam_detail' or active == 'exam_update' or active == 'exam_submit' or active == 'exam_publish' or active == 'exam_question_create' or active == 'exam_question_edit' or active == 'exam_question_delete' or active == 'exam_import_questions' or active == 'exam_grade_response' %}
+                        <button class="menu-toggle w-full flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all bg-white/20">
+                            <div class="flex items-center">
+                                <i class="fas fa-clipboard-check w-5 text-center" aria-hidden="true"></i>
+                                <span class="ml-3 text-[17px] font-semibold">Assessments</span>
+                            </div>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform text-sm rotate-180" aria-hidden="true"></i>
+                        </button>
+                        <div id="assessmentsMenu" class="mt-1 space-y-1 bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                        {% else %}
+                        <button class="menu-toggle w-full flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <div class="flex items-center">
+                                <i class="fas fa-clipboard-check w-5 text-center" aria-hidden="true"></i>
+                                <span class="ml-3 text-[17px] font-semibold">Assessments</span>
+                            </div>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform text-sm" aria-hidden="true"></i>
+                        </button>
+                        <div id="assessmentsMenu" class="mt-1 space-y-1 hidden bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                        {% endif %}
+                            {% if permissions.instructor_assessments.can_create %}
+                            <a href="{% url 'instructor:create_assessment' %}"
+                               class="flex items-center py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-sm
+                                      {% if active == 'create_assessment' %}bg-white/20{% endif %}">
+                                <i class="fas fa-plus-circle mr-2 w-4 text-yellow-300" aria-hidden="true"></i>
+                                <span class="font-semibold">Create Assessment</span>
+                            </a>
+                            <div class="border-t border-white/10 my-1"></div>
+                            {% endif %}
+                            <a href="{% url 'instructor:all_quizzes' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium
+                                      {% if active == 'all_quizzes' or active == 'quiz_list' or active == 'quiz_create' or active == 'quiz_edit' or active == 'quiz_questions' or active == 'question_create' or active == 'question_answers' or active == 'delete_answer' or active == 'delete_question' or active == 'quiz_results' or active == 'quiz_attempt_detail' %}bg-white/20{% endif %}">
+                                <i class="fas fa-question-circle mr-2 w-4" aria-hidden="true"></i> All Quizzes
+                            </a>
+                            <a href="{% url 'instructor:all_assignments' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium
+                                      {% if active == 'all_assignments' or active == 'assignment_list' or active == 'assignment_create' or active == 'assignment_edit' or active == 'assignment_submissions' or active == 'grade_submission' %}bg-white/20{% endif %}">
+                                <i class="fas fa-tasks mr-2 w-4" aria-hidden="true"></i> All Assignments
+                            </a>
+                            <a href="{% url 'instructor:exam_list' %}"
+                               class="flex items-center justify-between py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-sm
+                                      {% if active == 'exam_list' or active == 'exam_detail' or active == 'exam_update' or active == 'exam_submit' or active == 'exam_publish' or active == 'exam_question_create' or active == 'exam_question_edit' or active == 'exam_question_delete' or active == 'exam_import_questions' or active == 'exam_grade_response' %}bg-white/20{% endif %}">
+                                <div class="flex items-center">
+                                    <i class="fas fa-file-alt mr-2 w-4" aria-hidden="true"></i> My Exams
+                                </div>
+                                {% if instructor_pending_exam_count %}
+                                <span class="inline-flex items-center justify-center min-w-[1.1rem] h-4 px-1 text-xs font-bold text-white bg-red-500 rounded-full">
+                                    {{ instructor_pending_exam_count }}
+                                </span>
+                                {% endif %}
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}{# /instructor_assessments #}
+
+                    {% if permissions.instructor_analytics.can_view %}
+                    <!-- Divider -->
+                    <div class="border-t border-white/10 my-3"></div>
+                    <div class="sidebar-section-label py-1 px-4 text-base uppercase font-bold text-white/50 tracking-widest">Reports</div>
+
+                    <!-- Analytics -->
+                    <div class="mb-1">
+                        {% if active == 'analytics_course_stats' or active == 'analytics_student_progress' or active == 'analytics_reviews' %}
+                        <button class="menu-toggle w-full flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all bg-white/20">
+                            <div class="flex items-center">
+                                <i class="fas fa-chart-line w-5 text-center" aria-hidden="true"></i>
+                                <span class="ml-3 text-[17px] font-semibold">Analytics</span>
+                            </div>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform text-sm rotate-180" aria-hidden="true"></i>
+                        </button>
+                        <div id="analyticsMenu" class="mt-1 space-y-1 bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                        {% else %}
+                        <button class="menu-toggle w-full flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <div class="flex items-center">
+                                <i class="fas fa-chart-line w-5 text-center" aria-hidden="true"></i>
+                                <span class="ml-3 text-[17px] font-semibold">Analytics</span>
+                            </div>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform text-sm" aria-hidden="true"></i>
+                        </button>
+                        <div id="analyticsMenu" class="mt-1 space-y-1 hidden bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                        {% endif %}
+                            <a href="{% url 'instructor:analytics_course_stats' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if active == 'analytics_course_stats' %}bg-white/20{% endif %}">
+                                <i class="fas fa-chart-bar mr-2 w-4" aria-hidden="true"></i> Course Statistics
+                            </a>
+                            <a href="{% url 'instructor:analytics_student_progress' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if active == 'analytics_student_progress' %}bg-white/20{% endif %}">
+                                <i class="fas fa-graduation-cap mr-2 w-4" aria-hidden="true"></i> Student Progress
+                            </a>
+                            <a href="{% url 'instructor:analytics_reviews' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if active == 'analytics_reviews' %}bg-white/20{% endif %}">
+                                <i class="fas fa-star mr-2 w-4" aria-hidden="true"></i> Reviews & Ratings
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}{# /instructor_analytics #}
+
+                    {% if permissions.instructor_resources.can_view %}
+                    <!-- Divider -->
+                    <div class="border-t border-white/10 my-3"></div>
+                    <!-- Resources -->
+                    <a href="{% url 'instructor:resources' %}"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1 {% if active == 'resources' %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-folder w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Resources</span>
+                        </div>
+                    </a>
+                    {% endif %}
+                    {% endwith %}{# /active #}
+
+                    {% if permissions.instructor_communications.can_view %}
+                    <!-- Messages -->
+                    <a href="{% url 'instructor:messages_inbox' %}"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1
+                              {% if 'messages' in request.path %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-envelope w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Messages</span>
+                        </div>
+                    </a>
+
+                    <!-- Notifications -->
+                    <a href="{% url 'instructor:notifications' %}"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1
+                              {% if 'notifications' in request.path %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-bell w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Notifications</span>
+                        </div>
+                        {% if instructor_unread_notifications_count > 0 %}
+                        <span class="badge-count inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
+                            {{ instructor_unread_notifications_count }}
+                        </span>
+                        {% endif %}
+                    </a>
+                    {% endif %}{# /instructor_communications #}
+                    {% endif %}{# /instructor menu block #}
+
+                    {% comment %} {% if request.user.is_superuser or request.user.profile.role == 'content_manager' %}
+                    <!-- CONTENT MANAGER MENU (for future implementation) -->
+                    <a href="{% url 'content:dashboard' %}" class="flex items-center py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1">
+                        <i class="fas fa-tachometer-alt w-5 text-center" aria-hidden="true"></i>
+                        <span class="ml-3 text-[17px] font-semibold">Dashboard</span>
+                    </a>
+                    {% endif %}{# /content_manager menu block #}
+
+                    {% if request.user.is_superuser or request.user.profile.role == 'support' %}
+                    <!-- SUPPORT STAFF MENU (for future implementation) -->
+                    <a href="{% url 'support:dashboard' %}" class="flex items-center py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1">
+                        <i class="fas fa-tachometer-alt w-5 text-center" aria-hidden="true"></i>
+                        <span class="ml-3 text-[17px] font-semibold">Dashboard</span>
+                    </a>
+                    {% endif %}{# /support menu block #} {% endcomment %}
+
+                    {% if request.user.is_superuser or permissions.finance_payments.can_view or permissions.finance_subscriptions.can_view or permissions.finance_payroll.can_view %}
+                    {% comment %}
+                        Outer gate is "can_view on any finance_* module"
+                        rather than role=='finance' — mirrors the admin/
+                        instructor menu blocks above, so an admin can grant
+                        e.g. a support agent into finance_payments without a
+                        role change. Everything inside is separately gated by
+                        permissions.finance_*.can_view.
+                    {% endcomment %}
+                    {% if request.user.is_superuser %}<div class="border-t border-white/10 my-4"></div><div class="sidebar-section-label py-1 px-4 text-base uppercase font-bold text-white/50 tracking-widest">Finance Portal</div>{% endif %}
+                    <!-- ================================================ -->
+                    <!-- FINANCE MANAGER MENU                             -->
+                    <!-- ================================================ -->
+                    <!-- Dashboard — shown only to actual finance staff, not to someone who
+                         merely has a granted permission into one finance module -->
+                    {% if request.user.is_superuser or request.user.profile.role == 'finance' %}
+                    <a href="{% url 'finance:dashboard' %}"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1
+                              {% if request.resolver_match.url_name == 'dashboard' and 'finance' in request.path %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-chart-bar w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Dashboard</span>
+                        </div>
+                    </a>
+                    {% endif %}
+
+                    {% if permissions.finance_payments.can_view %}
+                    <!-- Payments submenu -->
+                    <div class="mb-1">
+                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all {% if request.resolver_match.app_name == 'payments' %}bg-white/20{% endif %}">
+                            <div class="flex items-center">
+                                <i class="fas fa-credit-card w-5 text-center" aria-hidden="true"></i>
+                                <span class="ml-3 text-[17px] font-semibold">Payments</span>
+                            </div>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform {% if request.resolver_match.app_name == 'payments' %}rotate-180{% endif %}"
+                               aria-hidden="true"></i>
+                        </button>
+                        <div id="paymentsMenu"
+                             class="mt-1 space-y-1 {% if request.resolver_match.app_name != 'payments' %}hidden{% endif %}
+                                    bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                            <a href="{% url 'payments:payment_management' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.resolver_match.url_name == 'payment_management' or request.resolver_match.url_name == 'payment_detail' or request.resolver_match.url_name == 'refund_payment' %}bg-white/20{% endif %}">
+                                <i class="fas fa-list mr-2" aria-hidden="true"></i> All Payments
+                            </a>
+                            <a href="{% url 'payments:transaction_reports' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.resolver_match.url_name == 'transaction_reports' %}bg-white/20{% endif %}">
+                                <i class="fas fa-file-alt mr-2" aria-hidden="true"></i> Transaction Reports
+                            </a>
+                            <a href="{% url 'payments:invoice_generation' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.resolver_match.url_name == 'invoice_generation' or request.resolver_match.url_name == 'generate_invoice_pdf' %}bg-white/20{% endif %}">
+                                <i class="fas fa-file-invoice mr-2" aria-hidden="true"></i> Invoices
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Required Payments -->
+                    <a href="{% url 'payments:required_payments_list' %}"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1
+                              {% if request.resolver_match.url_name == 'required_payments_list' %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-receipt w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Required Payments</span>
+                        </div>
+                    </a>
+                    {% endif %}{# /finance_payments #}
+
+                    {% if permissions.finance_payroll.can_view %}
+                    <!-- Payroll submenu -->
+                    <div class="mb-1">
+                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all
+                                       {% if 'payroll' in request.path %}bg-white/20{% endif %}">
+                            <div class="flex items-center">
+                                <i class="fas fa-money-bill-wave w-5 text-center" aria-hidden="true"></i>
+                                <span class="ml-3 text-[17px] font-semibold">Payroll</span>
+                            </div>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform
+                                      {% if 'payroll' in request.path %}rotate-180{% endif %}"
+                               aria-hidden="true"></i>
+                        </button>
+                        <div id="payrollMenu"
+                             class="mt-1 space-y-1 {% if 'payroll' not in request.path %}hidden{% endif %}
+                                    bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                            <a href="{% url 'finance:payroll_management' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium
+                                      {% if request.resolver_match.url_name == 'payroll_management' %}bg-white/20{% endif %}">
+                                <i class="fas fa-list mr-2" aria-hidden="true"></i> All Payrolls
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}{# /finance_payroll #}
+
+                    {% endif %}{# /finance menu block #}
+
+                    {% comment %} {% if request.user.is_superuser or request.user.profile.role == 'qa' %}
+                    <!-- QA REVIEWER MENU (for future implementation) -->
+                    <a href="{% url 'qa:dashboard' %}" class="flex items-center py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1">
+                        <i class="fas fa-tachometer-alt w-5 text-center" aria-hidden="true"></i>
+                        <span class="ml-3 text-[17px] font-semibold">Dashboard</span>
+                    </a>
+                    {% endif %}
+
+
+                    <!-- ── COMMON Main Support Links (all authenticated users) ── -->
+                    <!-- ── COMMON FOOTER LINKS (all authenticated users) ── -->
+                    {% if request.user.profile.role in 'student,instructor,admin,finance,support' or request.user.is_staff or request.user.is_superuser %}
+                    <div class="border-t border-white/10 my-4"></div>
+                    {% endif %} {% endcomment %}
+
+                    {% if request.user.is_superuser or permissions.support_tickets.can_view or permissions.support_knowledge_base.can_view or permissions.support_communications.can_view or permissions.support_analytics.can_view or permissions.support_config.can_view %}
+                    {% comment %}
+                        Outer gate is "can_view on any support_* module"
+                        rather than role=='support' — so an admin can grant
+                        e.g. an instructor into support_tickets without a
+                        role change.
+                    {% endcomment %}
+                    {% include 'support/includes/sidebar_support_menu.html' %}
+                    {% endif %}
+
+
+                    <!-- My Profile — single shared page, every role -->
+                    <a href="{% url 'eduweb:profile' %}"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1 {% if request.resolver_match.url_name == 'profile' and request.resolver_match.app_name == 'eduweb' %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-user-circle w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">My Profile</span>
+                        </div>
+                    </a>
+
+                    <!-- Settings — single shared page (notification prefs + password),
+                         every role. Site-wide config for admins lives separately under
+                         "Site Settings" above — this is personal account settings. -->
+                    <a href="{% url 'eduweb:settings' %}"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1 {% if request.resolver_match.url_name == 'settings' and request.resolver_match.app_name == 'eduweb' %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-cog w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Settings</span>
+                        </div>
+                    </a>
+
+                    <!-- Help & Support — single shared self-service page. Not shown to support
+                         staff/admins: they already have the full Support Centre console above
+                         (sidebar_support_menu.html) and don't need a "submit a ticket to myself" link. -->
+                    {% if not request.user.is_staff and not request.user.is_superuser and request.user.profile.role != 'admin' and request.user.profile.role != 'support' %}
+                    <a href="{% url 'support:submit_ticket' %}"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1 {% if request.resolver_match.url_name == 'submit_ticket' %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-question-circle w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Help & Support</span>
+                        </div>
+                    </a>
+                    {% endif %}
+
+                    <!-- Logout — same for all roles -->
+                    <a href="#" onclick="portalLogout(event)"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1">
+                        <div class="flex items-center">
+                            <i class="fas fa-sign-out-alt w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Logout</span>
+                        </div>
+                    </a>
+                </nav>
+
+                <!-- User Info at Bottom -->
+                <div class="user-info-bottom p-4 border-t border-white/10 flex-shrink-0">
+                    <div class="flex items-center space-x-3">
+                        {% if request.user.profile.avatar %}
+                        <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-white/30">
+                            <img src="{{ request.user.profile.avatar.url }}" alt="{{ request.user.get_full_name }}" class="w-full h-full object-cover">
+                        </div>
+                        {% else %}
+                        <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-white/30">
+                            <img src="https://ui-avatars.com/api/?name={{ request.user.get_full_name|urlencode }}&background=4a6bff&color=fff" alt="{{ request.user.get_full_name }}" class="w-full h-full object-cover">
+                        </div>
+                        {% endif %}
+                        <div class="flex-1">
+                            <p class="font-medium text-sm truncate capitalize">{{ request.user.get_full_name|default:request.user.username }}</p>
+                            <p class="text-xs text-white/70 capitalize">{{ request.user.profile.get_role_display }}</p>
+                            {% if request.user.profile.role == 'student' and matric_number %}
+                            <p class="text-xs text-white/50 font-mono tracking-wide mt-0.5">{{ matric_number }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div id="mainContent" class="flex-1 flex flex-col min-h-screen min-w-0">
+            <!-- Top Header Bar -->
+            <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
+                <div class="relative flex items-center justify-between px-3 sm:px-4 md:px-5 py-2.5 sm:py-3 gap-2">
+                    <!-- Center: Brand Name — hidden below lg (sidebar already carries the brand there; up
+                         through md the header is tight with hamburger/collapse + breadcrumbs + bell + avatar
+                         and centered text just clutters it) -->
+                    <div class="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center pointer-events-none select-none max-w-none">
+                        <span class="font-heading font-bold tracking-tight text-lg xl:text-xl bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 bg-clip-text text-transparent whitespace-nowrap truncate">
+                            MIU University
+                        </span>
+                    </div>
+
+                    <!-- Left: Mobile Menu + Desktop Collapse + Breadcrumbs -->
+                    <div class="flex items-center gap-2 sm:gap-3 md:gap-4 min-w-0">
+                        <!-- Mobile Hamburger Menu -->
+                        <button id="toggleSidebar" class="md:hidden flex-shrink-0 text-gray-600 hover:text-gray-900 p-1.5 rounded-lg hover:bg-gray-100 focus:outline-none transition-colors" aria-label="Toggle navigation">
+                            <i class="fas fa-bars text-lg" aria-hidden="true"></i>
+                        </button>
+
+                        <!-- Desktop Sidebar Collapse Toggle -->
+                        <button id="collapseSidebar" class="hidden md:flex flex-shrink-0 text-gray-600 hover:text-gray-900 p-1.5 rounded-lg hover:bg-gray-100 focus:outline-none transition-colors" aria-label="Collapse sidebar">
+                            <i class="fas fa-bars text-lg" aria-hidden="true"></i>
+                        </button>
+
+                        <!-- Breadcrumbs -->
+                        <nav aria-label="Breadcrumb" class="hidden sm:flex items-center min-w-0">
+                            <ol class="flex items-center gap-1.5 text-xs sm:text-sm text-gray-600 min-w-0">
+                                <li class="flex-shrink-0">
+                                    <a href="{% if request.user.profile.role == 'student' %}{% url 'students:dashboard' %}{% elif request.user.profile.role == 'instructor' %}{% url 'instructor:dashboard' %}{% elif request.user.profile.role == 'finance' %}{% url 'finance:dashboard' %}{% elif request.user.profile.role == 'support' %}{% url 'support:dashboard' %}{% elif request.user.is_staff or request.user.is_superuser or request.user.profile.role == 'admin' %}{% url 'management:dashboard' %}{% else %}{% url 'management:dashboard' %}{% endif %}"
+                                    class="hover:text-primary-600 whitespace-nowrap font-medium transition-colors">Home</a>
+                                </li>
+                                <li class="flex-shrink-0 text-gray-400"><i class="fas fa-chevron-right text-[10px]" aria-hidden="true"></i></li>
+                                <li class="text-gray-900 font-semibold min-w-0">
+                                    <span class="block truncate max-w-[120px] sm:max-w-[180px] md:max-w-[260px] lg:max-w-[380px] xl:max-w-none" title="{% block breadcrumb_title %}{% endblock %}">
+                                        {% block breadcrumb %}Dashboard{% endblock %}
+                                    </span>
+                                </li>
+                            </ol>
+                        </nav>
+                    </div>
+
+                    <!-- Right: Notifications + Profile -->
+                    <div class="flex items-center gap-1.5 sm:gap-2 md:gap-3 flex-shrink-0">
+                        <!-- Notifications Dropdown -->
+                        <div class="relative">
+                            <button id="notificationDropdown"
+                                    class="relative p-1.5 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all focus:outline-none"
+                                    aria-label="Notifications">
+                                <i class="fas fa-bell text-base sm:text-lg md:text-xl" aria-hidden="true"></i>
+                                {% if unread_notifications_count > 0 %}
+                                <span class="absolute top-0.5 right-0.5 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-red-500 rounded-full"></span>
+                                {% endif %}
+                            </button>
+
+                            <div id="notificationMenu"
+                                 class="dropdown-menu absolute right-0 top-full mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-xl border border-gray-200 max-h-80 sm:max-h-96 overflow-y-auto z-50">
+
+                                <!-- Header -->
+                                <div class="p-3 sm:p-4 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
+                                    <h4 class="font-semibold text-gray-900 text-sm sm:text-base">Notifications</h4>
+                                    <div class="flex items-center gap-2">
+                                        {% if unread_notifications_count > 0 %}
+                                        <span class="text-xs font-medium text-primary-600">
+                                            {{ unread_notifications_count }} new
+                                        </span>
+                                        {% else %}
+                                        <span class="text-xs text-gray-400">All caught up</span>
+                                        {% endif %}
+                                        <button onclick="document.getElementById('notificationMenu').classList.remove('show')"
+                                                class="sm:hidden text-gray-400 hover:text-gray-600 p-1 rounded transition-colors"
+                                                aria-label="Close">
+                                            <i class="fas fa-times text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Notification Items -->
+                                <div class="divide-y divide-gray-100">
+                                    {% if nav_notifications %}
+                                        {% for notif in nav_notifications %}
+                                        <a href="{% if request.user.profile.role == 'student' %}{% url 'students:notifications_view' %}{% elif request.user.profile.role == 'instructor' %}{% url 'instructor:notifications' %}{% else %}{% url 'management:notifications_view' %}{% endif %}"
+                                           class="flex items-start gap-2.5 sm:gap-3 p-3 sm:p-4 hover:bg-gray-50 transition-all group">
+                                            <!-- Type icon -->
+                                            <div class="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center mt-0.5
+                                                {% if notif.notification_type == 'assignment' %}bg-orange-100
+                                                {% elif notif.notification_type == 'grade' %}bg-green-100
+                                                {% elif notif.notification_type == 'message' %}bg-blue-100
+                                                {% elif notif.notification_type == 'certificate' %}bg-yellow-100
+                                                {% elif notif.notification_type == 'enrollment' %}bg-purple-100
+                                                {% elif notif.notification_type == 'announcement' %}bg-primary-100
+                                                {% else %}bg-gray-100{% endif %}">
+                                                <i class="text-xs
+                                                    {% if notif.notification_type == 'assignment' %}fas fa-file-alt text-orange-500
+                                                    {% elif notif.notification_type == 'grade' %}fas fa-star text-green-500
+                                                    {% elif notif.notification_type == 'message' %}fas fa-envelope text-blue-500
+                                                    {% elif notif.notification_type == 'certificate' %}fas fa-certificate text-yellow-500
+                                                    {% elif notif.notification_type == 'enrollment' %}fas fa-user-check text-purple-500
+                                                    {% elif notif.notification_type == 'announcement' %}fas fa-bullhorn text-primary-500
+                                                    {% else %}fas fa-bell text-gray-400{% endif %}">
+                                                </i>
+                                            </div>
+                                            <!-- Text -->
+                                            <div class="flex-1 min-w-0">
+                                                <p class="font-medium text-gray-900 text-xs sm:text-sm leading-snug line-clamp-1">
+                                                    {{ notif.title }}
+                                                </p>
+                                                <p class="text-xs text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">
+                                                    {{ notif.message }}
+                                                </p>
+                                                <p class="text-xs text-gray-400 mt-1">
+                                                    {{ notif.created_at|timesince }} ago
+                                                </p>
+                                            </div>
+                                            <!-- Unread dot -->
+                                            <div class="flex-shrink-0 self-center">
+                                                <span class="block w-2 h-2 rounded-full bg-primary-500"></span>
+                                            </div>
+                                        </a>
+                                        {% endfor %}
+                                    {% else %}
+                                        <!-- Empty state -->
+                                        <div class="py-10 px-4 text-center">
+                                            <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-2.5">
+                                                <i class="fas fa-bell-slash text-gray-300 text-sm" aria-hidden="true"></i>
+                                            </div>
+                                            <p class="text-xs text-gray-400 leading-relaxed">No new notifications</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Footer: View all -->
+                                <div class="p-2.5 sm:p-3 border-t border-gray-100 sticky bottom-0 bg-white">
+                                    <a href="{% if request.user.profile.role == 'student' %}{% url 'students:notifications_view' %}{% elif request.user.profile.role == 'instructor' %}{% url 'instructor:notifications' %}{% else %}{% url 'management:notifications_view' %}{% endif %}"
+                                       class="block w-full text-center text-xs sm:text-sm text-primary-600 hover:text-primary-800 font-medium py-1.5 rounded-lg hover:bg-primary-50 transition-colors">
+                                        View all notifications
+                                    </a>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- User Profile Dropdown -->
+                        <div class="relative">
+                            <button id="profileDropdown" class="flex items-center gap-1.5 sm:gap-2 p-1 rounded-full hover:bg-gray-100 transition-all focus:outline-none" aria-haspopup="true">
+                                {% if request.user.profile.avatar %}
+                                <div class="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full overflow-hidden border-2 border-primary-500 flex-shrink-0">
+                                    <img src="{{ request.user.profile.avatar.url }}" alt="{{ request.user.get_full_name }}" class="w-full h-full object-cover">
+                                </div>
+                                {% else %}
+                                <div class="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full overflow-hidden border-2 border-primary-500 flex-shrink-0">
+                                    <img src="https://ui-avatars.com/api/?name={{ request.user.get_full_name|urlencode }}&background=4a6bff&color=fff" alt="{{ request.user.get_full_name }}" class="w-full h-full object-cover">
+                                </div>
+                                {% endif %}
+                                <div class="hidden md:block text-left min-w-0">
+                                    <p class="font-medium text-gray-800 text-sm truncate max-w-[120px] lg:max-w-[160px] capitalize">{{ request.user.get_full_name|default:request.user.username }}</p>
+                                    <p class="text-xs text-gray-500 leading-snug capitalize">{{ request.user.profile.get_role_display }}</p>
+                                </div>
+                                <i class="fas fa-chevron-down text-gray-400 text-xs hidden md:block" aria-hidden="true"></i>
+                            </button>
+
+                            <div id="profileMenu" class="dropdown-menu absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden">
+                                <!-- Mobile-only header row with close button -->
+                                <div class="sm:hidden flex items-center justify-between px-4 py-2.5 border-b border-gray-100 bg-gray-50">
+                                    <span class="text-xs font-medium text-gray-700 truncate max-w-[130px]">
+                                        {{ request.user.get_full_name|default:request.user.username }}
+                                    </span>
+                                    <button onclick="document.getElementById('profileMenu').classList.remove('show')"
+                                            class="text-gray-400 hover:text-gray-600 p-1 rounded transition-colors flex-shrink-0"
+                                            aria-label="Close">
+                                        <i class="fas fa-times text-xs"></i>
+                                    </button>
+                                </div>
+                                <!-- My Profile — single shared page, every role -->
+                                <a href="{% url 'eduweb:profile' %}"
+                                   class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-600 transition-all border-b border-gray-100">
+                                    <i class="fas fa-user mr-3 w-5" aria-hidden="true"></i> My Profile
+                                </a>
+                                <!-- Settings — single shared page, every role -->
+                                <a href="{% url 'eduweb:settings' %}"
+                                   class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-600 transition-all border-b border-gray-100">
+                                    <i class="fas fa-cog mr-3 w-5" aria-hidden="true"></i> Settings
+                                </a>
+                                <!-- Logout — all roles -->
+                                <a href="#" onclick="portalLogout(event)" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-600 transition-all">
+                                    <i class="fas fa-sign-out-alt mr-3 w-5" aria-hidden="true"></i> Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            {% comment %} <!-- Payment reminder for students -->
+            {% if request.user.profile.role == 'student' %}
+            <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700
+            p-4 mt-4 rounded-lg shadow flex items-center justify-between
+            w-1/2 mx-auto">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-triangle mr-3 text-yellow-600"></i>
+                    <span class="font-medium">You owe some money. Please make a payment.</span>
+                </div>
+                <a href="#" class="bg-secondary-600 hover:bg-primary-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Make Payment</a>
+            </div>
+            {% endif %} {% endcomment %}
+
+            <!-- Main Content -->
+            <main class="flex-1 p-3 sm:p-4 md:p-6">
+            <div class="max-w-7xl mx-auto w-full">
+
+                {# ── Student Academic Status Bar — students only ── #}
+                {% if request.user.is_authenticated and request.user.profile.role == 'student' %}
+                {% with profile=request.user.profile %}
+                {% if profile and profile.program %}
+                <div class="mb-4 sm:mb-5 rounded-xl border border-blue-100 bg-blue-50 px-3 sm:px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs sm:text-sm text-blue-800">
+
+                    {# Matric Number — see CourseApplication.matric_number for the format #}
+                    {% if matric_number %}
+                    <span class="inline-flex items-center gap-1.5 font-semibold bg-blue-900 text-white rounded-lg px-2.5 py-1 font-mono tracking-wide">
+                        <i class="fas fa-id-card text-blue-300 text-[11px]" aria-hidden="true"></i>
+                        {{ matric_number }}
+                    </span>
+                    {% endif %}
+
+                    <span class="inline-flex items-center gap-1.5 font-semibold bg-blue-100 text-blue-900 rounded-lg px-2.5 py-1 border border-blue-200">
+                        <i class="fas fa-layer-group text-blue-500 text-[11px]" aria-hidden="true"></i>
+                        {{ profile.current_level }}L
+                    </span>
+
+                    {# Programme #}
+                    <span class="inline-flex items-center gap-1.5 text-blue-700 truncate max-w-[180px] sm:max-w-xs" title="{{ profile.program.name }}">
+                        <i class="fas fa-graduation-cap text-blue-400 text-[11px] flex-shrink-0" aria-hidden="true"></i>
+                        <span class="truncate">{{ profile.program.name }}</span>
+                    </span>
+
+                    {# Department #}
+                    {% with dept=profile.program.department %}
+                    {% if dept %}
+                    <span class="hidden sm:inline-flex items-center gap-1.5 text-blue-600 truncate max-w-[160px]" title="{{ dept.name }}">
+                        <i class="fas fa-building text-blue-400 text-[11px] flex-shrink-0" aria-hidden="true"></i>
+                        <span class="truncate">{{ dept.name }}</span>
+                    </span>
+
+                    {# Faculty #}
+                    {% comment %} {% with fac=dept.faculty %}
+                    {% if fac %}
+                    <span class="hidden lg:inline-flex items-center gap-1.5 text-blue-500 truncate max-w-[160px]" title="{{ fac.name }}">
+                        <i class="fas fa-university text-blue-300 text-[11px] flex-shrink-0" aria-hidden="true"></i>
+                        <span class="truncate">{{ fac.name }}</span>
+                    </span>
+                    {% endif %}
+                    {% endwith %} {% endcomment %}
+                    {% endif %}
+                    {% endwith %}
+
+                    {# Divider #}
+                    <span class="hidden sm:block w-px h-4 bg-blue-200 flex-shrink-0"></span>
+
+                    {# Session + Term — derived from context processor or navigation_data #}
+                    {% if current_session %}
+                    <span class="inline-flex items-center gap-1.5 text-blue-700 font-medium flex-shrink-0">
+                        <i class="fas fa-calendar-alt text-blue-400 text-[11px]" aria-hidden="true"></i>
+                        {{ current_session.name }}
+                    </span>
+                    {% endif %}
+
+                    {% if current_term %}
+                    <span class="inline-flex items-center gap-1.5 text-blue-600 capitalize flex-shrink-0">
+                        <i class="fas fa-bookmark text-blue-400 text-[11px]" aria-hidden="true"></i>
+                        {% if current_term == 'fall' or current_term == 'spring' or current_term == 'summer' %}
+                            {{ current_term|title }} Term
+                        {% else %}
+                            {{ current_term|title }} Semester
+                        {% endif %}
+                    </span>
+                    {% endif %}
+
+                    {# Progression status #}
+                    {% if profile.progression_status %}
+                    <span class="inline-flex items-center gap-1.5 flex-shrink-0
+                        {% if profile.progression_status == 'probation' %}text-red-600 bg-red-50 border border-red-200
+                        {% elif profile.progression_status == 'good_standing' %}text-green-700 bg-green-50 border border-green-200
+                        {% elif profile.progression_status == 'suspended' %}text-orange-700 bg-orange-50 border border-orange-200
+                        {% else %}text-blue-600 bg-blue-100 border border-blue-200
+                        {% endif %}
+                        rounded-lg px-2 py-0.5 text-[11px] font-semibold capitalize">
+                        <span class="w-1.5 h-1.5 rounded-full flex-shrink-0
+                            {% if profile.progression_status == 'probation' %}bg-red-500
+                            {% elif profile.progression_status == 'good_standing' %}bg-green-500
+                            {% elif profile.progression_status == 'suspended' %}bg-orange-500
+                            {% else %}bg-blue-400{% endif %}">
+                        </span>
+                        {{ profile.get_progression_status_display|default:profile.progression_status }}
+                    </span>
+                    {% endif %}
+
+                    {# Registration window — shows exact open/close dates #}
+                    {% if registration_open %}
+                    <span class="ml-auto inline-flex items-center gap-1.5 text-green-700 bg-green-50 border border-green-200 rounded-lg px-2.5 py-1 text-[11px] font-semibold flex-shrink-0">
+                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                        Reg. Open
+                        {% if reg_open and reg_close %}
+                        &bull; {{ reg_open|date:"M j" }} – {{ reg_close|date:"M j, Y" }}
+                        {% endif %}
+                    </span>
+                    {% elif reg_open %}
+                    <span class="ml-auto inline-flex items-center gap-1.5 text-gray-500 bg-gray-100 border border-gray-200 rounded-lg px-2.5 py-1 text-[11px] font-medium flex-shrink-0">
+                        <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                        Reg. Closed &bull; Opens {{ reg_open|date:"M j, Y" }}
+                    </span>
+                    {% else %}
+                    <span class="ml-auto inline-flex items-center gap-1.5 text-gray-500 bg-gray-100 border border-gray-200 rounded-lg px-2.5 py-1 text-[11px] font-medium flex-shrink-0">
+                        <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                        Registration Closed
+                    </span>
+                    {% endif %}
+
+                </div>
+                {% endif %}
+                {% endwith %}
+                {% endif %}
+                {# ── End Student Academic Status Bar ── #}
+
+                {% block content %}{% endblock %}
+            </div>
+            </main>
+            {% include 'force_password_modal.html' %}
+
+            <!-- Footer -->
+            <footer class="bg-white border-t border-gray-200 py-4 px-6">
+                <div class="flex flex-col md:flex-row justify-between items-center text-sm text-gray-600">
+                    <p>&copy; {% now "Y" %} {{ site_config.school_short_name|default:"Portal" }}. All rights reserved.</p>
+                    <p class="mt-2 md:mt-0">Portal v1.0</p>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    {% if request.user.is_authenticated and request.user.profile.role == 'admin' %}
+    {% with cs=current_session %}
+
+    <!-- Session Automation Reminder Modal -->
+    <div id="sessionReminderModal" class="hidden fixed inset-0 bg-black/70 flex items-stretch sm:items-center justify-center sm:p-4 z-[99999]">
+        <div class="bg-white sm:rounded-3xl w-full sm:max-w-lg h-full sm:h-auto sm:max-h-[90vh] overflow-y-auto p-6 sm:p-10 text-center shadow-2xl">
+            <i class="fas fa-calendar-check text-7xl text-amber-500 mb-6"></i>
+            <h3 class="text-3xl font-bold mb-3">Time to update Academic Session?</h3>
+
+            {% if cs %}
+                <p class="text-gray-600 mb-2 font-semibold">
+                    Current: <span class="text-primary-600">{{ cs.name }}</span>
+                </p>
+                <p class="text-gray-500 text-sm mb-6">
+                    Term: <strong>{{ cs.get_current_term|default:"No active term" }}</strong>
+                    &nbsp;|&nbsp;
+                    Registration:
+                    {% if cs.is_registration_open %}
+                        <span class="text-green-600 font-semibold">Open</span>
+                    {% else %}
+                        <span class="text-red-500 font-semibold">Closed</span>
+                    {% endif %}
+                </p>
+            {% else %}
+                <p class="text-red-500 font-semibold mb-4">⚠ No active session is set!</p>
+            {% endif %}
+
+            <p class="text-gray-500 mb-8 text-sm">Create a new session or update the current one's term dates.</p>
+
+            <div class="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 justify-center">
+                <a href="{% url 'management:academic_sessions_list' %}"
+                class="w-full sm:w-auto px-8 py-4 bg-primary-600 text-white rounded-2xl font-semibold text-base hover:bg-primary-700 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Create New Session
+                </a>
+                {% if cs %}
+                <a href="{% url 'management:academic_sessions_list' %}"
+                class="w-full sm:w-auto px-8 py-4 bg-amber-500 text-white rounded-2xl font-semibold text-base hover:bg-amber-600 transition-colors">
+                    <i class="fas fa-edit mr-2"></i>Edit Current Session
+                </a>
+                {% endif %}
+                <button onclick="dismissSessionReminder()"
+                        class="w-full sm:w-auto px-8 py-4 border-2 border-gray-300 rounded-2xl font-semibold text-base hover:bg-gray-50 transition-colors">
+                    Remind me later
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        const DISMISS_KEY   = 'sessionReminderDismissed_{{ request.user.pk }}';
+        const DISMISS_HOURS = 24;
+
+        // ── Server-rendered booleans (resolved in Python, safe to trust) ──
+        const noSession    = {% if cs %}false{% else %}true{% endif %};
+        const noActiveTerm = {% if cs and cs.get_current_term %}false{% else %}true{% endif %};
+
+        function isDismissed() {
+            try {
+                const ts = localStorage.getItem(DISMISS_KEY);
+                if (!ts) return false;
+                return (Date.now() - parseInt(ts, 10)) < DISMISS_HOURS * 3600 * 1000;
+            } catch (e) { return false; }
+        }
+
+        function checkSessionReminder() {
+            if (isDismissed()) return;
+            // Show ONLY when genuinely broken:
+            // 1. No session is marked as current at all, OR
+            // 2. A session is current but today falls outside all its term date ranges
+            //    (meaning get_current_term() returns None — the term is undetectable)
+            if (noSession || noActiveTerm) {
+                const modal = document.getElementById('sessionReminderModal');
+                if (modal) modal.classList.remove('hidden');
+            }
+        }
+
+        window.dismissSessionReminder = function () {
+            const modal = document.getElementById('sessionReminderModal');
+            if (modal) modal.classList.add('hidden');
+            try { localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch (e) {}
+        };
+
+        window.addEventListener('load', () => {
+            setTimeout(checkSessionReminder, 4000);
+            setInterval(checkSessionReminder, 30 * 60 * 1000);
+        });
+    })();
+    </script>
+
+    {% endwith %}
+    {% endif %}
+    <!-- Base JavaScript -->
+    <script>
+        (function () {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const toggleBtn = document.getElementById('toggleSidebar');
+            const closeBtn = document.getElementById('closeSidebar');
+            const collapseBtn = document.getElementById('collapseSidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+
+            function isMobile() { return window.innerWidth < 768; }
+
+            function setMargin(collapsed) {
+                if (!mainContent) return;
+                mainContent.style.marginLeft = isMobile() ? '0' : (collapsed ? '5.5rem' : '20rem');
+            }
+
+            function applyCollapsed(collapsed, save) {
+                if (!sidebar) return;
+                sidebar.classList.remove('sidebar-hover-expanded');
+                sidebar.classList.toggle('sidebar-collapsed', collapsed);
+                // Keep data-sidebar in sync — this is what the preload CSS reads
+                if (collapsed) {
+                    document.documentElement.setAttribute('data-sidebar', 'collapsed');
+                } else {
+                    document.documentElement.removeAttribute('data-sidebar');
+                }
+                setMargin(collapsed);
+                if (save) { try { localStorage.setItem('sidebarCollapsed', String(collapsed)); } catch (e) { } }
+            }
+
+            // Restore persisted state on load
+            (function init() {
+                let collapsed = false;
+                try { collapsed = localStorage.getItem('sidebarCollapsed') === 'true'; } catch (e) { }
+                if (!isMobile()) applyCollapsed(collapsed, false);
+                else setMargin(false);
+            })();
+
+            // Collapse toggle
+            collapseBtn?.addEventListener('click', () => {
+                applyCollapsed(!sidebar.classList.contains('sidebar-collapsed'), true);
+            });
+
+            // Mobile open / close
+            toggleBtn?.addEventListener('click', () => {
+                sidebar.classList.toggle('-translate-x-full');
+                overlay?.classList.toggle('show');
+            });
+            closeBtn?.addEventListener('click', () => {
+                sidebar.classList.add('-translate-x-full');
+                overlay?.classList.remove('show');
+            });
+            overlay?.addEventListener('click', () => {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.remove('show');
+            });
+
+            // Resize
+            window.addEventListener('resize', () => {
+                setMargin(!isMobile() && sidebar.classList.contains('sidebar-collapsed'));
+            });
+
+            // JS-only hover expand — swap sidebar-collapsed ↔ sidebar-hover-expanded
+            // so the two classes never coexist (eliminates all CSS specificity conflicts)
+            let hoverTimer = null;
+
+            sidebar?.addEventListener('mouseenter', () => {
+                if (!sidebar.classList.contains('sidebar-collapsed')) return;
+
+                clearTimeout(hoverTimer);
+                hoverTimer = setTimeout(() => {
+                    if (sidebar.classList.contains('sidebar-collapsed')) {
+                        sidebar.classList.remove('sidebar-collapsed');
+                        sidebar.classList.add('sidebar-hover-expanded');
+                        // main content stays at collapsed margin — sidebar floats over it
+                    }
+                }, 80);
+            });
+
+            sidebar?.addEventListener('mouseleave', () => {
+                clearTimeout(hoverTimer);
+                if (sidebar.classList.contains('sidebar-hover-expanded')) {
+                    sidebar.classList.remove('sidebar-hover-expanded');
+                    sidebar.classList.add('sidebar-collapsed');
+                }
+            });
+
+            // Prevent mouseleave when clicking links in sidebar
+            sidebar?.addEventListener('click', (e) => {
+                if (e.target.closest('a[href]')) {
+                    // Keep hover-expanded state while navigation is in progress
+                    clearTimeout(hoverTimer);
+                }
+            });
+
+            // Submenu toggles
+            document.querySelectorAll('.menu-toggle').forEach(toggle => {
+                toggle.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const menu = this.nextElementSibling;
+                    const arrow = this.querySelector('.menu-arrow');
+                    if (menu) menu.classList.toggle('hidden');
+                    arrow?.classList.toggle('rotate-180');
+                });
+            });
+
+            // Scroll the sidebar to whichever item is marked active on load —
+            // without this the highlighted link can be scrolled out of view in
+            // the nav's own scroll container, forcing a manual scroll to find it.
+            (function scrollSidebarToActive() {
+                const nav = document.querySelector('nav[aria-label="Main navigation"]');
+                if (!nav) return;
+                // getElementsByClassName does an exact class-token match, so this
+                // never accidentally matches the "hover:bg-white/10" variant.
+                const matches = nav.getElementsByClassName('bg-white/20');
+                if (!matches.length) return;
+                let target = null;
+                for (let i = 0; i < matches.length; i++) {
+                    if (matches[i].tagName === 'A') { target = matches[i]; break; }
+                }
+                if (!target) target = matches[0];
+                target.scrollIntoView({ block: 'center' });
+            })();
+
+            // Header dropdowns
+            function setupDropdown(btnId, menuId) {
+                const btn = document.getElementById(btnId);
+                const menu = document.getElementById(menuId);
+                if (!btn || !menu) return;
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    document.querySelectorAll('.dropdown-menu.show').forEach(d => { if (d !== menu) d.classList.remove('show'); });
+                    menu.classList.toggle('show');
+                });
+                menu.addEventListener('click', (e) => e.stopPropagation());
+                menu.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
+            }
+            setupDropdown('profileDropdown', 'profileMenu');
+            setupDropdown('notificationDropdown', 'notificationMenu');
+
+            function closeAllDropdowns() {
+                document.querySelectorAll('.dropdown-menu.show').forEach(d => d.classList.remove('show'));
+            }
+            document.addEventListener('click', closeAllDropdowns);
+            document.addEventListener('touchstart', closeAllDropdowns, { passive: true });
+            // Also close dropdowns when the mobile sidebar opens
+            toggleBtn?.addEventListener('click', closeAllDropdowns);
+
+            // Logout: clear this user's chatbot session before navigating away
+            window.portalLogout = async function(e) {
+                e.preventDefault();
+                const userKey = '{{ request.user.pk|default:"" }}';
+                const sessionKey = userKey ? 'chatSessionId_u' + userKey : null;
+                const sid = sessionKey ? sessionStorage.getItem(sessionKey) : null;
+                if (sid) {
+                    try {
+                        await fetch('/chatbot/api/chat/close/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || ''
+                            },
+                            body: JSON.stringify({ session_id: sid })
+                        });
+                    } catch(err) {}
+                    sessionStorage.removeItem(sessionKey);
+                }
+                window.location.href = "{% url 'eduweb:logout' %}";
+            };
+        })();
+    </script>
+
+    <!-- Django Messages with SweetAlert2 -->
+    {% if messages %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% for message in messages %}
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: '{% if message.tags == "error" %}error{% elif message.tags == "warning" %}warning{% elif message.tags == "success" %}success{% elif message.tags == "info" %}info{% else %}info{% endif %}',
+                title: '{{ message|escapejs }}',
+                showConfirmButton: false,
+                timer: 5000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                },
+                customClass: {
+                    popup: 'colored-toast'
+                }
+            });
+        {% endfor %}
+    });
+    </script>
+
+    <style>
+        .colored-toast.swal2-icon-success {
+            background-color: #d4edda !important;
+            border-left: 4px solid #28a745 !important;
+        }
+
+        .colored-toast.swal2-icon-error {
+            background-color: #f8d7da !important;
+            border-left: 4px solid #dc3545 !important;
+        }
+
+        .colored-toast.swal2-icon-warning {
+            background-color: #fff3cd !important;
+            border-left: 4px solid #ffc107 !important;
+        }
+
+        .colored-toast.swal2-icon-info {
+            background-color: #d1ecf1 !important;
+            border-left: 4px solid #17a2b8 !important;
+        }
+
+        .colored-toast .swal2-title {
+            font-size: 14px !important;
+            font-weight: 500 !important;
+        }
+
+        .colored-toast .swal2-timer-progress-bar {
+            background: rgba(0, 0, 0, 0.2) !important;
+        }
+    </style>
+    {% endif %}
+    {% block chatbot %}
+        {% if request.user.is_authenticated and request.user.profile.role != 'admin' %}
+            {% include 'chatbot/chatbot.html' %}
+        {% endif %}
+    {% endblock %}
+
+    {% include 'includes/searchable_select.html' %}
+    {% include 'includes/image_crop_upload.html' %}
+    <script src="{% static 'js/modal_ajax_admin.js' %}"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

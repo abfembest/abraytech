@@ -1,0 +1,778 @@
+@import "../vendor/fonts/inter/inter.css";
+@import "../vendor/fonts/poppins/poppins.css";
+
+@import "tailwindcss";
+
+
+/* =====================================================
+   SOURCE SCANNING — Tailwind v4 scans these paths
+   for all class names used in your templates.
+   Use absolute-like relative paths from this file.
+   Both patterns below ensure full template coverage.
+   ===================================================== */
+@source "../templates/**/*.html";
+@source "../**/templates/**/*.html";
+
+/* Custom theme configuration for Tailwind v4 */
+@theme {
+  /* ============== PUBLIC SITE COLORS (Purple/Orange) ============== */
+  /* PRIMARY: Purple */
+  --color-primary-50: #faf5ff;
+  --color-primary-100: #f3e8ff;
+  --color-primary-200: #e9d5ff;
+  --color-primary-300: #d8b4fe;
+  --color-primary-400: #c084fc;
+  --color-primary-500: #a855f7;
+  --color-primary-600: #9333ea;
+  --color-primary-700: #7e22ce;
+  --color-primary-800: #6b21a8;
+  --color-primary-900: #581c87;
+  --color-primary-950: #840384;
+
+  /* ACCENT: Orange */
+  --color-accent-50: #fff7ed;
+  --color-accent-100: #ffedd5;
+  --color-accent-200: #fed7aa;
+  --color-accent-300: #fdba74;
+  --color-accent-400: #fb923c;
+  --color-accent-500: #f97316;
+  --color-accent-600: #ea580c;
+  --color-accent-700: #c2410c;
+  --color-accent-800: #9a3412;
+  --color-accent-900: #7c2d12;
+
+  /* GOLD: Orange-Gold */
+  --color-gold-50: #fffbeb;
+  --color-gold-100: #fef3c7;
+  --color-gold-200: #fde68a;
+  --color-gold-300: #fcd34d;
+  --color-gold-400: #fbbf24;
+  --color-gold-500: #f59e0b;
+  --color-gold-600: #d97706;
+  --color-gold-700: #b45309;
+  --color-gold-800: #92400e;
+  --color-gold-900: #78350f;
+
+  /* ============== MANAGEMENT DASHBOARD COLORS (Blue/Purple/Pink) ============== */
+  /* PRIMARY-BLUE: Used by management dashboard */
+  --color-primary-blue-50: #eff6ff;
+  --color-primary-blue-100: #dbeafe;
+  --color-primary-blue-200: #bfdbfe;
+  --color-primary-blue-300: #93c5fd;
+  --color-primary-blue-400: #60a5fa;
+  --color-primary-blue-500: #4a6bff;
+  --color-primary-blue-600: #3a56d4;
+  --color-primary-blue-700: #1d4ed8;
+  --color-primary-blue-800: #1e40af;
+  --color-primary-blue-900: #1e3a8a;
+
+  /* SECONDARY-PURPLE: Management secondary color */
+  --color-secondary-50: #f5f3ff;
+  --color-secondary-100: #ede9fe;
+  --color-secondary-200: #ddd6fe;
+  --color-secondary-300: #c4b5fd;
+  --color-secondary-400: #a78bfa;
+  --color-secondary-500: #6c63ff;
+  --color-secondary-600: #5a52d5;
+  --color-secondary-700: #4c1d95;
+  --color-secondary-800: #3d0064;
+  --color-secondary-900: #2d0a4e;
+
+  /* ACCENT-PINK: Management accent color */
+  --color-accent-pink-50: #fff7f8;
+  --color-accent-pink-100: #ffe4e9;
+  --color-accent-pink-200: #ffc7d3;
+  --color-accent-pink-300: #ffadbb;
+  --color-accent-pink-400: #ff8fa3;
+  --color-accent-pink-500: #ff6584;
+  --color-accent-pink-600: #e5577a;
+  --color-accent-pink-700: #cc4d70;
+  --color-accent-pink-800: #b34366;
+  --color-accent-pink-900: #9a395c;
+
+  /* Custom Fonts */
+  --font-sans: Inter, system-ui, -apple-system, sans-serif;
+  --font-heading: Poppins, system-ui, -apple-system, sans-serif;
+  --font-display: Poppins, system-ui, -apple-system, sans-serif;
+
+  /* Custom Animations */
+  --animate-fade-in: fade-in 0.6s ease-out;
+  --animate-slide-up: slide-up 0.5s ease-out;
+  --animate-slide-down: slide-down 0.3s ease-out;
+  --animate-scale-in: scale-in 0.3s ease-out;
+
+  /* Design tokens for responsive spacing and sizing */
+  /* Container widths */
+  --container-max-width: 1400px;
+  --container-padding-x: clamp(1rem, 4vw, 2rem);
+  --container-padding-y: clamp(1.5rem, 4vw, 3rem);
+  
+  /* Section spacing */
+  --section-padding-y: clamp(2.5rem, 6vw, 6rem);
+  --section-padding-x: clamp(1rem, 4vw, 2rem);
+  
+  /* Touch targets */
+  --touch-target-min: 44px;
+  
+  /* Typography scale fluid clamps */
+  --text-display: clamp(1.875rem, 5vw, 4.5rem);
+  --text-h1: clamp(1.5rem, 4vw, 3rem);
+  --text-h2: clamp(1.25rem, 3vw, 2.25rem);
+  --text-h3: clamp(1.125rem, 2.5vw, 1.875rem);
+  --text-body: clamp(0.875rem, 1.5vw, 1.125rem);
+  
+  /* Border radius scale */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  
+  /* Shadow scale */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Base element styles — fonts are controlled here so every page gets them
+   the moment styles.css loads, with no per-template overrides needed.
+
+   font-family goes on `body`, not a universal `*` selector: it's an
+   inherited CSS property, so body's value already reaches every descendant
+   on its own. A `*` rule instead sets font-family DIRECTLY on every
+   element — including icon-font glyphs like FontAwesome's `.fas`/`.far`/
+   `.fab`, which render a Unicode codepoint through their OWN special font
+   ("Font Awesome 6 Free"/etc). Since this file is shared by both the
+   public site (SVG-based Lucide icons — unaffected either way) and the
+   management dashboard (FontAwesome, font-based), a `*` override here
+   silently broke every dashboard icon: 'Inter' has no glyph for those
+   codepoints, so they rendered blank. Plain inheritance never has that
+   problem — FontAwesome's own explicit class rule still wins over an
+   inherited value regardless of load order. */
+@layer base {
+  body,
+  .font-\[\'Inter\'\] {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .font-heading,
+  .font-\[\'Poppins\'\] {
+    font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* Custom Keyframes */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slide-down {
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Custom utility classes */
+@layer utilities {
+  .font-heading {
+    font-family: Poppins, system-ui, -apple-system, sans-serif;
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, #840384 0%, #a855f7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .animate-fade-in {
+    animation: var(--animate-fade-in);
+  }
+
+  .animate-slide-up {
+    animation: var(--animate-slide-up);
+  }
+
+  .animate-slide-down {
+    animation: var(--animate-slide-down);
+  }
+
+  .animate-scale-in {
+    animation: var(--animate-scale-in);
+  }
+
+  /* ── Faculty/Program page utilities (replaces <style> blocks) ── */
+
+  /* Hero backgrounds */
+  .hero-mesh {
+    background:
+      radial-gradient(ellipse 80% 60% at 70% 40%, rgba(132,3,132,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 20% 80%, rgba(168,85,247,0.12) 0%, transparent 55%),
+      linear-gradient(135deg, #0f0a1e 0%, #1a0a2e 40%, #0f0820 100%);
+  }
+
+  .prog-hero {
+    background:
+      radial-gradient(ellipse 70% 60% at 80% 30%, rgba(132,3,132,0.22) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 50% at 10% 90%, rgba(168,85,247,0.15) 0%, transparent 50%),
+      linear-gradient(145deg, #0d0720 0%, #1a0730 50%, #0d0525 100%);
+  }
+
+  /* Cards */
+  .dept-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .dept-card:hover {
+    background: rgba(132,3,132,0.08);
+    border-color: rgba(132,3,132,0.4);
+    transform: translateY(-2px);
+  }
+
+  .glass-card {
+    background: rgba(255,255,255,0.97);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04);
+  }
+
+  .info-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: background 0.2s;
+  }
+
+  .info-card:hover { background: rgba(255,255,255,0.07); }
+
+  /* Program rows */
+  .program-row {
+    border-left: 3px solid transparent;
+    transition: all 0.25s ease;
+  }
+
+  .program-row:hover {
+    border-left-color: #840384;
+    background: rgba(132,3,132,0.05);
+  }
+
+  .course-row {
+    transition: all 0.22s ease;
+    border-left: 3px solid transparent;
+  }
+
+  .course-row:hover {
+    border-left-color: #840384;
+    background: rgba(132,3,132,0.04);
+  }
+
+  /* Stat glow */
+  .stat-glow {
+    text-shadow: 0 0 30px rgba(132,3,132,0.5);
+  }
+
+  /* Badges */
+  .pill-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .badge-level {
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  /* Search input focus */
+  .search-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(132,3,132,0.5);
+  }
+
+  /* Tab buttons */
+  .tab-btn.active {
+    background: #840384;
+    color: white;
+    box-shadow: 0 4px 12px rgba(132,3,132,0.3);
+  }
+
+  .yr-tab.active {
+    background: #840384;
+    color: white;
+    box-shadow: 0 4px 12px rgba(132,3,132,0.3);
+    border-color: transparent;
+  }
+
+  .yr-tab:not(.active):hover {
+    border-color: #840384;
+    color: #840384;
+  }
+
+  /* Outcome items */
+  .outcome-item {
+    padding-left: 1.5rem;
+    position: relative;
+  }
+
+  .outcome-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 8px;
+    height: 8px;
+    background: #840384;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* Accordion */
+  .accordion-body {
+    display: none;
+  }
+
+  .accordion-body.open {
+    display: block;
+  }
+
+  .rotate-icon {
+    transition: transform 0.3s ease;
+  }
+
+  .rotate-icon.open {
+    transform: rotate(180deg);
+  }
+
+  /* Fade-up animations */
+  .fade-up  { animation: fadeUp 0.55s ease both; }
+  .fade-up-1 { animation-delay: 0.05s; }
+  .fade-up-2 { animation-delay: 0.12s; }
+  .fade-up-3 { animation-delay: 0.2s; }
+  .fade-up-4 { animation-delay: 0.28s; }
+
+  .fu  { animation: fadeUp 0.5s ease both; }
+  .fu1 { animation-delay: 0.05s; }
+  .fu2 { animation-delay: 0.12s; }
+  .fu3 { animation-delay: 0.2s; }
+
+  /* Nav anchor active state */
+  .nav-anchor.active {
+    color: #840384;
+    font-weight: 700;
+  }
+
+  .nav-anchor.active::after {
+    content: '';
+    display: block;
+    height: 2px;
+    background: #840384;
+    border-radius: 99px;
+    margin-top: 2px;
+  }
+
+  /* Semester groups */
+  .semester-group { display: none; }
+  .semester-group.show { display: block; }
+
+  /* Button base components */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    transition: background-color 0.15s, box-shadow 0.15s;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    border: 1px solid #d1d5db;
+    background-color: #ffffff;
+    color: #374151;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s;
+  }
+
+  .btn-secondary:hover {
+    background-color: #f9fafb;
+    border-color: #9ca3af;
+  }
+
+  .btn-sm {
+    padding: 0.375rem 0.875rem;
+    font-size: 0.8125rem;
+  }
+
+  .btn-md {
+    padding: 0.5rem 1.25rem;
+  }
+
+  .btn-lg {
+    padding: 0.625rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  /* ── Nav / mobile menu (relocated from base.html's inline <style>) ── */
+
+  /* The header is position:fixed, so the mobile menu panel must be capped
+     to the remaining viewport height and made scrollable. 100dvh (dynamic
+     viewport height) is used so it works correctly on mobile browsers with
+     retractable address bars; 100vh is the fallback for browsers without
+     dvh support. */
+  #mobileMenu {
+    max-height: calc(100vh - 5rem);
+    max-height: calc(100dvh - 5rem);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── SweetAlert2 toast (window.showToast, base.html) ──
+     A long unbroken string (e.g. a long email address in "A 6-digit code
+     has been sent to ...") has no spaces to wrap at, so the toast grows
+     past the viewport width and forces a horizontal scrollbar on mobile.
+     SweetAlert2 injects its own default styles at runtime, so !important
+     is needed to reliably win — same pattern already used for Select2
+     overrides elsewhere in this file. */
+  .swal2-toast {
+    max-width: min(24rem, calc(100vw - 2rem)) !important;
+  }
+
+  .swal2-toast .swal2-title,
+  .swal2-toast .swal2-html-container {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+/* ── Icon-prefixed form inputs (auth/signup pages) ──
+      Django form widgets set their own `class` via forms.py, so the input's
+      left-padding can't be added as a template-side utility class on the
+      <input> itself — it has to target it by descendant selector instead. */
+   .input-group {
+     position: relative;
+   }
+
+   .input-group .icon {
+     position: absolute;
+     left: 0.75rem;
+     top: 50%;
+     transform: translateY(-50%);
+     color: #9ca3af;
+     pointer-events: none;
+   }
+
+   .input-group input {
+     padding-left: 2.75rem;
+   }
+
+   /* Brand icon SVGs used in place of removed Lucide brand icons */
+   .brand-icon {
+     display: inline-block;
+     width: 1.25rem;
+     height: 1.25rem;
+     fill: currentColor;
+     vertical-align: middle;
+     flex-shrink: 0;
+   }
+
+   .brand-icon-sm {
+     display: inline-block;
+     width: 1rem;
+     height: 1rem;
+     fill: currentColor;
+     vertical-align: middle;
+     flex-shrink: 0;
+   }
+
+   /* Touch target utility classes */
+   .touch-target {
+     min-height: var(--touch-target-min);
+     min-width: var(--touch-target-min);
+   }
+
+   /* Container utility classes using design tokens */
+   .container-responsive {
+     max-width: var(--container-max-width);
+     margin-left: auto;
+     margin-right: auto;
+     padding-left: var(--container-padding-x);
+     padding-right: var(--container-padding-x);
+   }
+
+   .section-responsive {
+     padding-top: var(--section-padding-y);
+     padding-bottom: var(--section-padding-y);
+     padding-left: var(--section-padding-x);
+     padding-right: var(--section-padding-x);
+   }
+
+   /* Responsive spacing utilities */
+   .responsive-padding {
+     padding: clamp(0.75rem, 3vw, 1.5rem) clamp(1rem, 4vw, 2rem);
+   }
+
+   .responsive-gap {
+     gap: clamp(0.75rem, 3vw, 1.5rem);
+   }
+
+   /* Responsive text sizing using fluid clamp */
+   .text-responsive-display {
+     font-size: var(--text-display);
+     line-height: 1.1;
+   }
+
+   .text-responsive-h1 {
+     font-size: var(--text-h1);
+     line-height: 1.15;
+   }
+
+   .text-responsive-h2 {
+     font-size: var(--text-h2);
+     line-height: 1.2;
+   }
+
+   .text-responsive-h3 {
+     font-size: var(--text-h3);
+     line-height: 1.25;
+   }
+
+   .text-responsive-body {
+     font-size: var(--text-body);
+     line-height: 1.6;
+   }
+
+   /* Responsive grid utilities */
+   .grid-responsive-2-3 {
+     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+   }
+
+   .grid-responsive-3-4 {
+     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+   }
+
+   /* Responsive card layout */
+   .card-stack {
+     display: flex;
+     flex-direction: column;
+     gap: clamp(1rem, 4vw, 2rem);
+   }
+
+   @media (min-width: 768px) {
+     .card-stack {
+       flex-direction: row;
+       align-items: stretch;
+     }
+   }
+
+   /* Responsive table utilities (enhanced version of .table-card) */
+   @media (max-width: 640px) {
+     .table-responsive {
+       thead { display: none; }
+       tbody { display: block; }
+     }
+
+     .table-responsive tr {
+       display: block;
+       margin-bottom: 1rem;
+       border: 1px solid #e5e7eb;
+       border-radius: 0.5rem;
+       background: #fff;
+       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+     }
+
+     .table-responsive td {
+       display: block;
+       padding: 0.75rem 1rem;
+       border-bottom: 1px dashed #f3f4f6;
+       text-align: left;
+     }
+
+     .table-responsive td::before {
+       content: attr(data-label);
+       font-weight: 600;
+       color: #6b7280;
+       text-transform: uppercase;
+       font-size: 0.75rem;
+       display: block;
+       margin-bottom: 0.25rem;
+     }
+
+     .table-responsive td:last-child {
+       border-bottom: none;
+     }
+
+     .table-responsive .action-buttons {
+       flex-direction: column;
+       align-items: stretch;
+     }
+
+     .table-responsive .action-buttons button,
+     .table-responsive .action-buttons a {
+       width: 100%;
+       justify-content: center;
+     }
+   }
+
+   /* Enhanced card grid for responsive layouts */
+   .card-grid-responsive {
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+     gap: clamp(1rem, 4vw, 2rem);
+   }
+
+   /* Responsive flex utilities for inline elements */
+   .flex-responsive-wrap {
+     display: flex;
+     flex-wrap: wrap;
+     gap: clamp(0.5rem, 2vw, 1rem);
+   }
+
+   .flex-responsive-stack {
+     display: flex;
+     flex-direction: column;
+     gap: clamp(0.75rem, 3vw, 1.5rem);
+   }
+
+   @media (min-width: 640px) {
+     .flex-responsive-stack {
+       flex-direction: row;
+       flex-wrap: wrap;
+     }
+   }
+
+   /* Responsive button sizing */
+   .btn-responsive {
+     padding: clamp(0.5rem, 2vw, 0.875rem) clamp(1rem, 4vw, 1.5rem);
+     font-size: clamp(0.875rem, 2vw, 1rem);
+     min-height: var(--touch-target-min);
+   }
+
+   /* Responsive image utilities */
+   .img-responsive {
+     width: 100%;
+     height: auto;
+     object-fit: cover;
+   }
+
+   /* Responsive text truncation */
+   .text-clamp-2 {
+     display: -webkit-box;
+     -webkit-line-clamp: 2;
+     -webkit-box-orient: vertical;
+     overflow: hidden;
+   }
+
+   .text-clamp-3 {
+     display: -webkit-box;
+     -webkit-line-clamp: 3;
+     -webkit-box-orient: vertical;
+     overflow: hidden;
+   }
+}
+
+/* ── Responsive table card utility (mobile ≤ 639px) ──
+    Add .table-card to any <table> to transform rows into cards on small screens.
+    Each <td> MUST have a data-label="Column Name" attribute for the card view. */
+@media (max-width: 639px) {
+  .table-card thead { display: none; }
+  .table-card tbody { display: block; }
+  .table-card tr {
+    display: block;
+    margin: 0.625rem;
+    padding: 0.75rem 0.875rem;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .table-card td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.3rem 0;
+    border-bottom: 1px dashed #f3f4f6;
+    width: 100%;
+  }
+  .table-card td:last-child { border-bottom: none; }
+  .table-card td::before {
+    content: attr(data-label);
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .table-card .action-buttons,
+  .table-card td:has(.action-buttons) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.375rem;
+  }
+  .table-card .action-buttons::before { display: none; }
+  .table-card .action-buttons .btn-sm,
+  .table-card .action-buttons .btn-md,
+  .table-card .action-buttons .btn-lg,
+  .table-card .action-buttons button,
+  .table-card .action-buttons a {
+    width: 100%;
+    justify-content: center;
+  }
+  .table-card .badge {
+    align-self: flex-start;
+  }
+  .table-card .badge::before { display: none; }
+}
+
+/* SweetAlert2 popups must always render above any app modal, however high
+   that modal's own z-index is set (management modals go up to z-[99999]) —
+   otherwise a Swal.fire() triggered from inside an open modal (e.g. an
+   oversized-file warning) renders behind it and looks broken. */
+.swal2-container {
+  z-index: 999999 !important;
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

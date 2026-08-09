@@ -1,0 +1,486 @@
+{% extends "management/base.html" %}
+{% load static %}
+
+{% block title %}Support Dashboard — MIU Portal{% endblock %}
+{% block meta_description %}MIU Support Centre Dashboard{% endblock %}
+{% block breadcrumb %}Support › Dashboard{% endblock %}
+{% block breadcrumb_title %}Support Dashboard{% endblock %}
+
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8 py-6 max-w-screen-2xl mx-auto">
+
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div>
+            <h1 class="text-2xl font-bold font-heading text-gray-900">Support Dashboard</h1>
+            <p class="text-sm text-gray-500 mt-1">Real-time support centre overview — MIU Online University</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+            <a href="{% url 'support:ticket_create' %}"
+               class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-colors shadow-sm">
+                <i class="fas fa-plus" aria-hidden="true"></i> New Ticket
+            </a>
+            <a href="{% url 'support:analytics' %}"
+               class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors shadow-sm">
+                <i class="fas fa-chart-bar" aria-hidden="true"></i> Full Analytics
+            </a>
+            <button onclick="location.reload()" class="p-2 bg-white border border-gray-200 text-gray-500 rounded-lg hover:bg-gray-50 transition-colors" title="Refresh">
+                <i class="fas fa-sync-alt" aria-hidden="true"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- SLA / Urgent Alert Banner -->
+    {% if stats.sla_breached > 0 or stats.urgent > 0 %}
+    <div class="bg-red-50 border border-red-200 rounded-xl px-5 py-4 mb-6 flex flex-col sm:flex-row sm:items-center gap-3">
+        <div class="flex items-center gap-3 flex-1">
+            <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-exclamation-circle text-red-600" aria-hidden="true"></i>
+            </div>
+            <div>
+                <p class="font-semibold text-red-800 text-sm">Immediate Attention Required</p>
+                <p class="text-red-600 text-xs mt-0.5">
+                    {% if stats.sla_breached > 0 %}<strong>{{ stats.sla_breached }} SLA breach{{ stats.sla_breached|pluralize }}</strong>{% endif %}
+                    {% if stats.sla_breached > 0 and stats.urgent > 0 %} &bull; {% endif %}
+                    {% if stats.urgent > 0 %}<strong>{{ stats.urgent }} urgent ticket{{ stats.urgent|pluralize }}</strong>{% endif %}
+                </p>
+            </div>
+        </div>
+        <a href="{% url 'support:ticket_list' %}?sla=breached" class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 transition-colors">
+            <i class="fas fa-eye" aria-hidden="true"></i> View Now
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- KPI Cards Row 1 -->
+    <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-4 gap-4 mb-6">
+
+        <!-- Open Tickets -->
+        <a href="{% url 'support:ticket_list' %}?status=open" class="block bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Open Tickets</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">{{ stats.total_open }}</p>
+                    <p class="text-xs text-gray-400 mt-1">{{ stats.unassigned }} unassigned</p>
+                </div>
+                <div class="w-11 h-11 bg-blue-50 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-ticket-alt text-blue-500 text-lg" aria-hidden="true"></i>
+                </div>
+            </div>
+        </a>
+
+        <!-- Urgent -->
+        <a href="{% url 'support:ticket_list' %}?priority=urgent" class="block bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Urgent</p>
+                    <p class="text-3xl font-bold {% if stats.urgent > 0 %}text-red-600{% else %}text-gray-900{% endif %} mt-1">{{ stats.urgent }}</p>
+                    <p class="text-xs text-gray-400 mt-1">{{ stats.escalated }} escalated</p>
+                </div>
+                <div class="w-11 h-11 bg-red-50 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-exclamation-triangle text-red-500 text-lg" aria-hidden="true"></i>
+                </div>
+            </div>
+        </a>
+
+        <!-- Resolved Today -->
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Resolved Today</p>
+                    <p class="text-3xl font-bold text-green-600 mt-1">{{ stats.resolved_today }}</p>
+                    <p class="text-xs text-gray-400 mt-1">{{ stats.new_today }} new today</p>
+                </div>
+                <div class="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-check-circle text-green-500 text-lg" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- CSAT Score -->
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">CSAT Score</p>
+                    <p class="text-3xl font-bold text-yellow-600 mt-1">{{ stats.avg_rating|floatformat:1 }}<span class="text-base text-gray-400">/5</span></p>
+                    <p class="text-xs text-gray-400 mt-1">{{ stats.agents_online }} agents online</p>
+                </div>
+                <div class="w-11 h-11 bg-yellow-50 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-star text-yellow-500 text-lg" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI Cards Row 2 -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+            <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">SLA Breached</p>
+            <p class="text-2xl font-bold {% if stats.sla_breached > 0 %}text-red-600{% else %}text-gray-900{% endif %} mt-1">{{ stats.sla_breached }}</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+            <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Pending User</p>
+            <p class="text-2xl font-bold text-purple-600 mt-1">{{ stats.waiting_response }}</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+            <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Resolved This Week</p>
+            <p class="text-2xl font-bold text-indigo-600 mt-1">{{ stats.resolved_week }}</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+            <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">KB Articles</p>
+            <p class="text-2xl font-bold text-teal-600 mt-1">{{ stats.kb_articles }}</p>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+
+        <!-- Ticket Volume Chart (14 days) -->
+        <div class="lg:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="font-semibold text-gray-800">Ticket Volume — Last 14 Days</h2>
+                <span class="text-xs text-gray-400">Created vs Resolved</span>
+            </div>
+            <div class="relative" style="height:220px">
+                <canvas id="volumeChart" aria-label="Ticket volume chart"></canvas>
+            </div>
+        </div>
+
+        <!-- Priority Breakdown -->
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <h2 class="font-semibold text-gray-800 mb-4">Priority Breakdown</h2>
+            <div class="relative" style="height:220px">
+                <canvas id="priorityChart" aria-label="Priority breakdown chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Grid: Tables & Widgets -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+        <!-- Recent Tickets -->
+        <div class="xl:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm">
+            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h2 class="font-semibold text-gray-800">Recent Tickets</h2>
+                <a href="{% url 'support:ticket_list' %}" class="text-xs text-primary-600 hover:underline font-medium">View all</a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                        <tr>
+                            <th class="px-4 py-3 text-left">ID</th>
+                            <th class="px-4 py-3 text-left">Title</th>
+                            <th class="px-4 py-3 text-left hidden md:table-cell">Status</th>
+                            <th class="px-4 py-3 text-left hidden lg:table-cell">Priority</th>
+                            <th class="px-4 py-3 text-left hidden lg:table-cell">User</th>
+                            <th class="px-4 py-3 text-left hidden xl:table-cell">Created</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        {% for ticket in recent_tickets %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-4 py-3">
+                                <a href="{% url 'support:ticket_detail' ticket.ticket_id %}"
+                                   class="font-mono text-xs text-primary-600 font-semibold hover:underline">
+                                    {{ ticket.ticket_id }}
+                                </a>
+                            </td>
+                            <td class="px-4 py-3 max-w-xs">
+                                <a href="{% url 'support:ticket_detail' ticket.ticket_id %}"
+                                   class="text-gray-800 hover:text-primary-600 font-medium truncate block">
+                                    {{ ticket.subject|truncatechars:50 }}
+                                </a>
+                            </td>
+                            <td class="px-4 py-3 hidden md:table-cell">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    {% if ticket.status == 'open' %}bg-blue-100 text-blue-700
+                                    {% elif ticket.status == 'in_progress' %}bg-yellow-100 text-yellow-700
+                                    {% elif ticket.status == 'waiting_response' %}bg-purple-100 text-purple-700
+                                    {% elif ticket.status == 'resolved' or ticket.status == 'closed' %}bg-green-100 text-green-700
+                                    {% else %}bg-gray-100 text-gray-600{% endif %}">
+                                    {{ ticket.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 hidden lg:table-cell">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold
+                                    {% if ticket.priority == 'urgent' %}bg-red-100 text-red-700
+                                    {% elif ticket.priority == 'high' %}bg-orange-100 text-orange-700
+                                    {% elif ticket.priority == 'normal' %}bg-yellow-100 text-yellow-700
+                                    {% else %}bg-gray-100 text-gray-600{% endif %}">
+                                    {{ ticket.get_priority_display }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 hidden lg:table-cell text-gray-500 text-xs">
+                                {{ ticket.user.get_full_name|default:ticket.user.username|truncatechars:20 }}
+                            </td>
+                            <td class="px-4 py-3 hidden xl:table-cell text-gray-400 text-xs whitespace-nowrap">
+                                {{ ticket.created_at|timesince }} ago
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-4 py-10 text-center text-gray-400">
+                                <i class="fas fa-ticket-alt text-3xl mb-2 block opacity-30" aria-hidden="true"></i>
+                                No tickets yet
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Right Column: SLA Alerts + Agent Board + Feedback -->
+        <div class="space-y-5">
+
+            <!-- SLA At-Risk -->
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm">
+                <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                    <h2 class="font-semibold text-gray-800 text-sm">SLA At-Risk</h2>
+                    <a href="{% url 'support:ticket_list' %}?sla=breached" class="text-xs text-red-500 hover:underline">View breached</a>
+                </div>
+                <div class="p-4 space-y-3">
+                    {% for t in sla_at_risk %}
+                    <div class="flex items-center gap-3">
+                        <div class="w-2 h-2 bg-orange-400 rounded-full flex-shrink-0"></div>
+                        <div class="flex-1 min-w-0">
+                            <a href="{% url 'support:ticket_detail' t.ticket.ticket_id %}"
+                               class="text-xs font-semibold text-gray-800 hover:text-primary-600 truncate block">
+                                {{ t.ticket.subject|truncatechars:35 }}
+                            </a>
+                            <p class="text-xs text-orange-500">Due: {{ t.due_at|timesince }} ago</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-xs text-gray-400 text-center py-3">No at-risk tickets</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Agent Leaderboard -->
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm">
+                <div class="px-5 py-4 border-b border-gray-100">
+                    <h2 class="font-semibold text-gray-800 text-sm">Top Agents This Month</h2>
+                </div>
+                <div class="p-4 space-y-3">
+                    {% for agent in agents %}
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center text-primary-700 font-bold text-xs flex-shrink-0">
+                            {{ agent.first_name|slice:":1" }}{{ agent.last_name|slice:":1" }}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-semibold text-gray-800 truncate">{{ agent.get_full_name|default:agent.username }}</p>
+                            <p class="text-xs text-gray-400">{{ agent.resolved_count }} resolved</p>
+                        </div>
+                        {% if agent.avg_csat %}
+                        <span class="text-xs text-yellow-600 font-semibold">
+                            <i class="fas fa-star text-yellow-400" aria-hidden="true"></i>
+                            {{ agent.avg_csat|floatformat:1 }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <p class="text-xs text-gray-400 text-center py-3">No data yet</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Recent Feedback -->
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm">
+                <div class="px-5 py-4 border-b border-gray-100">
+                    <h2 class="font-semibold text-gray-800 text-sm">Recent Feedback</h2>
+                </div>
+                <div class="p-4 space-y-3">
+                    {% for fb in recent_feedback %}
+                    <div class="text-xs border-b border-gray-50 pb-3 last:border-0 last:pb-0">
+                        <div class="flex items-center gap-1 mb-1">
+                            {% for i in "12345" %}
+                            <i class="fas fa-star {% if forloop.counter <= fb.rating %}text-yellow-400{% else %}text-gray-200{% endif %}" aria-hidden="true"></i>
+                            {% endfor %}
+                            <span class="ml-1 text-gray-500">#{{ fb.ticket.ticket_id }}</span>
+                        </div>
+                        {% if fb.comment %}
+                        <p class="text-gray-600 italic">"{{ fb.comment|truncatechars:60 }}"</p>
+                        {% endif %}
+                        <p class="text-gray-400 mt-1">{{ fb.created_at|timesince }} ago</p>
+                    </div>
+                    {% empty %}
+                    <p class="text-xs text-gray-400 text-center py-3">No feedback yet</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- My Assigned Tickets (for agents) -->
+    {% if my_tickets %}
+    <div class="mt-6 bg-white rounded-xl border border-gray-100 shadow-sm">
+        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h2 class="font-semibold text-gray-800">My Assigned Tickets</h2>
+            <a href="{% url 'support:ticket_list' %}?mine=1" class="text-xs text-primary-600 hover:underline font-medium">View all mine</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                    <tr>
+                        <th class="px-4 py-3 text-left">ID</th>
+                        <th class="px-4 py-3 text-left">Title</th>
+                        <th class="px-4 py-3 text-left hidden md:table-cell">Priority</th>
+                        <th class="px-4 py-3 text-left hidden md:table-cell">Status</th>
+                        <th class="px-4 py-3 text-left">SLA</th>
+                        <th class="px-4 py-3 text-left hidden lg:table-cell">Created</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    {% for ticket in my_tickets %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-4 py-3">
+                            <a href="{% url 'support:ticket_detail' ticket.ticket_id %}"
+                               class="font-mono text-xs text-primary-600 font-semibold hover:underline">
+                                {{ ticket.ticket_id }}
+                            </a>
+                        </td>
+                        <td class="px-4 py-3 max-w-xs">
+                            <a href="{% url 'support:ticket_detail' ticket.ticket_id %}"
+                               class="text-gray-800 hover:text-primary-600 font-medium block truncate">
+                                {{ ticket.subject|truncatechars:55 }}
+                            </a>
+                        </td>
+                        <td class="px-4 py-3 hidden md:table-cell">
+                            <span class="px-2 py-0.5 rounded text-xs font-semibold
+                                {% if ticket.priority == 'urgent' %}bg-red-100 text-red-700
+                                {% elif ticket.priority == 'high' %}bg-orange-100 text-orange-700
+                                {% elif ticket.priority == 'normal' %}bg-yellow-100 text-yellow-700
+                                {% else %}bg-gray-100 text-gray-600{% endif %}">
+                                {{ ticket.get_priority_display }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 hidden md:table-cell">
+                            <span class="px-2 py-0.5 rounded-full text-xs font-medium
+                                {% if ticket.status == 'open' %}bg-blue-100 text-blue-700
+                                {% elif ticket.status == 'in_progress' %}bg-yellow-100 text-yellow-700
+                                {% elif ticket.status == 'waiting_response' %}bg-purple-100 text-purple-700
+                                {% elif ticket.status == 'resolved' or ticket.status == 'closed' %}bg-green-100 text-green-700
+                                {% else %}bg-gray-100 text-gray-600{% endif %}">
+                                {{ ticket.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            {% if ticket.extra.due_at %}
+                                {% if ticket.extra.is_overdue %}
+                                <span class="text-xs font-semibold text-red-600"><i class="fas fa-exclamation-circle mr-1" aria-hidden="true"></i>Overdue</span>
+                                {% else %}
+                                <span class="text-xs text-gray-500">{{ ticket.extra.due_at|timeuntil }}</span>
+                                {% endif %}
+                            {% else %}
+                            <span class="text-xs text-gray-300">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 hidden lg:table-cell text-gray-400 text-xs">{{ ticket.created_at|timesince }} ago</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function () {
+    lucide.createIcons();
+
+    // Parse data from Django
+    const dailyData = {{ daily_data|safe }};
+    const priorityData = {{ priority_data|safe }};
+
+    // ─── Volume Chart ─────────────────────────────────────────────────────────
+    const volumeCtx = document.getElementById('volumeChart');
+    if (volumeCtx && dailyData.length) {
+        new Chart(volumeCtx, {
+            type: 'bar',
+            data: {
+                labels: dailyData.map(d => d.date),
+                datasets: [
+                    {
+                        label: 'Created',
+                        data: dailyData.map(d => d.created),
+                        backgroundColor: 'rgba(74, 107, 255, 0.7)',
+                        borderRadius: 4,
+                        borderSkipped: false,
+                    },
+                    {
+                        label: 'Resolved',
+                        data: dailyData.map(d => d.resolved),
+                        backgroundColor: 'rgba(34, 197, 94, 0.7)',
+                        borderRadius: 4,
+                        borderSkipped: false,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { font: { size: 11 } } }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { stepSize: 1, font: { size: 10 } } }
+                }
+            }
+        });
+    }
+
+    // ─── Priority Doughnut ────────────────────────────────────────────────────
+    const priorityCtx = document.getElementById('priorityChart');
+    if (priorityCtx && priorityData.length) {
+        const colorMap = {
+            low: '#d1fae5',
+            normal: '#fef3c7',
+            high: '#fed7aa',
+            urgent: '#fecaca'
+        };
+        const borderMap = {
+            low: '#10b981',
+            normal: '#f59e0b',
+            high: '#f97316',
+            urgent: '#ef4444'
+        };
+        new Chart(priorityCtx, {
+            type: 'doughnut',
+            data: {
+                labels: priorityData.map(d => d.priority.charAt(0).toUpperCase() + d.priority.slice(1)),
+                datasets: [{
+                    data: priorityData.map(d => d.count),
+                    backgroundColor: priorityData.map(d => colorMap[d.priority] || '#e5e7eb'),
+                    borderColor: priorityData.map(d => borderMap[d.priority] || '#9ca3af'),
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12 } }
+                }
+            }
+        });
+    }
+
+    // ─── Auto-refresh stats every 60s ─────────────────────────────────────────
+    setInterval(function () {
+        $.getJSON('{% url "support:api_stats" %}', function (data) {
+            if (data.ok) {
+                // Update badge counts silently; full refresh kept manual
+            }
+        }).fail(function () {});
+    }, 60000);
+});
+</script>
+{% endblock %}

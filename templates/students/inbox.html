@@ -1,0 +1,217 @@
+{% extends "management/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - {{site_config.school_short_name}} Student Portal{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+
+                <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
+
+
+    <!-- Header -->
+    <div class="mb-5 sm:mb-8 flex flex-col xs:flex-row xs:items-center xs:justify-between gap-3 sm:gap-4">
+        <div>
+            <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 leading-tight">My Inbox</h1>
+            <p class="text-gray-500 mt-1 text-xs sm:text-sm">Messages from instructors and support staff</p>
+        </div>
+        <a href="{% url 'students:compose_message' %}"
+           class="inline-flex items-center justify-center gap-2
+                  px-4 py-2 sm:px-5 sm:py-2.5
+                  bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all
+                  font-semibold text-xs sm:text-sm flex-shrink-0
+                  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+            <i class="fas fa-pen" aria-hidden="true"></i>
+            Compose
+        </a>
+    </div>
+
+    <!-- Card -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+
+        <!-- Tab bar -->
+        <div class="border-b border-gray-200 px-3 sm:px-6">
+            <nav class="flex gap-4 sm:gap-6" aria-label="Inbox tabs">
+
+                <!-- Received tab -->
+                <button onclick="switchTab('received')" id="btn-received"
+                        class="py-3 sm:py-4 text-xs sm:text-sm font-semibold border-b-2
+                               border-primary-600 text-primary-600 whitespace-nowrap transition-colors
+                               focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-t">
+                    <i class="fas fa-inbox mr-1 sm:mr-1.5" aria-hidden="true"></i>
+                    Received
+                    {% if unread_count > 0 %}
+                    <span class="ml-1 sm:ml-1.5 inline-flex items-center justify-center
+                                 min-w-[1.1rem] h-4 sm:h-5 px-1
+                                 bg-red-500 text-white rounded-full text-xs font-bold">
+                        {{ unread_count }}
+                    </span>
+                    {% endif %}
+                </button>
+
+                <!-- Sent tab -->
+                <button onclick="switchTab('sent')" id="btn-sent"
+                        class="py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2
+                               border-transparent text-gray-500 hover:text-gray-700
+                               whitespace-nowrap transition-colors
+                               focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-t">
+                    <i class="fas fa-paper-plane mr-1 sm:mr-1.5" aria-hidden="true"></i>
+                    Sent
+                </button>
+
+            </nav>
+        </div>
+
+        <!-- ── Received Panel ── -->
+        <div id="panel-received" role="tabpanel" aria-labelledby="btn-received">
+            {% if received %}
+            <ul class="divide-y divide-gray-100" role="list">
+                {% for msg in received %}
+                <li>
+                    <a href="{% url 'students:message_thread' msg.id %}"
+                       class="flex items-start gap-3 sm:gap-4 px-3 sm:px-6 py-3 sm:py-4
+                              hover:bg-gray-50 transition-colors group">
+
+                        <!-- Avatar -->
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary-100 flex items-center
+                                    justify-center flex-shrink-0 mt-0.5"
+                             aria-hidden="true">
+                            <i class="fas fa-user text-primary-600 text-xs sm:text-sm"></i>
+                        </div>
+
+                        <!-- Body -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between gap-2 mb-0.5">
+                                <span class="text-xs sm:text-sm font-semibold text-gray-900 truncate group-hover:text-primary-600 transition-colors">
+                                    {{ msg.sender.get_full_name|default:msg.sender.username }}
+                                </span>
+                                <time class="text-xs text-gray-400 whitespace-nowrap flex-shrink-0">
+                                    {{ msg.created_at|timesince }} ago
+                                </time>
+                            </div>
+                            <p class="text-xs sm:text-sm font-medium text-gray-800 truncate">
+                                {{ msg.subject }}
+                            </p>
+                            <p class="text-xs text-gray-500 truncate mt-0.5">
+                                {{ msg.body|truncatewords:10 }}
+                            </p>
+                        </div>
+
+                        <!-- Unread dot -->
+                        {% if not msg.is_read %}
+                        <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-primary-500 rounded-full flex-shrink-0 mt-2"
+                              title="Unread" aria-label="Unread"></span>
+                        {% endif %}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="py-12 sm:py-20 text-center px-4">
+                <i class="fas fa-inbox text-4xl sm:text-5xl text-gray-200 mb-3 sm:mb-4 block" aria-hidden="true"></i>
+                <p class="text-gray-500 font-medium text-sm sm:text-base">No messages yet</p>
+                <p class="text-xs sm:text-sm text-gray-400 mt-1">Messages from your instructors will appear here.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ── Sent Panel (hidden by default) ── -->
+        <div id="panel-sent" class="hidden" role="tabpanel" aria-labelledby="btn-sent">
+            {% if sent %}
+            <ul class="divide-y divide-gray-100" role="list">
+                {% for msg in sent %}
+                <li>
+                    <a href="{% url 'students:message_thread' msg.id %}"
+                       class="flex items-start gap-3 sm:gap-4 px-3 sm:px-6 py-3 sm:py-4
+                              hover:bg-gray-50 transition-colors group">
+
+                        <!-- Avatar -->
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-100 flex items-center
+                                    justify-center flex-shrink-0 mt-0.5"
+                             aria-hidden="true">
+                            <i class="fas fa-user text-gray-400 text-xs sm:text-sm"></i>
+                        </div>
+
+                        <!-- Body -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between gap-2 mb-0.5">
+                                <span class="text-xs sm:text-sm font-semibold text-gray-900 truncate group-hover:text-primary-600 transition-colors">
+                                    To: {{ msg.recipient.get_full_name|default:msg.recipient.username }}
+                                </span>
+                                <time class="text-xs text-gray-400 whitespace-nowrap flex-shrink-0">
+                                    {{ msg.created_at|timesince }} ago
+                                </time>
+                            </div>
+                            <p class="text-xs sm:text-sm font-medium text-gray-800 truncate">
+                                {{ msg.subject }}
+                            </p>
+                            <p class="text-xs text-gray-500 truncate mt-0.5">
+                                {{ msg.body|truncatewords:10 }}
+                            </p>
+                        </div>
+
+                        <!-- Read/delivered icon -->
+                        {% if msg.is_read %}
+                        <i class="fas fa-check-double text-green-500 text-xs flex-shrink-0 mt-2"
+                           title="Read" aria-label="Read"></i>
+                        {% else %}
+                        <i class="fas fa-check text-gray-300 text-xs flex-shrink-0 mt-2"
+                           title="Delivered" aria-label="Delivered"></i>
+                        {% endif %}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="py-12 sm:py-20 text-center px-4">
+                <i class="fas fa-paper-plane text-4xl sm:text-5xl text-gray-200 mb-3 sm:mb-4 block" aria-hidden="true"></i>
+                <p class="text-gray-500 font-medium text-sm sm:text-base">No sent messages</p>
+                <p class="text-xs sm:text-sm text-gray-400 mt-1">Messages you compose will appear here.</p>
+            </div>
+            {% endif %}
+        </div>
+
+    </div><!-- /card -->
+
+    <!-- Info tip -->
+    <div class="mt-4 sm:mt-5 flex gap-2 sm:gap-3
+                bg-blue-50 border border-blue-200 rounded-xl
+                p-3 sm:p-4 text-xs sm:text-sm text-blue-800">
+        <i class="fas fa-info-circle text-blue-400 mt-0.5 flex-shrink-0" aria-hidden="true"></i>
+        <span class="leading-relaxed">
+            You can message <strong>instructors and support staff</strong>.
+            For questions visible to everyone, post in
+            <a href="{% url 'students:community' %}" class="underline font-semibold hover:text-blue-900 transition-colors">
+                Community Discussions
+            </a>.
+        </span>
+    </div>
+
+</div>
+
+<script>
+(function () {
+    function switchTab(name) {
+        ['received', 'sent'].forEach(function (t) {
+            var panel = document.getElementById('panel-' + t);
+            var btn   = document.getElementById('btn-' + t);
+            if (!panel || !btn) return;
+            panel.classList.add('hidden');
+            btn.classList.remove('border-primary-600', 'text-primary-600', 'font-semibold');
+            btn.classList.add('border-transparent', 'text-gray-500', 'font-medium');
+            btn.setAttribute('aria-selected', 'false');
+        });
+        var activePanel = document.getElementById('panel-' + name);
+        var activeBtn   = document.getElementById('btn-' + name);
+        if (activePanel) activePanel.classList.remove('hidden');
+        if (activeBtn) {
+            activeBtn.classList.add('border-primary-600', 'text-primary-600', 'font-semibold');
+            activeBtn.classList.remove('border-transparent', 'text-gray-500', 'font-medium');
+            activeBtn.setAttribute('aria-selected', 'true');
+        }
+    }
+    // Expose globally for inline onclick handlers
+    window.switchTab = switchTab;
+})();
+</script>
+{% endblock %}

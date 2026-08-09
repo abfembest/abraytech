@@ -1,0 +1,64 @@
+{% extends "management/base.html" %}
+{% load static %}{% block title %}Support Departments{% endblock %}
+{% block breadcrumb %}Support › Config › Departments{% endblock %}
+{% block breadcrumb_title %}Support Departments{% endblock %}
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8 py-6 max-w-screen-xl mx-auto">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <h1 class="text-2xl font-bold font-heading text-gray-900">Support Departments</h1>
+        {% if permissions.support_config.can_create %}
+        <button onclick="$('#deptModal').removeClass('hidden')" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-colors"><i class="fas fa-plus" aria-hidden="true"></i> Add Department</button>
+        {% endif %}
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {% for dept in departments %}
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 {% if not dept.is_active %}opacity-60{% endif %}">
+            <div class="flex items-start gap-3 mb-3">
+                <div class="w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center"><i class="{{ dept.icon }} text-primary-500" aria-hidden="true"></i></div>
+                <div class="flex-1">
+                    <div class="flex items-center gap-2">
+                        <h2 class="font-semibold text-gray-800">{{ dept.name }}</h2>
+                        <span class="px-2 py-0.5 rounded-full text-xs font-medium {% if dept.is_active %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-500{% endif %}">{% if dept.is_active %}Active{% else %}Inactive{% endif %}</span>
+                    </div>
+                    {% if dept.email %}<p class="text-xs text-gray-400">{{ dept.email }}</p>{% endif %}
+                </div>
+                <span class="text-sm font-bold text-orange-600">{{ dept.ticket_count }}</span>
+            </div>
+            {% if dept.description %}<p class="text-xs text-gray-500 mb-3">{{ dept.description|truncatechars:100 }}</p>{% endif %}
+            <dl class="text-xs text-gray-500 space-y-1 mb-3">
+                {% if dept.head %}
+                <div class="flex justify-between"><dt>Head</dt><dd class="font-medium text-gray-700">{{ dept.head.get_full_name|default:dept.head.username }}</dd></div>{% endif %}
+                <div class="flex justify-between"><dt>Members</dt><dd class="font-medium text-gray-700">{{ dept.members.count }}</dd></div>
+                <div class="flex justify-between"><dt>Open Tickets</dt><dd class="font-medium text-orange-600">{{ dept.ticket_count }}</dd></div>
+            </dl>
+            {% if permissions.support_config.can_edit %}
+            <form method="post" action="{% url 'support:department_toggle_active' dept.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="w-full py-1.5 text-xs font-semibold rounded-lg transition-colors {% if dept.is_active %}bg-gray-100 text-gray-600 hover:bg-gray-200{% else %}bg-green-50 text-green-700 hover:bg-green-100{% endif %}">
+                    {% if dept.is_active %}<i class="fas fa-pause-circle mr-1" aria-hidden="true"></i>Deactivate{% else %}<i class="fas fa-play-circle mr-1" aria-hidden="true"></i>Activate{% endif %}
+                </button>
+            </form>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="col-span-full py-12 text-center text-gray-400"><i class="fas fa-sitemap text-4xl mb-3 block opacity-20" aria-hidden="true"></i><p>No departments configured yet.</p></div>
+        {% endfor %}
+    </div>
+</div>
+<div id="deptModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-5"><h2 class="font-semibold text-gray-900">Add Department</h2><button onclick="$('#deptModal').addClass('hidden')" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times" aria-hidden="true"></i></button></div>
+        <form method="post" action="{% url 'support:department_save' %}">
+            {% csrf_token %}
+            <div class="mb-4"><label class="block text-sm font-semibold text-gray-700 mb-1.5">Name *</label><input type="text" name="name" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+            <div class="mb-4"><label class="block text-sm font-semibold text-gray-700 mb-1.5">Email</label><input type="email" name="email" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+            <div class="mb-4"><label class="block text-sm font-semibold text-gray-700 mb-1.5">Description</label><textarea name="description" rows="2" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none resize-none"></textarea></div>
+            <div class="mb-5"><label class="block text-sm font-semibold text-gray-700 mb-1.5">Head</label><select name="head_id" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="">— None —</option>{% for a in all_agents %}<option value="{{ a.pk }}">{{ a.get_full_name|default:a.username }}</option>{% endfor %}</select></div>
+            <div class="mb-5"><label class="flex items-center gap-2 cursor-pointer text-sm text-gray-700"><input type="checkbox" name="is_active" value="1" checked class="rounded text-primary-600"> Active</label></div>
+            <div class="flex gap-3"><button type="submit" class="flex-1 py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-colors">Save</button><button type="button" onclick="$('#deptModal').addClass('hidden')" class="flex-1 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">Cancel</button></div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>$(document).ready(function(){lucide.createIcons();});</script>{% endblock %}

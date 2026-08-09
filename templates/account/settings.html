@@ -1,0 +1,202 @@
+{% extends "management/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - MIU Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-2 sm:px-4 lg:px-8">
+
+    <!-- Page Header -->
+    <div class="mb-6 sm:mb-8">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Account Settings</h1>
+        <p class="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">Manage your account preferences and security</p>
+    </div>
+
+    <div class="space-y-4 sm:space-y-6">
+
+        <!-- Notification Settings -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+            <div class="flex items-start justify-between mb-4 sm:mb-6 gap-3">
+                <div>
+                    <h2 class="text-lg sm:text-xl font-bold text-gray-900">Notification Preferences</h2>
+                    <p class="text-gray-600 text-xs sm:text-sm mt-0.5 sm:mt-1">Choose how you want to receive updates</p>
+                </div>
+                <i class="fas fa-bell text-2xl sm:text-3xl text-gray-300 flex-shrink-0 mt-0.5"></i>
+            </div>
+            <form method="post" class="space-y-3 sm:space-y-4">
+                {% csrf_token %}
+                <div class="flex items-start sm:items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg gap-3">
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-gray-900 text-sm sm:text-base">Email Notifications</h3>
+                        <p class="text-xs sm:text-sm text-gray-600 mt-0.5">Receive emails about updates, activity, and important announcements</p>
+                    </div>
+                    <div class="flex-shrink-0">{{ settings_form.email_notifications }}</div>
+                </div>
+                <div class="flex items-start sm:items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg gap-3">
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-gray-900 text-sm sm:text-base">Marketing Emails</h3>
+                        <p class="text-xs sm:text-sm text-gray-600 mt-0.5">Receive newsletters, tips, and promotional content</p>
+                    </div>
+                    <div class="flex-shrink-0">{{ settings_form.marketing_emails }}</div>
+                </div>
+                <div class="pt-2 sm:pt-4">
+                    <button type="submit" name="update_settings"
+                            class="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all font-semibold text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        <i class="fas fa-save mr-2"></i>Save Preferences
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Password Change -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+            <div class="flex items-start justify-between mb-4 sm:mb-6 gap-3">
+                <div>
+                    <h2 class="text-lg sm:text-xl font-bold text-gray-900">Change Password</h2>
+                    <p class="text-gray-600 text-xs sm:text-sm mt-0.5 sm:mt-1">Update your password to keep your account secure</p>
+                </div>
+                <i class="fas fa-lock text-2xl sm:text-3xl text-gray-300 flex-shrink-0 mt-0.5"></i>
+            </div>
+            <form method="post" class="space-y-3 sm:space-y-4 w-full max-w-md">
+                {% csrf_token %}
+                <div>
+                    <label for="{{ password_form.current_password.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1.5">
+                        Current Password <span class="text-red-500">*</span>
+                    </label>
+                    {{ password_form.current_password }}
+                    {% if password_form.current_password.errors %}
+                    <p class="mt-1 text-xs sm:text-sm text-red-600">{{ password_form.current_password.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="{{ password_form.new_password.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1.5">
+                        New Password <span class="text-red-500">*</span>
+                    </label>
+                    {{ password_form.new_password }}
+                    {% if password_form.new_password.errors %}
+                    <p class="mt-1 text-xs sm:text-sm text-red-600">{{ password_form.new_password.errors.0 }}</p>
+                    {% else %}
+                    <p class="mt-1 text-xs sm:text-sm text-gray-500">{{ password_form.new_password.help_text }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="{{ password_form.confirm_password.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1.5">
+                        Confirm New Password <span class="text-red-500">*</span>
+                    </label>
+                    {{ password_form.confirm_password }}
+                    {% if password_form.confirm_password.errors %}
+                    <p class="mt-1 text-xs sm:text-sm text-red-600">{{ password_form.confirm_password.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                {% if password_form.non_field_errors %}
+                <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p class="text-xs sm:text-sm text-red-600">{{ password_form.non_field_errors.0 }}</p>
+                </div>
+                {% endif %}
+                <div class="pt-1 sm:pt-2">
+                    <button type="submit" name="change_password"
+                            class="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all font-semibold text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        <i class="fas fa-key mr-2"></i>Change Password
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Account Information -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+            <div class="flex items-start justify-between mb-4 sm:mb-6 gap-3">
+                <div>
+                    <h2 class="text-lg sm:text-xl font-bold text-gray-900">Account Information</h2>
+                    <p class="text-gray-600 text-xs sm:text-sm mt-0.5 sm:mt-1">View your account details</p>
+                </div>
+                <i class="fas fa-user text-2xl sm:text-3xl text-gray-300 flex-shrink-0 mt-0.5"></i>
+            </div>
+            <div class="space-y-2 sm:space-y-3">
+                <div class="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg gap-3">
+                    <div class="min-w-0">
+                        <p class="text-xs sm:text-sm text-gray-600">Account Email</p>
+                        <p class="font-semibold text-gray-900 mt-0.5 text-sm sm:text-base truncate">{{ request.user.email }}</p>
+                    </div>
+                    <i class="fas fa-envelope text-gray-400 flex-shrink-0"></i>
+                </div>
+                <div class="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg gap-3">
+                    <div>
+                        <p class="text-xs sm:text-sm text-gray-600">Account Type</p>
+                        <p class="font-semibold text-gray-900 mt-0.5 text-sm sm:text-base">{{ request.user.profile.get_role_display }}</p>
+                    </div>
+                    <i class="fas fa-user-tie text-gray-400 flex-shrink-0"></i>
+                </div>
+                <div class="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg gap-3">
+                    <div>
+                        <p class="text-xs sm:text-sm text-gray-600">Member Since</p>
+                        <p class="font-semibold text-gray-900 mt-0.5 text-sm sm:text-base">{{ request.user.date_joined|date:"F d, Y" }}</p>
+                    </div>
+                    <i class="fas fa-calendar text-gray-400 flex-shrink-0"></i>
+                </div>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg gap-2 sm:gap-3">
+                    <div>
+                        <p class="text-xs sm:text-sm text-gray-600">Email Verification</p>
+                        <p id="emailVerifyStatus" class="font-semibold mt-0.5 text-sm sm:text-base {% if request.user.profile.email_verified %}text-green-600{% else %}text-yellow-600{% endif %}">
+                            {% if request.user.profile.email_verified %}
+                            <i class="fas fa-check-circle mr-1"></i>Verified
+                            {% else %}
+                            <i class="fas fa-exclamation-circle mr-1"></i>Not Verified
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% if not request.user.profile.email_verified %}
+                    <button type="button" id="resendVerifyBtn" class="w-full sm:w-auto px-4 py-2 text-xs sm:text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all whitespace-nowrap">
+                        Resend Verification Email
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    input[type="password"], input[type="text"], input[type="email"], select {
+        width: 100%; padding: .5rem .875rem; border: 1px solid #D1D5DB;
+        border-radius: .5rem; font-size: .875rem; outline: none;
+        transition: border-color .2s, box-shadow .2s; background: white;
+    }
+    input[type="password"]:focus, input[type="text"]:focus,
+    input[type="email"]:focus, select:focus {
+        border-color: #4a6bff; box-shadow: 0 0 0 3px rgba(74,107,255,.1);
+    }
+    input[type="checkbox"] { width: 1rem; height: 1rem; accent-color: #4a6bff; cursor: pointer; }
+    @media (min-width: 640px) {
+        input[type="password"], input[type="text"], input[type="email"], select
+        { padding: .625rem 1rem; font-size: .9375rem; }
+        input[type="checkbox"] { width: 1.125rem; height: 1.125rem; }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function () {
+    lucide.createIcons();
+    $('#resendVerifyBtn').on('click', function () {
+        var $btn = $(this);
+        $btn.prop('disabled', true).text('Sending…');
+        $.ajax({
+            url: '{% url "eduweb:resend_verification" %}',
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+            success: function (data) {
+                Swal.fire({ toast: true, position: 'top-end', icon: data.success ? 'success' : 'info', title: data.message, timer: 3500, showConfirmButton: false });
+                if (data.success) $btn.remove();
+                else $btn.prop('disabled', false).text('Resend Verification Email');
+            },
+            error: function () {
+                Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Failed to resend verification email', timer: 3000, showConfirmButton: false });
+                $btn.prop('disabled', false).text('Resend Verification Email');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

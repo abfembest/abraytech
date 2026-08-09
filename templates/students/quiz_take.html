@@ -1,0 +1,226 @@
+{% extends "management/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - {{site_config.school_short_name}} Student Portal{% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="Take quiz: {{ quiz.title }}">
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
+{% block content %}
+<div class="max-w-screen-2xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+
+                <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
+
+
+    <!-- Sticky Quiz Header -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 lg:p-5 mb-4 sm:mb-6 sticky top-2 sm:top-4 z-10">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+            <div class="flex-1 min-w-0">
+                <h1 class="text-base sm:text-lg lg:text-xl font-bold text-gray-900 leading-snug truncate">
+                    {{ quiz.title }}
+                </h1>
+                <p class="text-xs sm:text-sm text-gray-500 mt-0.5 flex flex-wrap items-center gap-1 sm:gap-2">
+                    <span>
+                        <i class="fas fa-question-circle mr-1 text-primary-500" aria-hidden="true"></i>
+                        {{ quiz.questions.count }} question{{ quiz.questions.count|pluralize }}
+                    </span>
+                    {% if quiz.time_limit_minutes %}
+                    <span class="text-gray-400 hidden sm:inline">•</span>
+                    <span>
+                        <i class="fas fa-clock mr-1 text-orange-500" aria-hidden="true"></i>
+                        {{ quiz.time_limit_minutes }} minutes
+                    </span>
+                    {% endif %}
+                </p>
+            </div>
+
+            <!-- Timer -->
+            {% if quiz.time_limit_minutes %}
+            <div id="timer" class="flex-shrink-0 flex items-center gap-2 sm:gap-3 bg-gray-50 rounded-lg
+                                   px-3 sm:px-4 py-2 sm:py-3 border border-gray-200">
+                <i class="fas fa-hourglass-half text-gray-400 text-sm" aria-hidden="true"></i>
+                <div>
+                    <p class="text-xs text-gray-400 leading-none mb-0.5">Time Left</p>
+                    <p class="text-lg sm:text-xl font-bold text-primary-600 leading-none" id="time-display">
+                        {{ quiz.time_limit_minutes }}:00
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quiz Form -->
+    <form method="post"
+          action="{% url 'students:quiz_submit' attempt.id %}"
+          id="quiz-form"
+          class="space-y-3 sm:space-y-4 lg:space-y-5">
+        {% csrf_token %}
+
+        {% for question in questions %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 lg:p-6
+                    hover:shadow-md transition-shadow duration-200">
+
+            <!-- Question header: number circle + text + points -->
+            <div class="flex items-start gap-3 mb-3 sm:mb-4">
+                <span class="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 bg-primary-600 text-white rounded-full
+                             flex items-center justify-center font-bold text-sm sm:text-base">
+                    {{ forloop.counter }}
+                </span>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm sm:text-base font-semibold text-gray-900 leading-snug mb-1">
+                        {{ question.question_text }}
+                    </p>
+                    <p class="text-xs text-gray-400 flex items-center gap-1">
+                        <i class="fas fa-star text-yellow-400" aria-hidden="true"></i>
+                        {{ question.points }} point{{ question.points|pluralize }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Answer options -->
+            <div class="space-y-2 sm:space-y-2.5 pl-0 sm:pl-11 lg:pl-12">
+                {% if question.question_type == 'multiple_choice' or question.question_type == 'true_false' %}
+                    {% for answer in question.answers.all %}
+                    <label class="flex items-start gap-3 p-3 sm:p-4 border-2 border-gray-200 rounded-lg
+                                  hover:bg-gray-50 hover:border-primary-300 cursor-pointer transition-all group">
+                        <input type="radio"
+                               name="question_{{ question.id }}"
+                               value="{{ answer.id }}"
+                               class="mt-0.5 w-4 h-4 sm:w-5 sm:h-5 text-primary-600
+                                      focus:ring-primary-500 flex-shrink-0"
+                               required>
+                        <span class="text-xs sm:text-sm text-gray-700 group-hover:text-gray-900 leading-relaxed">
+                            {{ answer.answer_text }}
+                        </span>
+                    </label>
+                    {% endfor %}
+                {% elif question.question_type == 'short_answer' %}
+                    <input type="text"
+                           name="question_{{ question.id }}"
+                           maxlength="500"
+                           placeholder="Type your answer..."
+                           class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-lg
+                                  text-xs sm:text-sm focus:border-primary-400 focus:ring-2 focus:ring-primary-100
+                                  outline-none transition-all"
+                           required>
+                    <p class="text-xs text-gray-400 flex items-center gap-1.5 mt-1">
+                        <i class="fas fa-user-check" aria-hidden="true"></i> Manually graded by your instructor
+                    </p>
+                {% elif question.question_type == 'essay' %}
+                    <textarea name="question_{{ question.id }}"
+                              rows="5"
+                              maxlength="5000"
+                              placeholder="Write your answer..."
+                              class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-lg
+                                     text-xs sm:text-sm focus:border-primary-400 focus:ring-2 focus:ring-primary-100
+                                     outline-none transition-all resize-y"
+                              required></textarea>
+                    <p class="text-xs text-gray-400 flex items-center gap-1.5 mt-1">
+                        <i class="fas fa-user-check" aria-hidden="true"></i> Manually graded by your instructor
+                    </p>
+                {% endif %}
+            </div>
+
+        </div>
+        {% endfor %}
+
+        <!-- Submit section: sticky at bottom -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 lg:p-5 sticky bottom-2 sm:bottom-4 z-10">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+                <p class="text-xs sm:text-sm text-gray-500 flex items-center gap-1.5">
+                    <i class="fas fa-info-circle text-gray-400" aria-hidden="true"></i>
+                    Make sure you've answered all questions before submitting.
+                </p>
+                <button type="submit"
+                        class="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3
+                               bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors
+                               font-semibold text-sm sm:text-base shadow-sm hover:shadow-md
+                               focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2
+                               whitespace-nowrap flex-shrink-0">
+                    <i class="fas fa-check-circle" aria-hidden="true"></i>
+                    Submit Quiz
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Time Warning Modal -->
+    <div id="time-warning"
+         class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+         role="dialog" aria-modal="true" aria-labelledby="warning-title">
+        <div class="bg-white rounded-xl shadow-2xl p-5 sm:p-6 max-w-sm w-full">
+            <div class="text-center">
+                <div class="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-exclamation-triangle text-orange-500 text-2xl" aria-hidden="true"></i>
+                </div>
+                <h3 id="warning-title" class="text-base sm:text-lg font-bold text-gray-900 mb-2">
+                    Time Running Out!
+                </h3>
+                <p class="text-xs sm:text-sm text-gray-500 mb-4">
+                    You have less than 1 minute remaining.
+                </p>
+                <button onclick="closeWarning()"
+                        class="inline-flex items-center justify-center px-5 py-2 bg-primary-600 text-white
+                               rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm
+                               focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+                    Continue
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+{% if quiz.time_limit_minutes %}
+let timeRemaining = {{ quiz.time_limit_minutes }} * 60;
+let warningShown = false;
+
+function updateTimer() {
+    const minutes = Math.floor(timeRemaining / 60);
+    const seconds = timeRemaining % 60;
+    const display = document.getElementById('time-display');
+
+    display.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+    if (timeRemaining <= 0) {
+        document.getElementById('quiz-form').submit();
+        return;
+    }
+    if (timeRemaining <= 60) {
+        display.className = 'text-lg sm:text-xl font-bold leading-none text-red-600';
+        if (!warningShown) { showWarning(); warningShown = true; }
+    } else if (timeRemaining <= 300) {
+        display.className = 'text-lg sm:text-xl font-bold leading-none text-orange-500';
+    }
+    timeRemaining--;
+}
+
+function showWarning() {
+    document.getElementById('time-warning').classList.remove('hidden');
+    setTimeout(closeWarning, 5000);
+}
+function closeWarning() {
+    document.getElementById('time-warning').classList.add('hidden');
+}
+
+setInterval(updateTimer, 1000);
+{% endif %}
+
+// Warn before leaving
+window.addEventListener('beforeunload', function(e) {
+    e.preventDefault();
+    e.returnValue = '';
+});
+
+// Remove warning on submit
+document.getElementById('quiz-form').addEventListener('submit', function() {
+    window.onbeforeunload = null;
+});
+</script>
+{% endblock %}

@@ -1,0 +1,295 @@
+{% comment %}
+Shared "searchable select" progressive enhancement.
+
+Usage: render a completely normal <select> (Django's default ModelChoiceField
+widget output is fine) and add the class `searchable-select`, e.g.:
+
+    <select name="department" class="searchable-select w-full px-4 py-2.5
+            border border-gray-300 rounded-lg text-sm" required>
+        <option value="">Select department…</option>
+        {% for dept in departments %}
+        <option value="{{ dept.pk }}">{{ dept.name }} — {{ dept.faculty.name }}</option>
+        {% endfor %}
+    </select>
+
+On DOMContentLoaded this script finds every `select.searchable-select` and
+wraps it with a search-as-you-type dropdown, while leaving the original
+<select> in the DOM as the actual source of truth for form submission — it's
+only visually hidden, and only by this same script, at runtime. If this
+script fails to load or errors out for any reason, the plain native <select>
+remains fully visible and usable, so form submission can never silently fail
+the way the old `<input list="..."> + <datalist>` pattern did (a <datalist>
+option's `value` attribute is what browsers write into the input on
+selection, not its label — mismatches there were exactly what caused
+"This field is required" errors on already-filled-in fields).
+
+If content containing new .searchable-select elements is injected after
+page load (e.g. into a modal), call window.enhanceSearchableSelects(root)
+with the new root element to enhance just that subtree.
+{% endcomment %}
+<style>
+    .ss-wrap { position: relative; }
+    .ss-trigger {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .5rem;
+        cursor: pointer;
+        background: #fff;
+        text-align: left;
+    }
+    .ss-trigger:disabled { opacity: .6; cursor: not-allowed; }
+    .ss-trigger-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1;
+        min-width: 0;
+    }
+    .ss-trigger-text.ss-placeholder { color: #9ca3af; }
+    .ss-caret { width: 16px; height: 16px; flex-shrink: 0; opacity: .5; transition: transform .15s; }
+    .ss-trigger[aria-expanded="true"] .ss-caret { transform: rotate(180deg); }
+    .ss-panel {
+        position: absolute;
+        z-index: 70;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: .75rem;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,.12), 0 8px 10px -6px rgba(0,0,0,.08);
+        max-height: 280px;
+        display: none;
+        overflow: hidden;
+        flex-direction: column;
+    }
+    .ss-panel.ss-open { display: flex; }
+    .ss-panel.ss-panel-up { top: auto; bottom: calc(100% + 4px); }
+    .ss-search {
+        border: none;
+        border-bottom: 1px solid #e5e7eb;
+        padding: .6rem .75rem;
+        font-size: .875rem;
+        outline: none;
+        width: 100%;
+        flex-shrink: 0;
+    }
+    .ss-options { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .ss-option {
+        padding: .55rem .75rem;
+        font-size: .875rem;
+        cursor: pointer;
+        color: #374151;
+    }
+    .ss-option:hover, .ss-option.ss-active { background: #f3f4f6; }
+    .ss-option.ss-selected { font-weight: 600; color: #6b026b; }
+    .ss-empty { padding: .75rem; font-size: .8rem; color: #9ca3af; text-align: center; }
+    @media (max-width: 480px) {
+        .ss-panel { max-height: 60vh; }
+        .ss-search { font-size: 16px; } /* prevents iOS Safari auto-zoom on focus */
+    }
+</style>
+<script>
+(function () {
+    function optionList(select) {
+        return Array.prototype.map.call(select.options, function (opt) {
+            return { value: opt.value, text: opt.textContent.trim() };
+        });
+    }
+
+    function enhanceOne(select) {
+        if (select.dataset.ssEnhanced) return;
+        select.dataset.ssEnhanced = '1';
+
+        var placeholder = select.getAttribute('data-ss-placeholder')
+            || (select.options[0] && !select.options[0].value ? select.options[0].textContent.trim() : 'Select…');
+
+        var wrap = document.createElement('div');
+        wrap.className = 'ss-wrap';
+
+        var trigger = document.createElement('button');
+        trigger.type = 'button';
+        trigger.className = select.className + ' ss-trigger';
+        trigger.setAttribute('aria-haspopup', 'listbox');
+        trigger.setAttribute('aria-expanded', 'false');
+        if (select.disabled) trigger.disabled = true;
+
+        var triggerText = document.createElement('span');
+        triggerText.className = 'ss-trigger-text';
+        trigger.appendChild(triggerText);
+
+        var caret = document.createElement('i');
+        caret.className = 'ss-caret';
+        caret.setAttribute('data-lucide', 'chevron-down');
+        trigger.appendChild(caret);
+
+        var panel = document.createElement('div');
+        panel.className = 'ss-panel';
+        panel.setAttribute('role', 'listbox');
+
+        var search = document.createElement('input');
+        search.type = 'text';
+        search.className = 'ss-search';
+        search.placeholder = 'Search…';
+        search.autocomplete = 'off';
+
+        var optionsBox = document.createElement('div');
+        optionsBox.className = 'ss-options';
+
+        panel.appendChild(search);
+        panel.appendChild(optionsBox);
+
+        select.parentNode.insertBefore(wrap, select);
+        wrap.appendChild(select);
+        wrap.appendChild(trigger);
+        wrap.appendChild(panel);
+
+        // Only hidden here, at runtime, by this same script — if it never
+        // runs, the native <select> is what the user sees and uses.
+        select.style.position = 'absolute';
+        select.style.opacity = '0';
+        select.style.height = '0';
+        select.style.width = '0';
+        select.style.padding = '0';
+        select.style.margin = '0';
+        select.style.border = 'none';
+        select.style.pointerEvents = 'none';
+        select.tabIndex = -1;
+
+        function options() { return optionList(select); }
+
+        function updateTrigger() {
+            var opts = options();
+            var current = opts.find(function (o) { return o.value === select.value; });
+            if (current && current.value !== '') {
+                triggerText.textContent = current.text;
+                triggerText.classList.remove('ss-placeholder');
+            } else {
+                triggerText.textContent = placeholder;
+                triggerText.classList.add('ss-placeholder');
+            }
+        }
+
+        function renderOptions(filter) {
+            optionsBox.innerHTML = '';
+            var q = (filter || '').toLowerCase().trim();
+            var matches = options().filter(function (o) {
+                if (o.value === '') return false;
+                return !q || o.text.toLowerCase().indexOf(q) !== -1;
+            });
+            if (!matches.length) {
+                var empty = document.createElement('div');
+                empty.className = 'ss-empty';
+                empty.textContent = 'No matches found';
+                optionsBox.appendChild(empty);
+                return;
+            }
+            matches.forEach(function (o) {
+                var row = document.createElement('div');
+                row.className = 'ss-option' + (o.value === select.value ? ' ss-selected' : '');
+                row.setAttribute('role', 'option');
+                row.textContent = o.text;
+                row.addEventListener('click', function () {
+                    select.value = o.value;
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                    updateTrigger();
+                    closePanel();
+                });
+                optionsBox.appendChild(row);
+            });
+        }
+
+        // Nearest ancestor that actually clips overflow (e.g. a modal's
+        // scrollable body) — position:absolute content extending past it
+        // gets cut off just like it would past the viewport, so bottom-space
+        // must be measured against this boundary, not window.innerHeight.
+        function scrollClipParent(el) {
+            var node = el.parentElement;
+            while (node && node !== document.body) {
+                var style = getComputedStyle(node);
+                if (/(auto|scroll|hidden)/.test(style.overflowY)) return node;
+                node = node.parentElement;
+            }
+            return null;
+        }
+
+        function openPanel() {
+            if (select.disabled) return;
+            // Flip the panel above the trigger only when there genuinely
+            // isn't enough room below to show a useful list — not merely
+            // whenever there happens to be more empty space above. The
+            // panel already scrolls its own option list, so it doesn't
+            // need the full preferred height reserved; it only needs a
+            // minimum (search box + a couple of options) to be worth
+            // opening downward. Whichever direction it opens, its height
+            // is capped to the room actually available there, computed
+            // against whichever container clips it (viewport, or a
+            // scrollable modal body) so it never renders off-screen.
+            var triggerRect = trigger.getBoundingClientRect();
+            var clipParent = scrollClipParent(wrap);
+            var boundaryBottom = clipParent ? clipParent.getBoundingClientRect().bottom : window.innerHeight;
+            var boundaryTop = clipParent ? clipParent.getBoundingClientRect().top : 0;
+            var spaceBelow = boundaryBottom - triggerRect.bottom;
+            var spaceAbove = triggerRect.top - boundaryTop;
+            var preferredHeight = window.innerWidth <= 480 ? window.innerHeight * 0.6 : 280;
+            var minUsableHeight = 160;
+            var openUp = spaceBelow < minUsableHeight && spaceAbove > spaceBelow;
+            panel.classList.toggle('ss-panel-up', openUp);
+            var available = openUp ? spaceAbove : spaceBelow;
+            panel.style.maxHeight = Math.max(120, Math.min(preferredHeight, available - 8)) + 'px';
+            panel.classList.add('ss-open');
+            trigger.setAttribute('aria-expanded', 'true');
+            search.value = '';
+            renderOptions('');
+            setTimeout(function () { search.focus(); }, 0);
+        }
+        function closePanel() {
+            panel.classList.remove('ss-open');
+            trigger.setAttribute('aria-expanded', 'false');
+        }
+
+        trigger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (panel.classList.contains('ss-open')) closePanel();
+            else openPanel();
+        });
+        search.addEventListener('input', function () { renderOptions(search.value); });
+        search.addEventListener('click', function (e) { e.stopPropagation(); });
+        search.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') { closePanel(); trigger.focus(); }
+        });
+        document.addEventListener('click', function (e) {
+            if (!wrap.contains(e.target)) closePanel();
+        });
+
+        // Keep the custom trigger in sync if something else changes the
+        // select's value programmatically (e.g. a "reset form" call).
+        select.addEventListener('change', updateTrigger);
+
+        // Some pages start a select disabled (e.g. "pick a course first")
+        // and enable it later via plain `select.disabled = false`. That
+        // doesn't fire any event, so watch the attribute directly and keep
+        // the visible trigger button's disabled state in sync.
+        function syncDisabled() { trigger.disabled = select.disabled; }
+        try {
+            new MutationObserver(syncDisabled).observe(select, {
+                attributes: true, attributeFilter: ['disabled']
+            });
+        } catch (e) { /* MutationObserver always available in supported browsers */ }
+
+        updateTrigger();
+    }
+
+    window.enhanceSearchableSelects = function (root) {
+        (root || document).querySelectorAll('select.searchable-select').forEach(enhanceOne);
+        if (window.lucide) {
+            try { lucide.createIcons(); } catch (e) { /* icons are cosmetic — never let this break selects */ }
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+        window.enhanceSearchableSelects(document);
+    });
+})();
+</script>

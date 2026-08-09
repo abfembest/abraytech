@@ -1,0 +1,65 @@
+{% extends "management/base.html" %}
+{% load static %}{% block title %}SLA Policies{% endblock %}
+{% block breadcrumb %}Support › Config › SLA Policies{% endblock %}
+{% block breadcrumb_title %}SLA Policies{% endblock %}
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8 py-6 max-w-4xl mx-auto">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <h1 class="text-2xl font-bold font-heading text-gray-900">SLA Policies</h1>
+        {% if permissions.support_config.can_create %}
+        <button onclick="$('#slaModal').removeClass('hidden')" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-colors"><i class="fas fa-plus" aria-hidden="true"></i> New SLA</button>
+        {% endif %}
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                <tr>
+                    <th class="px-5 py-3 text-left">Name</th>
+                    <th class="px-5 py-3 text-left">Priority</th>
+                    <th class="px-5 py-3 text-left">First Response</th>
+                    <th class="px-5 py-3 text-left">Resolution</th>
+                    <th class="px-5 py-3 text-left">Escalation</th>
+                    <th class="px-5 py-3 text-left">Status</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                {% for sla in slas %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-5 py-3 font-medium text-gray-800">{{ sla.name }}</td>
+                    <td class="px-5 py-3">
+                        <span class="px-2 py-0.5 rounded text-xs font-semibold {% if sla.priority == 'urgent' %}bg-red-100 text-red-700{% elif sla.priority == 'high' %}bg-orange-100 text-orange-700{% elif sla.priority == 'normal' %}bg-yellow-100 text-yellow-700{% elif sla.priority == 'low' %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-600{% endif %}">{{ sla.get_priority_display }}</span>
+                    </td>
+                    <td class="px-5 py-3 text-gray-600">{{ sla.first_response_hours }}h</td>
+                    <td class="px-5 py-3 text-gray-600">{{ sla.resolution_hours }}h</td>
+                    <td class="px-5 py-3 text-gray-600">{{ sla.escalation_hours }}h</td>
+                    <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-xs font-medium {% if sla.is_active %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-500{% endif %}">{% if sla.is_active %}Active{% else %}Inactive{% endif %}</span></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="px-5 py-10 text-center text-gray-400">No SLA policies configured.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+      </div>
+    </div>
+</div>
+<!-- SLA Modal -->
+<div id="slaModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-5"><h2 class="font-semibold text-gray-900">Create SLA Policy</h2><button onclick="$('#slaModal').addClass('hidden')" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times" aria-hidden="true"></i></button></div>
+        <form method="post" action="{% url 'support:sla_save' %}">
+            {% csrf_token %}
+            <div class="mb-4"><label class="block text-sm font-semibold text-gray-700 mb-1.5">Name *</label><input type="text" name="name" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none" placeholder="e.g. Standard SLA"></div>
+            <div class="mb-4"><label class="block text-sm font-semibold text-gray-700 mb-1.5">Priority *</label><select name="priority" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none">{% for val, label in priority_choices %}<option value="{{ val }}">{{ label }}</option>{% endfor %}</select></div>
+            <div class="grid grid-cols-3 gap-3 mb-5">
+                <div><label class="block text-xs font-semibold text-gray-600 mb-1">First Response (h)</label><input type="number" name="first_response_hours" value="4" min="1" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+                <div><label class="block text-xs font-semibold text-gray-600 mb-1">Resolution (h)</label><input type="number" name="resolution_hours" value="24" min="1" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+                <div><label class="block text-xs font-semibold text-gray-600 mb-1">Escalation (h)</label><input type="number" name="escalation_hours" value="8" min="1" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+            </div>
+            <div class="flex gap-3"><button type="submit" class="flex-1 py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-colors">Create</button><button type="button" onclick="$('#slaModal').addClass('hidden')" class="flex-1 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">Cancel</button></div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>$(document).ready(function(){lucide.createIcons();});</script>{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "management/base.html" %}
+{% load static %}{% block title %}Audit Log — MIU Support{% endblock %}
+{% block breadcrumb %}Support › Config › Audit Log{% endblock %}
+{% block breadcrumb_title %}Support Audit Log{% endblock %}
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8 py-6 max-w-screen-xl mx-auto">
+    <div class="mb-6"><h1 class="text-2xl font-bold font-heading text-gray-900">Support Audit Log</h1><p class="text-sm text-gray-500 mt-1">Immutable record of all support actions</p></div>
+    <form method="get" class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-6 flex flex-col sm:flex-row gap-3">
+        <input type="text" name="search" value="{{ search }}" placeholder="Search actor, description, target ID…" class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none">
+        <input type="text" name="action" value="{{ action_filter }}" placeholder="Filter by action…" class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none">
+        <button type="submit" class="px-4 py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-colors"><i class="fas fa-filter mr-1" aria-hidden="true"></i> Filter</button>
+    </form>
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                <tr>
+                    <th class="px-4 py-3 text-left">Time</th>
+                    <th class="px-4 py-3 text-left">Actor</th>
+                    <th class="px-4 py-3 text-left">Action</th>
+                    <th class="px-4 py-3 text-left hidden md:table-cell">Target</th>
+                    <th class="px-4 py-3 text-left hidden lg:table-cell">Description</th>
+                    <th class="px-4 py-3 text-left hidden xl:table-cell">IP</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                {% for log in logs %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">{{ log.created_at|date:"M j, g:i a" }}</td>
+                    <td class="px-4 py-3 text-xs font-medium text-gray-700">{% if log.actor %}{{ log.actor.get_full_name|default:log.actor.username }}{% else %}System{% endif %}</td>
+                    <td class="px-4 py-3"><span class="px-2 py-0.5 bg-primary-50 text-primary-700 text-xs font-medium rounded">{{ log.action }}</span></td>
+                    <td class="px-4 py-3 hidden md:table-cell text-xs text-gray-500">{{ log.target_type }} #{{ log.target_id }}</td>
+                    <td class="px-4 py-3 hidden lg:table-cell text-xs text-gray-600 max-w-xs truncate">{{ log.description|truncatechars:80 }}</td>
+                    <td class="px-4 py-3 hidden xl:table-cell text-xs text-gray-400 font-mono">{{ log.ip_address }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="px-4 py-10 text-center text-gray-400">No audit records found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+      </div>
+        {% if logs.paginator.num_pages > 1 %}
+        <div class="px-5 py-4 border-t border-gray-100 flex justify-between items-center">
+            <p class="text-sm text-gray-500">Page {{ logs.number }} of {{ logs.paginator.num_pages }}</p>
+            <div class="flex gap-2">
+                {% if logs.has_previous %}<a href="?page={{ logs.previous_page_number }}&search={{ search }}&action={{ action_filter }}" class="px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50">← Prev</a>{% endif %}
+                {% if logs.has_next %}<a href="?page={{ logs.next_page_number }}&search={{ search }}&action={{ action_filter }}" class="px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Next →</a>{% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>$(document).ready(function(){lucide.createIcons();});</script>{% endblock %}
