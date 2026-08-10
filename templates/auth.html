@@ -1,19 +1,17 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Sign In - {{ site_config.school_short_name|default:"MIU" }}{% endblock %}
+{% block title %}Sign In - {{ site_config.school_short_name|default:"Abraytech" }}{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-primary-50 to-gold-100 flex items-center p-4">
+<div class="bg-gradient-to-br from-primary-50 to-gold-100 flex items-center py-8 px-3">
     <div class="container mx-auto">
 
-        <div class="bg-white/98 backdrop-blur-xl shadow-2xl shadow-primary-950/15 max-w-[1400px] w-full mx-auto rounded-2xl overflow-hidden">
-            <div class="grid lg:grid-cols-5 gap-0">
+        <div class="bg-white/98 backdrop-blur-xl shadow-2xl shadow-primary-950/15 max-w-lg w-full mx-auto rounded-2xl overflow-hidden">
+            <div>
 
-                {% include 'includes/auth_branding_panel.html' %}
-
-                <!-- Right Side - Login Form -->
-                <div class="lg:col-span-3 p-6 lg:p-8">
+                <!-- Login Form -->
+                <div class="p-6 lg:p-7">
 
                     <h3 class="text-2xl font-bold font-heading text-gray-900 mb-6 text-center">
                         Welcome Back!
@@ -56,7 +54,7 @@
                             </label>
                             <div class="grid grid-cols-2 gap-3">
                                 <div id="loginCaptchaQuestion"
-                                     class="bg-gradient-to-br from-purple-100 to-amber-100 border-2 border-dashed border-purple-400 rounded-lg flex items-center justify-center py-5 text-2xl font-bold text-primary-950">
+                                     class="bg-gradient-to-br from-accent-100 to-gold-100 border-2 border-dashed border-accent-400 rounded-lg flex items-center justify-center py-5 text-2xl font-bold text-primary-950">
                                     {{ captcha_question }} = ?
                                 </div>
                                 <input type="text"
@@ -65,7 +63,7 @@
                                        name="captcha"
                                        id="login_captcha"
                                        required
-                                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-950 focus:ring-2 focus:ring-purple-200 transition-all"
+                                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-950 focus:ring-2 focus:ring-accent-200 transition-all"
                                        placeholder="Your answer">
                             </div>
                             <div class="error-message text-red-600 text-sm mt-1" id="login_captcha_error"></div>
@@ -77,7 +75,7 @@
                                 <input type="checkbox" name="remember" class="h-4 w-4 rounded border-gray-300 text-primary-950 focus:ring-primary-950">
                                 <span class="text-sm text-gray-700">Remember me</span>
                             </label>
-                            <a href="{% url 'eduweb:forgot_password' %}" class="text-sm text-primary-950 hover:text-purple-700 font-medium">
+                            <a href="{% url 'eduweb:forgot_password' %}" class="text-sm text-primary-950 hover:text-accent-700 font-medium">
                                 Forgot password?
                             </a>
                         </div>
@@ -87,7 +85,7 @@
 
                         <!-- Submit Button -->
                         <button type="submit"
-                                class="w-full py-3.5 bg-gradient-to-r from-primary-950 to-purple-700 text-white rounded-lg font-bold text-base hover:shadow-xl hover:shadow-purple-500/50 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
+                                class="w-full py-3.5 bg-gradient-to-r from-primary-950 to-accent-700 text-white rounded-lg font-bold text-base hover:shadow-xl hover:shadow-accent-500/50 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
                                 id="loginSubmitBtn">
                             <span>Sign In</span>
                             <i data-lucide="arrow-right" class="w-5 h-5"></i>

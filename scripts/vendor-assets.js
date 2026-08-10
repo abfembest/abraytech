@@ -37,6 +37,9 @@ const FILE_COPIES = [
   // jQuery
   [nm("jquery", "dist", "jquery.min.js"), vendor("jquery", "jquery.min.js")],
 
+  // HTMX
+  [nm("htmx.org", "dist", "htmx.min.js"), vendor("htmx", "htmx.min.js")],
+
   // SweetAlert2
   [nm("sweetalert2", "dist", "sweetalert2.all.min.js"), vendor("sweetalert2", "sweetalert2.all.min.js")],
   [nm("sweetalert2", "dist", "sweetalert2.min.css"), vendor("sweetalert2", "sweetalert2.min.css")],

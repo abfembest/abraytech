@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Careers | Abraytech{% endblock %}
+
+{% block content %}
+
+<section class="relative bg-gradient-to-br from-primary-950 via-accent-900 to-primary-900 text-white py-24 lg:py-32 overflow-hidden">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <nav class="flex mb-8 text-sm" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-2">
+                <li><a href="{% url 'eduweb:index' %}" class="text-accent-200 hover:text-white transition-colors">Home</a></li>
+                <li><i data-lucide="chevron-right" class="w-4 h-4 text-accent-300"></i></li>
+                <li><span class="text-white font-medium">Careers</span></li>
+            </ol>
+        </nav>
+        <h1 class="text-4xl lg:text-6xl font-bold font-heading mb-6">Careers at Abraytech</h1>
+        <p class="text-xl text-accent-100 max-w-3xl">
+            We're building a team across software development, cybersecurity, AI, and education.
+        </p>
+    </div>
+</section>
+
+<section class="py-20 bg-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-3xl text-center">
+        <p class="text-gray-600 mb-6"><em>Open roles will be listed here once recruiting begins.</em></p>
+        <a href="{% url 'eduweb:contact' %}" class="inline-flex items-center gap-2 px-8 py-4 bg-primary-950 text-white rounded-xl font-semibold hover:bg-primary-900 transition-all duration-300 shadow-xl">
+            Get in Touch
+            <i data-lucide="arrow-right" class="w-5 h-5"></i>
+        </a>
+    </div>
+</section>
+
+{% endblock %}

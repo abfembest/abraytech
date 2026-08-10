@@ -44,6 +44,19 @@ urlpatterns = [
     path('blog/<slug:slug>/', views.blog_detail, name='blog_detail'),
     path('blog/category/<slug:slug>/', views.blog_category, name='blog_category'),
 
+    # Services
+    path('services/', views.services_list, name='services_list'),
+    path('services/<slug:slug>/', views.service_detail, name='service_detail'),
+
+    # FAQ (public)
+    path('faq/', views.faq_page, name='faq'),
+
+    # Legal / static pages
+    path('privacy/', views.privacy, name='privacy'),
+    path('terms/', views.terms, name='terms'),
+    path('cookies/', views.cookies, name='cookies'),
+    path('careers/', views.careers, name='careers'),
+
     path(
         'application/<str:application_id>/submit/', 
         views.submit_application, 

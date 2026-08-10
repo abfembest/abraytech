@@ -39,3 +39,43 @@ node_modules/
 staticfiles/
 media/*
 !media/.gitkeep
+
+# ---------------------------
+# EDITOR / AI-TOOL LOCAL CONFIG
+# ---------------------------
+.claude/
+.vscode/
+.idea/
+.cursor/
+
+# ---------------------------
+# DOCS — keep README public, everything else local-only
+# ---------------------------
+*.md
+!README.md
+
+# ---------------------------
+# SOURCE DOCUMENTS — not app source, don't publish
+# ---------------------------
+*.pdf
+
+# ---------------------------
+# DJANGO MIGRATIONS — not tracked; keep package markers only
+# ---------------------------
+**/migrations/*.py
+!**/migrations/__init__.py
+
+# ---------------------------
+# DATABASE
+# ---------------------------
+*.sqlite3
+
+# ---------------------------
+# WELL-KNOWN
+# ---------------------------
+.well-known/
+
+# ---------------------------
+# DEPLOYMENT — host-specific, not portable
+# ---------------------------
+passenger_wsgi.py

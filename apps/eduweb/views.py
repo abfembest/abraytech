@@ -965,7 +965,7 @@ THEOLOGY_SCHOOL_HOST = 'theology.miuedu.com'
 
 @check_for_auth
 def index(request):
-    from .models import Testimonial
+    from .models import Testimonial, Service
     captcha_question, captcha_answer = generate_captcha()
     request.session['contact_captcha_answer'] = captcha_answer
     current_host = request.get_host().split(':')[0].lower()
@@ -983,6 +983,7 @@ def index(request):
             .prefetch_related('departments')
             .order_by('name')[:6]
         ),
+        'services': Service.objects.filter(is_active=True),
         'testimonials': Testimonial.objects.filter(is_active=True).order_by('author_name'),
         'recent_posts': (
             BlogPost.objects
@@ -1007,11 +1008,11 @@ def about(request):
     )
     return render(request, 'about.html', {
         'default_core_values': [
-            'Sound Biblical Foundation',
-            'Personal Relationship with the Lord Jesus',
-            'Non-Denominational Service to the Christian Family',
-            'Free & Accessible Ministerial Training',
-            'End-time Readiness & Gospel Excellence',
+            'Technical Excellence',
+            'Integrity & Transparency',
+            'Client-Focused Delivery',
+            'Continuous Learning',
+            'Innovation with Purpose',
         ],
         'faculties': Faculty.objects.filter(is_active=True).order_by('name'),
         'admin_board_members': admin_board_members,
@@ -1299,6 +1300,71 @@ def blog_category(request, slug):
         'categories':       BlogCategory.objects.filter(is_active=True).order_by('name'),
         'current_category': category,
     })
+
+
+# =============================================================================
+# SERVICES
+# =============================================================================
+
+@check_for_auth
+def services_list(request):
+    from .models import Service
+    return render(request, 'services.html', {
+        'services': Service.objects.filter(is_active=True),
+    })
+
+
+@check_for_auth
+def service_detail(request, slug):
+    from .models import Service
+    service = get_object_or_404(Service, slug=slug, is_active=True)
+    return render(request, 'service_detail.html', {
+        'service': service,
+        'other_services': Service.objects.filter(is_active=True).exclude(slug=slug),
+    })
+
+
+# =============================================================================
+# FAQ (public)
+# =============================================================================
+
+@check_for_auth
+def faq_page(request):
+    from apps.support.models import FAQ, FAQCategory
+    categories = (
+        FAQCategory.objects
+        .filter(is_active=True, faqs__is_published=True)
+        .distinct()
+        .prefetch_related(
+            Prefetch('faqs', queryset=FAQ.objects.filter(is_published=True).order_by('order'))
+        )
+        .order_by('order', 'name')
+    )
+    return render(request, 'faq.html', {'categories': categories})
+
+
+# =============================================================================
+# LEGAL / STATIC PAGES
+# =============================================================================
+
+@check_for_auth
+def privacy(request):
+    return render(request, 'privacy.html')
+
+
+@check_for_auth
+def terms(request):
+    return render(request, 'terms.html')
+
+
+@check_for_auth
+def cookies(request):
+    return render(request, 'cookies.html')
+
+
+@check_for_auth
+def careers(request):
+    return render(request, 'careers.html')
 
 
 # =============================================================================

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Terms of Service | Abraytech{% endblock %}
+
+{% block content %}
+
+<section class="py-20 bg-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-3xl">
+        <nav class="flex mb-8 text-sm" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-2 text-gray-500">
+                <li><a href="{% url 'eduweb:index' %}" class="hover:text-primary-700 transition-colors">Home</a></li>
+                <li><i data-lucide="chevron-right" class="w-4 h-4"></i></li>
+                <li><span class="text-gray-900 font-medium">Terms of Service</span></li>
+            </ol>
+        </nav>
+        <h1 class="text-3xl sm:text-4xl font-bold text-primary-950 mb-8 font-heading">Terms of Service</h1>
+        <div class="prose max-w-none text-gray-700 leading-relaxed space-y-4">
+            <p><em>This is placeholder content pending final legal review &mdash; not yet the published terms.</em></p>
+            <p>By using Abraytech's services, products, or training, you agree to use them lawfully and in good faith. Full terms covering orders, consultations, and training enrollment will be published here.</p>
+            <p>Contact <a href="{% url 'eduweb:contact' %}" class="text-primary-700 underline">our team</a> with any questions about these terms.</p>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

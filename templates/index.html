@@ -2,31 +2,31 @@
 
 {% load static %}
 
-{% block title %}{{ site_config.school_short_name|default:"MIU" }} – {{ site_config.school_name|default:"Melchisedec International University" }} | Empowering Global Education{% endblock %}
+{% block title %}{{ site_config.school_short_name|default:"Abraytech" }} – {{ site_config.school_name|default:"Abraytech" }} | Technology Services, Training &amp; Products{% endblock %}
 
 {% block meta_tags %}
-<meta name="description" content="{{ site_config.meta_description|default:'Melchisedec International University (MIU) offers world-class accredited programs in secular and theological disciplines.' }}">
-<meta name="keywords" content="{{ site_config.meta_keywords|default:'MIU, Melchisedec International University, online university, accredited programs' }}">
+<meta name="description" content="{{ site_config.meta_description|default:'Abraytech provides software development, cybersecurity, AI, IT consulting, and technology training.' }}">
+<meta name="keywords" content="{{ site_config.meta_keywords|default:'Abraytech, software development, cybersecurity, AI, IT consulting, technology training' }}">
 <meta name="robots" content="index, follow">
-<meta name="author" content="{{ site_config.school_name|default:'Melchisedec International University' }}">
+<meta name="author" content="{{ site_config.school_name|default:'Abraytech' }}">
 {% endblock %}
 
 {% block og_tags %}
-<meta property="og:title" content="{{ site_config.school_short_name|default:'MIU' }} – {{ site_config.school_name|default:'Melchisedec International University' }} | Empowering Global Education">
-<meta property="og:description" content="{{ site_config.meta_description|default:'World-class accredited programs for students across the globe.' }}">
+<meta property="og:title" content="{{ site_config.school_short_name|default:'Abraytech' }} – {{ site_config.school_name|default:'Abraytech' }} | Technology Services, Training &amp; Products">
+<meta property="og:description" content="{{ site_config.meta_description|default:'Software development, cybersecurity, AI, IT consulting, and technology training.' }}">
 <meta property="og:type" content="website">
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
 {% if site_config.og_image %}<meta property="og:image" content="{{ site_config.og_image.url }}">{% endif %}
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{{ site_config.school_short_name|default:'MIU' }} – {{ site_config.school_name|default:'Melchisedec International University' }}">
-<meta name="twitter:description" content="{{ site_config.meta_description|default:'World-class accredited education for students across the globe.' }}">
+<meta name="twitter:title" content="{{ site_config.school_short_name|default:'Abraytech' }} – {{ site_config.school_name|default:'Abraytech' }}">
+<meta name="twitter:description" content="{{ site_config.meta_description|default:'Software development, cybersecurity, AI, IT consulting, and technology training.' }}">
 {% endblock %}
 
 {% block content %}
 
 <!-- Hero Section with Auto-Rotating Video & Images -->
 <section class="relative overflow-hidden" aria-label="Hero Section" role="banner">
-    <div id="hero-background" class="relative h-screen min-h-[560px] max-h-[1000px]">
+    <div id="hero-background" class="relative h-hero-brand">
         
         <!-- Background Media Container -->
         <div class="absolute inset-0">
@@ -56,9 +56,9 @@
                  data-type="image"
                  data-duration="{{ site_config.hero_slide_1_duration|default:6 }}">
                 <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                     style="background-image: url('{% if site_config.hero_slide_1_image %}{{ site_config.hero_slide_1_image.url }}{% else %}{% static 'images/hero.webp' %}{% endif %}')"
+                     data-hero-bg="{% if site_config.hero_slide_1_image %}{{ site_config.hero_slide_1_image.url }}{% else %}{% static 'images/hero.webp' %}{% endif %}"
                      role="img"
-                     aria-label="{{ site_config.hero_slide_1_alt|default:'Students collaborating on campus' }}"
+                     aria-label="{{ site_config.hero_slide_1_alt|default:'Abraytech engineering team collaborating' }}"
                      aria-hidden="true"></div>
                 <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70"></div>
             </div>
@@ -81,9 +81,9 @@
                  data-type="image"
                  data-duration="{{ site_config.hero_slide_2_duration|default:6 }}">
                 <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                     style="background-image: url('{% if site_config.hero_slide_2_image %}{{ site_config.hero_slide_2_image.url }}{% else %}{% static 'images/hero2.webp' %}{% endif %}')"
+                     data-hero-bg="{% if site_config.hero_slide_2_image %}{{ site_config.hero_slide_2_image.url }}{% else %}{% static 'images/hero2.webp' %}{% endif %}"
                      role="img"
-                     aria-label="{{ site_config.hero_slide_2_alt|default:'Graduates celebrating commencement' }}"
+                     aria-label="{{ site_config.hero_slide_2_alt|default:'Abraytech technology training in progress' }}"
                      aria-hidden="true"></div>
                 <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70"></div>
             </div>
@@ -92,8 +92,8 @@
             <div class="hero-bg absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-0"
                  data-type="image" data-duration="6">
                 <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                     style="background-image: url('{% static 'images/hero2.webp' %}')"
-                     role="img" aria-label="Graduates celebrating commencement" aria-hidden="true"></div>
+                     data-hero-bg="{% static 'images/hero2.webp' %}"
+                     role="img" aria-label="Abraytech technology training in progress" aria-hidden="true"></div>
                 <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70"></div>
             </div>
             {% endif %}
@@ -115,9 +115,9 @@
                  data-type="image"
                  data-duration="{{ site_config.hero_slide_3_duration|default:6 }}">
                 <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                     style="background-image: url('{% if site_config.hero_slide_3_image %}{{ site_config.hero_slide_3_image.url }}{% else %}{% static 'images/hero3.webp' %}{% endif %}')"
+                     data-hero-bg="{% if site_config.hero_slide_3_image %}{{ site_config.hero_slide_3_image.url }}{% else %}{% static 'images/hero3.webp' %}{% endif %}"
                      role="img"
-                     aria-label="{{ site_config.hero_slide_3_alt|default:'Students using technology in class' }}"
+                     aria-label="{{ site_config.hero_slide_3_alt|default:'Technology professionals at work' }}"
                      aria-hidden="true"></div>
                 <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70"></div>
             </div>
@@ -126,8 +126,8 @@
             <div class="hero-bg absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-0"
                  data-type="image" data-duration="6">
                 <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                     style="background-image: url('{% static 'images/hero3.webp' %}')"
-                     role="img" aria-label="Students using technology in class" aria-hidden="true"></div>
+                     data-hero-bg="{% static 'images/hero3.webp' %}"
+                     role="img" aria-label="Technology professionals at work" aria-hidden="true"></div>
                 <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70"></div>
             </div>
             {% endif %}
@@ -135,148 +135,95 @@
         </div>
         
         <!-- Hero Content Overlay -->
-        <div class="relative z-10 h-full flex items-center pt-16 sm:pt-20 lg:pt-24">
+        <div class="relative z-10 py-10 sm:py-0">
             <div class="container-responsive mx-auto">
                 <div class="text-center max-w-5xl mx-auto">
-                    
-                    <!-- University Name Badge -->
-                    <div class="inline-flex items-center gap-2 px-4 sm:px-6 py-2 mb-4 sm:mb-6 bg-white/10 backdrop-blur-md rounded-full border border-white/20 animate-fade-in">
-                        <i data-lucide="award" class="w-4 h-4 sm:w-5 sm:h-5 text-gold-400 flex-shrink-0"></i>
+
+                    <!-- Trust Badge -->
+                    <div class="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-1.5 sm:py-2 mb-4 sm:mb-6 bg-white/10 backdrop-blur-md rounded-full border border-white/20 animate-fade-in">
+                        <i data-lucide="shield-check" class="w-3.5 h-3.5 sm:w-5 sm:h-5 text-lime-400 flex-shrink-0"></i>
                         <span class="text-xs sm:text-sm lg:text-base font-semibold text-white tracking-wide">
-                            {{ site_config.school_name|default:"Melchisedec International University" }}
+                            Enterprise-Grade Technology Partner
                         </span>
                     </div>
-                    
-                    <!-- Tagline -->
-                    <p class="text-sm sm:text-base lg:text-xl font-medium mb-3 sm:mb-4 text-gold-300 tracking-wider uppercase animate-fade-in" style="animation-delay: 0.15s;">
-                        {{ site_config.tagline|default:"The Best Learning Institution" }}
-                    </p>
-                    
+
                     <!-- Main Heading -->
-                    <h1 class="text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black mb-4 sm:mb-6 leading-[1.1] text-white animate-slide-up font-display" style="animation-delay: 0.3s;">
-                        Welcome to {{ site_config.school_short_name|default:"MIU" }}
-                        <span class="block mt-1 sm:mt-2 bg-gradient-to-r from-gold-300 via-gold-400 to-gold-300 bg-clip-text text-transparent">
-                            University
+                    <h1 class="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-4 sm:mb-6 leading-tighter text-white animate-slide-up font-display delay-300">
+                        {{ site_config.school_short_name|default:"Abraytech" }}
+                        <span class="block mt-1 sm:mt-2 bg-gradient-to-r from-accent-300 via-accent-400 to-accent-300 bg-clip-text text-transparent">
+                            Builds Your Technology Advantage
                         </span>
                     </h1>
-                    
-                    <!-- Subtitle with Icon -->
-                    <div class="flex items-center justify-center gap-2 sm:gap-3 mb-8 sm:mb-12 animate-slide-up" style="animation-delay: 0.45s;">
-                        <div class="hidden sm:block w-12 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent flex-shrink-0"></div>
-                        <p class="text-base sm:text-xl lg:text-2xl text-white/95 font-light leading-relaxed max-w-3xl">
-                            Global Institution of Excellence in Learning and Academics
-                        </p>
-                        <div class="hidden sm:block w-12 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent flex-shrink-0"></div>
-                    </div>
-                    
+
+                    <!-- Subtitle -->
+                    <p class="text-sm sm:text-xl lg:text-2xl text-white/90 font-light leading-relaxed max-w-3xl mx-auto mb-6 sm:mb-12 animate-slide-up delay-450">
+                        Software Development · Cybersecurity · AI &amp; Data · IT Consulting
+                    </p>
+
                     <!-- CTA Buttons - Enhanced Design -->
-                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center items-center animate-scale-in px-2 sm:px-0" style="animation-delay: 0.6s;">
-                        
-                        <!-- Secular Programs Button -->
-                        <a href="{% url 'eduweb:all_programs' %}" 
-                           class="group relative inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 sm:px-10 sm:py-5 text-base sm:text-lg font-bold text-white bg-gradient-to-r from-primary-950 to-primary-800 rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-[0_20px_60px_-15px_rgba(132,3,132,0.6)] focus:outline-none focus:ring-4 focus:ring-primary-400/50 sm:min-w-[220px] border-2 border-primary-700"
-                           aria-label="Explore Secular Programs">
+                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center items-center animate-scale-in px-2 sm:px-0 delay-600">
+
+                        <a href="{% url 'eduweb:services_list' %}"
+                           class="group relative inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 sm:px-10 sm:py-5 text-sm sm:text-lg font-bold text-white bg-gradient-to-r from-primary-950 to-primary-800 rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-glow-brand focus:outline-none focus:ring-4 focus:ring-primary-400/50 sm:min-w-cta border-2 border-primary-700"
+                           aria-label="Explore Our Services">
                             <span class="relative z-10 flex items-center gap-3">
-                                <i data-lucide="book-open" class="w-5 h-5 group-hover:rotate-12 transition-transform duration-300"></i>
-                                <span class="tracking-wider">SECULAR</span>
-                                <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300"></i>
+                                <i data-lucide="layers" class="w-4 h-4 sm:w-5 sm:h-5 group-hover:rotate-12 transition-transform duration-300"></i>
+                                <span class="tracking-wider">OUR SERVICES</span>
+                                <i data-lucide="arrow-right" class="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform duration-300"></i>
                             </span>
                             <div class="absolute inset-0 bg-gradient-to-r from-primary-800 to-primary-700 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
                             <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 translate-x-full group-hover:translate-x-[-200%] transition-transform duration-1000"></div>
+                                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent btn-shine-sweep"></div>
                             </div>
                         </a>
-                        
-                        <!-- Theological Programs Button -->
-                        <a href="https://theology.miuedu.com/" target="_blank"
-                        class="group relative inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 sm:px-10 sm:py-5 text-base sm:text-lg font-bold text-white bg-transparent rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-[0_20px_60px_-15px_rgba(251,191,36,0.6)] focus:outline-none focus:ring-4 focus:ring-gold-400/50 sm:min-w-[220px] border-2 border-white/80 hover:border-gold-400"
-                        aria-label="Explore Theological Programs at Melchisedec Graduate Bible Academy">
+
+                        <a href="{% url 'eduweb:all_programs' %}"
+                        class="group relative inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 sm:px-10 sm:py-5 text-sm sm:text-lg font-bold text-white bg-transparent rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-glow-lime focus:outline-none focus:ring-4 focus:ring-lime-400/50 sm:min-w-cta border-2 border-white/80 hover:border-lime-400"
+                        aria-label="Explore Training Programs">
                             <span class="relative z-10 flex items-center gap-3">
-                                <i data-lucide="church" class="w-5 h-5 group-hover:scale-110 transition-transform duration-300"></i>
-                                <span class="tracking-wider group-hover:text-primary-950 transition-colors duration-300">THEOLOGICAL</span>
-                                <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 group-hover:text-primary-950 transition-all duration-300"></i>
+                                <i data-lucide="graduation-cap" class="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform duration-300"></i>
+                                <span class="tracking-wider group-hover:text-primary-950 transition-colors duration-300">TRAINING</span>
+                                <i data-lucide="arrow-right" class="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 group-hover:text-primary-950 transition-all duration-300"></i>
                             </span>
-                            <div class="absolute inset-0 bg-gradient-to-r from-gold-400 to-gold-300 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-right"></div>
+                            <div class="absolute inset-0 bg-gradient-to-r from-lime-400 to-lime-300 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-right"></div>
                             <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 translate-x-full group-hover:translate-x-[-200%] transition-transform duration-1000"></div>
+                                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent btn-shine-sweep"></div>
                             </div>
                         </a>
-                    </div>                    
+                    </div>
                 </div>
             </div>
         </div>
         
-        <!-- Progress Indicators — one dot per active slide -->
-        <div class="absolute bottom-16 sm:bottom-24 left-1/2 -translate-x-1/2 z-20 flex gap-3" role="navigation" aria-label="Hero carousel navigation">
-            <button class="hero-indicator active w-12 h-1.5 bg-white rounded-full transition-all duration-300 hover:h-2 focus:outline-none focus:ring-2 focus:ring-white/50"
-                    aria-label="Go to slide 1" data-index="0"></button>
-            {% if site_config.hero_slide_2_image or site_config.hero_slide_2_video %}
-            <button class="hero-indicator w-12 h-1.5 bg-white/40 rounded-full transition-all duration-300 hover:h-2 hover:bg-white/60 focus:outline-none focus:ring-2 focus:ring-white/50"
-                    aria-label="Go to slide 2" data-index="1"></button>
-            {% else %}
-            <button class="hero-indicator w-12 h-1.5 bg-white/40 rounded-full transition-all duration-300 hover:h-2 hover:bg-white/60 focus:outline-none focus:ring-2 focus:ring-white/50"
-                    aria-label="Go to slide 2" data-index="1"></button>
-            {% endif %}
-            {% if site_config.hero_slide_3_image or site_config.hero_slide_3_video %}
-            <button class="hero-indicator w-12 h-1.5 bg-white/40 rounded-full transition-all duration-300 hover:h-2 hover:bg-white/60 focus:outline-none focus:ring-2 focus:ring-white/50"
-                    aria-label="Go to slide 3" data-index="2"></button>
-            {% else %}
-            <button class="hero-indicator w-12 h-1.5 bg-white/40 rounded-full transition-all duration-300 hover:h-2 hover:bg-white/60 focus:outline-none focus:ring-2 focus:ring-white/50"
-                    aria-label="Go to slide 3" data-index="2"></button>
-            {% endif %}
+        <!-- Progress Indicators — small dot stack; bottom-center on mobile, side stack from sm+ -->
+        <div class="absolute z-20 flex bottom-4 left-1/2 -translate-x-1/2 flex-row gap-2 sm:bottom-auto sm:left-auto sm:right-4 lg:right-6 sm:top-1/2 sm:-translate-y-1/2 sm:translate-x-0 sm:flex-col sm:gap-2.5"
+             role="navigation" aria-label="Hero carousel navigation">
+            <button class="hero-dot-btn rounded-full focus:outline-none focus:ring-2 focus:ring-white/60" aria-label="Go to slide 1" data-index="0">
+                <span class="hero-indicator active"></span>
+            </button>
+            <button class="hero-dot-btn rounded-full focus:outline-none focus:ring-2 focus:ring-white/60" aria-label="Go to slide 2" data-index="1">
+                <span class="hero-indicator"></span>
+            </button>
+            <button class="hero-dot-btn rounded-full focus:outline-none focus:ring-2 focus:ring-white/60" aria-label="Go to slide 3" data-index="2">
+                <span class="hero-indicator"></span>
+            </button>
         </div>
     </div>
 </section>
 
-                    <!-- Stats Section -->
-    <section class="py-12 sm:py-16 lg:py-24 bg-gradient-to-br from-purple-50 via-pink-50 to-purple-100" aria-label="University Statistics">
-        <div class="container-responsive">
-            <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
-                <article class="p-4 sm:p-5 md:p-6 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-all hover:scale-105 group">
-                    <div class="flex items-center justify-center mb-2 sm:mb-3">
-                        <i data-lucide="users" class="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 text-primary-950 group-hover:scale-110 transition-transform" aria-hidden="true"></i>
-                    </div>
-                    <div class="text-xl sm:text-2xl md:text-3xl font-bold text-primary-950 mb-1 text-center font-display">25,000+</div>
-                <div class="text-xs sm:text-sm text-gray-600 text-center">Students Worldwide</div>
-                </article>
-                <article class="p-4 sm:p-5 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105 group">
-                 <div class="flex items-center justify-center mb-2 sm:mb-3">
-                     <i data-lucide="globe" class="w-7 h-7 sm:w-8 sm:h-8 text-primary-950 group-hover:scale-110 transition-transform" aria-hidden="true"></i>
-                 </div>
-                 <div class="text-xl sm:text-2xl font-bold text-primary-950 mb-1 text-center font-display">120+</div>
-                 <div class="text-xs sm:text-sm text-gray-600 text-center">Countries Represented</div>
-                </article>
-                <article class="p-4 sm:p-5 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105 group">
-                 <div class="flex items-center justify-center mb-2 sm:mb-3">
-                     <i data-lucide="trending-up" class="w-7 h-7 sm:w-8 sm:h-8 text-primary-950 group-hover:scale-110 transition-transform" aria-hidden="true"></i>
-                 </div>
-                 <div class="text-xl sm:text-2xl font-bold text-primary-950 mb-1 text-center font-display">95%</div>
-                 <div class="text-xs sm:text-sm text-gray-600 text-center">Graduate Employment</div>
-                </article>
-                <article class="p-4 sm:p-5 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105 group">
-                 <div class="flex items-center justify-center mb-2 sm:mb-3">
-                     <i data-lucide="book-open" class="w-7 h-7 sm:w-8 sm:h-8 text-primary-950 group-hover:scale-110 transition-transform" aria-hidden="true"></i>
-                 </div>
-                 <div class="text-xl sm:text-2xl font-bold text-primary-950 mb-1 text-center font-display">50+</div>
-                 <div class="text-xs sm:text-sm text-gray-600 text-center">Academic Programs</div>
-                     </article>
-                 </div>
-            </div>
-        </section>
-
     <!-- About Section -->
-        <section id="about" class="py-12 sm:py-16 lg:py-24 bg-white" aria-labelledby="about-heading">
+        <section id="about" class="section-py bg-white" aria-labelledby="about-heading">
             <div class="container-responsive">
                 <div class="grid lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16 items-center">
             <div>
                 <h2 id="about-heading" class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 text-primary-950 font-display">
-                    About {{ site_config.school_short_name|default:"MIU" }}
+                    About {{ site_config.school_short_name|default:"Abraytech" }}
                 </h2>
                 <p class="text-gray-700 mb-4 sm:mb-6 text-base lg:text-lg leading-relaxed">
-                    {{ site_config.school_name|default:"Melchisedec International University" }} is a globally recognized institution delivering high-quality, innovative education with flexibility and excellence. Founded in 1995, we've been at the forefront of digital education transformation.
+                    {{ site_config.about_mission|default:"Abraytech delivers reliable, well-engineered technology services and makes high-quality technical training accessible to everyone we work with." }}
                 </p>
                 <p class="text-gray-600 mb-6 sm:mb-8 text-base lg:text-lg leading-relaxed">
-                    Our mission is to provide accessible, world-class education that empowers students to achieve their personal and professional goals, regardless of geographic location.
+                    {{ site_config.about_vision|default:"Our mission is to be a trusted technology partner known for engineering quality, security-mindedness, and practical, outcome-driven work." }}
                 </p>
                 <a href="{% url 'eduweb:about' %}" class="inline-flex items-center gap-2 bg-gradient-to-r from-primary-950 to-primary-700 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-base lg:text-lg hover:shadow-xl hover:scale-105 transition-all focus:outline-none focus:ring-2 focus:ring-primary-950 focus:ring-offset-2">
                     Learn More About Us
@@ -285,9 +232,11 @@
             </div>
             <div class="rounded-2xl overflow-hidden shadow-2xl h-56 sm:h-72 lg:h-96 mt-2 lg:mt-0">
                 {% if site_config.promo_video_url %}
-                <div class="w-full h-full [&>iframe]:w-full [&>iframe]:h-full">{{ site_config.promo_video_url|safe }}</div>
+                <div class="w-full h-full promo-video-embed">{{ site_config.promo_video_url|safe }}</div>
                 {% else %}
-                <iframe class="w-full h-full" src="https://www.youtube.com/embed/wzcQ5_XU58I?start=4" title="{{ site_config.school_short_name|default:'MIU' }} Global Learning Community — Official Video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+                <div class="w-full h-full bg-gradient-to-br from-primary-900 to-primary-700 flex items-center justify-center">
+                    <i data-lucide="play-circle" class="w-16 h-16 text-white/40" aria-hidden="true"></i>
+                </div>
                 {% endif %}
             </div>
                 </div>
@@ -296,21 +245,21 @@
 
         <!-- Programs Section -->
         {% if featured_programs %}
-        <section id="programs" class="py-12 sm:py-16 lg:py-24 bg-gradient-to-br from-purple-50 via-pink-50 to-purple-100" aria-labelledby="programs-heading">
+        <section id="programs" class="section-py bg-gradient-to-br from-accent-50 via-accent-50 to-accent-100" aria-labelledby="programs-heading">
             <div class="container-responsive">
                 <div class="text-center mb-10 sm:mb-12 lg:mb-16">
             <h2 id="programs-heading" class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary-950 mb-3 sm:mb-4 font-display">
                 Popular Programs
             </h2>
             <p class="text-gray-600 max-w-3xl mx-auto text-base lg:text-lg leading-relaxed">
-                Choose from our extensive range of accredited programs designed for the {{ site_config.school_short_name|default:"MIU" }} workforce
+                Choose from our extensive range of technology training programs designed to build real, job-ready skills
             </p>
         </div>
 
         <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {% for program in featured_programs %}
                     <article class="bg-white p-4 sm:p-6 rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105 group">
-                    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-primary-100 to-purple-200 rounded-lg flex items-center justify-center mb-4 sm:mb-5 shadow-lg group-hover:scale-110 transition-transform">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-primary-100 to-accent-200 rounded-lg flex items-center justify-center mb-4 sm:mb-5 shadow-lg group-hover:scale-110 transition-transform">
                     <i data-lucide="graduation-cap" class="w-6 h-6 sm:w-7 sm:h-7 text-primary-950" aria-hidden="true"></i>
                 </div>
                 <span class="inline-block px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wide bg-primary-50 text-primary-700 mb-3">
@@ -343,72 +292,67 @@
 </section>
 {% endif %}
 
-<!-- Theological School Advertisement -->
-{% if show_theology_ad %}
-<section id="theological-school" class="relative py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-primary-950 via-purple-900 to-purple-800 overflow-hidden" aria-labelledby="theology-heading">
-    <div class="absolute inset-0 opacity-10 pointer-events-none" aria-hidden="true">
-        <div class="absolute top-10 right-0 w-72 h-72 bg-gold-400 rounded-full blur-3xl"></div>
-        <div class="absolute bottom-0 left-0 w-96 h-96 bg-purple-400 rounded-full blur-3xl"></div>
-    </div>
-
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div class="max-w-4xl mx-auto bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl p-8 sm:p-12 lg:p-14 text-center">
-            <div class="inline-flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
-                <i data-lucide="church" class="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-gold-400 flex-shrink-0" aria-hidden="true"></i>
-                <h2 id="theology-heading" class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white font-display leading-tight">
-                    School of Theology
-                </h2>
+<!-- Services Section -->
+{% if services %}
+<section id="services" class="section-py bg-white" aria-labelledby="services-heading">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12 lg:mb-16">
+            <div class="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-4 py-2 rounded-full text-sm font-semibold mb-4">
+                <i data-lucide="layers" class="w-4 h-4"></i>
+                What We Do
             </div>
-            <p class="text-lg sm:text-xl lg:text-2xl font-semibold text-gold-300 font-display leading-snug mb-3 sm:mb-4">
-                Called to Ministry? Answer It at Melchisedec Graduate Bible Academy
-            </p>
-            <p class="text-purple-200 text-sm sm:text-base lg:text-lg leading-relaxed mb-6 sm:mb-8 max-w-2xl mx-auto">
-                Our theological sister institution trains end-time ministers of the Gospel through accredited Bible college programs &mdash; completely free of charge. Explore certificate, diploma, and degree tracks in theology, pastoral studies, and Christian education.
-            </p>
-            <a href="https://theology.miuedu.com/" target="_blank"
-               class="group relative inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 sm:px-10 sm:py-5 text-base sm:text-lg font-bold text-white bg-transparent rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-[0_20px_60px_-15px_rgba(251,191,36,0.6)] focus:outline-none focus:ring-4 focus:ring-gold-400/50 sm:min-w-[220px] border-2 border-white/80 hover:border-gold-400"
-               aria-label="Explore Theological Programs at Melchisedec Graduate Bible Academy">
-                <span class="relative z-10 flex items-center gap-3">
-                    <i data-lucide="church" class="w-5 h-5 group-hover:scale-110 transition-transform duration-300"></i>
-                    <span class="tracking-wider group-hover:text-primary-950 transition-colors duration-300">VISIT THEOLOGICAL SCHOOL</span>
-                    <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 group-hover:text-primary-950 transition-all duration-300"></i>
-                </span>
-                <div class="absolute inset-0 bg-gradient-to-r from-gold-400 to-gold-300 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-right"></div>
-                <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 translate-x-full group-hover:translate-x-[-200%] transition-transform duration-1000"></div>
+            <h2 id="services-heading" class="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-950 mb-4 font-heading">Our Services</h2>
+            <div class="h-1 w-24 bg-gradient-to-r from-primary-950 to-accent-500 mx-auto"></div>
+        </div>
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% for service in services %}
+            <a href="{% url 'eduweb:service_detail' service.slug %}" class="bg-gradient-to-br from-accent-50 to-accent-50 rounded-2xl p-6 border border-accent-100 hover:shadow-xl transition-shadow duration-300 block">
+                <div class="w-14 h-14 bg-gradient-to-br from-primary-600 to-accent-600 rounded-xl flex items-center justify-center mb-4">
+                    <i data-lucide="{{ service.icon }}" class="text-white w-6 h-6"></i>
                 </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2 font-heading">{{ service.title }}</h3>
+                <p class="text-sm text-gray-600">{{ service.summary }}</p>
+            </a>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-12">
+            <a href="{% url 'eduweb:services_list' %}"
+            class="inline-flex items-center gap-2 border-2 border-primary-950 text-primary-950 px-8 py-4 rounded-xl font-semibold text-base lg:text-lg hover:bg-primary-950 hover:text-white transition-all shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary-950 focus:ring-offset-2">
+                View All Services
+                <i data-lucide="arrow-right" class="w-5 h-5"></i>
             </a>
         </div>
     </div>
 </section>
 {% endif %}
 
-<!-- Academics Section -->
+<!-- Training Section -->
 {% if faculties %}
-<section id="academics" class="py-12 sm:py-16 lg:py-24 bg-white" aria-labelledby="academics-heading">
+<section id="training" class="section-light section-py" aria-labelledby="training-heading">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-10 sm:mb-12 lg:mb-16">
-            <h2 id="academics-heading" class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary-950 mb-3 sm:mb-4 font-display">
-                Academics & Faculties
+            <span class="pill pill-cyan mb-4">Training & Development</span>
+            <h2 id="training-heading" class="text-h2-brand text-primary-950 mb-3 sm:mb-4">
+                Build Skills Across Our Practice Areas
             </h2>
-            <p class="text-gray-600 max-w-3xl mx-auto text-base lg:text-lg leading-relaxed">
-                Our academic structure is designed to foster interdisciplinary collaboration and innovation
+            <p class="text-body-lg-brand text-gray-600 max-w-3xl mx-auto">
+                Structured training tracks designed to build real, job-ready technology skills.
             </p>
         </div>
 
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-10 sm:mb-12">
         {% for faculty in faculties %}
-                    <article class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all hover:scale-105 border border-gray-100 group">
-                    <div class="p-4 sm:p-5">
-                        <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-primary-100 to-purple-200 rounded-lg flex items-center justify-center mb-4 sm:mb-5 group-hover:scale-110 transition-transform">
-                        <i data-lucide="{{ faculty.icon }}" class="w-6 h-6 sm:w-7 sm:h-7 text-primary-950" aria-hidden="true"></i>
-                    </div>
-                    <h3 class="font-bold text-base sm:text-lg lg:text-xl mb-2 sm:mb-3 text-primary-950 font-display">{{ faculty.name }}</h3>
-                    <p class="text-gray-600 mb-3 sm:mb-4 text-sm leading-relaxed">{{ faculty.tagline }}</p>
-                <ul class="space-y-2 sm:space-y-3 text-sm text-gray-600">
+        <article class="light-card group">
+            <div class="p-4 sm:p-5">
+                <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-primary-600 to-accent-600 rounded-xl flex items-center justify-center mb-4 sm:mb-5 group-hover:scale-110 transition-transform">
+                    <i data-lucide="{{ faculty.icon }}" class="w-6 h-6 sm:w-7 sm:h-7 text-white" aria-hidden="true"></i>
+                </div>
+                <h3 class="text-h4-brand text-primary-950 mb-2 sm:mb-3">{{ faculty.name }}</h3>
+                <p class="text-small-brand text-gray-600 mb-3 sm:mb-4">{{ faculty.tagline }}</p>
+                <ul class="space-y-2 sm:space-y-3 text-small-brand text-gray-600">
                     {% for dept in faculty.departments.all|slice:":2" %}
                     <li class="flex items-start gap-2">
-                        <i data-lucide="check" class="w-5 h-5 flex-shrink-0 text-primary-950 mt-0.5" aria-hidden="true"></i>
+                        <i data-lucide="check" class="w-5 h-5 flex-shrink-0 text-accent-600 mt-0.5" aria-hidden="true"></i>
                         <span>{{ dept.name }}</span>
                     </li>
                     {% endfor %}
@@ -416,34 +360,32 @@
             </div>
             <div class="px-6 sm:px-8 pb-5 sm:pb-6">
                 <a href="{% url 'eduweb:faculty_detail' faculty.slug %}"
-                class="text-primary-950 font-semibold hover:text-primary-700 transition-colors inline-flex items-center gap-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary-950 rounded"
-                aria-label="Explore {{ faculty.name }} faculty">
-                    Explore Faculty <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
+                class="text-primary-950 font-semibold hover:text-accent-600 transition-colors inline-flex items-center gap-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary-950 rounded"
+                aria-label="View {{ faculty.name }} training track">
+                    View Track <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
                 </a>
             </div>
         </article>
         {% empty %}
-        <p class="col-span-3 text-center text-gray-400 py-10">Faculties coming soon.</p>
+        <p class="col-span-3 text-center text-gray-400 py-10">Training tracks coming soon.</p>
         {% endfor %}
-    </div>
+        </div>
 
-    <div class="text-center">
-        <a href="{% url 'eduweb:all_programs' %}"
-        class="inline-flex items-center gap-2 bg-gradient-to-r from-primary-950 to-primary-700 text-white px-8 py-4 rounded-xl font-semibold text-base lg:text-lg hover:shadow-xl hover:scale-105 transition-all focus:outline-none focus:ring-2 focus:ring-primary-950 focus:ring-offset-2">
-            Explore All Faculties & Programs
-            <i data-lucide="graduation-cap" class="w-5 h-5"></i>
-        </a>
-    </div>
+        <div class="text-center">
+            <a href="{% url 'eduweb:all_programs' %}" class="btn-brand">
+                Explore All Training Programs
+                <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+            </a>
+        </div>
     </div>
 </section>
 {% endif %}
 
-<!-- Admissions Section -->
-<!-- Admissions & Financial Aid — compact two-column + tab panel -->
-<section id="admissions" class="relative py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-primary-950 via-purple-900 to-purple-800 overflow-hidden" aria-labelledby="admissions-heading">
+<!-- How to Apply Section -->
+<section id="apply" class="section-dark relative section-py overflow-hidden" aria-labelledby="apply-heading">
     <div class="absolute inset-0 opacity-10 pointer-events-none" aria-hidden="true">
-        <div class="absolute top-10 left-0 w-72 h-72 bg-purple-400 rounded-full blur-3xl"></div>
-        <div class="absolute bottom-0 right-0 w-96 h-96 bg-pink-400 rounded-full blur-3xl"></div>
+        <div class="absolute top-10 left-0 w-72 h-72 bg-accent-400 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 right-0 w-96 h-96 bg-accent-400 rounded-full blur-3xl"></div>
     </div>
 
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -451,278 +393,110 @@
         <!-- Header row — left-aligned on desktop, centred on mobile -->
         <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-8 sm:mb-10">
             <div>
-                <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-1.5 rounded-full text-xs font-semibold mb-3 border border-white/30">
-                    <i data-lucide="graduation-cap" class="w-3.5 h-3.5" aria-hidden="true"></i>
-                    <span>Start Your Journey</span>
-                </div>
-                <h2 id="admissions-heading" class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-white font-display leading-tight">
-                    Admissions &amp; Financial Aid
+                <span class="pill pill-cyan mb-3">Start Your Journey</span>
+                <h2 id="apply-heading" class="text-h2-brand text-white leading-tight">
+                    How to Apply
                 </h2>
-                <p class="text-purple-200 text-sm sm:text-base mt-2 max-w-xl">
-                    Quality education made accessible — simple process, real funding options.
+                <p class="text-body-lg-brand text-accent-200 mt-2 max-w-xl">
+                    A simple, transparent process to get you enrolled in a training track.
                 </p>
             </div>
             <!-- CTA buttons — inline on large, stacked on small -->
-            <div class="flex flex-col sm:flex-row lg:flex-col xl:flex-row gap-2 lg:gap-2 flex-shrink-0">
-                <a href="{% url 'eduweb:all_programs' %}" class="inline-flex items-center justify-center gap-2 bg-white text-primary-950 hover:bg-yellow-300 hover:text-gray-900 px-5 py-2.5 rounded-xl font-bold text-sm transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-950">
+            <div class="flex flex-col sm:flex-row gap-2 flex-shrink-0">
+                <a href="{% url 'eduweb:all_programs' %}" class="btn-brand">
                     <i data-lucide="send" class="w-4 h-4" aria-hidden="true"></i> Apply Now
                 </a>
-                <a href="{% url 'eduweb:admission_requirement' %}" class="inline-flex items-center justify-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-white/50">
+                <a href="{% url 'eduweb:admission_requirement' %}" class="btn-brand-outline">
                     <i data-lucide="file-text" class="w-4 h-4" aria-hidden="true"></i> View Requirements
                 </a>
             </div>
         </div>
 
-        <!-- Main panel: tab nav (left) + content (right) -->
-        <div class="bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl overflow-hidden">
-            <div class="flex flex-col lg:flex-row">
-
-                <!-- Tab navigation — horizontal strip on mobile, vertical sidebar on lg -->
-                <div class="lg:w-52 xl:w-60 flex-shrink-0 bg-white/5 border-b lg:border-b-0 lg:border-r border-white/10" role="tablist" aria-label="Admissions information tabs">
-                    <button onclick="admTab(this,'adm-process')"
-                        class="adm-tab active w-full flex items-center gap-3 px-5 py-4 text-left text-sm font-semibold text-white border-b border-white/10 lg:border-b lg:border-white/10 hover:bg-white/10 transition-all focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white/40"
-                        role="tab" aria-selected="true" aria-controls="adm-process">
-                        <i data-lucide="clipboard-check" class="w-4 h-4 flex-shrink-0" aria-hidden="true"></i>
-                        <span>Application Process</span>
-                    </button>
-                    <button onclick="admTab(this,'adm-aid')"
-                        class="adm-tab w-full flex items-center gap-3 px-5 py-4 text-left text-sm font-semibold text-white/60 border-b border-white/10 hover:bg-white/10 hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white/40"
-                        role="tab" aria-selected="false" aria-controls="adm-aid">
-                        <i data-lucide="piggy-bank" class="w-4 h-4 flex-shrink-0" aria-hidden="true"></i>
-                        <span>Financial Aid</span>
-                    </button>
-                    <button onclick="admTab(this,'adm-dates')"
-                        class="adm-tab w-full flex items-center gap-3 px-5 py-4 text-left text-sm font-semibold text-white/60 hover:bg-white/10 hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white/40"
-                        role="tab" aria-selected="false" aria-controls="adm-dates">
-                        <i data-lucide="calendar" class="w-4 h-4 flex-shrink-0" aria-hidden="true"></i>
-                        <span>Key Dates</span>
-                    </button>
-                </div>
-
-                <!-- Tab panels -->
-                <div class="flex-1 min-w-0">
-
-                    <!-- Panel 1: Application Process -->
-                    <div id="adm-process" class="adm-panel p-5 sm:p-6 lg:p-8" role="tabpanel" aria-labelledby="">
-                        <ol class="grid sm:grid-cols-2 gap-4">
-                            <li class="flex items-start gap-3">
-                                <div class="w-9 h-9 flex-shrink-0 bg-primary-950 text-white rounded-xl flex items-center justify-center font-bold text-sm shadow-md">1</div>
-                                <div>
-                                    <h4 class="font-bold text-white text-sm mb-0.5">Submit Application</h4>
-                                    <p class="text-purple-200 text-xs leading-relaxed">Complete our online form with academic records and personal statement.</p>
-                                </div>
-                            </li>
-                            <li class="flex items-start gap-3">
-                                <div class="w-9 h-9 flex-shrink-0 bg-primary-950 text-white rounded-xl flex items-center justify-center font-bold text-sm shadow-md">2</div>
-                                <div>
-                                    <h4 class="font-bold text-white text-sm mb-0.5">Academic Review</h4>
-                                    <p class="text-purple-200 text-xs leading-relaxed">Admissions team evaluates your credentials within 2–3 weeks.</p>
-                                </div>
-                            </li>
-                            <li class="flex items-start gap-3">
-                                <div class="w-9 h-9 flex-shrink-0 bg-primary-950 text-white rounded-xl flex items-center justify-center font-bold text-sm shadow-md">3</div>
-                                <div>
-                                    <h4 class="font-bold text-white text-sm mb-0.5">Interview Stage</h4>
-                                    <p class="text-purple-200 text-xs leading-relaxed">Virtual or in-person interview for select programs.</p>
-                                </div>
-                            </li>
-                            <li class="flex items-start gap-3">
-                                <div class="w-9 h-9 flex-shrink-0 bg-primary-950 text-white rounded-xl flex items-center justify-center font-bold text-sm shadow-md">4</div>
-                                <div>
-                                    <h4 class="font-bold text-white text-sm mb-0.5">Decision &amp; Enrollment</h4>
-                                    <p class="text-purple-200 text-xs leading-relaxed">Receive your decision and begin the enrollment process.</p>
-                                </div>
-                            </li>
-                        </ol>
-                        <div class="mt-5 pt-5 border-t border-white/10 flex items-center gap-2">
-                            <i data-lucide="users" class="w-4 h-4 text-purple-300" aria-hidden="true"></i>
-                            <span class="text-purple-200 text-xs">Admissions Team available 24/7</span>
-                            <span class="mx-2 text-white/20">|</span>
-                            <i data-lucide="shield-check" class="w-4 h-4 text-purple-300" aria-hidden="true"></i>
-                            <span class="text-purple-200 text-xs">Secure &amp; confidential process</span>
-                        </div>
+        <!-- Application steps -->
+        <div class="bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl p-5 sm:p-6 lg:p-8">
+            <ol class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <li class="flex items-start gap-3">
+                    <div class="w-9 h-9 flex-shrink-0 bg-accent-600 text-white rounded-xl flex items-center justify-center font-bold text-sm shadow-md">1</div>
+                    <div>
+                        <h4 class="font-bold text-white text-sm mb-0.5">Submit Application</h4>
+                        <p class="text-accent-200 text-xs leading-relaxed">Complete our online form with your background and goals.</p>
                     </div>
-
-                    <!-- Panel 2: Financial Aid -->
-                    <div id="adm-aid" class="adm-panel hidden p-5 sm:p-6 lg:p-8" role="tabpanel">
-                        <div class="grid sm:grid-cols-3 gap-4">
-                            <div class="bg-white/10 border border-white/15 rounded-xl p-4 hover:bg-white/15 transition-all">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <div class="w-8 h-8 bg-yellow-400/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <i data-lucide="award" class="w-4 h-4 text-yellow-300" aria-hidden="true"></i>
-                                    </div>
-                                    <h4 class="font-bold text-white text-sm">Scholarships</h4>
-                                </div>
-                                <p class="text-purple-200 text-xs leading-relaxed mb-2">Merit-based, up to 100% tuition coverage.</p>
-                                <ul class="space-y-1">
-                                    <li class="flex items-center gap-1.5 text-xs text-purple-200">
-                                        <i data-lucide="check" class="w-3 h-3 text-green-400 flex-shrink-0" aria-hidden="true"></i> Presidential: Full tuition
-                                    </li>
-                                    <li class="flex items-center gap-1.5 text-xs text-purple-200">
-                                        <i data-lucide="check" class="w-3 h-3 text-green-400 flex-shrink-0" aria-hidden="true"></i> Dean's Award: 50%
-                                    </li>
-                                    <li class="flex items-center gap-1.5 text-xs text-purple-200">
-                                        <i data-lucide="check" class="w-3 h-3 text-green-400 flex-shrink-0" aria-hidden="true"></i> Excellence Grant: 25%
-                                    </li>
-                                </ul>
-                            </div>
-                            <div class="bg-white/10 border border-white/15 rounded-xl p-4 hover:bg-white/15 transition-all">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <div class="w-8 h-8 bg-pink-400/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <i data-lucide="gift" class="w-4 h-4 text-pink-300" aria-hidden="true"></i>
-                                    </div>
-                                    <h4 class="font-bold text-white text-sm">Grants</h4>
-                                </div>
-                                <p class="text-purple-200 text-xs leading-relaxed">Need-based assistance that never requires repayment.</p>
-                            </div>
-                            <div class="bg-white/10 border border-white/15 rounded-xl p-4 hover:bg-white/15 transition-all">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <div class="w-8 h-8 bg-blue-400/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <i data-lucide="landmark" class="w-4 h-4 text-blue-300" aria-hidden="true"></i>
-                                    </div>
-                                    <h4 class="font-bold text-white text-sm">Student Loans</h4>
-                                </div>
-                                <p class="text-purple-200 text-xs leading-relaxed">Low-interest government &amp; private loan programs with deferred payment.</p>
-                            </div>
-                        </div>
-                        <div class="mt-5 pt-5 border-t border-white/10">
-                            <a href="#contact" class="inline-flex items-center gap-2 text-yellow-300 hover:text-yellow-200 text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-300 rounded">
-                                <i data-lucide="calculator" class="w-4 h-4" aria-hidden="true"></i> Calculate your financial aid
-                                <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
-                            </a>
-                        </div>
+                </li>
+                <li class="flex items-start gap-3">
+                    <div class="w-9 h-9 flex-shrink-0 bg-accent-600 text-white rounded-xl flex items-center justify-center font-bold text-sm shadow-md">2</div>
+                    <div>
+                        <h4 class="font-bold text-white text-sm mb-0.5">Application Review</h4>
+                        <p class="text-accent-200 text-xs leading-relaxed">Our team reviews your application within 2–3 weeks.</p>
                     </div>
-
-                    <!-- Panel 3: Key Dates -->
-                    <div id="adm-dates" class="adm-panel hidden p-5 sm:p-6 lg:p-8" role="tabpanel">
-                        <div class="grid sm:grid-cols-3 gap-4">
-                            <!-- Fall 2025 -->
-                            <div class="bg-white/10 border border-white/15 rounded-xl p-4 hover:bg-white/15 transition-all">
-                                <div class="flex items-center justify-between mb-2">
-                                    <h4 class="font-bold text-white text-sm">Fall 2025</h4>
-                                    <span class="bg-red-500/30 text-red-200 border border-red-400/30 px-2 py-0.5 rounded-full text-xs font-bold">Priority</span>
-                                </div>
-                                <p class="text-purple-300 text-xs mb-3">Semester Start: September 2025</p>
-                                <div class="space-y-1.5">
-                                    <div class="flex items-center gap-2 text-xs text-purple-200">
-                                        <i data-lucide="calendar-check" class="w-3.5 h-3.5 text-green-400 flex-shrink-0" aria-hidden="true"></i>
-                                        <span><strong class="text-white">Early:</strong> Mar 15, 2025</span>
-                                    </div>
-                                    <div class="flex items-center gap-2 text-xs text-purple-200">
-                                        <i data-lucide="calendar-x" class="w-3.5 h-3.5 text-red-400 flex-shrink-0" aria-hidden="true"></i>
-                                        <span><strong class="text-white">Final:</strong> Jun 15, 2025</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Spring 2026 -->
-                            <div class="bg-white/10 border border-white/15 rounded-xl p-4 hover:bg-white/15 transition-all">
-                                <div class="flex items-center justify-between mb-2">
-                                    <h4 class="font-bold text-white text-sm">Spring 2026</h4>
-                                </div>
-                                <p class="text-purple-300 text-xs mb-3">Semester Start: January 2026</p>
-                                <div class="space-y-1.5">
-                                    <div class="flex items-center gap-2 text-xs text-purple-200">
-                                        <i data-lucide="calendar-check" class="w-3.5 h-3.5 text-green-400 flex-shrink-0" aria-hidden="true"></i>
-                                        <span><strong class="text-white">Early:</strong> Sep 1, 2025</span>
-                                    </div>
-                                    <div class="flex items-center gap-2 text-xs text-purple-200">
-                                        <i data-lucide="calendar-x" class="w-3.5 h-3.5 text-red-400 flex-shrink-0" aria-hidden="true"></i>
-                                        <span><strong class="text-white">Final:</strong> Nov 1, 2025</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Scholarship Priority -->
-                            <div class="bg-white/10 border border-white/15 rounded-xl p-4 hover:bg-white/15 transition-all">
-                                <div class="flex items-center justify-between mb-2">
-                                    <h4 class="font-bold text-white text-sm">Scholarship Priority</h4>
-                                    <span class="bg-purple-500/30 text-purple-200 border border-purple-400/30 px-2 py-0.5 rounded-full text-xs font-bold">Funding</span>
-                                </div>
-                                <p class="text-purple-300 text-xs mb-3">For maximum consideration</p>
-                                <div class="flex items-center gap-2 text-xs text-purple-200">
-                                    <i data-lucide="star" class="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" aria-hidden="true"></i>
-                                    <span><strong class="text-white">Deadline:</strong> Mar 31, 2025</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mt-5 pt-5 border-t border-white/10">
-                            <p class="text-purple-300 text-xs flex items-center gap-2">
-                                <i data-lucide="bell" class="w-3.5 h-3.5" aria-hidden="true"></i>
-                                Apply early for the best scholarship consideration.
-                            </p>
-                        </div>
+                </li>
+                <li class="flex items-start gap-3">
+                    <div class="w-9 h-9 flex-shrink-0 bg-accent-600 text-white rounded-xl flex items-center justify-center font-bold text-sm shadow-md">3</div>
+                    <div>
+                        <h4 class="font-bold text-white text-sm mb-0.5">Interview Stage</h4>
+                        <p class="text-accent-200 text-xs leading-relaxed">Virtual or in-person interview for select programs.</p>
                     </div>
-
-                </div><!-- end tab panels -->
-            </div><!-- end flex row -->
-        </div><!-- end main panel -->
+                </li>
+                <li class="flex items-start gap-3">
+                    <div class="w-9 h-9 flex-shrink-0 bg-accent-600 text-white rounded-xl flex items-center justify-center font-bold text-sm shadow-md">4</div>
+                    <div>
+                        <h4 class="font-bold text-white text-sm mb-0.5">Decision &amp; Enrollment</h4>
+                        <p class="text-accent-200 text-xs leading-relaxed">Receive your decision and begin the enrollment process.</p>
+                    </div>
+                </li>
+            </ol>
+            <div class="mt-5 pt-5 border-t border-white/10 flex flex-wrap items-center gap-2">
+                <i data-lucide="users" class="w-4 h-4 text-accent-300" aria-hidden="true"></i>
+                <span class="text-accent-200 text-xs">Our team is here to help you through the process</span>
+                <span class="mx-2 text-white/20">|</span>
+                <i data-lucide="shield-check" class="w-4 h-4 text-accent-300" aria-hidden="true"></i>
+                <span class="text-accent-200 text-xs">Secure &amp; confidential process</span>
+            </div>
+        </div>
 
     </div>
 </section>
 
-<style>
-.adm-tab.active { background: rgba(255,255,255,0.15); color: #fff; border-left: 3px solid #fbbf24; }
-@media (max-width: 1023px) {
-    .adm-tab.active { border-left: none; border-bottom: 3px solid #fbbf24; }
-}
-</style>
-<script>
-function admTab(btn, panelId) {
-    document.querySelectorAll('.adm-tab').forEach(t => {
-        t.classList.remove('active');
-        t.setAttribute('aria-selected', 'false');
-        t.classList.add('text-white/60');
-        t.classList.remove('text-white');
-    });
-    document.querySelectorAll('.adm-panel').forEach(p => p.classList.add('hidden'));
-    btn.classList.add('active');
-    btn.setAttribute('aria-selected', 'true');
-    btn.classList.remove('text-white/60');
-    btn.classList.add('text-white');
-    document.getElementById(panelId).classList.remove('hidden');
-}
-</script>
-
 <!-- Testimonials Section -->
 {% if testimonials %}
-<section class="py-12 sm:py-16 lg:py-24 bg-gradient-to-br from-purple-50 via-pink-50 to-purple-100" aria-labelledby="testimonials-heading">
+<section class="section-py bg-gradient-to-br from-accent-50 via-accent-50 to-accent-100" aria-labelledby="testimonials-heading">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-10 sm:mb-12">
             <h2 id="testimonials-heading" class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary-950 mb-3 sm:mb-4 font-display">
-                What Our Students Say
+                What Our Clients Say
             </h2>
-            <p class="text-gray-600 text-base lg:text-lg">Hear from our global community of learners</p>
+            <p class="text-gray-600 text-base lg:text-lg">Hear from the people we've worked with</p>
         </div>
         <div id="testimonial" class="bg-white shadow-2xl rounded-2xl p-6 sm:p-8 md:p-12 max-w-4xl mx-auto relative" aria-live="polite" aria-atomic="true">
             <i data-lucide="quote" class="w-10 h-10 sm:w-16 sm:h-16 text-primary-950 mb-4 sm:mb-6" aria-hidden="true"></i>
             <blockquote>
                 <p id="testimonialQuote" class="italic text-gray-700 text-base sm:text-lg md:text-xl mb-6 sm:mb-8 leading-relaxed">
-                    {% with testimonials|first as first_t %}{{ first_t.quote|default:"MIU's flexible online platform allowed me to complete my MBA while working full-time. The faculty support was exceptional, and I've already seen career advancement." }}{% endwith %}
+                    {% with testimonials|first as first_t %}{{ first_t.quote|default:"Abraytech delivered exactly what we needed, on time and with clear communication throughout." }}{% endwith %}
                 </p>
             </blockquote>
             <div class="flex items-center">
                 <div id="testimonialAvatar" class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-primary-950 to-primary-700 rounded-full flex items-center justify-center text-white font-bold text-base sm:text-xl mr-3 sm:mr-4 flex-shrink-0 overflow-hidden" aria-hidden="true">
                     {% with testimonials|first as first_t %}
                         {% if first_t.avatar %}<img src="{{ first_t.avatar.url }}" alt="{{ first_t.author_name }}" class="w-full h-full object-cover">
-                        {% else %}{{ first_t.author_name|slice:":2"|upper|default:"SK" }}{% endif %}
+                        {% else %}{{ first_t.author_name|slice:":2"|upper|default:"AB" }}{% endif %}
                     {% endwith %}
                 </div>
                 <div>
-                    <p id="testimonialAuthor" class="font-bold text-base sm:text-lg text-gray-900">{% with testimonials|first as first_t %}{{ first_t.author_name|default:"Sarah K." }}{% endwith %}</p>
-                    <p id="testimonialRole" class="text-gray-600 text-sm sm:text-base">{% with testimonials|first as first_t %}{{ first_t.author_role|default:"MBA Graduate, 2023" }}{% endwith %}</p>
+                    <p id="testimonialAuthor" class="font-bold text-base sm:text-lg text-gray-900">{% with testimonials|first as first_t %}{{ first_t.author_name|default:"Client" }}{% endwith %}</p>
+                    <p id="testimonialRole" class="text-gray-600 text-sm sm:text-base">{% with testimonials|first as first_t %}{{ first_t.author_role|default:"" }}{% endwith %}</p>
                 </div>
             </div>
 
             <div class="flex justify-center mt-6 sm:mt-8 space-x-2" role="tablist" aria-label="Testimonials navigation">
                 {% for t in testimonials %}
-                <button class="testimonial-indicator w-3 h-3 rounded-full {% if forloop.first %}bg-primary-950 active{% else %}bg-purple-300 hover:bg-primary-950{% endif %} transition-all focus:outline-none focus:ring-2 focus:ring-primary-950"
+                <button class="testimonial-indicator w-3 h-3 rounded-full {% if forloop.first %}bg-primary-950 active{% else %}bg-accent-300 hover:bg-primary-950{% endif %} transition-all focus:outline-none focus:ring-2 focus:ring-primary-950"
                         data-index="{{ forloop.counter0 }}"
                         aria-label="Show testimonial {{ forloop.counter }}"
                         role="tab"
                         aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"></button>
                 {% empty %}
                 <button class="testimonial-indicator w-3 h-3 rounded-full bg-primary-950 active transition-all focus:outline-none focus:ring-2 focus:ring-primary-950" data-index="0" role="tab" aria-selected="true"></button>
-                <button class="testimonial-indicator w-3 h-3 rounded-full bg-purple-300 hover:bg-primary-950 transition-all focus:outline-none focus:ring-2 focus:ring-primary-950" data-index="1" role="tab" aria-selected="false"></button>
-                <button class="testimonial-indicator w-3 h-3 rounded-full bg-purple-300 hover:bg-primary-950 transition-all focus:outline-none focus:ring-2 focus:ring-primary-950" data-index="2" role="tab" aria-selected="false"></button>
+                <button class="testimonial-indicator w-3 h-3 rounded-full bg-accent-300 hover:bg-primary-950 transition-all focus:outline-none focus:ring-2 focus:ring-primary-950" data-index="1" role="tab" aria-selected="false"></button>
+                <button class="testimonial-indicator w-3 h-3 rounded-full bg-accent-300 hover:bg-primary-950 transition-all focus:outline-none focus:ring-2 focus:ring-primary-950" data-index="2" role="tab" aria-selected="false"></button>
                 {% endfor %}
             </div>
         </div>
@@ -731,7 +505,7 @@ function admTab(btn, panelId) {
 {% endif %}
 
 <!-- Contact Form Section -->
-<section id="contact" class="py-12 sm:py-16 lg:py-24 bg-white" aria-labelledby="contact-heading">
+<section id="contact" class="section-py bg-white" aria-labelledby="contact-heading">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-10 sm:mb-12 lg:mb-16">
             <div class="inline-flex items-center gap-2 bg-primary-100 text-primary-950 px-4 py-2 rounded-full text-sm font-semibold mb-4">
@@ -739,10 +513,10 @@ function admTab(btn, panelId) {
                 <span>Get In Touch</span>
             </div>
             <h2 id="contact-heading" class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary-950 mb-3 sm:mb-4 font-display">
-                Contact {{ site_config.school_short_name|default:"MIU" }}
+                Contact {{ site_config.school_short_name|default:"Abraytech" }}
             </h2>
             <p class="text-gray-600 max-w-2xl mx-auto text-base lg:text-lg leading-relaxed">
-                We're here to help you start your educational journey. Reach out for admissions, programs, or campus information.
+                Ready to start a project or have a question about our services? Reach out below.
             </p>
         </div>
 
@@ -776,21 +550,21 @@ function admTab(btn, panelId) {
                         <label for="contactName" class="block text-sm font-semibold text-gray-700 mb-2">
                             Your Name <span class="text-red-500">*</span>
                         </label>
-                        <input id="contactName" name="name" required type="text" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-950 focus:ring-4 focus:ring-purple-100 transition-all outline-none" placeholder="John Smith" />
+                        <input id="contactName" name="name" required type="text" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-950 focus:ring-4 focus:ring-accent-100 transition-all outline-none" placeholder="John Smith" />
                     </div>
 
                     <div>
                         <label for="contactEmail" class="block text-sm font-semibold text-gray-700 mb-2">
                             Your Email <span class="text-red-500">*</span>
                         </label>
-                        <input id="contactEmail" name="email" required type="email" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-950 focus:ring-4 focus:ring-purple-100 transition-all outline-none" placeholder="john@example.com" />
+                        <input id="contactEmail" name="email" required type="email" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-950 focus:ring-4 focus:ring-accent-100 transition-all outline-none" placeholder="john@example.com" />
                     </div>
 
                     <div>
                         <label for="contactSubject" class="block text-sm font-semibold text-gray-700 mb-2">
                             Subject
                         </label>
-                        <select id="contactSubject" name="subject" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-950 focus:ring-4 focus:ring-purple-100 transition-all outline-none bg-white">
+                        <select id="contactSubject" name="subject" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-950 focus:ring-4 focus:ring-accent-100 transition-all outline-none bg-white">
                             <option value="">Select a topic</option>
                             <option value="admissions">Admissions Inquiry</option>
                             <option value="programs">Program Information</option>
@@ -804,11 +578,11 @@ function admTab(btn, panelId) {
                         <label for="contactMessage" class="block text-sm font-semibold text-gray-700 mb-2">
                             Your Message <span class="text-red-500">*</span>
                         </label>
-                        <textarea id="contactMessage" name="message" required rows="5" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-950 focus:ring-4 focus:ring-purple-100 transition-all outline-none resize-none" placeholder="I'm interested in learning more about..."></textarea>
+                        <textarea id="contactMessage" name="message" required rows="5" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-950 focus:ring-4 focus:ring-accent-100 transition-all outline-none resize-none" placeholder="I'm interested in learning more about..."></textarea>
                     </div>
 
                     <!-- Bot Check -->
-                    <div class="bg-purple-50 border-2 border-purple-100 rounded-xl p-4">
+                    <div class="bg-accent-50 border-2 border-accent-100 rounded-xl p-4">
                         <label for="contactCaptcha" class="block text-sm font-semibold text-gray-700 mb-2">
                             <span class="flex items-center gap-2">
                                 <i data-lucide="shield-check" class="w-4 h-4 text-primary-950"></i>
@@ -819,7 +593,7 @@ function admTab(btn, panelId) {
                             What is <strong class="text-primary-950 font-bold text-base">{{ captcha_question }}</strong>?
                         </p>
                         <input id="contactCaptcha" name="captcha" required type="text" inputmode="numeric" pattern="[0-9]*"
-                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-950 focus:ring-4 focus:ring-purple-100 transition-all outline-none bg-white"
+                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-950 focus:ring-4 focus:ring-accent-100 transition-all outline-none bg-white"
                                placeholder="Enter the answer" autocomplete="off" />
                     </div>
 
@@ -842,7 +616,7 @@ function admTab(btn, panelId) {
                 {% if site_config.address_usa %}
                 <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all group border border-gray-100">
                     <div class="flex items-start gap-4">
-                        <div class="w-12 h-12 bg-gradient-to-br from-primary-100 to-purple-200 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                        <div class="w-12 h-12 bg-gradient-to-br from-primary-100 to-accent-200 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                             <i data-lucide="map-pin" class="w-6 h-6 text-primary-950"></i>
                         </div>
                         <div>
@@ -856,7 +630,7 @@ function admTab(btn, panelId) {
                 {% if site_config.email_admissions or site_config.email_info or site_config.email_international or site_config.email %}
                 <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all group border border-gray-100">
                     <div class="flex items-start gap-4">
-                        <div class="w-12 h-12 bg-gradient-to-br from-primary-100 to-purple-200 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                        <div class="w-12 h-12 bg-gradient-to-br from-primary-100 to-accent-200 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                             <i data-lucide="mail" class="w-6 h-6 text-primary-950"></i>
                         </div>
                         <div>
@@ -883,7 +657,7 @@ function admTab(btn, panelId) {
                 {% if site_config.phone_admissions or site_config.phone_general or site_config.phone_international or site_config.phone_primary %}
                 <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all group border border-gray-100">
                     <div class="flex items-start gap-4">
-                        <div class="w-12 h-12 bg-gradient-to-br from-primary-100 to-purple-200 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                        <div class="w-12 h-12 bg-gradient-to-br from-primary-100 to-accent-200 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                             <i data-lucide="phone" class="w-6 h-6 text-primary-950"></i>
                         </div>
                         <div>
@@ -913,7 +687,7 @@ function admTab(btn, panelId) {
                 {% if site_config.office_hours_weekday or site_config.office_hours_saturday or site_config.office_hours_sunday %}
                 <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all group border border-gray-100">
                     <div class="flex items-start gap-4">
-                        <div class="w-12 h-12 bg-gradient-to-br from-primary-100 to-purple-200 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                        <div class="w-12 h-12 bg-gradient-to-br from-primary-100 to-accent-200 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                             <i data-lucide="clock" class="w-6 h-6 text-primary-950"></i>
                         </div>
                         <div>
@@ -932,319 +706,79 @@ function admTab(btn, panelId) {
     </div>
 </section>
 
-<!-- Campus Map Section -->
-<section id="campus-map" class="py-12 sm:py-16 lg:py-24 bg-gradient-to-br from-purple-50 via-pink-50 to-purple-100" aria-labelledby="campus-heading">
+<!-- Find Us Section — only renders when real location data is configured -->
+{% if site_config.campus_map_embed_url or site_config.address_usa or site_config.address_nigeria %}
+<section id="find-us" class="section-py bg-gradient-to-br from-accent-50 via-accent-50 to-accent-100" aria-labelledby="find-us-heading">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-10 sm:mb-12">
             <div class="inline-flex items-center gap-2 bg-primary-100 text-primary-950 px-4 py-2 rounded-full text-sm font-semibold mb-4">
                 <i data-lucide="map" class="w-4 h-4" aria-hidden="true"></i>
-                <span>Our Locations</span>
+                <span>Find Us</span>
             </div>
-            <h2 id="campus-heading" class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary-950 mb-3 sm:mb-4 font-display">Find Our Campus</h2>
-            <p class="text-gray-600 max-w-2xl mx-auto text-base lg:text-lg">
-                Visit us at any of our Melchisedec facilities designed for excellence in education
-            </p>
+            <h2 id="find-us-heading" class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary-950 mb-3 sm:mb-4 font-display">Where We Work</h2>
         </div>
 
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 mb-10 sm:mb-12">
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all group border border-gray-100">
-                <div class="h-2 bg-gradient-to-r from-primary-950 to-primary-700"></div>
-                <div class="p-6">
-                    <div class="w-14 h-14 bg-gradient-to-br from-primary-100 to-purple-200 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <i data-lucide="building" class="w-7 h-7 text-primary-950"></i>
-                    </div>
-                    <h3 class="font-bold text-xl text-primary-950 mb-3 font-display">Main Campus</h3>
-                    <p class="text-gray-600 mb-4 text-sm leading-relaxed">
-                        Our flagship campus featuring state-of-the-art facilities, libraries, and research centers.
-                    </p>
-                    <div class="space-y-2 text-sm text-gray-500">
-                        <div class="flex items-start gap-2">
-                            <i data-lucide="map-pin" class="w-4 h-4 mt-0.5 flex-shrink-0 text-primary-950"></i>
-                            <div>
-                                <p class="font-medium text-gray-700">123 University Avenue</p>
-                                <p>Knowledge City, KC 10101</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all group border border-gray-100">
-                <div class="h-2 bg-gradient-to-r from-purple-600 to-purple-700"></div>
-                <div class="p-6">
-                    <div class="w-14 h-14 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <i data-lucide="laptop" class="w-7 h-7 text-purple-600"></i>
-                    </div>
-                    <h3 class="font-bold text-xl text-primary-950 mb-3 font-display">Technology Center</h3>
-                    <p class="text-gray-600 mb-4 text-sm leading-relaxed">
-                        Dedicated facility for computer science, engineering, and innovation labs.
-                    </p>
-                    <div class="space-y-2 text-sm text-gray-500">
-                        <div class="flex items-start gap-2">
-                            <i data-lucide="map-pin" class="w-4 h-4 mt-0.5 flex-shrink-0 text-purple-600"></i>
-                            <div>
-                                <p class="font-medium text-gray-700">456 Innovation Drive</p>
-                                <p>Tech Park, TP 20202</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all group sm:col-span-2 lg:col-span-1 border border-gray-100">
-                <div class="h-2 bg-gradient-to-r from-pink-500 to-pink-600"></div>
-                <div class="p-6">
-                    <div class="w-14 h-14 bg-gradient-to-br from-pink-100 to-pink-200 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <i data-lucide="globe" class="w-7 h-7 text-pink-600"></i>
-                    </div>
-                    <h3 class="font-bold text-xl text-primary-950 mb-3 font-display">International Center</h3>
-                    <p class="text-gray-600 mb-4 text-sm leading-relaxed">
-                        Global affairs office and support center for international students.
-                    </p>
-                    <div class="space-y-2 text-sm text-gray-500">
-                        <div class="flex items-start gap-2">
-                            <i data-lucide="map-pin" class="w-4 h-4 mt-0.5 flex-shrink-0 text-pink-600"></i>
-                            <div>
-                                <p class="font-medium text-gray-700">789 Global Plaza</p>
-                                <p>International District, ID 30303</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        {% if site_config.campus_map_embed_url %}
         <div class="relative rounded-2xl lg:rounded-3xl overflow-hidden shadow-2xl">
-            <div class="relative w-full h-72 sm:h-96 md:h-[500px] lg:h-[600px]">
-                {% if site_config.campus_map_embed_url %}
-                <div class="absolute inset-0 w-full h-full [&>iframe]:w-full [&>iframe]:h-full [&>iframe]:border-0">{{ site_config.campus_map_embed_url|safe }}</div>
-                {% else %}
-                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3024.177858804427!2d-73.98784468459426!3d40.70555167933205!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25a315cdf4c9b%3A0x8b934de5cae6f7a!2sFinancial%20District%2C%20New%20York%2C%20NY%2C%20USA!5e0!3m2!1sen!2s!4v1648561234567!5m2!1sen!2s" class="absolute inset-0 w-full h-full border-0" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="{{ site_config.school_short_name|default:'MIU' }} Main Campus Location Map" aria-label="Google Map showing {{ site_config.school_short_name|default:'MIU' }} Main Campus location"></iframe>
-                {% endif %}
-
+            <div class="relative w-full h-72 sm:h-96 md:h-hero-media lg:h-hero-media-lg">
+                <div class="absolute inset-0 w-full h-full promo-video-embed">{{ site_config.campus_map_embed_url|safe }}</div>
                 <div class="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-auto sm:max-w-sm bg-primary-950/95 backdrop-blur-md text-white p-5 sm:p-6 rounded-xl shadow-2xl">
-                    <div class="flex items-start gap-3 mb-4">
+                    <div class="flex items-start gap-3">
                         <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
                             <i data-lucide="map-pin" class="w-5 h-5 text-primary-950"></i>
                         </div>
                         <div>
-                            <h4 class="font-bold text-lg mb-1">{{ site_config.school_short_name|default:"MIU" }} Main Campus</h4>
+                            <h4 class="font-bold text-lg mb-1">{{ site_config.school_short_name|default:"Abraytech" }}</h4>
                             <p class="text-sm text-gray-200">{{ site_config.campus_map_address|default:site_config.address_usa|linebreaksbr }}</p>
                         </div>
                     </div>
-                    <a href="https://maps.google.com/?q={{ site_config.campus_map_address|default:site_config.address_usa|urlencode }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-white font-semibold hover:text-gray-200 transition-colors text-sm group">
-                        <i data-lucide="navigation" class="w-4 h-4"></i>
-                        Get Directions
-                        <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-                    </a>
                 </div>
             </div>
         </div>
-
-        <div class="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-            <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all group border border-gray-100">
-                <div class="flex items-start gap-4">
-                    <div class="w-12 h-12 bg-gradient-to-br from-primary-100 to-purple-200 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                        <i data-lucide="train" class="w-6 h-6 text-primary-950"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-lg text-primary-950 mb-2">Public Transit</h4>
-                        <p class="text-gray-600 text-sm leading-relaxed">
-                            Take Metro Line 1 to University Station. Campus is a 5-minute walk from exit B.
-                        </p>
-                    </div>
+        {% else %}
+        <div class="grid sm:grid-cols-2 gap-5 sm:gap-6 max-w-3xl mx-auto">
+            {% if site_config.address_usa %}
+            <div class="light-card p-6">
+                <div class="flex items-start gap-3">
+                    <i data-lucide="map-pin" class="w-5 h-5 mt-0.5 flex-shrink-0 text-primary-950"></i>
+                    <p class="text-gray-700 text-sm leading-relaxed">{{ site_config.address_usa|linebreaksbr }}</p>
                 </div>
             </div>
-
-            <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all group border border-gray-100">
-                <div class="flex items-start gap-4">
-                    <div class="w-12 h-12 bg-gradient-to-br from-primary-100 to-purple-200 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                        <i data-lucide="car" class="w-6 h-6 text-primary-950"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-lg text-primary-950 mb-2">Parking</h4>
-                        <p class="text-gray-600 text-sm leading-relaxed">
-                            Visitor parking available in Lot A. Daily parking pass: $10. Free on weekends.
-                        </p>
-                    </div>
+            {% endif %}
+            {% if site_config.address_nigeria %}
+            <div class="light-card p-6">
+                <div class="flex items-start gap-3">
+                    <i data-lucide="map-pin" class="w-5 h-5 mt-0.5 flex-shrink-0 text-primary-950"></i>
+                    <p class="text-gray-700 text-sm leading-relaxed">{{ site_config.address_nigeria|linebreaksbr }}</p>
                 </div>
             </div>
-
-            <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all group sm:col-span-2 lg:col-span-1 border border-gray-100">
-                <div class="flex items-start gap-4">
-                    <div class="w-12 h-12 bg-gradient-to-br from-primary-100 to-purple-200 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                        <i data-lucide="plane" class="w-6 h-6 text-primary-950"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-lg text-primary-950 mb-2">From Airport</h4>
-                        <p class="text-gray-600 text-sm leading-relaxed">
-                            25 minutes from International Airport. Taxi/Uber available. Airport shuttle every 30 mins.
-                        </p>
-                    </div>
-                </div>
-            </div>
+            {% endif %}
         </div>
+        {% endif %}
     </div>
 </section>
-
-<style>
-    /* ========================================
-   REPLACE LINES 1056-1082 in the <style> block with this CSS
-   ======================================== */
-
-/* Hero Section Enhancements */
-.hero-bg {
-    will-change: opacity;
-    transform: translateZ(0);
-    backface-visibility: hidden;
-}
-
-.hero-bg.active {
-    opacity: 1;
-    z-index: 1;
-}
-
-.hero-bg video,
-.hero-bg > div {
-    transform: scale(1.05);
-    transition: transform 20s ease-out;
-}
-
-.hero-bg.active video,
-.hero-bg.active > div {
-    transform: scale(1);
-}
-
-/* Optimized image loading with blur-up effect */
-.hero-bg[data-type="image"] > div {
-    background-size: cover;
-    background-position: center;
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
-}
-
-/* Button hover effects with proper text color */
-a[href*="programs"] .relative.z-10,
-a[href="{% url 'eduweb:admission_requirement' %}"] .relative.z-10,
-a[href*="eduweb:index"] .relative.z-10 {
-    transition: color 0.3s ease;
-}
-
-a[href*="eduweb:index"]:hover .relative.z-10 span {
-    color: white;
-}
-
-a[href="{% url 'eduweb:admission_requirement' %}"]:hover .relative.z-10 span {
-    color: #840384;
-}
-
-/* Progress indicator animations */
-.hero-indicator {
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-}
-
-.hero-indicator.active {
-    background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%);
-    height: 0.5rem;
-}
-
-.hero-indicator:not(.active):hover {
-    background-color: rgba(255, 255, 255, 0.7);
-}
-
-/* Smooth transitions for accessibility */
-@media (prefers-reduced-motion: reduce) {
-    .hero-bg,
-    .hero-bg video,
-    .hero-bg > div,
-    .hero-indicator {
-        transition: none !important;
-        animation: none !important;
-    }
-}
-
-/* Video loading optimization */
-.hero-bg video {
-    object-fit: cover;
-    width: 100%;
-    height: 100%;
-}
-
-/* Improved gradient overlays for better text contrast */
-.hero-bg .bg-gradient-to-b {
-    background: linear-gradient(
-        to bottom,
-        rgba(0, 0, 0, 0.6) 0%,
-        rgba(0, 0, 0, 0.5) 40%,
-        rgba(0, 0, 0, 0.7) 100%
-    );
-}
-
-/* Enhanced button shadows and interactions */
-@media (min-width: 640px) {
-    a[href*="eduweb:index"]:hover,
-    a[href="{% url 'eduweb:admission_requirement' %}"]:hover {
-        transform: scale(1.05) translateY(-2px);
-    }
-}
-
-/* Responsive text sizing optimization */
-@media (max-width: 640px) {
-    h1 {
-        font-size: clamp(1.75rem, 8vw, 3rem);
-        line-height: 1.15;
-    }
-    /* Prevent hero buttons from overflowing on tiny screens */
-    .hero-cta-group {
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
-}
-
-/* Loading state for videos */
-.hero-bg video[poster] {
-    background-color: #1a1a1a;
-}
-
-/* Ensure proper layering */
-.hero-bg {
-    z-index: 0;
-}
-
-.hero-bg.active {
-    z-index: 1;
-}
-</style>
+{% endif %}
 
 {% endblock %}
 
-{% block extra_head %}
+{% block structured_data %}
 <!-- Structured Data for SEO -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "CollegeOrUniversity",
-  "name": "Melchisedec International University",
-  "alternateName": "MIU",
-  "description": "Melchisedec International University offers accredited secular and theological programs to students worldwide. Flexible online learning with 25,000+ students across 120+ countries.",
-  "foundingDate": "1995",
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": "123 University Avenue",
-    "addressLocality": "Knowledge City",
-    "postalCode": "KC 10101",
-    "addressCountry": "US"
-  },
+  "@type": "Organization",
+  "name": "{{ site_config.school_name|default:'Abraytech' }}",
+  "alternateName": "{{ site_config.school_short_name|default:'Abraytech' }}",
+  "description": "{{ site_config.meta_description|default:'Abraytech provides software development, cybersecurity, AI, IT consulting, and technology training.' }}",
+  "url": "{{ request.build_absolute_uri }}"{% if site_config.email or site_config.phone_primary %},
   "contactPoint": [
     {
       "@type": "ContactPoint",
-      "telephone": "+1-555-123-4567",
-      "contactType": "admissions",
-      "email": "admissions@miu.edu"
+      "contactType": "customer service"{% if site_config.phone_primary %},
+      "telephone": "{{ site_config.phone_primary }}"{% endif %}{% if site_config.email %},
+      "email": "{{ site_config.email }}"{% endif %}
     }
-  ]
+  ]{% endif %}
 }
 </script>
 {% endblock %}
@@ -1255,6 +789,7 @@ a[href="{% url 'eduweb:admission_requirement' %}"]:hover .relative.z-10 span {
     (function() {
         const heroBackgrounds = document.querySelectorAll('.hero-bg');
         const heroIndicators = document.querySelectorAll('.hero-indicator');
+        const heroDotButtons = document.querySelectorAll('.hero-dot-btn');
         const heroVideos = document.querySelectorAll('.hero-bg video');
         let currentBg = 0;
         let rotationTimer = null;
@@ -1288,13 +823,7 @@ a[href="{% url 'eduweb:admission_requirement' %}"]:hover .relative.z-10 span {
         // Update progress indicators
         function updateIndicators(index) {
             heroIndicators.forEach((indicator, i) => {
-                if (i === index) {
-                    indicator.classList.add('active');
-                    indicator.classList.remove('bg-white/40');
-                } else {
-                    indicator.classList.remove('active');
-                    indicator.classList.add('bg-white/40');
-                }
+                indicator.classList.toggle('active', i === index);
             });
         }
 
@@ -1366,8 +895,8 @@ a[href="{% url 'eduweb:admission_requirement' %}"]:hover .relative.z-10 span {
         }
 
         // Manual navigation via indicators
-        heroIndicators.forEach((indicator, index) => {
-            indicator.addEventListener('click', () => {
+        heroDotButtons.forEach((btn, index) => {
+            btn.addEventListener('click', () => {
                 isUserInteracting = true;
                 clearTimeout(rotationTimer);
                 showBackground(index);
@@ -1475,16 +1004,8 @@ a[href="{% url 'eduweb:admission_requirement' %}"]:hover .relative.z-10 span {
         }{% if not forloop.last %},{% endif %}
         {% empty %}
         {
-            quote: "MIU\u2019s flexible online platform allowed me to complete my MBA while working full-time. The faculty support was exceptional, and I\u2019ve already seen career advancement.",
-            author: "Sarah K.", role: "MBA Graduate, 2023", avatarImg: null, avatar: "SK"
-        },
-        {
-            quote: "The computer science program at MIU provided me with cutting-edge skills in AI and machine learning. I landed my dream job at a top tech company right after graduation.",
-            author: "Michael Chen", role: "Computer Science Graduate, 2024", avatarImg: null, avatar: "MC"
-        },
-        {
-            quote: "As an international student, I appreciated the global perspective and diverse community at MIU. The support services made my transition seamless and enriching.",
-            author: "Amara O.", role: "Health Sciences Graduate, 2023", avatarImg: null, avatar: "AO"
+            quote: "Abraytech delivered exactly what we needed, on time and with clear communication throughout.",
+            author: "Client", role: "", avatarImg: null, avatar: "AB"
         }
         {% endfor %}
     ];
@@ -1506,11 +1027,11 @@ a[href="{% url 'eduweb:admission_requirement' %}"]:hover .relative.z-10 span {
 
         document.querySelectorAll('.testimonial-indicator').forEach((indicator, i) => {
             if (i === index) {
-                indicator.classList.remove('bg-purple-300');
+                indicator.classList.remove('bg-accent-300');
                 indicator.classList.add('bg-primary-950', 'active');
             } else {
                 indicator.classList.remove('bg-primary-950', 'active');
-                indicator.classList.add('bg-purple-300');
+                indicator.classList.add('bg-accent-300');
             }
         });
     }

@@ -8,7 +8,6 @@ Included in:
 
 Parent base must load:
   • Tailwind CSS (compiled styles.css)
-  • Font Awesome 6
   • Lucide icons (vendored):
     <script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
 
@@ -20,23 +19,23 @@ MOBILE LAYOUT NOTE:
 {% endcomment %}
 
 {# ── FAB — always bottom-right ─────────────────────────────────── #}
-<div id="cb" class="fixed bottom-6 right-6 z-[9999]"
+<div id="cb" class="fixed bottom-6 right-6 z-chatbot-fab"
      role="complementary"
-     aria-label="{{ site_config.school_short_name|default:'Student' }} Life Chatbot">
+     aria-label="{{ site_config.school_short_name|default:'Abraytech' }} Chatbot">
     <button id="cbToggle"
             type="button"
-            class="relative w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-primary-950 to-primary-700
+            class="shadow-fab-hover relative w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-accent-400 to-accent-600
                    rounded-full flex items-center justify-center
                    shadow-2xl transition-all duration-300
-                   hover:scale-110 hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)]
-                   focus:outline-none focus:ring-4 focus:ring-primary-400 focus:ring-offset-2"
+                   hover:scale-110
+                   focus:outline-none focus:ring-4 focus:ring-accent-300 focus:ring-offset-2"
             aria-label="Open chat assistant"
             aria-expanded="false"
             aria-controls="cbWindow">
         <i data-lucide="message-circle" class="w-5 h-5 sm:w-8 sm:h-8 text-white pointer-events-none" aria-hidden="true"></i>
         <span id="cbBadge"
               class="absolute -top-1 -right-1 w-5 h-5 bg-accent-400 rounded-full
-                     flex items-center justify-center text-[10px] font-bold text-white
+                     flex items-center justify-center text-caption-brand font-bold text-white
                      opacity-0 scale-0 transition-all duration-300 pointer-events-none"
               aria-live="polite">1</span>
     </button>
@@ -46,15 +45,13 @@ MOBILE LAYOUT NOTE:
 {# Mobile: fixed inset-0 (true full screen, stays inside viewport)  #}
 {# Desktop sm+: fixed, JS positions it above the FAB                #}
 <div id="cbWindow"
-     class="fixed
+     class="cb-window-dims fixed
             inset-0 sm:inset-auto
-            sm:bottom-[5.5rem] sm:right-6
-            w-full sm:w-[22rem] md:w-96
-            h-full sm:h-[36rem] md:h-[40rem]
+            sm:right-6
             bg-white sm:rounded-2xl
             shadow-2xl
             border-0 sm:border sm:border-gray-200
-            z-[9998]
+            z-chatbot-window
             opacity-0 scale-95 pointer-events-none invisible
             transition-all duration-300 ease-out
             flex flex-col overflow-hidden"
@@ -77,18 +74,18 @@ MOBILE LAYOUT NOTE:
                          class="w-full h-full object-cover"
                          alt="{{ site_config.school_short_name|default:'Logo' }}"
                          loading="lazy"
-                         onerror="this.parentElement.innerHTML='<i class=\'fas fa-graduation-cap text-white text-sm\'></i>'">
+                         onerror="this.parentElement.innerHTML='<i data-lucide=\'graduation-cap\' class=\'w-4 h-4 text-white\'></i>'; if(window.lucide) window.lucide.createIcons();">
                 {% else %}
-                    <i class="fas fa-graduation-cap text-white text-sm" aria-hidden="true"></i>
+                    <i data-lucide="graduation-cap" class="w-4 h-4 text-white" aria-hidden="true"></i>
                 {% endif %}
             </div>
             <div class="min-w-0">
                 <h2 id="cbTitle" class="font-semibold text-sm leading-tight truncate">
-                    {{ site_config.school_short_name|default:"Student" }} Assistant
+                    {{ site_config.school_short_name|default:"Abraytech" }} Assistant
                 </h2>
                 <div class="flex items-center gap-1.5 mt-0.5">
                     <span id="cbStatusDot" class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shrink-0" aria-hidden="true"></span>
-                    <span id="cbStatus" class="text-[11px] text-white/80">Online</span>
+                    <span id="cbStatus" class="text-caption-brand text-white/80">Online</span>
                 </div>
             </div>
         </div>
@@ -96,7 +93,7 @@ MOBILE LAYOUT NOTE:
             <button id="cbEnd"
                     type="button"
                     class="hidden items-center gap-1.5 px-2.5 py-1.5 rounded-lg
-                           text-[11px] font-semibold text-red-200
+                           text-caption-brand font-semibold text-red-200
                            border border-red-400/40
                            hover:bg-red-500/25 hover:text-white hover:border-red-300/60
                            transition-all duration-200
@@ -122,10 +119,10 @@ MOBILE LAYOUT NOTE:
              aria-label="Start a new chat">
         <div class="w-14 h-14 bg-gradient-to-br from-primary-100 to-primary-200
                     rounded-2xl flex items-center justify-center mb-4 shadow-sm shrink-0">
-            <i class="fas fa-comments text-primary-700 text-xl" aria-hidden="true"></i>
+            <i data-lucide="message-circle" class="w-5 h-5 text-primary-700" aria-hidden="true"></i>
         </div>
         <h3 class="font-semibold text-gray-800 text-base mb-1 shrink-0">Start a conversation</h3>
-        <p class="text-xs text-gray-500 text-center mb-5 leading-relaxed max-w-[220px] shrink-0">
+        <p class="text-xs text-gray-500 text-center mb-5 leading-relaxed max-w-cb-hint shrink-0">
             Quick check before we connect you — answer below to start chatting.
         </p>
         {% comment %}
@@ -139,7 +136,7 @@ MOBILE LAYOUT NOTE:
                           text-gray-800 placeholder-gray-400
                           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
                           transition-all duration-200">
-            <p id="cbFnErr" class="hidden text-[11px] text-red-500 mt-1 px-1" role="alert"></p>
+            <p id="cbFnErr" class="hidden text-caption-brand text-red-500 mt-1 px-1" role="alert"></p>
         </div>
         <div>
             <label for="cbEmail" class="block text-xs font-medium text-gray-600 mb-1">Email address</label>
@@ -149,7 +146,7 @@ MOBILE LAYOUT NOTE:
                           text-gray-800 placeholder-gray-400
                           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
                           transition-all duration-200">
-            <p id="cbEmErr" class="hidden text-[11px] text-red-500 mt-1 px-1" role="alert"></p>
+            <p id="cbEmErr" class="hidden text-caption-brand text-red-500 mt-1 px-1" role="alert"></p>
         </div>
         {% endcomment %}
         <form id="cbPrechatForm" class="w-full space-y-3 shrink-0" novalidate>
@@ -169,7 +166,7 @@ MOBILE LAYOUT NOTE:
                               text-gray-800 placeholder-gray-400
                               focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
                               transition-all duration-200">
-                <p id="cbCaptchaErr" class="hidden text-[11px] text-red-500 mt-1 px-1" role="alert"></p>
+                <p id="cbCaptchaErr" class="hidden text-caption-brand text-red-500 mt-1 px-1" role="alert"></p>
             </div>
             <button type="submit" id="cbStartBtn"
                     class="w-full py-2.5 px-4 bg-gradient-to-r from-primary-700 to-primary-900
@@ -202,7 +199,7 @@ MOBILE LAYOUT NOTE:
         <div class="flex items-end gap-2">
             <div class="w-7 h-7 bg-gradient-to-br from-primary-700 to-primary-900
                         rounded-full flex items-center justify-center
-                        text-white text-[10px] font-bold shrink-0">AI</div>
+                        text-white text-caption-brand font-bold shrink-0">AI</div>
             <div class="bg-white rounded-2xl rounded-bl-sm px-3 py-2.5
                         shadow-sm border border-gray-100 inline-flex items-center gap-1">
                 <span class="cb-dot w-1.5 h-1.5 bg-gray-400 rounded-full"></span>
@@ -253,7 +250,7 @@ MOBILE LAYOUT NOTE:
     <div id="cbQuickActions"
          class="hidden px-3 py-2 bg-white border-t border-gray-100 shrink-0"
          aria-label="Quick topics">
-        <p class="text-[10px] text-gray-400 uppercase tracking-wider font-medium mb-1.5">Quick topics</p>
+        <p class="text-caption-brand text-gray-400 uppercase tracking-wider font-medium mb-1.5">Quick topics</p>
         <div class="flex flex-wrap gap-1.5">
             <button type="button" class="cb-topic px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs font-medium text-gray-600 hover:border-primary-400 hover:bg-primary-50 hover:text-primary-700 active:scale-95 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary-400">Programs</button>
             <button type="button" class="cb-topic px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs font-medium text-gray-600 hover:border-primary-400 hover:bg-primary-50 hover:text-primary-700 active:scale-95 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary-400">Admissions</button>
@@ -283,8 +280,8 @@ MOBILE LAYOUT NOTE:
                                  transition-all duration-200 resize-none leading-snug max-h-28 overflow-y-auto"
                           aria-label="Message input"></textarea>
                 <div class="flex justify-between items-center mt-0.5 px-0.5 pb-0.5">
-                    <span class="text-[10px] text-gray-300">Shift+Enter for new line</span>
-                    <span id="cbCharCount" class="text-[10px] text-gray-300" aria-live="polite">0/500</span>
+                    <span class="text-caption-brand text-gray-300">Shift+Enter for new line</span>
+                    <span id="cbCharCount" class="text-caption-brand text-gray-300" aria-live="polite">0/500</span>
                 </div>
             </div>
             <button type="submit" id="cbSend" disabled
@@ -301,50 +298,6 @@ MOBILE LAYOUT NOTE:
     </div>
 
 </div>{# /cbWindow #}
-
-
-<style>
-    /* Typing bounce */
-    @keyframes cbBounce {
-        0%, 80%, 100% { transform: translateY(0); opacity: .5; }
-        40%            { transform: translateY(-5px); opacity: 1; }
-    }
-    .cb-dot { animation: cbBounce 1.2s ease-in-out infinite; }
-
-    /* Message + confirm entrance */
-    @keyframes cbIn {
-        from { opacity: 0; transform: translateY(6px); }
-        to   { opacity: 1; transform: translateY(0); }
-    }
-    .cb-msg { animation: cbIn 0.22s ease-out both; }
-    #cbEndConfirm:not(.hidden) { animation: cbIn 0.2s ease-out both; }
-
-    /* Slim scrollbar */
-    #cbMessages::-webkit-scrollbar { width: 3px; }
-    #cbMessages::-webkit-scrollbar-track { background: transparent; }
-    #cbMessages::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 99px; }
-
-    /* Textarea smooth grow */
-    #cbInput { transition: height 0.1s ease; }
-
-    /* On mobile ensure nothing overflows viewport */
-    @media (max-width: 639px) {
-        #cbWindow {
-            /* Explicit pixel fallback for browsers without dvh support */
-            height: 100vh;
-            height: 100dvh;
-            /* Never exceed viewport */
-            max-height: 100dvh;
-            max-width: 100vw;
-        }
-    }
-
-    /* Reduced motion */
-    @media (prefers-reduced-motion: reduce) {
-        .cb-msg, .cb-dot, #cbEndConfirm { animation: none !important; }
-        #cbWindow { transition: none !important; }
-    }
-</style>
 
 
 <script>
@@ -509,7 +462,7 @@ MOBILE LAYOUT NOTE:
 
         if (sender === 'user') {
             row.innerHTML = `
-                <div class="max-w-[82%]">
+                <div class="max-w-cb-bubble">
                   <div class="bg-gradient-to-br from-primary-700 to-primary-900
                               text-white rounded-2xl rounded-br-none px-4 py-2.5 shadow-sm">
                     <p class="text-sm leading-relaxed whitespace-pre-wrap break-words">${esc(text)}</p>
@@ -517,15 +470,15 @@ MOBILE LAYOUT NOTE:
                 </div>
                 <div class="w-7 h-7 bg-gradient-to-br from-primary-500 to-primary-700
                             rounded-full flex items-center justify-center
-                            text-white text-[10px] font-bold shrink-0 mb-0.5"
+                            text-white text-caption-brand font-bold shrink-0 mb-0.5"
                      aria-hidden="true">${initial}</div>`;
         } else {
             row.innerHTML = `
                 <div class="w-7 h-7 bg-gradient-to-br from-primary-700 to-primary-900
                             rounded-full flex items-center justify-center
-                            text-white text-[10px] font-bold shrink-0 mb-0.5"
+                            text-white text-caption-brand font-bold shrink-0 mb-0.5"
                      aria-hidden="true">AI</div>
-                <div class="max-w-[82%]">
+                <div class="max-w-cb-bubble">
                   <div class="bg-white rounded-2xl rounded-bl-none px-4 py-2.5
                               shadow-sm border border-gray-100">
                     <p class="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap break-words">${fmtBot(text)}</p>

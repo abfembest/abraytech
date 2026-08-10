@@ -24,7 +24,7 @@ from django.template import Library
 from .models import (
     Faculty, Program, CourseApplication,
     Message, Notification, SupportTicket, ContactMessage,
-    SiteConfig, AcademicSession, StudentExamResponse,
+    SiteConfig, AcademicSession, StudentExamResponse, Service,
 )
 
 logger = logging.getLogger(__name__)
@@ -116,10 +116,22 @@ def navigation_data(request):
     except Exception:
         logger.exception('navigation_data: failed to check pending application')
 
+    # Services nav dropdown
+    try:
+        nav_services = list(
+            Service.objects
+            .filter(is_active=True)
+            .order_by('created_at')[:8]
+        )
+    except Exception:
+        logger.exception('navigation_data: failed to fetch services')
+        nav_services = []
+
     return {
         'all_faculties': faculties,
         'all_courses': courses,
         'has_pending_application': has_pending_application,
+        'nav_services': nav_services,
     }
 
 

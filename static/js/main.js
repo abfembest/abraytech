@@ -26,9 +26,9 @@ window.addEventListener('load', function () {
             customClass: {
                 popup: 'rounded-xl shadow-2xl border-l-4',
                 title: 'text-sm font-semibold',
-                timerProgressBar: 'bg-gradient-to-r from-primary-950 to-purple-700'
+                timerProgressBar: 'bg-gradient-to-r from-primary-950 to-primary-700'
             },
-            iconColor: '#840384',
+            iconColor: '#06b6d4',
             background: '#ffffff'
         });
     }
@@ -118,9 +118,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    setupMobileDropdown('mobileFacultiesBtn', 'mobileFacultiesMenu', 'facultiesChevron');
-    setupMobileDropdown('mobileProgramsBtn',  'mobileProgramsMenu',  'programsChevron');
-    setupMobileDropdown('mobileMoreBtn',      'mobileMoreMenu',      'moreChevron');
+    setupMobileDropdown('mobileServicesBtn',  'mobileServicesMenu',  'servicesChevron');
+    setupMobileDropdown('mobileTrainingBtn',  'mobileTrainingMenu',  'trainingChevron');
 
     // ── Desktop Dropdown Handlers ────────────────────────────────────────────
     document.querySelectorAll('.relative.group').forEach(function (dropdown) {
@@ -218,5 +217,15 @@ document.addEventListener('DOMContentLoaded', function () {
             header.classList.toggle('shadow-xl', window.pageYOffset > 50);
         });
     }
+});
 
-}); // end DOMContentLoaded
+// ── Homepage hero slide backgrounds (data-hero-bg -> CSS background-image) ──
+// Avoids inline style="" attributes in index.html; the image URL is dynamic
+// per-slide (site_config upload or a static fallback), so it can't be a
+// plain CSS class — this applies it via jQuery instead.
+$(document).ready(function () {
+    $('[data-hero-bg]').each(function () {
+        const url = $(this).data('hero-bg');
+        if (url) $(this).css('background-image', "url('" + url + "')");
+    });
+});

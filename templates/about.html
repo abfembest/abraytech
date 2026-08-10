@@ -1,19 +1,19 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}About {{ site_config.school_short_name|default:"MELBAC" }} — {{ site_config.school_name|default:"Melchisedec Graduate Bible Academy" }} | Our Story, Mission &amp; Leadership{% endblock %}
+{% block title %}About {{ site_config.school_short_name|default:"Abraytech" }} — {{ site_config.school_name|default:"Abraytech" }} | Our Story, Mission &amp; Leadership{% endblock %}
 
 {% block meta_tags %}
-<meta name="description" content="Learn about {{ site_config.school_name|default:'Melchisedec Graduate Bible Academy' }} — a non-denominational, non-profit Christian seminary training end-time ministers of God, free of charge, since 1995. Discover our story, mission, vision, leadership and accreditations.">
-<meta name="keywords" content="{{ site_config.school_name|default:'Melchisedec Graduate Bible Academy' }}, {{ site_config.school_short_name|default:'MELBAC' }}, Christian seminary, Bible academy Nigeria, free theological education, ministerial training, non-denominational university">
+<meta name="description" content="Learn about {{ site_config.school_name|default:'Abraytech' }} — a technology company delivering software development, cybersecurity, AI, IT consulting and training. Discover our story, mission, vision, leadership and accreditations.">
+<meta name="keywords" content="{{ site_config.school_name|default:'Abraytech' }}, software development, cybersecurity, AI, IT consulting, technology training">
 <meta name="robots" content="index, follow">
-<meta name="author" content="{{ site_config.school_name|default:'Melchisedec Graduate Bible Academy' }}">
+<meta name="author" content="{{ site_config.school_name|default:'Abraytech' }}">
 {% endblock %}
 
 {% block og_tags %}
 <meta property="og:type" content="website">
-<meta property="og:title" content="About {{ site_config.school_short_name|default:'MELBAC' }} — {{ site_config.school_name|default:'Melchisedec Graduate Bible Academy' }}">
-<meta property="og:description" content="A non-denominational, non-profit Christian education and seminary institution training end-time ministers of God, free of charge, since 1995.">
+<meta property="og:title" content="About {{ site_config.school_short_name|default:'Abraytech' }} — {{ site_config.school_name|default:'Abraytech' }}">
+<meta property="og:description" content="A technology company delivering software development, cybersecurity, AI, IT consulting and training.">
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
 {% if site_config.og_image %}<meta property="og:image" content="{{ site_config.og_image.url }}">{% endif %}
 {% endblock %}
@@ -22,18 +22,11 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "EducationalOrganization",
-  "name": "{{ site_config.school_name|default:'Melchisedec Graduate Bible Academy'|escapejs }}",
-  "alternateName": "{{ site_config.school_short_name|default:'MELBAC'|escapejs }}",
-  "description": "A non-denominational, non-profit Christian education and seminary institution established in 1995.",
-  "url": "{{ request.build_absolute_uri }}",
-  "foundingDate": "1995",
-  "address": {
-    "@type": "PostalAddress",
-    "addressLocality": "Lagos",
-    "addressCountry": "NG"
-  },
-  "sameAs": []
+  "@type": "Organization",
+  "name": "{{ site_config.school_name|default:'Abraytech'|escapejs }}",
+  "alternateName": "{{ site_config.school_short_name|default:'Abraytech'|escapejs }}",
+  "description": "A technology company delivering software development, cybersecurity, AI, IT consulting and training.",
+  "url": "{{ request.build_absolute_uri }}"
 }
 </script>
 {% endblock %}
@@ -50,7 +43,7 @@
   <!-- Decorative blobs -->
   <div class="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
     <div class="absolute top-10 left-4 sm:left-10 w-40 h-40 sm:w-64 sm:h-64 lg:w-72 lg:h-72 bg-accent-400 rounded-full blur-3xl opacity-10"></div>
-    <div class="absolute bottom-6 right-4 sm:right-10 w-48 h-48 sm:w-72 sm:h-72 lg:w-96 lg:h-96 bg-purple-400 rounded-full blur-3xl opacity-10"></div>
+    <div class="absolute bottom-6 right-4 sm:right-10 w-48 h-48 sm:w-72 sm:h-72 lg:w-96 lg:h-96 bg-accent-400 rounded-full blur-3xl opacity-10"></div>
   </div>
 
   <div class="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-24 sm:pt-28 lg:pt-18 pb-14 sm:pb-18 lg:pb-24">
@@ -83,19 +76,19 @@
 
     <!-- Heading -->
     <h1 id="about-heading"
-        class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold font-['Poppins'] leading-tight mb-5 sm:mb-6 text-white">
+        class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold font-heading leading-tight mb-5 sm:mb-6 text-white">
       About<br>
-      {% with name=site_config.school_name|default:"Melchisedec Graduate Bible Academy" %}
+      {% with name=site_config.school_name|default:"Abraytech" %}
         {% with words=name.split %}
           {% for word in words %}
-            {% if not forloop.last %}{{ word }} {% else %}<br><span class="text-accent-400">{{ word }}</span>{% endif %}
+            {% if not forloop.last %}{{ word }} {% else %}{% if not forloop.first %}<br>{% endif %}<span class="text-accent-400">{{ word }}</span>{% endif %}
           {% endfor %}
         {% endwith %}
       {% endwith %}
     </h1>
 
     <p class="text-base sm:text-lg lg:text-xl xl:text-2xl text-gray-200 leading-relaxed max-w-2xl lg:max-w-3xl mb-8 sm:mb-10">
-      A non-denominational, non-profit Christian education and seminary institution — training end-time ministers of God, free of charge, since 1995.
+      {{ site_config.about_mission|default:"A technology company delivering software development, cybersecurity, AI, IT consulting and training to clients worldwide." }}
     </p>
 
     <!-- CTA buttons -->
@@ -117,68 +110,9 @@
 
 
 <!-- ═══════════════════════════════════════════════════════
-     QUICK STATS
-═══════════════════════════════════════════════════════ -->
-<section class="py-10 sm:py-14 lg:py-20 bg-gradient-to-br from-gray-50 to-purple-50"
-         aria-label="Key facts and statistics">
-  <div class="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-
-      {% with stats="1995,Year Founded,calendar|2007,Govt. Approved,landmark|3,Degree Levels,graduation-cap|100%,Free Tuition,badge-check" %}
-      <!-- 1995 -->
-      <article class="group p-5 sm:p-6 lg:p-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-        <div class="flex items-center justify-center mb-3 sm:mb-4" aria-hidden="true">
-          <i data-lucide="calendar" class="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-primary-600"></i>
-        </div>
-        <div class="text-center">
-          <div class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-primary-700 mb-1 sm:mb-2 font-['Poppins']">1995</div>
-          <div class="text-gray-600 font-medium text-xs sm:text-sm lg:text-base">Year Founded</div>
-        </div>
-      </article>
-
-      <!-- 2007 -->
-      <article class="group p-5 sm:p-6 lg:p-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-        <div class="flex items-center justify-center mb-3 sm:mb-4" aria-hidden="true">
-          <i data-lucide="landmark" class="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-primary-600"></i>
-        </div>
-        <div class="text-center">
-          <div class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-primary-700 mb-1 sm:mb-2 font-['Poppins']">2007</div>
-          <div class="text-gray-600 font-medium text-xs sm:text-sm lg:text-base">Govt. Approved</div>
-        </div>
-      </article>
-
-      <!-- 3 -->
-      <article class="group p-5 sm:p-6 lg:p-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-        <div class="flex items-center justify-center mb-3 sm:mb-4" aria-hidden="true">
-          <i data-lucide="graduation-cap" class="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-primary-600"></i>
-        </div>
-        <div class="text-center">
-          <div class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-primary-700 mb-1 sm:mb-2 font-['Poppins']">3</div>
-          <div class="text-gray-600 font-medium text-xs sm:text-sm lg:text-base">Degree Levels</div>
-        </div>
-      </article>
-
-      <!-- 100% -->
-      <article class="group p-5 sm:p-6 lg:p-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-        <div class="flex items-center justify-center mb-3 sm:mb-4" aria-hidden="true">
-          <i data-lucide="badge-check" class="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-primary-600"></i>
-        </div>
-        <div class="text-center">
-          <div class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-primary-700 mb-1 sm:mb-2 font-['Poppins']">100%</div>
-          <div class="text-gray-600 font-medium text-xs sm:text-sm lg:text-base">Free Tuition</div>
-        </div>
-      </article>
-      {% endwith %}
-
-    </div>
-  </div>
-</section>
-
-
-<!-- ═══════════════════════════════════════════════════════
      WHO WE ARE
 ═══════════════════════════════════════════════════════ -->
-<section class="py-12 sm:py-16 lg:py-24 bg-white" id="who-we-are" aria-labelledby="who-heading">
+<section class="section-py bg-white" id="who-we-are" aria-labelledby="who-heading">
   <div class="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
 
     <!-- Section header -->
@@ -189,13 +123,13 @@
         <span>Our Identity</span>
       </div>
       <h2 id="who-heading"
-          class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-primary-950 font-['Poppins']">
+          class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-primary-950 font-heading">
         Who We Are
       </h2>
     </div>
 
     <!-- ── Two-column: Founder photo  +  Intro text ── -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-center">
 
       <!-- Founder photo -->
       <div class="order-2 lg:order-1">
@@ -210,7 +144,7 @@
                    itemprop="image">
               <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-primary-950/90 via-primary-950/50 to-transparent
                           px-4 sm:px-6 py-4 sm:py-6">
-                <p class="font-bold text-white text-base sm:text-lg font-['Poppins']"
+                <p class="font-bold text-white text-base sm:text-lg font-heading"
                    itemprop="name">{{ founder.name }}</p>
                 <p class="text-accent-300 text-xs sm:text-sm font-semibold"
                    itemprop="jobTitle">{{ founder.role }}</p>
@@ -222,17 +156,17 @@
                         aspect-square
                         flex flex-col items-center justify-center gap-4 sm:gap-5"
                  role="img"
-                 aria-label="{% if founder %}{{ founder.name }}, {{ founder.role }}{% else %}Dr. John Amarachukwu Daniel, Founder / President{% endif %}">
+                 aria-label="{% if founder %}{{ founder.name }}, {{ founder.role }}{% else %}Founder{% endif %}">
               <div class="w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-white/15 flex items-center justify-center"
                    aria-hidden="true">
                 <i data-lucide="user-circle" class="w-12 h-12 sm:w-16 sm:h-16 text-white/70"></i>
               </div>
               <div class="text-center px-4 sm:px-6">
-                <p class="font-bold text-white text-lg sm:text-xl font-['Poppins'] mb-1">
-                  {% if founder %}{{ founder.name }}{% else %}Dr. John Amarachukwu Daniel{% endif %}
+                <p class="font-bold text-white text-lg sm:text-xl font-heading mb-1">
+                  {% if founder %}{{ founder.name }}{% else %}Leadership team{% endif %}
                 </p>
                 <p class="text-accent-300 text-xs sm:text-sm font-semibold">
-                  {% if founder %}{{ founder.role }}{% else %}Founder / President{% endif %}
+                  {% if founder %}{{ founder.role }}{% else %}Coming soon{% endif %}
                 </p>
               </div>
             </div>
@@ -243,47 +177,40 @@
       <!-- Intro text -->
       <div class="order-1 lg:order-2 space-y-4 sm:space-y-5">
         <p class="text-gray-700 leading-relaxed text-sm sm:text-base lg:text-lg">
-          {{ site_config.school_name|default:"Melchisedec Graduate Bible Academy" }} is a
-          non-denominational, non-profit Christian education and seminary institution established
-          by the Lord Jesus through His anointed servant Dr. John A. Daniel.
+          {{ site_config.about_vision|default:"Abraytech is a technology company built to help organizations design, build, secure, and scale the software and systems they run on." }}
         </p>
         <p class="text-gray-700 leading-relaxed text-sm sm:text-base lg:text-lg">
-          The institution was physically founded by Dr. John A. Daniel on 15th January 2000
-          and approved by the Federal Government of Nigeria as Help and Reconciliation Ministry
-          and Bible Training College, with vested authority to award diploma certificates to its
-          students.
-        </p>
-        <p class="text-gray-700 leading-relaxed text-sm sm:text-base lg:text-lg">
-          Due to popular demand from both students and graduates — and following the Lord's
-          direction — the institution was upgraded to a degree-awarding university, approved
-          and registered by the Federal Government in November 2007.
+          We work across software development, cybersecurity, AI &amp; data, and IT consulting —
+          and we invest in people through hands-on, job-ready technology training.
         </p>
 
         <!-- Key fact chips -->
         <div class="flex flex-wrap gap-2 sm:gap-3 pt-2">
+          {% if site_config.address_nigeria or site_config.address_usa %}
           <span class="inline-flex items-center gap-1.5 sm:gap-2 bg-primary-50 text-primary-700
                         border border-primary-200 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full
                         text-xs sm:text-sm font-semibold">
             <i data-lucide="map-pin" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
-            Lagos, Nigeria
+            {% if site_config.address_nigeria %}Nigeria{% endif %}{% if site_config.address_nigeria and site_config.address_usa %} &amp; {% endif %}{% if site_config.address_usa %}USA{% endif %}
           </span>
+          {% endif %}
           <span class="inline-flex items-center gap-1.5 sm:gap-2 bg-primary-50 text-primary-700
                         border border-primary-200 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full
                         text-xs sm:text-sm font-semibold">
-            <i data-lucide="award" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
-            BSc · MSc · PhD
+            <i data-lucide="code-2" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
+            Software &amp; Security
           </span>
           <span class="inline-flex items-center gap-1.5 sm:gap-2 bg-accent-50 text-accent-700
                         border border-accent-200 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full
                         text-xs sm:text-sm font-semibold">
-            <i data-lucide="heart" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
-            Free Tuition
+            <i data-lucide="brain-circuit" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
+            AI &amp; Data
           </span>
           <span class="inline-flex items-center gap-1.5 sm:gap-2 bg-primary-50 text-primary-700
                         border border-primary-200 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full
                         text-xs sm:text-sm font-semibold">
-            <i data-lucide="globe" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
-            Non-Denominational
+            <i data-lucide="graduation-cap" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
+            Training
           </span>
         </div>
 
@@ -317,58 +244,42 @@
   </div>
 </section>
 
+{% if site_config.promo_video_url %}
 <!-- ═══════════════════════════════════════════════════════
      WATCH US IN ACTION
 ═══════════════════════════════════════════════════════ -->
-<section class="py-12 sm:py-16 lg:py-24 bg-gray-100" id="watch-us" aria-labelledby="watch-heading">
+<section class="section-py section-dark" id="watch-us" aria-labelledby="watch-heading">
   <div class="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
 
     <!-- Section header -->
     <div class="text-center mb-10 sm:mb-12 lg:mb-16">
-      <div class="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold mb-3 sm:mb-4"
+      <div class="inline-flex items-center gap-2 bg-white/10 text-accent-300 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold mb-3 sm:mb-4"
            aria-hidden="true">
         <i data-lucide="video" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
         <span>Watch</span>
       </div>
       <h2 id="watch-heading"
-          class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-primary-950 font-['Poppins']">
+          class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-white font-heading">
         Watch Us in Action
       </h2>
     </div>
 
     <!-- Promo video -->
     <div class="mt-10 sm:mt-12 lg:mt-16">
-      <p class="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-widest mb-3 sm:mb-4">
-        Official community video
-      </p>
-
-      <div class="relative w-full rounded-2xl overflow-hidden shadow-2xl aspect-video bg-gray-100">
-        {% if site_config.promo_video_url %}
-          {# Dynamic video embed from DB #}
-          <div class="absolute inset-0 [&>iframe]:w-full [&>iframe]:h-full [&>iframe]:border-0 [&>video]:w-full [&>video]:h-full [&>video]:object-cover">
-            {{ site_config.promo_video_url|safe }}
-          </div>
-        {% else %}
-          {# Default YouTube fallback #}
-          <iframe class="absolute inset-0 w-full h-full border-0"
-                  src="https://www.youtube.com/embed/wzcQ5_XU58I?start=4"
-                  title="{{ site_config.school_short_name|default:'MIU' }} Global Learning Community — Official Video"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowfullscreen
-                  loading="lazy">
-          </iframe>
-        {% endif %}
+      <div class="relative w-full rounded-2xl overflow-hidden shadow-2xl aspect-video bg-primary-900 promo-video-embed">
+        {{ site_config.promo_video_url|safe }}
       </div>
     </div>
 
   </div>
 </section>
+{% endif %}
 
 
 <!-- ═══════════════════════════════════════════════════════
      HISTORY TIMELINE
 ═══════════════════════════════════════════════════════ -->
-<section class="py-12 sm:py-16 lg:py-24 bg-gradient-to-br from-gray-50 to-purple-50"
+<section class="section-py bg-gradient-to-br from-gray-50 to-accent-50"
          id="our-story"
          aria-labelledby="history-heading">
   <div class="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
@@ -379,155 +290,75 @@
         <i data-lucide="clock" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
         <span>Our Journey</span>
       </div>
-      <h2 id="history-heading" class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-primary-950 mb-3 sm:mb-4 font-['Poppins']">
-        Our History: Faith in Action
+      <h2 id="history-heading" class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-primary-950 mb-3 sm:mb-4 font-heading">
+        Our History
       </h2>
       <p class="text-gray-600 max-w-xl sm:max-w-2xl mx-auto text-sm sm:text-base lg:text-lg leading-relaxed">
-        From a Bible study in Lagos to a recognised degree-awarding institution — a journey guided by faith.
+        From a small team to a growing technology partner — our story so far.
       </p>
     </div>
 
-    <!-- Timeline -->
-    <div class="max-w-sm sm:max-w-2xl lg:max-w-3xl mx-auto" role="list" aria-label="Historical milestones">
+    {% if history_milestones %}
+    <!-- Timeline — single rail on mobile, centered zigzag from lg+ -->
+    <div class="relative max-w-sm sm:max-w-2xl lg:max-w-4xl mx-auto" role="list" aria-label="Historical milestones">
 
-      {% if history_milestones %}
-        {% for milestone in history_milestones %}
-        <div class="relative flex gap-4 sm:gap-6 {% if not forloop.last %}pb-8 sm:pb-10{% endif %}" role="listitem">
-          <!-- Rail + dot -->
-          <div class="flex flex-col items-center flex-shrink-0 w-10 sm:w-12" aria-hidden="true">
-            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center flex-shrink-0 z-10
-              {% if forloop.first %}bg-primary-600 shadow-lg shadow-primary-200
-              {% elif forloop.last %}bg-accent-500 shadow-lg shadow-accent-200
-              {% else %}bg-white border-2 border-primary-400 shadow-md{% endif %}">
-              {% if forloop.first %}<i data-lucide="flag" class="w-4 h-4 sm:w-5 sm:h-5 text-white"></i>
-              {% elif forloop.last %}<i data-lucide="star" class="w-4 h-4 sm:w-5 sm:h-5 text-white"></i>
-              {% else %}<i data-lucide="clock" class="w-4 h-4 sm:w-5 sm:h-5 text-primary-600"></i>{% endif %}
-            </div>
-            {% if not forloop.last %}
-            <div class="flex-1 w-0.5 bg-gradient-to-b from-primary-300 to-primary-100 mt-2"></div>
-            {% endif %}
-          </div>
-          <!-- Card -->
-          <div class="flex-1 pb-2">
-            <span class="inline-flex items-center gap-1 sm:gap-1.5 text-xs font-bold tracking-widest uppercase px-2.5 sm:px-3 py-1 rounded-full mb-2 sm:mb-3
-              {% if forloop.first %}bg-primary-600 text-white
-              {% elif forloop.last %}bg-accent-500 text-white
-              {% else %}bg-primary-100 text-primary-700{% endif %}"
-                  aria-label="Year: {{ milestone.year }}">
-              <i data-lucide="calendar" class="w-2.5 h-2.5 sm:w-3 sm:h-3" aria-hidden="true"></i>
-              {{ milestone.year }}
-            </span>
-            <article class="bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all hover:-translate-y-0.5 p-4 sm:p-6
-              {% if forloop.first %}border-l-4 border-primary-600
-              {% elif forloop.last %}border-l-4 border-accent-500
-              {% else %}border-l-4 border-primary-300{% endif %}">
-              <h3 class="font-bold text-base sm:text-lg text-primary-950 mb-1.5 sm:mb-2 font-['Poppins']">{{ milestone.title }}</h3>
-              <p class="text-gray-600 text-xs sm:text-sm leading-relaxed">{{ milestone.description }}</p>
-            </article>
-          </div>
-        </div>
-        {% endfor %}
+      <!-- Center rail (lg+ only) -->
+      <div class="hidden lg:block absolute left-1/2 top-2 bottom-2 w-0.5 bg-gradient-to-b from-primary-300 via-primary-200 to-accent-200 -translate-x-1/2" aria-hidden="true"></div>
+      <!-- Left rail (mobile/tablet only) -->
+      <div class="lg:hidden absolute left-5 sm:left-6 top-2 bottom-2 w-0.5 bg-gradient-to-b from-primary-300 via-primary-200 to-accent-200" aria-hidden="true"></div>
 
-      {% else %}
-        <!-- Static fallback milestones -->
+      {% for milestone in history_milestones %}
+      <div class="relative flex items-start lg:items-center gap-4 sm:gap-6 lg:gap-0 {% if not forloop.last %}pb-8 sm:pb-10 lg:pb-14{% endif %}"
+           role="listitem">
 
-        <!-- 1995 -->
-        <div class="relative flex gap-4 sm:gap-6 pb-8 sm:pb-10" role="listitem">
-          <div class="flex flex-col items-center flex-shrink-0 w-10 sm:w-12" aria-hidden="true">
-            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center z-10 bg-primary-600 shadow-lg shadow-primary-200">
-              <i data-lucide="flag" class="w-4 h-4 sm:w-5 sm:h-5 text-white"></i>
-            </div>
-            <div class="flex-1 w-0.5 bg-gradient-to-b from-primary-300 to-primary-100 mt-2"></div>
-          </div>
-          <div class="flex-1 pb-2">
-            <span class="inline-flex items-center gap-1.5 text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full mb-3 bg-primary-600 text-white">
-              <i data-lucide="calendar" class="w-3 h-3" aria-hidden="true"></i> 1995
-            </span>
-            <article class="bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all hover:-translate-y-0.5 p-4 sm:p-6 border-l-4 border-primary-600">
-              <h3 class="font-bold text-base sm:text-lg text-primary-950 mb-2 font-['Poppins']">Beginning</h3>
-              <p class="text-gray-600 text-xs sm:text-sm leading-relaxed">Melchisedec Graduate Bible Academy is a subsidiary of Help and Reconciliation Ministry AKA Harmabitrac World Outreach, physically founded in Lagos Nigeria on October 15, 1995 by Apostle John Daniel.</p>
-            </article>
-          </div>
+        <!-- Dot -->
+        <div class="relative z-10 flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shadow-md
+                    lg:absolute lg:left-1/2 lg:-translate-x-1/2
+                    {% if forloop.first %}bg-primary-600
+                    {% elif forloop.last %}bg-accent-500
+                    {% else %}bg-white border-2 border-primary-400{% endif %}"
+             aria-hidden="true">
+          {% if forloop.first %}<i data-lucide="flag" class="w-4 h-4 sm:w-5 sm:h-5 text-white"></i>
+          {% elif forloop.last %}<i data-lucide="star" class="w-4 h-4 sm:w-5 sm:h-5 text-white"></i>
+          {% else %}<i data-lucide="clock" class="w-4 h-4 sm:w-5 sm:h-5 text-primary-600"></i>{% endif %}
         </div>
 
-        <!-- 2000 -->
-        <div class="relative flex gap-4 sm:gap-6 pb-8 sm:pb-10" role="listitem">
-          <div class="flex flex-col items-center flex-shrink-0 w-10 sm:w-12" aria-hidden="true">
-            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center z-10 bg-white border-2 border-primary-400 shadow-md">
-              <i data-lucide="clock" class="w-4 h-4 sm:w-5 sm:h-5 text-primary-600"></i>
-            </div>
-            <div class="flex-1 w-0.5 bg-gradient-to-b from-primary-300 to-primary-100 mt-2"></div>
-          </div>
-          <div class="flex-1 pb-2">
-            <span class="inline-flex items-center gap-1.5 text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full mb-3 bg-primary-100 text-primary-700">
-              <i data-lucide="calendar" class="w-3 h-3" aria-hidden="true"></i> 2000
-            </span>
-            <article class="bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all hover:-translate-y-0.5 p-4 sm:p-6 border-l-4 border-primary-300">
-              <h3 class="font-bold text-base sm:text-lg text-primary-950 mb-2 font-['Poppins']">From Bible Study to College</h3>
-              <p class="text-gray-600 text-xs sm:text-sm leading-relaxed">The Bible study portion of the Ministry was upgraded to an Institution and founded by Dr John A. Daniel on 15th January 2000. It was registered and approved by the Federal Government of Nigeria as Help and Reconciliation Ministry and Bible Training College with authority to award basic, advanced and diploma certificates to its students.</p>
-            </article>
-          </div>
+        <!-- Card — left half on odd rows, right half on even rows (lg+) -->
+        <div class="flex-1 min-w-0 lg:w-1/2 {% cycle 'lg:pr-12 lg:text-right' 'lg:ml-auto lg:pl-12' as cardside %}">
+          <span class="inline-flex items-center gap-1 sm:gap-1.5 text-xs font-bold tracking-widest uppercase px-2.5 sm:px-3 py-1 rounded-full mb-2 sm:mb-3
+            {% if cardside == 'lg:pr-12 lg:text-right' %}lg:flex-row-reverse{% endif %}
+            {% if forloop.first %}bg-primary-600 text-white
+            {% elif forloop.last %}bg-accent-500 text-white
+            {% else %}bg-primary-100 text-primary-700{% endif %}"
+                aria-label="Year: {{ milestone.year }}">
+            <i data-lucide="calendar" class="w-2.5 h-2.5 sm:w-3 sm:h-3" aria-hidden="true"></i>
+            {{ milestone.year }}
+          </span>
+          <article class="bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all hover:-translate-y-0.5 p-4 sm:p-6
+            {% if cardside == 'lg:pr-12 lg:text-right' %}border-l-4 lg:border-l-0 lg:border-r-4{% else %}border-l-4{% endif %}
+            {% if forloop.first %}border-primary-600
+            {% elif forloop.last %}border-accent-500
+            {% else %}border-primary-300{% endif %}">
+            <h3 class="font-bold text-base sm:text-lg text-primary-950 mb-1.5 sm:mb-2 font-heading">{{ milestone.title }}</h3>
+            <p class="text-gray-600 text-xs sm:text-sm leading-relaxed">{{ milestone.description }}</p>
+          </article>
         </div>
 
-        <!-- 2004 -->
-        <div class="relative flex gap-4 sm:gap-6 pb-8 sm:pb-10" role="listitem">
-          <div class="flex flex-col items-center flex-shrink-0 w-10 sm:w-12" aria-hidden="true">
-            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center z-10 bg-white border-2 border-primary-400 shadow-md">
-              <i data-lucide="clock" class="w-4 h-4 sm:w-5 sm:h-5 text-primary-600"></i>
-            </div>
-            <div class="flex-1 w-0.5 bg-gradient-to-b from-primary-300 to-primary-100 mt-2"></div>
-          </div>
-          <div class="flex-1 pb-2">
-            <span class="inline-flex items-center gap-1.5 text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full mb-3 bg-primary-100 text-primary-700">
-              <i data-lucide="calendar" class="w-3 h-3" aria-hidden="true"></i> 2004
-            </span>
-            <article class="bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all hover:-translate-y-0.5 p-4 sm:p-6 border-l-4 border-primary-300">
-              <h3 class="font-bold text-base sm:text-lg text-primary-950 mb-2 font-['Poppins']">Expansion — USA Campus</h3>
-              <p class="text-gray-600 text-xs sm:text-sm leading-relaxed">In January 2004, Apostle John Daniel founded Help and Reconciliation Ministry and Bible Training College Newark NJ USA as a non-profit organization, providing the same services as the Lagos office but with particular attention to social and charitable services. See <a href="http://www.harmabitrac.org" target="_blank" rel="noopener noreferrer" class="text-primary-600 hover:underline focus:outline-none focus:ring-1 focus:ring-primary-600 rounded">www.harmabitrac.org</a> for details.</p>
-            </article>
-          </div>
-        </div>
-
-        <!-- 2007 -->
-        <div class="relative flex gap-4 sm:gap-6 pb-8 sm:pb-10" role="listitem">
-          <div class="flex flex-col items-center flex-shrink-0 w-10 sm:w-12" aria-hidden="true">
-            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center z-10 bg-white border-2 border-primary-400 shadow-md">
-              <i data-lucide="clock" class="w-4 h-4 sm:w-5 sm:h-5 text-primary-600"></i>
-            </div>
-            <div class="flex-1 w-0.5 bg-gradient-to-b from-primary-300 to-primary-100 mt-2"></div>
-          </div>
-          <div class="flex-1 pb-2">
-            <span class="inline-flex items-center gap-1.5 text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full mb-3 bg-primary-100 text-primary-700">
-              <i data-lucide="calendar" class="w-3 h-3" aria-hidden="true"></i> 2007
-            </span>
-            <article class="bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all hover:-translate-y-0.5 p-4 sm:p-6 border-l-4 border-primary-300">
-              <h3 class="font-bold text-base sm:text-lg text-primary-950 mb-2 font-['Poppins']">Government Approval</h3>
-              <p class="text-gray-600 text-xs sm:text-sm leading-relaxed">We applied to the Federal Ministry of Education Nigeria, and after 2 years of inspecting our core requirements, we were finally approved and registered by the Federal Government of Nigeria in November 2007 as Melchisedec Graduate Bible Academy Lagos Nigeria.</p>
-            </article>
-          </div>
-        </div>
-
-        <!-- 2024 -->
-        <div class="relative flex gap-4 sm:gap-6" role="listitem">
-          <div class="flex flex-col items-center flex-shrink-0 w-10 sm:w-12" aria-hidden="true">
-            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center z-10 bg-accent-500 shadow-lg shadow-accent-200">
-              <i data-lucide="star" class="w-4 h-4 sm:w-5 sm:h-5 text-white"></i>
-            </div>
-          </div>
-          <div class="flex-1 pb-2">
-            <span class="inline-flex items-center gap-1.5 text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full mb-3 bg-accent-500 text-white">
-              <i data-lucide="calendar" class="w-3 h-3" aria-hidden="true"></i> 2024
-            </span>
-            <article class="bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all hover:-translate-y-0.5 p-4 sm:p-6 border-l-4 border-accent-500">
-              <h3 class="font-bold text-base sm:text-lg text-primary-950 mb-2 font-['Poppins']">From College to University</h3>
-              <p class="text-gray-600 text-xs sm:text-sm leading-relaxed">Due to continued demand from both students and graduates of the institution who could not afford tuition fees for degree programs, the Lord granted our request to further upgrade the institution to a degree awarding university (Bachelors, Masters and Doctorate).</p>
-            </article>
-          </div>
-        </div>
-
-      {% endif %}
+        <!-- Spacer for the opposite half (lg+ only, keeps the card at 50% width) -->
+        <div class="hidden lg:block lg:w-1/2" aria-hidden="true"></div>
+      </div>
+      {% endfor %}
 
     </div>
+    {% else %}
+    <div class="max-w-md mx-auto text-center py-10">
+      <div class="w-14 h-14 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-4" aria-hidden="true">
+        <i data-lucide="clock" class="w-7 h-7 text-primary-600"></i>
+      </div>
+      <p class="text-gray-500 text-sm sm:text-base">Our story is being written — check back soon for milestones.</p>
+    </div>
+    {% endif %}
+
   </div>
 </section>
 
@@ -535,16 +366,16 @@
 <!-- ═══════════════════════════════════════════════════════
      MISSION · VISION · VALUES
 ═══════════════════════════════════════════════════════ -->
-<section class="py-12 sm:py-16 lg:py-24 bg-white" aria-labelledby="mvv-heading">
+<section class="section-py section-dark" aria-labelledby="mvv-heading">
   <div class="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
 
     <div class="text-center mb-10 sm:mb-12 lg:mb-16">
-      <div class="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold mb-3 sm:mb-4"
+      <div class="inline-flex items-center gap-2 bg-white/10 text-accent-300 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold mb-3 sm:mb-4"
            aria-hidden="true">
         <i data-lucide="compass" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
         <span>Our Foundation</span>
       </div>
-      <h2 id="mvv-heading" class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-primary-950 font-['Poppins']">
+      <h2 id="mvv-heading" class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-white font-heading">
         Mission, Vision &amp; Values
       </h2>
     </div>
@@ -556,29 +387,29 @@
         <div class="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform" aria-hidden="true">
           <i data-lucide="target" class="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-primary-700"></i>
         </div>
-        <h3 class="font-bold text-lg sm:text-xl lg:text-2xl mb-3 sm:mb-4 text-primary-950 font-['Poppins']">Our Mission</h3>
+        <h3 class="font-bold text-lg sm:text-xl lg:text-2xl mb-3 sm:mb-4 text-primary-950 font-heading">Our Mission</h3>
         <p class="text-gray-700 leading-relaxed text-sm sm:text-base">
-          {{ site_config.about_mission|default:"Our mission according to the Lord's command is to train end-time ministers of God on a free-of-charge basis in preparation for their ministerial duties. Our curriculum exceeds both national and international standards for Christian universities." }}
+          {{ site_config.about_mission|default:"To deliver reliable, well-engineered technology services and make high-quality technical training accessible to everyone we work with." }}
         </p>
       </article>
 
       <!-- Vision -->
-      <article class="group bg-white p-6 sm:p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-t-4 border-purple-500">
-        <div class="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform" aria-hidden="true">
-          <i data-lucide="eye" class="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-purple-600"></i>
+      <article class="group bg-white p-6 sm:p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-t-4 border-accent-500">
+        <div class="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-accent-100 to-accent-200 rounded-xl flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform" aria-hidden="true">
+          <i data-lucide="eye" class="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-accent-600"></i>
         </div>
-        <h3 class="font-bold text-lg sm:text-xl lg:text-2xl mb-3 sm:mb-4 text-primary-950 font-['Poppins']">Our Vision</h3>
+        <h3 class="font-bold text-lg sm:text-xl lg:text-2xl mb-3 sm:mb-4 text-primary-950 font-heading">Our Vision</h3>
         <p class="text-gray-700 leading-relaxed text-sm sm:text-base">
-          {{ site_config.about_vision|default:"Our vision is to teach the pure word of God which many people in Christendom today call \"old school\" — imparting true Christian discipline and helping prospective ministers build on a solid foundation of true Christianity and not the wisdom of men." }}
+          {{ site_config.about_vision|default:"To be a trusted technology partner known for engineering quality, security-mindedness, and practical, outcome-driven work." }}
         </p>
       </article>
 
       <!-- Core Values -->
       <article class="group bg-white p-6 sm:p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-t-4 border-accent-400 sm:col-span-2 lg:col-span-1">
-        <div class="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-accent-100 to-yellow-100 rounded-xl flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform" aria-hidden="true">
+        <div class="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-accent-100 to-accent-200 rounded-xl flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform" aria-hidden="true">
           <i data-lucide="heart" class="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-accent-600"></i>
         </div>
-        <h3 class="font-bold text-lg sm:text-xl lg:text-2xl mb-3 sm:mb-4 text-primary-950 font-['Poppins']">Our Core Values</h3>
+        <h3 class="font-bold text-lg sm:text-xl lg:text-2xl mb-3 sm:mb-4 text-primary-950 font-heading">Our Core Values</h3>
         <ul class="space-y-2 sm:space-y-3" role="list">
           {% for value in site_config.about_values|default:default_core_values %}
             <li class="flex items-start gap-2 sm:gap-3">
@@ -597,7 +428,8 @@
 <!-- ═══════════════════════════════════════════════════════
      GOVERNING BOARDS
 ═══════════════════════════════════════════════════════ -->
-<section class="py-12 sm:py-16 lg:py-24 bg-gradient-to-br from-gray-50 to-purple-50"
+{% if admin_board_members or academic_board_members or advisorate_board_members or staff_members %}
+<section class="section-py bg-white"
          id="leadership"
          aria-labelledby="leadership-heading">
   <div class="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
@@ -608,11 +440,11 @@
         <i data-lucide="users" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
         <span>Our Leaders</span>
       </div>
-      <h2 id="leadership-heading" class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-primary-950 mb-3 sm:mb-4 font-['Poppins']">
+      <h2 id="leadership-heading" class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-primary-950 mb-3 sm:mb-4 font-heading">
         Leadership &amp; Governance
       </h2>
       <p class="text-gray-600 max-w-xl sm:max-w-2xl mx-auto text-sm sm:text-base lg:text-lg leading-relaxed">
-        Guided by experienced and dedicated ministers of God committed to sound biblical education.
+        Guided by an experienced team committed to engineering quality and client outcomes.
       </p>
     </div>
 
@@ -620,7 +452,7 @@
     {% comment %}Admin board{% endcomment %}
     {% if admin_board_members %}
     <div class="mb-10 sm:mb-14 lg:mb-16">
-      <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-primary-950 font-['Poppins'] mb-5 sm:mb-6 lg:mb-8 flex items-center justify-center gap-3">
+      <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-primary-950 font-heading mb-5 sm:mb-6 lg:mb-8 flex items-center justify-center gap-3">
         <span class="w-6 sm:w-8 h-1 bg-primary-600 rounded-full inline-block" aria-hidden="true"></span>
         Administrative &amp; Management Board
         <span class="w-6 sm:w-8 h-1 bg-primary-600 rounded-full inline-block" aria-hidden="true"></span>
@@ -642,51 +474,11 @@
             {% endif %}
           </div>
           <div class="p-3 sm:p-4 text-center">
-            <p class="font-bold text-xs sm:text-sm text-primary-950 font-['Poppins'] leading-snug mb-0.5 sm:mb-1" itemprop="name">{{ member.name }}</p>
+            <p class="font-bold text-xs sm:text-sm text-primary-950 font-heading leading-snug mb-0.5 sm:mb-1" itemprop="name">{{ member.name }}</p>
             <p class="text-xs text-primary-600 font-semibold mb-1 sm:mb-2 leading-tight" itemprop="jobTitle">{{ member.role }}</p>
             {% if member.bio %}
               <p class="text-xs text-gray-500 line-clamp-2 leading-relaxed" itemprop="description">{{ member.bio }}</p>
             {% endif %}
-          </div>
-        </article>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-    {% else %}
-    <div class="mb-10 sm:mb-14 lg:mb-16">
-      <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-primary-950 font-['Poppins'] mb-5 sm:mb-6 lg:mb-8 flex items-center justify-center gap-3">
-        <span class="w-6 sm:w-8 h-1 bg-primary-600 rounded-full inline-block" aria-hidden="true"></span>
-        Administrative &amp; Management Board
-        <span class="w-6 sm:w-8 h-1 bg-primary-600 rounded-full inline-block" aria-hidden="true"></span>
-      </h3>
-      <div class="flex flex-wrap justify-center -m-1.5 sm:-m-2 lg:-m-3">
-        {% for item in "12345"|make_list %}
-        <div class="w-1/2 sm:w-1/3 md:w-1/4 xl:w-1/5 p-1.5 sm:p-2 lg:p-3">
-        <article class="group bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all hover:-translate-y-1 overflow-hidden">
-          <div class="relative aspect-square bg-gradient-to-br from-primary-100 to-primary-200 overflow-hidden flex items-center justify-center">
-            <img src="{% static 'images/board-admin-'|add:forloop.counter|add:'.jpg' %}"
-                 alt=""
-                 class="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
-                 onerror="this.style.display='none';"
-                 loading="lazy">
-            <i data-lucide="user-circle" class="w-12 h-12 sm:w-16 sm:h-16 text-primary-400" aria-hidden="true"></i>
-          </div>
-          <div class="p-3 sm:p-4 text-center">
-            <p class="font-bold text-xs sm:text-sm text-primary-950 font-['Poppins'] leading-snug mb-0.5 sm:mb-1">
-              {% if forloop.counter == 1 %}Dr. John Amarachukwu Daniel
-              {% elif forloop.counter == 2 %}Mrs. Blessings J. Daniel
-              {% elif forloop.counter == 3 %}Sunday Ehichioya
-              {% elif forloop.counter == 4 %}Ruth Phillips
-              {% else %}Julian C. Obiora{% endif %}
-            </p>
-            <p class="text-xs text-primary-600 font-semibold leading-tight">
-              {% if forloop.counter == 1 %}Founder / President
-              {% elif forloop.counter == 2 %}Vice President Administration
-              {% elif forloop.counter == 3 %}Registrar
-              {% elif forloop.counter == 4 %}Coordinator, MELBAC Satellite Campuses &amp; Special Asst. on Foreign Affairs
-              {% else %}Admin Officer / Board Secretary{% endif %}
-            </p>
           </div>
         </article>
         </div>
@@ -698,7 +490,7 @@
     <!-- Academic Board -->
     {% if academic_board_members %}
     <div class="mb-10 sm:mb-14 lg:mb-16">
-      <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-primary-950 font-['Poppins'] mb-5 sm:mb-6 lg:mb-8 flex items-center justify-center gap-3">
+      <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-primary-950 font-heading mb-5 sm:mb-6 lg:mb-8 flex items-center justify-center gap-3">
         <span class="w-6 sm:w-8 h-1 bg-blue-500 rounded-full inline-block" aria-hidden="true"></span>
         Academic Board
         <span class="w-6 sm:w-8 h-1 bg-blue-500 rounded-full inline-block" aria-hidden="true"></span>
@@ -720,43 +512,11 @@
             {% endif %}
           </div>
           <div class="p-3 sm:p-4 text-center">
-            <p class="font-bold text-xs sm:text-sm text-primary-950 font-['Poppins'] leading-snug mb-0.5 sm:mb-1" itemprop="name">{{ member.name }}</p>
+            <p class="font-bold text-xs sm:text-sm text-primary-950 font-heading leading-snug mb-0.5 sm:mb-1" itemprop="name">{{ member.name }}</p>
             <p class="text-xs text-blue-600 font-semibold mb-1 sm:mb-2 leading-tight" itemprop="jobTitle">{{ member.role }}</p>
             {% if member.bio %}
               <p class="text-xs text-gray-500 line-clamp-2 leading-relaxed" itemprop="description">{{ member.bio }}</p>
             {% endif %}
-          </div>
-        </article>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-    {% else %}
-    <div class="mb-10 sm:mb-14 lg:mb-16">
-      <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-primary-950 font-['Poppins'] mb-5 sm:mb-6 lg:mb-8 flex items-center justify-center gap-3">
-        <span class="w-6 sm:w-8 h-1 bg-blue-500 rounded-full inline-block" aria-hidden="true"></span>
-        Academic Board
-        <span class="w-6 sm:w-8 h-1 bg-blue-500 rounded-full inline-block" aria-hidden="true"></span>
-      </h3>
-      <div class="flex flex-wrap justify-center -m-1.5 sm:-m-2 lg:-m-3">
-        {% for item in "1234567"|make_list %}
-        <div class="w-1/2 sm:w-1/3 md:w-1/4 xl:w-1/5 p-1.5 sm:p-2 lg:p-3">
-        <article class="group bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all hover:-translate-y-1 overflow-hidden">
-          <div class="relative aspect-square bg-gradient-to-br from-blue-100 to-blue-200 overflow-hidden flex items-center justify-center">
-            <img src="{% static 'images/board-academic-'|add:forloop.counter|add:'.jpg' %}"
-                 alt=""
-                 class="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
-                 onerror="this.style.display='none';"
-                 loading="lazy">
-            <i data-lucide="user-circle" class="w-12 h-12 sm:w-16 sm:h-16 text-blue-400" aria-hidden="true"></i>
-          </div>
-          <div class="p-3 sm:p-4 text-center">
-            <p class="font-bold text-xs sm:text-sm text-primary-950 font-['Poppins'] leading-snug mb-0.5 sm:mb-1">
-              {% if forloop.counter == 1 %}Sunday Ehichioya{% elif forloop.counter == 2 %}Titus Ehizode{% elif forloop.counter == 3 %}Chidi Akoma{% elif forloop.counter == 4 %}Boniface Uzoigwe{% elif forloop.counter == 5 %}Goodluck Olatunji{% elif forloop.counter == 6 %}George Odjeni{% else %}Dr. John Amarachukwu Daniel{% endif %}
-            </p>
-            <p class="text-xs text-blue-600 font-semibold leading-tight">
-              {% if forloop.counter == 1 %}Registrar{% elif forloop.counter == 2 %}Dean, Faculty of Arts{% elif forloop.counter == 3 %}Dean of Student Affairs{% elif forloop.counter == 4 %}Dean, Faculty of Christian Education{% elif forloop.counter == 5 %}Dean of Post Graduate Studies{% elif forloop.counter == 6 %}Vice President, Academic Matters{% else %}Founder / President{% endif %}
-            </p>
           </div>
         </article>
         </div>
@@ -768,17 +528,17 @@
     <!-- Advisorate Board -->
     {% if advisorate_board_members %}
     <div class="mb-10 sm:mb-14 lg:mb-16">
-      <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-primary-950 font-['Poppins'] mb-5 sm:mb-6 lg:mb-8 flex items-center justify-center gap-3">
-        <span class="w-6 sm:w-8 h-1 bg-purple-500 rounded-full inline-block" aria-hidden="true"></span>
+      <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-primary-950 font-heading mb-5 sm:mb-6 lg:mb-8 flex items-center justify-center gap-3">
+        <span class="w-6 sm:w-8 h-1 bg-accent-500 rounded-full inline-block" aria-hidden="true"></span>
         Advisorate Board
-        <span class="w-6 sm:w-8 h-1 bg-purple-500 rounded-full inline-block" aria-hidden="true"></span>
+        <span class="w-6 sm:w-8 h-1 bg-accent-500 rounded-full inline-block" aria-hidden="true"></span>
       </h3>
       <div class="flex flex-wrap justify-center -m-1.5 sm:-m-2 lg:-m-3">
         {% for member in advisorate_board_members %}
         <div class="w-1/2 sm:w-1/3 md:w-1/4 xl:w-1/5 p-1.5 sm:p-2 lg:p-3">
         <article class="group bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all hover:-translate-y-1 overflow-hidden"
                  itemscope itemtype="https://schema.org/Person">
-          <div class="relative aspect-square bg-gradient-to-br from-purple-100 to-purple-200 overflow-hidden flex items-center justify-center">
+          <div class="relative aspect-square bg-gradient-to-br from-accent-100 to-accent-200 overflow-hidden flex items-center justify-center">
             {% if member.photo %}
               <img src="{{ member.photo.url }}"
                    alt="Portrait of {{ member.name }}"
@@ -786,47 +546,15 @@
                    loading="lazy"
                    itemprop="image">
             {% else %}
-              <i data-lucide="user-circle" class="w-12 h-12 sm:w-16 sm:h-16 text-purple-400 group-hover:scale-110 transition-transform" aria-hidden="true"></i>
+              <i data-lucide="user-circle" class="w-12 h-12 sm:w-16 sm:h-16 text-accent-400 group-hover:scale-110 transition-transform" aria-hidden="true"></i>
             {% endif %}
           </div>
           <div class="p-3 sm:p-4 text-center">
-            <p class="font-bold text-xs sm:text-sm text-primary-950 font-['Poppins'] leading-snug mb-0.5 sm:mb-1" itemprop="name">{{ member.name }}</p>
-            <p class="text-xs text-purple-600 font-semibold mb-1 sm:mb-2 leading-tight" itemprop="jobTitle">{{ member.role }}</p>
+            <p class="font-bold text-xs sm:text-sm text-primary-950 font-heading leading-snug mb-0.5 sm:mb-1" itemprop="name">{{ member.name }}</p>
+            <p class="text-xs text-accent-600 font-semibold mb-1 sm:mb-2 leading-tight" itemprop="jobTitle">{{ member.role }}</p>
             {% if member.bio %}
               <p class="text-xs text-gray-500 line-clamp-2 leading-relaxed" itemprop="description">{{ member.bio }}</p>
             {% endif %}
-          </div>
-        </article>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-    {% else %}
-    <div class="mb-10 sm:mb-14 lg:mb-16">
-      <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-primary-950 font-['Poppins'] mb-5 sm:mb-6 lg:mb-8 flex items-center justify-center gap-3">
-        <span class="w-6 sm:w-8 h-1 bg-purple-500 rounded-full inline-block" aria-hidden="true"></span>
-        Advisorate Board
-        <span class="w-6 sm:w-8 h-1 bg-purple-500 rounded-full inline-block" aria-hidden="true"></span>
-      </h3>
-      <div class="flex flex-wrap justify-center -m-1.5 sm:-m-2 lg:-m-3">
-        {% for item in "12345"|make_list %}
-        <div class="w-1/2 sm:w-1/3 md:w-1/4 xl:w-1/5 p-1.5 sm:p-2 lg:p-3">
-        <article class="group bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all hover:-translate-y-1 overflow-hidden">
-          <div class="relative aspect-square bg-gradient-to-br from-purple-100 to-purple-200 overflow-hidden flex items-center justify-center">
-            <img src="{% static 'images/board-advisorate-'|add:forloop.counter|add:'.jpg' %}"
-                 alt=""
-                 class="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
-                 onerror="this.style.display='none';"
-                 loading="lazy">
-            <i data-lucide="user-circle" class="w-12 h-12 sm:w-16 sm:h-16 text-purple-400" aria-hidden="true"></i>
-          </div>
-          <div class="p-3 sm:p-4 text-center">
-            <p class="font-bold text-xs sm:text-sm text-primary-950 font-['Poppins'] leading-snug mb-0.5 sm:mb-1">
-              {% if forloop.counter == 1 %}Theophilus O. Ihekoronye{% elif forloop.counter == 2 %}Dr. John Amarachukwu Daniel{% elif forloop.counter == 3 %}Cyril Azobu{% elif forloop.counter == 4 %}Ezenwa Anumnu{% else %}Sunny Faith Ugbah{% endif %}
-            </p>
-            <p class="text-xs text-purple-600 font-semibold leading-tight">
-              {% if forloop.counter == 1 %}Pro-Chancellor / Chairman Board of Advisorate{% elif forloop.counter == 2 %}Founder / President{% elif forloop.counter == 3 %}Adviser on Financial Matters{% elif forloop.counter == 4 %}Adviser on Legal Affairs{% else %}Vice Chairman / Adviser Administrative Matters{% endif %}
-            </p>
           </div>
         </article>
         </div>
@@ -838,7 +566,7 @@
     <!-- Staff (DB only) -->
     {% if staff_members %}
     <div>
-      <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-primary-950 font-['Poppins'] mb-5 sm:mb-6 lg:mb-8 flex items-center justify-center gap-3">
+      <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-primary-950 font-heading mb-5 sm:mb-6 lg:mb-8 flex items-center justify-center gap-3">
         <span class="w-6 sm:w-8 h-1 bg-emerald-500 rounded-full inline-block" aria-hidden="true"></span>
         Staff
         <span class="w-6 sm:w-8 h-1 bg-emerald-500 rounded-full inline-block" aria-hidden="true"></span>
@@ -860,7 +588,7 @@
             {% endif %}
           </div>
           <div class="p-3 sm:p-4 text-center">
-            <p class="font-bold text-xs sm:text-sm text-primary-950 font-['Poppins'] leading-snug mb-0.5 sm:mb-1" itemprop="name">{{ member.name }}</p>
+            <p class="font-bold text-xs sm:text-sm text-primary-950 font-heading leading-snug mb-0.5 sm:mb-1" itemprop="name">{{ member.name }}</p>
             <p class="text-xs text-emerald-600 font-semibold mb-1 sm:mb-2 leading-tight" itemprop="jobTitle">{{ member.role }}</p>
             {% if member.bio %}
               <p class="text-xs text-gray-500 line-clamp-2 leading-relaxed" itemprop="description">{{ member.bio }}</p>
@@ -875,25 +603,26 @@
 
   </div>
 </section>
+{% endif %}
 
 
 <!-- ═══════════════════════════════════════════════════════
      ACCREDITATION · AFFILIATES · PARTNERS
 ═══════════════════════════════════════════════════════ -->
-<section class="py-12 sm:py-16 lg:py-24 bg-white" aria-labelledby="accred-heading">
+<section class="section-py section-dark" aria-labelledby="accred-heading">
   <div class="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
 
     <div class="text-center mb-10 sm:mb-12 lg:mb-16">
-      <div class="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold mb-3 sm:mb-4"
+      <div class="inline-flex items-center gap-2 bg-white/10 text-accent-300 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold mb-3 sm:mb-4"
            aria-hidden="true">
         <i data-lucide="award" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
         <span>Recognition</span>
       </div>
-      <h2 id="accred-heading" class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-primary-950 mb-3 sm:mb-4 font-['Poppins']">
+      <h2 id="accred-heading" class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-3 sm:mb-4 font-heading">
         Accreditation, Affiliates &amp; Partners
       </h2>
-      <p class="text-gray-600 max-w-xl sm:max-w-2xl mx-auto text-sm sm:text-base lg:text-lg leading-relaxed">
-        Recognised nationally and internationally through formal accreditations, affiliations and strategic partnerships.
+      <p class="text-gray-300 max-w-xl sm:max-w-2xl mx-auto text-sm sm:text-base lg:text-lg leading-relaxed">
+        Recognised through formal accreditations, affiliations and strategic partnerships.
       </p>
     </div>
 
@@ -905,7 +634,7 @@
           <div class="w-8 h-8 sm:w-9 sm:h-9 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0" aria-hidden="true">
             <i data-lucide="shield-check" class="w-4 h-4 sm:w-5 sm:h-5 text-white"></i>
           </div>
-          <span class="font-bold text-white font-['Poppins'] text-sm sm:text-base">Accreditation</span>
+          <span class="font-bold text-white font-heading text-sm sm:text-base">Accreditation</span>
         </div>
         <ul class="px-4 sm:px-6 py-4 sm:py-5 space-y-3 sm:space-y-4" role="list">
           {% for item in accreditations_list %}
@@ -934,7 +663,7 @@
           <div class="w-8 h-8 sm:w-9 sm:h-9 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0" aria-hidden="true">
             <i data-lucide="link-2" class="w-4 h-4 sm:w-5 sm:h-5 text-white"></i>
           </div>
-          <span class="font-bold text-white font-['Poppins'] text-sm sm:text-base">Affiliations</span>
+          <span class="font-bold text-white font-heading text-sm sm:text-base">Affiliations</span>
         </div>
         <ul class="px-4 sm:px-6 py-4 sm:py-5 space-y-3 sm:space-y-4" role="list">
           {% for item in affiliations_list %}
@@ -963,7 +692,7 @@
           <div class="w-8 h-8 sm:w-9 sm:h-9 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0" aria-hidden="true">
             <i data-lucide="handshake" class="w-4 h-4 sm:w-5 sm:h-5 text-white"></i>
           </div>
-          <span class="font-bold text-white font-['Poppins'] text-sm sm:text-base">Partners</span>
+          <span class="font-bold text-white font-heading text-sm sm:text-base">Partners</span>
         </div>
         <ul class="px-4 sm:px-6 py-4 sm:py-5 space-y-3 sm:space-y-4" role="list">
           {% for partner in partners_list %}
@@ -994,37 +723,37 @@
 <!-- ═══════════════════════════════════════════════════════
      CTA
 ═══════════════════════════════════════════════════════ -->
-<section class="py-14 sm:py-18 lg:py-24 bg-gradient-to-br from-primary-950 via-primary-900 to-primary-800 relative overflow-hidden"
+<section class="py-14 sm:py-18 lg:py-24 bg-gradient-to-br from-gray-50 to-accent-50 relative overflow-hidden"
          aria-labelledby="cta-heading">
 
   <div class="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-    <div class="absolute top-6 right-8 sm:right-20 w-40 h-40 sm:w-64 sm:h-64 lg:w-72 lg:h-72 bg-accent-400 rounded-full blur-3xl opacity-10"></div>
-    <div class="absolute bottom-6 left-6 sm:left-10 w-36 h-36 sm:w-56 sm:h-56 lg:w-64 lg:h-64 bg-purple-400 rounded-full blur-3xl opacity-10"></div>
+    <div class="absolute top-6 right-8 sm:right-20 w-40 h-40 sm:w-64 sm:h-64 lg:w-72 lg:h-72 bg-accent-300 rounded-full blur-3xl opacity-20"></div>
+    <div class="absolute bottom-6 left-6 sm:left-10 w-36 h-36 sm:w-56 sm:h-56 lg:w-64 lg:h-64 bg-accent-300 rounded-full blur-3xl opacity-20"></div>
   </div>
 
   <div class="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 text-center">
-    <h2 id="cta-heading" class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-4 sm:mb-6 font-['Poppins'] text-white">
-      Ready to Start Your Journey with
-      <span class="text-accent-400">{{ site_config.school_short_name|default:"MELBAC" }}</span>?
+    <h2 id="cta-heading" class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-4 sm:mb-6 font-heading text-primary-950">
+      Ready to Work with
+      <span class="text-accent-600">{{ site_config.school_short_name|default:"Abraytech" }}</span>?
     </h2>
-    <p class="text-base sm:text-lg lg:text-xl xl:text-2xl mb-8 sm:mb-10 text-gray-200 max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto leading-relaxed">
-      {{ site_config.footer_tagline|default:"Join our community of dedicated ministers of the Gospel. Your calling starts here — completely free of charge." }}
+    <p class="text-base sm:text-lg lg:text-xl xl:text-2xl mb-8 sm:mb-10 text-gray-600 max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto leading-relaxed">
+      {{ site_config.footer_tagline|default:"Software development, cybersecurity, AI & data, and IT consulting — technology services and training from Abraytech." }}
     </p>
     <div class="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 lg:gap-6">
       <a href="{% url 'eduweb:all_programs' %}"
-         class="inline-flex items-center justify-center gap-2 bg-accent-400 hover:bg-accent-500 active:bg-accent-600 text-primary-950 px-6 sm:px-8 lg:px-10 py-3.5 sm:py-4 lg:py-5 rounded-xl font-bold text-sm sm:text-base lg:text-lg hover:shadow-2xl hover:scale-105 transition-all focus:outline-none focus:ring-2 focus:ring-accent-300 focus:ring-offset-2 focus:ring-offset-primary-950">
+         class="btn-brand">
         <i data-lucide="send" class="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true"></i>
         Apply Now
       </a>
       <a href="{% url 'eduweb:all_programs' %}"
-         class="inline-flex items-center justify-center gap-2 border-2 border-white/70 hover:border-white text-white hover:bg-white hover:text-primary-950 px-6 sm:px-8 lg:px-10 py-3.5 sm:py-4 lg:py-5 rounded-xl font-semibold text-sm sm:text-base lg:text-lg transition-all focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-950">
+         class="btn-brand-outline text-primary-950">
         <i data-lucide="grid-3x3" class="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true"></i>
         Explore Programs
       </a>
-      <a href="{% url 'eduweb:contact' %}"
-         class="inline-flex items-center justify-center gap-2 border-2 border-white/40 hover:border-white/70 text-white hover:bg-white/10 px-6 sm:px-8 lg:px-10 py-3.5 sm:py-4 lg:py-5 rounded-xl font-semibold text-sm sm:text-base lg:text-lg transition-all focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-primary-950">
+      <a href="{% url 'eduweb:index' %}#contact"
+         class="btn-brand-outline text-primary-950">
         <i data-lucide="phone" class="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true"></i>
-        Contact Admissions
+        Contact Us
       </a>
     </div>
   </div>

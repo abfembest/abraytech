@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Page Not Found - {{ site_config.school_short_name|default:"MIU" }}{% endblock %}
+{% block title %}Page Not Found - {{ site_config.school_short_name|default:"Abraytech" }}{% endblock %}
 
 {% block extra_css %}
 <meta name="description" content="The page you're looking for could not be found.">
@@ -10,23 +10,23 @@
 
 {% block content %}
 
-<section class="relative min-h-[75vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-primary-950 via-purple-900 to-indigo-900 py-20 lg:py-28">
+<section class="relative min-h-[75vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-primary-950 via-accent-900 to-indigo-900 py-20 lg:py-28">
 
     <!-- Decorative background blobs -->
     <div class="absolute inset-0 opacity-10 pointer-events-none">
-        <div class="absolute top-10 left-10 w-72 h-72 bg-purple-300 rounded-full blur-3xl"></div>
+        <div class="absolute top-10 left-10 w-72 h-72 bg-accent-300 rounded-full blur-3xl"></div>
         <div class="absolute bottom-10 right-10 w-96 h-96 bg-indigo-300 rounded-full blur-3xl"></div>
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[32rem] h-[32rem] bg-fuchsia-400 rounded-full blur-3xl"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[32rem] h-[32rem] bg-accent-400 rounded-full blur-3xl"></div>
     </div>
 
     <div class="container mx-auto px-4 relative z-10">
         <div class="max-w-2xl mx-auto text-center">
 
             <div class="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-white/10 border border-white/20 backdrop-blur-sm mb-8">
-                <i data-lucide="compass" class="w-12 h-12 text-purple-200"></i>
+                <i data-lucide="compass" class="w-12 h-12 text-accent-200"></i>
             </div>
 
-            <p class="font-heading text-[6rem] sm:text-[8rem] leading-none font-extrabold tracking-tight bg-gradient-to-r from-purple-300 via-fuchsia-200 to-indigo-200 bg-clip-text text-transparent">
+            <p class="font-heading text-[6rem] sm:text-[8rem] leading-none font-extrabold tracking-tight bg-gradient-to-r from-accent-300 via-accent-200 to-indigo-200 bg-clip-text text-transparent">
                 404
             </p>
 
@@ -34,7 +34,7 @@
                 Page Not Found
             </h1>
 
-            <p class="text-purple-100/80 text-base sm:text-lg mb-10 max-w-lg mx-auto">
+            <p class="text-accent-100/80 text-base sm:text-lg mb-10 max-w-lg mx-auto">
                 The page you're looking for doesn't exist, may have moved, or the link might be broken.
                 Let's get you back on track.
             </p>
@@ -53,22 +53,22 @@
             </div>
 
             <div class="pt-8 border-t border-white/10">
-                <p class="text-purple-200/60 text-sm font-medium uppercase tracking-widest mb-4">Popular Pages</p>
+                <p class="text-accent-200/60 text-sm font-medium uppercase tracking-widest mb-4">Popular Pages</p>
                 <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
                     <a href="{% url 'eduweb:about' %}"
-                       class="px-4 py-2 text-sm text-purple-100 bg-white/5 border border-white/10 rounded-lg hover:bg-white/15 hover:text-white transition-all duration-200">
+                       class="px-4 py-2 text-sm text-accent-100 bg-white/5 border border-white/10 rounded-lg hover:bg-white/15 hover:text-white transition-all duration-200">
                         About Us
                     </a>
                     <a href="{% url 'eduweb:all_programs' %}"
-                       class="px-4 py-2 text-sm text-purple-100 bg-white/5 border border-white/10 rounded-lg hover:bg-white/15 hover:text-white transition-all duration-200">
+                       class="px-4 py-2 text-sm text-accent-100 bg-white/5 border border-white/10 rounded-lg hover:bg-white/15 hover:text-white transition-all duration-200">
                         Admissions
                     </a>
                     <a href="{% url 'eduweb:all_programs' %}"
-                       class="px-4 py-2 text-sm text-purple-100 bg-white/5 border border-white/10 rounded-lg hover:bg-white/15 hover:text-white transition-all duration-200">
+                       class="px-4 py-2 text-sm text-accent-100 bg-white/5 border border-white/10 rounded-lg hover:bg-white/15 hover:text-white transition-all duration-200">
                         Programs
                     </a>
                     <a href="{% url 'eduweb:contact' %}"
-                       class="px-4 py-2 text-sm text-purple-100 bg-white/5 border border-white/10 rounded-lg hover:bg-white/15 hover:text-white transition-all duration-200">
+                       class="px-4 py-2 text-sm text-accent-100 bg-white/5 border border-white/10 rounded-lg hover:bg-white/15 hover:text-white transition-all duration-200">
                         Contact
                     </a>
                 </div>

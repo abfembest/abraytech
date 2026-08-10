@@ -4,18 +4,18 @@
 {% block title %}Verify Your Identity{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-primary-50 to-gold-100 flex items-center justify-center px-4">
+<div class="bg-gradient-to-br from-primary-50 to-gold-100 flex items-center justify-center py-8 px-4">
   <div class="w-full max-w-md">
 
     <div class="bg-white rounded-2xl shadow-2xl shadow-primary-950/15 overflow-hidden">
 
       <!-- Header -->
-      <div class="bg-gradient-to-r from-primary-950 to-purple-700 p-8 text-center text-white">
+      <div class="bg-gradient-to-r from-primary-950 to-accent-700 p-8 text-center text-white">
         <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
           <i data-lucide="shield-check" class="w-8 h-8"></i>
         </div>
         <h1 class="text-2xl font-bold font-heading">Two-Step Verification</h1>
-        <p class="text-purple-200 text-sm mt-2">Confirm it's really you</p>
+        <p class="text-accent-200 text-sm mt-2">Confirm it's really you</p>
       </div>
 
       <!-- Body -->
@@ -31,7 +31,7 @@
             {% for i in "123456" %}
             <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]"
                    class="otp-digit w-12 h-14 text-center text-2xl font-bold border-2 border-gray-300
-                          rounded-xl focus:border-primary-950 focus:ring-2 focus:ring-purple-200
+                          rounded-xl focus:border-primary-950 focus:ring-2 focus:ring-accent-200
                           transition-all outline-none"
                    autocomplete="off">
             {% endfor %}
@@ -40,9 +40,9 @@
           <div class="text-red-500 text-sm text-center mt-1 min-h-5" id="otpError"></div>
 
           <button id="verifyBtn"
-                  class="mt-6 w-full py-3.5 bg-gradient-to-r from-primary-950 to-purple-700
+                  class="mt-6 w-full py-3.5 bg-gradient-to-r from-primary-950 to-accent-700
                          text-white rounded-xl font-bold text-base
-                         hover:shadow-xl hover:shadow-purple-500/40 hover:scale-105
+                         hover:shadow-xl hover:shadow-accent-500/40 hover:scale-105
                          transition-all duration-300 flex items-center justify-center gap-2
                          disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100">
             <i data-lucide="check-circle" class="w-5 h-5"></i>
@@ -54,7 +54,7 @@
         <div class="mt-6 text-center space-y-3">
           <p class="text-sm text-gray-500">
             Didn't receive a code?
-            <button id="resendBtn" class="text-primary-950 font-semibold hover:text-purple-700 transition-colors ml-1">
+            <button id="resendBtn" class="text-primary-950 font-semibold hover:text-accent-700 transition-colors ml-1">
               Resend
             </button>
             <span id="resendTimer" class="text-gray-400 text-xs ml-1"></span>

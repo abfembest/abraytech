@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Services | Abraytech{% endblock %}
+
+{% block extra_css %}
+<meta name="description" content="Abraytech technology services: software development, cybersecurity, AI & data, and IT consulting.">
+{% endblock %}
+
+{% block content %}
+
+<!-- ===== HERO ===== -->
+<section class="section-dark relative py-24 lg:py-32 overflow-hidden">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="max-w-4xl">
+            <nav class="flex mb-8 text-small-brand" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-2">
+                    <li><a href="{% url 'eduweb:index' %}" class="text-accent-300 hover:text-white transition-colors">Home</a></li>
+                    <li><i data-lucide="chevron-right" class="w-4 h-4 text-accent-400"></i></li>
+                    <li><span class="text-white font-medium">Services</span></li>
+                </ol>
+            </nav>
+            <h1 class="text-h1-brand text-white mb-6">Our Services</h1>
+            <p class="text-body-lg-brand text-gray-300 max-w-3xl">
+                Technology services built for real business outcomes &mdash; from writing the software to defending it.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== SERVICE CARDS ===== -->
+<section class="section-light py-20">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        {% if services %}
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% for service in services %}
+            <a href="{% url 'eduweb:service_detail' service.slug %}" class="light-card p-6 block">
+                <div class="w-14 h-14 bg-gradient-to-br from-primary-600 to-accent-600 rounded-xl flex items-center justify-center mb-4">
+                    <i data-lucide="{{ service.icon }}" class="text-white w-6 h-6"></i>
+                </div>
+                <h3 class="text-h4-brand text-gray-900 mb-2">{{ service.title }}</h3>
+                <p class="text-small-brand text-gray-600">{{ service.summary }}</p>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-center text-body-brand text-gray-500">Service listings are being finalized &mdash; check back soon.</p>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}
