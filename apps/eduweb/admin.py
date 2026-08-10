@@ -15,7 +15,8 @@ from .models import (
     PaymentGateway, Transaction, Quiz, QuizQuestion, QuizAnswer, QuizAttempt, QuizResponse,
     Review, SiteConfig, SiteHistoryMilestone, SubscriptionPlan, Subscription, SupportTicket, TicketReply,
     StaffPayroll, StudyGroup, StudyGroupMember, StudyGroupMessage,
-    SystemConfiguration, UserProfile, Vendor, BroadcastMessage, ListOfCountry, Testimonial, FeePayment, Exam, ExamQuestion, ExamStatusLog, StudentExamResponse
+    SystemConfiguration, UserProfile, Vendor, BroadcastMessage, ListOfCountry, Testimonial, FeePayment, Exam, ExamQuestion, ExamStatusLog, StudentExamResponse,
+    Service, Solution, Industry, Project, Product, JobListing, ConsultationRequest, NewsletterSubscriber,
 )
 
 
@@ -184,6 +185,98 @@ class TestimonialAdmin(admin.ModelAdmin):
             'fields': ('is_active',)
         }),
     )
+
+
+# ==================== SERVICES ====================
+@admin.register(Service)
+class ServiceAdmin(admin.ModelAdmin):
+    list_display  = ('title', 'icon', 'is_active', 'created_at')
+    list_filter   = ('is_active',)
+    search_fields = ('title', 'summary', 'description')
+    list_editable = ('is_active',)
+    prepopulated_fields = {'slug': ('title',)}
+
+
+# ==================== SOLUTIONS ====================
+@admin.register(Solution)
+class SolutionAdmin(admin.ModelAdmin):
+    list_display  = ('title', 'icon', 'order', 'is_active')
+    list_filter   = ('is_active',)
+    search_fields = ('title', 'summary', 'description')
+    list_editable = ('order', 'is_active')
+    prepopulated_fields = {'slug': ('title',)}
+    filter_horizontal = ('related_services',)
+
+
+# ==================== INDUSTRIES ====================
+@admin.register(Industry)
+class IndustryAdmin(admin.ModelAdmin):
+    list_display  = ('title', 'icon', 'order', 'is_active')
+    list_filter   = ('is_active',)
+    search_fields = ('title', 'summary', 'description')
+    list_editable = ('order', 'is_active')
+    prepopulated_fields = {'slug': ('title',)}
+
+
+# ==================== PROJECTS / PORTFOLIO ====================
+@admin.register(Project)
+class ProjectAdmin(admin.ModelAdmin):
+    list_display  = ('title', 'client_name', 'industry', 'service', 'is_featured', 'is_active', 'order')
+    list_filter   = ('is_active', 'is_featured', 'industry', 'service')
+    search_fields = ('title', 'client_name', 'summary', 'challenge', 'solution_text', 'results')
+    list_editable = ('is_featured', 'is_active', 'order')
+    prepopulated_fields = {'slug': ('title',)}
+    fieldsets = (
+        ('Overview', {
+            'fields': ('title', 'slug', 'summary', 'client_name', 'cover_image', 'industry', 'service')
+        }),
+        ('Case study', {
+            'fields': ('challenge', 'solution_text', 'results', 'project_url')
+        }),
+        ('Display', {
+            'fields': ('is_featured', 'is_active', 'order')
+        }),
+    )
+
+
+# ==================== STORE / PRODUCTS ====================
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin):
+    list_display  = ('title', 'price', 'currency', 'is_active', 'order')
+    list_filter   = ('is_active', 'currency')
+    search_fields = ('title', 'summary', 'description')
+    list_editable = ('is_active', 'order')
+    prepopulated_fields = {'slug': ('title',)}
+
+
+# ==================== CAREERS ====================
+@admin.register(JobListing)
+class JobListingAdmin(admin.ModelAdmin):
+    list_display  = ('title', 'department', 'location', 'employment_type', 'is_active', 'posted_at', 'closes_at')
+    list_filter   = ('is_active', 'employment_type', 'department')
+    search_fields = ('title', 'department', 'location', 'description', 'requirements')
+    list_editable = ('is_active',)
+    prepopulated_fields = {'slug': ('title',)}
+
+
+# ==================== CONSULTATION REQUESTS ====================
+@admin.register(ConsultationRequest)
+class ConsultationRequestAdmin(admin.ModelAdmin):
+    list_display  = ('name', 'email', 'company', 'service_interest', 'status', 'created_at')
+    list_filter   = ('status', 'service_interest')
+    search_fields = ('name', 'email', 'company', 'message')
+    list_editable = ('status',)
+    readonly_fields = ('created_at',)
+
+
+# ==================== NEWSLETTER ====================
+@admin.register(NewsletterSubscriber)
+class NewsletterSubscriberAdmin(admin.ModelAdmin):
+    list_display  = ('email', 'is_active', 'subscribed_at')
+    list_filter   = ('is_active',)
+    search_fields = ('email',)
+    list_editable = ('is_active',)
+    readonly_fields = ('subscribed_at',)
 
 
 

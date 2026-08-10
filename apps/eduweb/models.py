@@ -5084,6 +5084,221 @@ class Service(models.Model):
             self.slug = slugify(self.title)
         super().save(*args, **kwargs)
 
+
+# =============================================================================
+# MARKETING / FRONT-SITE EXPANSION MODELS
+# Backs the Solutions / Industries / Projects / Store / Careers /
+# Consultation / Newsletter sections of the public site. Same admin-managed,
+# empty-by-default pattern as Service/Testimonial above — every list starts
+# empty until real content is entered via Django admin. Never seeded with
+# placeholder/sample data.
+# =============================================================================
+
+class Solution(models.Model):
+    """A packaged technology solution Abraytech offers (e.g. Cloud
+    Migration, Managed IT, Custom Software Platform) — shown in the
+    Solutions nav dropdown, the Solutions grid, and its own
+    /solutions/<slug>/ page."""
+    title = models.CharField(max_length=150)
+    slug = models.SlugField(max_length=170, unique=True, blank=True)
+    summary = models.CharField(max_length=300, help_text="Short teaser shown on solution cards")
+    description = models.TextField(blank=True, help_text="Full body copy for the solution's detail page")
+    icon = models.CharField(max_length=50, default='layers', help_text="Lucide icon name (see https://lucide.dev/icons)")
+    related_services = models.ManyToManyField('Service', blank=True, related_name='solutions')
+    is_active = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Solution'
+        verbose_name_plural = 'Solutions'
+        ordering = ['order', 'title']
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
+
+class Industry(models.Model):
+    """An industry vertical Abraytech serves (e.g. Healthcare, Finance,
+    Education) — shown in the Industries nav dropdown, the Industries grid,
+    and its own /industries/<slug>/ page."""
+    title = models.CharField(max_length=150)
+    slug = models.SlugField(max_length=170, unique=True, blank=True)
+    summary = models.CharField(max_length=300, help_text="Short teaser shown on industry cards")
+    description = models.TextField(blank=True, help_text="Full body copy for the industry's detail page")
+    icon = models.CharField(max_length=50, default='building-2', help_text="Lucide icon name (see https://lucide.dev/icons)")
+    is_active = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Industry'
+        verbose_name_plural = 'Industries'
+        ordering = ['order', 'title']
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
+
+class Project(models.Model):
+    """A completed/ongoing client project shown in the Projects/Portfolio
+    grid and as a case study on its own /projects/<slug>/ page. Left empty
+    until real project data is entered — never seeded with placeholder
+    projects."""
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=220, unique=True, blank=True)
+    summary = models.CharField(max_length=300, help_text="Short teaser shown on project cards")
+    client_name = models.CharField(max_length=150, blank=True, help_text="Leave blank if the client is confidential")
+    cover_image = models.ImageField(upload_to='projects/covers/', blank=True, null=True)
+    industry = models.ForeignKey('Industry', on_delete=models.SET_NULL, null=True, blank=True, related_name='projects')
+    service = models.ForeignKey('Service', on_delete=models.SET_NULL, null=True, blank=True, related_name='projects')
+    challenge = models.TextField(blank=True, help_text="The client's problem")
+    solution_text = models.TextField(blank=True, verbose_name='Solution', help_text="What Abraytech built/did")
+    results = models.TextField(blank=True, help_text="Outcome/impact")
+    project_url = models.URLField(blank=True, help_text="Live site/app link, if publicly shareable")
+    is_featured = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Project'
+        verbose_name_plural = 'Projects'
+        ordering = ['order', '-created_at']
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
+
+class Product(models.Model):
+    """A packaged product/tool shown in the Store catalog. Pricing is
+    optional — leave blank to show 'Contact for pricing' instead of a
+    fabricated number."""
+    title = models.CharField(max_length=150)
+    slug = models.SlugField(max_length=170, unique=True, blank=True)
+    summary = models.CharField(max_length=300)
+    description = models.TextField(blank=True)
+    image = models.ImageField(upload_to='store/products/', blank=True, null=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Leave blank to show 'Contact for pricing'")
+    currency = models.CharField(max_length=3, default='USD')
+    is_active = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Product'
+        verbose_name_plural = 'Store Products'
+        ordering = ['order', 'title']
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
+
+class JobListing(models.Model):
+    """An open role shown on the Careers page. Empty by default — the
+    careers page shows 'no open roles' copy until real listings exist."""
+    EMPLOYMENT_TYPE_CHOICES = [
+        ('full_time', 'Full-Time'),
+        ('part_time', 'Part-Time'),
+        ('contract', 'Contract'),
+        ('internship', 'Internship'),
+        ('remote', 'Remote'),
+    ]
+    title = models.CharField(max_length=150)
+    slug = models.SlugField(max_length=170, unique=True, blank=True)
+    department = models.CharField(max_length=100, blank=True)
+    location = models.CharField(max_length=150, blank=True, help_text="e.g. 'Remote' or 'Lagos, Nigeria'")
+    employment_type = models.CharField(max_length=20, choices=EMPLOYMENT_TYPE_CHOICES, default='full_time')
+    description = models.TextField(blank=True)
+    requirements = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    posted_at = models.DateTimeField(auto_now_add=True)
+    closes_at = models.DateField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Job Listing'
+        verbose_name_plural = 'Job Listings'
+        ordering = ['-posted_at']
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
+
+class ConsultationRequest(models.Model):
+    """A booking/consultation request submitted from the public
+    /consultation/ page. Reviewed and actioned by staff via admin — no
+    automated scheduling/payment attached."""
+    STATUS_CHOICES = [
+        ('new', 'New'),
+        ('contacted', 'Contacted'),
+        ('scheduled', 'Scheduled'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    ]
+    name = models.CharField(max_length=150)
+    email = models.EmailField()
+    phone = models.CharField(max_length=30, blank=True)
+    company = models.CharField(max_length=150, blank=True)
+    service_interest = models.ForeignKey('Service', on_delete=models.SET_NULL, null=True, blank=True, related_name='consultation_requests')
+    preferred_date = models.DateField(null=True, blank=True)
+    preferred_time = models.CharField(max_length=50, blank=True, help_text="Free text, e.g. 'Afternoons (EST)'")
+    message = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Consultation Request'
+        verbose_name_plural = 'Consultation Requests'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.name} - {self.created_at.strftime('%Y-%m-%d')}"
+
+
+class NewsletterSubscriber(models.Model):
+    """An email captured from the footer newsletter signup form."""
+    email = models.EmailField(unique=True)
+    is_active = models.BooleanField(default=True)
+    subscribed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Newsletter Subscriber'
+        verbose_name_plural = 'Newsletter Subscribers'
+        ordering = ['-subscribed_at']
+
+    def __str__(self):
+        return self.email
+
+
 class SiteConfig(models.Model):
     """
     Singleton model — drives the nav header, footer, and all embed codes

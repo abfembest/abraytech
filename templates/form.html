@@ -19,15 +19,15 @@
     }
 
         .progress-step.active {
-            background: linear-gradient(135deg, #0891b2 0%, #22d3ee 100%);
+            background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 60%, #38BDF8 100%);
             color: white;
-            border-color: #0891b2;
-            box-shadow: 0 4px 15px rgba(132, 3, 132, 0.3);
+            border-color: #0B5CFF;
+            box-shadow: 0 4px 15px rgba(11, 92, 255, 0.3);
         }
 
             .progress-step.active .step-number {
                 background-color: white;
-                color: #0891b2;
+                color: #0B5CFF;
             }
 
         .progress-step.completed {
@@ -80,8 +80,8 @@
     #step1 input:not([type="checkbox"]):not([type="date"]):focus,
     #step1 textarea:focus,
     #step3 input:not([type="checkbox"]):focus {
-        border-color: #0891b2;
-        box-shadow: 0 0 0 3px rgba(132,3,132,0.12);
+        border-color: #0B5CFF;
+        box-shadow: 0 0 0 3px rgba(11,92,255,0.12);
         outline: none;
     }
 
@@ -101,8 +101,8 @@
         transition: border-color 0.18s, box-shadow 0.18s;
     }
     input[type="date"]:focus {
-        border-color: #0891b2;
-        box-shadow: 0 0 0 3px rgba(132,3,132,0.12);
+        border-color: #0B5CFF;
+        box-shadow: 0 0 0 3px rgba(11,92,255,0.12);
         outline: none;
     }
 
@@ -120,8 +120,8 @@
 
     .select2-container--default.select2-container--focus .select2-selection--single,
     .select2-container--default.select2-container--open  .select2-selection--single {
-        border-color: #0891b2 !important;
-        box-shadow: 0 0 0 3px rgba(132,3,132,0.12) !important;
+        border-color: #0B5CFF !important;
+        box-shadow: 0 0 0 3px rgba(11,92,255,0.12) !important;
     }
 
     .select2-container--default .select2-selection--single .select2-selection__rendered {
@@ -143,19 +143,19 @@
 
     /* dropdown panel */
     .select2-dropdown {
-        border: 2px solid #0891b2 !important;
+        border: 2px solid #0B5CFF !important;
         border-radius: 0.5rem !important;
         box-shadow: 0 8px 24px rgba(0,0,0,0.1) !important;
         overflow: hidden;
     }
 
     .select2-container--default .select2-results__option--highlighted[aria-selected] {
-        background-color: #0891b2 !important;
+        background-color: #0B5CFF !important;
     }
 
     .select2-container--default .select2-results__option[aria-selected=true] {
-        background-color: #ecfeff !important;
-        color: #0891b2 !important;
+        background-color: #EAF6FF !important;
+        color: #0B5CFF !important;
         font-weight: 600;
     }
 
@@ -171,9 +171,9 @@
     }
 
     .select2-container--default .select2-search--dropdown .select2-search__field:focus {
-        border-color: #0891b2 !important;
+        border-color: #0B5CFF !important;
         outline: none !important;
-        box-shadow: 0 0 0 2px rgba(132,3,132,0.15) !important;
+        box-shadow: 0 0 0 2px rgba(11,92,255,0.15) !important;
     }
 
     /* native <select> elements that aren't Select2-enhanced */
@@ -190,8 +190,8 @@
         transition: border-color 0.18s;
     }
     select:not(.select2-hidden-accessible):focus {
-        border-color: #0891b2;
-        box-shadow: 0 0 0 3px rgba(132,3,132,0.12);
+        border-color: #0B5CFF;
+        box-shadow: 0 0 0 3px rgba(11,92,255,0.12);
         outline: none;
     }
 
@@ -217,8 +217,8 @@
         transition: border-color 0.18s, box-shadow 0.18s;
     }
     #localnumber:focus, #emergencylocalnumber:focus {
-        border-color: #0891b2;
-        box-shadow: 0 0 0 3px rgba(132,3,132,0.12);
+        border-color: #0B5CFF;
+        box-shadow: 0 0 0 3px rgba(11,92,255,0.12);
         outline: none;
         z-index: 1;
         position: relative;
@@ -295,12 +295,12 @@
 {% endblock %}
 
 {% block content %}
-<section class="py-20 bg-gradient-to-br from-accent-50 to-primary-50 min-h-screen">
+<section class="py-20 bg-soft min-h-screen">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <!-- Header -->
         <div class="text-center mb-12">
-            <h1 class="text-4xl md:text-5xl font-bold mb-4" style="color: #0891b2;">
+            <h1 class="text-4xl md:text-5xl font-bold font-sora text-navy mb-4">
                 Course Application Form
             </h1>
             <p class="text-gray-600 text-lg max-w-3xl mx-auto">
@@ -314,15 +314,15 @@
                 <span class="font-semibold text-gray-800">
                     Step <span id="mobileCurrentStep">1</span> of 4
                 </span>
-                <span class="font-bold text-sm" style="color: #0891b2;">
+                <span class="font-bold text-sm text-brandblue">
                     <span id="mobileProgressPercentage">0</span>%
                 </span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2">
-                <div id="mobileProgressBar" class="h-2 rounded-full transition-all duration-300"
-                     style="width: 0%; background-color: #0891b2;"></div>
+                <div id="mobileProgressBar" class="h-2 rounded-full transition-all duration-300 bg-brandblue"
+                     style="width: 0%;"></div>
             </div>
-            <p id="mobileStepTitle" class="text-center mt-3 font-medium" style="color: #0891b2;">
+            <p id="mobileStepTitle" class="text-center mt-3 font-medium text-brandblue">
                 Personal Information
             </p>
         </div>
@@ -332,7 +332,7 @@
             <!-- Desktop Progress Sidebar -->
             <aside class="hidden lg:block lg:w-1/4">
                 <div class="bg-white rounded-xl shadow-lg p-6 sticky top-24">
-                    <h2 class="text-xl font-bold mb-6 pb-3 border-b" style="color: #0891b2;">
+                    <h2 class="text-xl font-bold font-sora text-navy mb-6 pb-3 border-b">
                         Application Progress
                     </h2>
 
@@ -392,13 +392,13 @@
                     <div class="mt-8 pt-6 border-t border-gray-300">
                         <div class="flex justify-between items-center mb-3">
                             <span class="text-sm font-semibold text-gray-900">Overall Progress</span>
-                            <span class="font-bold text-lg" style="color: #0891b2;">
+                            <span class="font-bold text-lg text-brandblue">
                                 <span id="progressPercentage">0</span>%
                             </span>
                         </div>
                         <div class="w-full bg-gray-200 rounded-full h-3 shadow-inner">
-                            <div id="progressBar" class="h-3 rounded-full transition-all duration-300 shadow-sm"
-                                 style="width: 0%; background-color: #0891b2;"></div>
+                            <div id="progressBar" class="h-3 rounded-full transition-all duration-300 shadow-sm bg-brandblue"
+                                 style="width: 0%;"></div>
                         </div>
                     </div>
                 </div>
@@ -409,12 +409,12 @@
                 <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
 
                     <div class="mb-8">
-                        <h2 id="stepTitle" class="text-2xl font-bold mb-2" style="color: #0891b2;">
+                        <h2 id="stepTitle" class="text-2xl font-bold font-sora text-navy mb-2">
                             Personal Information
                         </h2>
                         <div class="w-full bg-gray-200 rounded-full h-2 mt-4">
-                            <div id="stepProgressBar" class="h-2 rounded-full transition-all duration-300"
-                                 style="width: 0%; background-color: #0891b2;"></div>
+                            <div id="stepProgressBar" class="h-2 rounded-full transition-all duration-300 bg-brandblue"
+                                 style="width: 0%;"></div>
                         </div>
                     </div>
 
@@ -621,8 +621,7 @@
 
                             <div class="text-center mb-8">
                                 <button type="button" id="addAcademicEntryBtn"
-                                        class="px-6 py-3 border-2 border-dashed rounded-lg font-medium hover:bg-accent-50"
-                                        style="border-color:#0891b2;color:#0891b2;">
+                                        class="px-6 py-3 border-2 border-dashed rounded-lg font-medium hover:bg-ice border-brandblue text-brandblue">
                                     + Add Another Academic Entry
                                 </button>
                             </div>
@@ -678,7 +677,7 @@
                                     <label class="block text-gray-700 font-medium mb-2">
                                         academic session <span class="text-red-500">*</span>
                                     </label>
-                                    <select name="academic_session" id="id_academic_session" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-accent-500 bg-white" required>
+                                    <select name="academic_session" id="id_academic_session" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-brandblue bg-white" required>
                                         <option value="" selected disabled>-- select academic session --</option>
                                         {% for session in academic_sessions %}
                                         <option value="{{ session.id }}">{{ session.name }} ({{ session.get_status_display }})</option>
@@ -690,7 +689,7 @@
                                     <label class="block text-gray-700 font-medium mb-2">
                                         entry level <span class="text-red-500">*</span>
                                     </label>
-                                    <select name="entry_level" id="id_entry_level" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-accent-500 bg-white" required>
+                                    <select name="entry_level" id="id_entry_level" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-brandblue bg-white" required>
                                         <option value="" selected disabled>-- select level --</option>
                                         <option value="100">100 level</option>
                                         <option value="200">200 level</option>
@@ -751,7 +750,7 @@
                                 <label class="block text-gray-700 font-medium mb-2">
                                     Please specify
                                 </label>
-                                <input type="text" name="how_did_you_hear_other" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all" placeholder="Please specify..." value="{{ form.how_did_you_hear_other.value|default:'' }}">
+                                <input type="text" name="how_did_you_hear_other" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-brandblue focus:ring-2 focus:ring-ice transition-all" placeholder="Please specify..." value="{{ form.how_did_you_hear_other.value|default:'' }}">
                             </div>
 
                             <!-- Emergency Contact -->
@@ -788,7 +787,7 @@
 
                                             <input type="tel"
                                                    id="emergencyLocalNumber"
-                                                   class="flex-1 px-3 py-2 border-2 border-l-0 border-gray-300 rounded-r-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
+                                                   class="flex-1 px-3 py-2 border-2 border-l-0 border-gray-300 rounded-r-lg focus:border-brandblue focus:ring-2 focus:ring-ice"
                                                    placeholder="XXX XXX XXXX"
                                                    value="{{ form.emergency_contact_phone.value|default:''|slice:'5:' }}">
                                         </div>
@@ -827,13 +826,13 @@
                                         <label class="block text-gray-700 font-medium mb-2">
                                             Emergency Email <span class="text-red-500">*</span>
                                         </label>
-                                        <input type="email" name="emergency_contact_email" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all" value="{{ form.emergency_contact_email.value|default:'' }}" required>
+                                        <input type="email" name="emergency_contact_email" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-brandblue focus:ring-2 focus:ring-ice transition-all" value="{{ form.emergency_contact_email.value|default:'' }}" required>
                                     </div>
                                     <div class="md:col-span-2">
                                         <label class="block text-gray-700 font-medium mb-2">
                                             Emergency Address <span class="text-red-500">*</span>
                                         </label>
-                                        <input type="text" name="emergency_contact_address" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all" value="{{ form.emergency_contact_address.value|default:'' }}" required>
+                                        <input type="text" name="emergency_contact_address" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-brandblue focus:ring-2 focus:ring-ice transition-all" value="{{ form.emergency_contact_address.value|default:'' }}" required>
                                     </div>
                                 </div>
                             </div>
@@ -842,13 +841,13 @@
                             <div class="space-y-4 mb-6">
 
                                 <!-- Terms -->
-                                <div class="p-4 border-2 rounded-xl hover:border-primary-400 transition bg-white">
+                                <div class="p-4 border-2 rounded-xl hover:border-brandblue transition bg-white">
                                     <label class="flex items-center gap-3 cursor-pointer text-gray-700">
                                         {{ form.accept_terms_conditions }}
 
                                         <span class="text-sm">
                                             I agree to the
-                                            <a href="" class="text-primary-600 font-medium hover:underline" target="_blank">
+                                            <a href="" class="text-brandblue font-medium hover:underline" target="_blank">
                                                 Terms & Conditions
                                             </a>
                                             <span class="text-red-500">*</span>
@@ -863,13 +862,13 @@
                                 </div>
 
                                 <!-- Privacy -->
-                                <div class="p-4 border-2 rounded-xl hover:border-primary-400 transition bg-white">
+                                <div class="p-4 border-2 rounded-xl hover:border-brandblue transition bg-white">
                                     <label class="flex items-center gap-3 cursor-pointer text-gray-700">
                                         {{ form.accept_privacy_policy }}
 
                                         <span class="text-sm">
                                             I agree to the
-                                            <a href="" class="text-primary-600 font-medium hover:underline" target="_blank">
+                                            <a href="" class="text-brandblue font-medium hover:underline" target="_blank">
                                                 Privacy Policy
                                             </a>
                                             <span class="text-red-500">*</span>
@@ -885,11 +884,11 @@
 
 
                                 <!-- Scholarship Option -->
-                                <div class="mb-6 p-4 bg-accent-50 rounded-xl border-2 border-accent-200 hover:border-accent-400 transition">
+                                <div class="mb-6 p-4 bg-ice rounded-xl border-2 border-borderblue hover:border-brandblue transition">
                                     <label class="flex items-center gap-3 cursor-pointer">
                                         {{ form.scholarship }}
                                         <div>
-                                            <span class="font-medium text-accent-800">
+                                            <span class="font-medium text-navy">
                                                 Apply for Scholarship Consideration
                                             </span>
                                             <p class="text-sm text-gray-600">
@@ -908,7 +907,7 @@
                             <p class="text-gray-600 mb-6">Please review your application details before saving.</p>
 
                             <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-6">
-                                <h3 class="text-lg font-bold mb-4" style="color: #0891b2;">Application Summary</h3>
+                                <h3 class="text-lg font-bold font-sora text-navy mb-4">Application Summary</h3>
                                 <div id="reviewSummary" class="space-y-3 text-sm"></div>
                             </div>
 
@@ -930,8 +929,7 @@
                             </button>
 
                             <button type="button" id="nextBtn"
-                                    class="px-8 py-3 text-white rounded-lg font-semibold hover:opacity-90 transition-all shadow-lg ml-auto"
-                                    style="background-color: #0891b2;">
+                                    class="px-8 py-3 text-white rounded-lg font-semibold hover:opacity-95 transition-all shadow-brand ml-auto brand-gradient">
                                 <span id="nextBtnText">Next Step →</span>
                             </button>
                         </div>
@@ -1515,7 +1513,7 @@ if (emergencyCountry && emergencyLocal) {
         const reviewSummary = document.getElementById('reviewSummary');
         let summaryHTML = `
         <div class="mb-6">
-            <h4 class="font-semibold mb-3 text-lg text-accent-900 border-b pb-2">Personal Information</h4>
+            <h4 class="font-semibold mb-3 text-lg text-navy border-b pb-2">Personal Information</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div><strong>Name:</strong> ${firstName} ${lastName}</div>
                 <div><strong>Email:</strong> ${email}</div>
@@ -1531,7 +1529,7 @@ if (emergencyCountry && emergencyLocal) {
             </div>
         </div>
         <div class="mb-6">
-            <h4 class="font-semibold mb-3 text-lg text-accent-900 border-b pb-2">Course Selection</h4>
+            <h4 class="font-semibold mb-3 text-lg text-navy border-b pb-2">Course Selection</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div><strong>Program:</strong> ${program}</div>
                 <div><strong>Academic Session:</strong> ${intake}</div>

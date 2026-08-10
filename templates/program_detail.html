@@ -36,12 +36,11 @@
 {% endblock %}
 
 {% block content %}
-<main id="main-content">
 
 <!-- ════════════════════════════════════════════
      HERO
 ════════════════════════════════════════════ -->
-<section class="relative overflow-hidden bg-gradient-to-br from-primary-950 via-accent-800 to-accent-800"
+<section class="relative overflow-hidden bg-navy"
          aria-labelledby="program-heading">
 
   <!-- Responsive hero background image (behind all hero content).
@@ -50,19 +49,13 @@
   <div class="absolute inset-0 z-0" aria-hidden="true">
     <img src="{% if program.hero_image %}{{ program.hero_image.url }}{% else %}{% static 'images/hero.webp' %}{% endif %}"
          alt="" class="w-full h-full object-cover">
-    <div class="absolute inset-0 bg-gradient-to-br from-primary-950/80 via-accent-900/75 to-accent-900/80"></div>
-    <div class="absolute inset-0 bg-black/25"></div>
+    <div class="absolute inset-0 bg-navy/95"></div>
   </div>
 
-  <!-- Orbs + dot texture -->
-  <div class="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-    <div class="absolute inset-0 opacity-faint"
-         style="background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22><circle cx=%221%22 cy=%221%22 r=%221%22 fill=%22white%22/></svg>');"></div>
-    <div class="absolute top-0 right-0 w-48 h-48 sm:w-72 sm:h-72 lg:size-hero-blob bg-accent-500 rounded-full opacity-10 blur-3xl"></div>
-    <div class="absolute bottom-0 left-0 w-40 h-40 sm:w-56 sm:h-56 lg:w-72 lg:h-72 bg-accent-600 rounded-full opacity-10 blur-3xl"></div>
-  </div>
+  <!-- Dot texture -->
+  <div class="absolute inset-0 opacity-20 pointer-events-none" aria-hidden="true" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
 
-  <div class="relative z-10 max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-16 pt-24 sm:pt-28 lg:pt-20 pb-14 sm:pb-18 lg:pb-20">
+  <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-20 pb-14 sm:pb-18 lg:pb-20">
 
     <!-- Breadcrumb -->
     <nav class="mb-6 sm:mb-8 lg:mb-10 fu fu1" aria-label="Breadcrumb">
@@ -102,32 +95,32 @@
       <div class="flex-1 fu fu2">
         <!-- Breadcrumb pills -->
         <div class="flex flex-wrap items-center gap-2 mb-4 sm:mb-5">
-          <span class="pill-badge bg-white/20 text-white border border-white/30 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs backdrop-blur-sm">
+          <span class="pill-badge bg-white/10 text-white border border-white/20 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs">
             {{ faculty.code }}
           </span>
           <i data-lucide="chevron-right" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white/50 flex-shrink-0" aria-hidden="true"></i>
-          <span class="pill-badge bg-white/20 text-white border border-white/30 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs truncate max-w-icon-md sm:max-w-none backdrop-blur-sm">
+          <span class="pill-badge bg-white/10 text-white border border-white/20 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs truncate max-w-icon-md sm:max-w-none">
             {{ department.name }}
           </span>
         </div>
 
-        <span class="pill-badge inline-block bg-white/20 text-white border border-white/35 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full mb-4 sm:mb-5 text-xs backdrop-blur-sm shadow-sm">
+        <span class="pill-badge inline-block bg-white/10 text-white border border-white/20 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full mb-4 sm:mb-5 text-xs">
           {{ program.get_degree_level_display }}
         </span>
         {% if program.is_featured %}
-        <span class="pill-badge inline-flex items-center gap-1.5 bg-yellow-300/90 text-gray-900 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full mb-4 sm:mb-5 ml-2 text-xs font-bold">
+        <span class="pill-badge inline-flex items-center gap-1.5 bg-sky text-navy px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full mb-4 sm:mb-5 ml-2 text-xs font-bold">
           <i data-lucide="star" class="w-3 h-3 sm:w-3.5 sm:h-3.5" aria-hidden="true"></i>
           Featured Program
         </span>
         {% endif %}
 
         <h1 id="program-heading"
-            class="font-heading text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black text-white leading-tight mb-4 sm:mb-5 drop-shadow-md">
+            class="font-sora text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-4 sm:mb-5">
           {{ program.name }}
         </h1>
 
         {% if program.tagline %}
-        <p class="text-white/90 text-base sm:text-lg max-w-xl sm:max-w-2xl leading-relaxed mb-6 sm:mb-8 drop-shadow-sm">
+        <p class="text-white/80 text-base sm:text-lg max-w-xl sm:max-w-2xl leading-relaxed mb-6 sm:mb-8">
           {{ program.tagline }}
         </p>
         {% endif %}
@@ -135,7 +128,7 @@
         {% if program.available_study_modes %}
         <div class="flex flex-wrap gap-2 mb-6 sm:mb-8">
           {% for mode in program.available_study_modes %}
-          <span class="inline-flex items-center gap-1.5 bg-white/20 border border-white/30 text-white px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-medium backdrop-blur-sm">
+          <span class="inline-flex items-center gap-1.5 bg-white/10 border border-white/20 text-white px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-medium">
             <i data-lucide="clock" class="w-2.5 h-2.5 sm:w-3 sm:h-3" aria-hidden="true"></i>
             {{ mode|title }}
           </span>
@@ -145,12 +138,12 @@
 
         <div class="flex flex-row flex-wrap sm:flex-nowrap gap-3 w-full sm:w-auto max-w-md lg:max-w-lg">
           <a href="{% url 'eduweb:signup_page' %}?program={{ program.slug }}"
-             class="inline-flex items-center justify-center gap-2 bg-white text-primary-950 hover:bg-yellow-300 hover:text-gray-900 px-5 sm:px-7 py-3 sm:py-3.5 rounded-xl font-bold text-sm transition-all shadow-xl focus:outline-none focus:ring-2 focus:ring-yellow-300">
+             class="inline-flex items-center justify-center gap-2 brand-gradient text-white px-5 sm:px-7 py-3 sm:py-3.5 rounded-xl font-bold text-sm shadow-brand hover:opacity-95 transition-all focus:outline-none focus:ring-2 focus:ring-brandblue">
             <i data-lucide="send" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
             Apply Now
           </a>
           <a href="#curriculum"
-             class="inline-flex items-center justify-center gap-2 bg-white/20 hover:bg-white/30 border border-white/40 text-white px-5 sm:px-7 py-3 sm:py-3.5 rounded-xl font-semibold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-white/30 backdrop-blur-sm shadow-sm">
+             class="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/10 border border-white/20 text-white px-5 sm:px-7 py-3 sm:py-3.5 rounded-xl font-semibold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-white/60">
             <i data-lucide="book-open" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
             View Curriculum
           </a>
@@ -158,48 +151,48 @@
       </div>
 
       <!-- Right: At-a-glance card -->
-      <div class="w-full sm:w-80 lg:w-72 xl:w-80 xl:w-96 flex-shrink-0 fu fu3">
-        <div class="bg-white border border-gray-100 rounded-2xl sm:rounded-3xl p-5 sm:p-6 lg:p-7 space-y-3 sm:space-y-4 shadow-2xl">
-          <h2 class="font-heading text-xs font-bold text-primary-950 uppercase tracking-widest flex items-center gap-2">
+      <div class="w-full sm:w-80 lg:w-72 xl:w-96 flex-shrink-0 fu fu3">
+        <div class="bg-white border border-borderblue rounded-2xl sm:rounded-3xl p-5 sm:p-6 lg:p-7 space-y-3 sm:space-y-4 shadow-brand">
+          <h2 class="font-sora text-xs font-bold text-navy uppercase tracking-widest flex items-center gap-2">
             <i data-lucide="info" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
             Program At a Glance
           </h2>
           <dl class="space-y-3 sm:space-y-3.5">
             {% if program.duration_years %}
-            <div class="flex items-center justify-between border-b border-gray-100 pb-3 sm:pb-3.5">
+            <div class="flex items-center justify-between border-b border-borderblue pb-3 sm:pb-3.5">
               <dt class="flex items-center gap-2 sm:gap-3 text-gray-500 text-xs sm:text-sm">
-                <i data-lucide="calendar" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-950" aria-hidden="true"></i> Duration
+                <i data-lucide="calendar" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brandblue" aria-hidden="true"></i> Duration
               </dt>
-              <dd class="font-heading text-gray-900 font-bold text-sm sm:text-base">{{ program.duration_years }} Year{% if program.duration_years > 1 %}s{% endif %}</dd>
+              <dd class="font-sora text-gray-900 font-bold text-sm sm:text-base">{{ program.duration_years }} Year{% if program.duration_years > 1 %}s{% endif %}</dd>
             </div>
             {% endif %}
             {% if program.credits_required %}
-            <div class="flex items-center justify-between border-b border-gray-100 pb-3 sm:pb-3.5">
+            <div class="flex items-center justify-between border-b border-borderblue pb-3 sm:pb-3.5">
               <dt class="flex items-center gap-2 sm:gap-3 text-gray-500 text-xs sm:text-sm">
-                <i data-lucide="award" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-950" aria-hidden="true"></i> Credits
+                <i data-lucide="award" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brandblue" aria-hidden="true"></i> Credits
               </dt>
-              <dd class="font-heading text-gray-900 font-bold text-sm sm:text-base">{{ program.credits_required }}</dd>
+              <dd class="font-sora text-gray-900 font-bold text-sm sm:text-base">{{ program.credits_required }}</dd>
             </div>
             {% endif %}
             {% if program.tuition_fee %}
-            <div class="flex items-center justify-between {% if program.max_students %}border-b border-gray-100 pb-3 sm:pb-3.5{% endif %}">
+            <div class="flex items-center justify-between {% if program.max_students %}border-b border-borderblue pb-3 sm:pb-3.5{% endif %}">
               <dt class="flex items-center gap-2 sm:gap-3 text-gray-500 text-xs sm:text-sm">
-                <i data-lucide="dollar-sign" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-950" aria-hidden="true"></i> Tuition / yr
+                <i data-lucide="dollar-sign" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brandblue" aria-hidden="true"></i> Tuition / yr
               </dt>
-              <dd class="font-heading text-gray-900 font-bold text-sm sm:text-base">${{ program.tuition_fee|floatformat:"0" }}</dd>
+              <dd class="font-sora text-gray-900 font-bold text-sm sm:text-base">${{ program.tuition_fee|floatformat:"0" }}</dd>
             </div>
             {% endif %}
             {% if program.max_students %}
             <div class="flex items-center justify-between">
               <dt class="flex items-center gap-2 sm:gap-3 text-gray-500 text-xs sm:text-sm">
-                <i data-lucide="users" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-950" aria-hidden="true"></i> Class Size
+                <i data-lucide="users" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brandblue" aria-hidden="true"></i> Class Size
               </dt>
-              <dd class="font-heading text-gray-900 font-bold text-sm sm:text-base">{{ program.max_students }}</dd>
+              <dd class="font-sora text-gray-900 font-bold text-sm sm:text-base">{{ program.max_students }}</dd>
             </div>
             {% endif %}
           </dl>
           <a href="{% url 'eduweb:signup_page' %}?program={{ program.slug }}"
-             class="block text-center bg-primary-950 text-white hover:bg-accent-900 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl font-bold text-sm transition-all shadow-lg mt-2 focus:outline-none focus:ring-2 focus:ring-accent-300">
+             class="block text-center brand-gradient text-white py-3 sm:py-3.5 rounded-xl sm:rounded-2xl font-bold text-sm transition-all shadow-brand mt-2 hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-brandblue">
             Start Application →
           </a>
         </div>
@@ -212,24 +205,24 @@
 <!-- ════════════════════════════════════════════
      STICKY SECTION NAV
 ════════════════════════════════════════════ -->
-<nav class="sticky top-16 lg:top-20 z-30 bg-white border-b border-gray-200 shadow-sm"
+<nav class="sticky top-16 lg:top-20 z-30 bg-white border-b border-borderblue shadow-sm"
      aria-label="Page sections">
-  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex gap-0 overflow-x-auto scrollbar-none">
       {% if program.overview or program.description %}
-      <a href="#overview" class="nav-anchor whitespace-nowrap py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-medium text-gray-500 transition-colors hover:text-primary-950">Overview</a>
+      <a href="#overview" class="nav-anchor whitespace-nowrap py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-medium text-gray-500 transition-colors hover:text-navy">Overview</a>
       {% endif %}
       {% if program.learning_outcomes %}
-      <a href="#outcomes" class="nav-anchor whitespace-nowrap py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-medium text-gray-500 transition-colors hover:text-primary-950">Outcomes</a>
+      <a href="#outcomes" class="nav-anchor whitespace-nowrap py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-medium text-gray-500 transition-colors hover:text-navy">Outcomes</a>
       {% endif %}
       {% if courses %}
-      <a href="#curriculum" class="nav-anchor whitespace-nowrap py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-medium text-gray-500 transition-colors hover:text-primary-950">Curriculum</a>
+      <a href="#curriculum" class="nav-anchor whitespace-nowrap py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-medium text-gray-500 transition-colors hover:text-navy">Curriculum</a>
       {% endif %}
       {% if program.career_paths %}
-      <a href="#careers" class="nav-anchor whitespace-nowrap py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-medium text-gray-500 transition-colors hover:text-primary-950">Careers</a>
+      <a href="#careers" class="nav-anchor whitespace-nowrap py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-medium text-gray-500 transition-colors hover:text-navy">Careers</a>
       {% endif %}
       {% if active_intakes %}
-      <a href="#intakes" class="nav-anchor whitespace-nowrap py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-medium text-gray-500 transition-colors hover:text-primary-950">Intakes</a>
+      <a href="#intakes" class="nav-anchor whitespace-nowrap py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-medium text-gray-500 transition-colors hover:text-navy">Intakes</a>
       {% endif %}
     </div>
   </div>
@@ -242,14 +235,14 @@
 <section id="overview"
          class="py-12 sm:py-16 lg:py-20 xl:py-28 bg-white scroll-mt-28 lg:scroll-mt-32"
          aria-labelledby="overview-heading">
-  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex flex-col lg:flex-row gap-10 sm:gap-12 xl:gap-20 items-start">
 
       <!-- Description -->
       {% if program.overview or program.description %}
       <div class="flex-1 min-w-0">
-        <p class="text-primary-950 font-semibold text-xs sm:text-sm tracking-widest uppercase mb-2 sm:mb-3">About This Program</p>
-        <h2 id="overview-heading" class="font-heading text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 mb-5 sm:mb-6">
+        <p class="text-brandblue font-semibold text-xs sm:text-sm tracking-widest uppercase mb-2 sm:mb-3">About This Program</p>
+        <h2 id="overview-heading" class="font-sora text-2xl sm:text-3xl lg:text-4xl font-bold text-navy mb-5 sm:mb-6">
           Program Description
         </h2>
 
@@ -263,17 +256,17 @@
 
         <div class="mt-6 sm:mt-8 space-y-3 sm:space-y-4">
           {% if program.specialization_tracks %}
-          <div class="rounded-xl sm:rounded-2xl p-5 sm:p-6 bg-accent-50/40 border border-accent-100">
+          <div class="rounded-xl sm:rounded-2xl p-5 sm:p-6 bg-ice border border-borderblue">
             <div class="flex items-center gap-3 mb-3 sm:mb-4">
               <div class="w-8 h-8 sm:w-9 sm:h-9 bg-white rounded-lg sm:rounded-xl flex items-center justify-center shadow-sm flex-shrink-0" aria-hidden="true">
-                <i data-lucide="git-branch" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-950"></i>
+                <i data-lucide="git-branch" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brandblue"></i>
               </div>
-              <h3 class="font-heading font-bold text-gray-900 text-sm sm:text-base">Specializations</h3>
+              <h3 class="font-sora font-bold text-navy text-sm sm:text-base">Specializations</h3>
             </div>
             <ul class="space-y-2 sm:space-y-2.5" role="list">
               {% for track in program.specialization_tracks %}
               <li class="flex items-center gap-2 sm:gap-2.5 text-xs sm:text-sm text-gray-700">
-                <i data-lucide="check-circle-2" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-950 flex-shrink-0" aria-hidden="true"></i>
+                <i data-lucide="check-circle-2" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brandblue flex-shrink-0" aria-hidden="true"></i>
                 {{ track }}
               </li>
               {% endfor %}
@@ -282,17 +275,17 @@
           {% endif %}
 
           {% if program.core_courses %}
-          <div class="rounded-xl sm:rounded-2xl p-5 sm:p-6 bg-accent-50/40 border border-accent-100">
+          <div class="rounded-xl sm:rounded-2xl p-5 sm:p-6 bg-ice border border-borderblue">
             <div class="flex items-center gap-3 mb-3 sm:mb-4">
               <div class="w-8 h-8 sm:w-9 sm:h-9 bg-white rounded-lg sm:rounded-xl flex items-center justify-center shadow-sm flex-shrink-0" aria-hidden="true">
-                <i data-lucide="book-marked" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-950"></i>
+                <i data-lucide="book-marked" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brandblue"></i>
               </div>
-              <h3 class="font-heading font-bold text-gray-900 text-sm sm:text-base">Core Courses</h3>
+              <h3 class="font-sora font-bold text-navy text-sm sm:text-base">Core Courses</h3>
             </div>
             <ul class="grid grid-cols-1 xs:grid-cols-2 gap-1.5 sm:gap-2" role="list">
               {% for course in program.core_courses %}
               <li class="flex items-center gap-2 text-xs sm:text-sm text-gray-700">
-                <span class="w-1.5 h-1.5 bg-primary-950 rounded-full flex-shrink-0" aria-hidden="true"></span>
+                <span class="w-1.5 h-1.5 bg-brandblue rounded-full flex-shrink-0" aria-hidden="true"></span>
                 {{ course }}
               </li>
               {% endfor %}
@@ -306,13 +299,13 @@
       <!-- Entry Requirements -->
       {% if program.entry_requirements %}
       <div id="requirements" class="w-full lg:w-80 xl:w-96 flex-shrink-0 scroll-mt-28 lg:scroll-mt-32">
-        <p class="text-primary-950 font-semibold text-xs sm:text-sm tracking-widest uppercase mb-2 sm:mb-3">Admissions</p>
-        <h2 class="font-heading text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 mb-5 sm:mb-6">Entry Requirements</h2>
-        <div class="rounded-2xl sm:rounded-3xl p-5 sm:p-6 lg:p-7 bg-gray-50 border border-gray-100 space-y-3 sm:space-y-4">
+        <p class="text-brandblue font-semibold text-xs sm:text-sm tracking-widest uppercase mb-2 sm:mb-3">Admissions</p>
+        <h2 class="font-sora text-2xl sm:text-3xl lg:text-4xl font-bold text-navy mb-5 sm:mb-6">Entry Requirements</h2>
+        <div class="rounded-2xl sm:rounded-3xl p-5 sm:p-6 lg:p-7 bg-soft border border-borderblue space-y-3 sm:space-y-4">
           {% for req in program.entry_requirements %}
           <div class="flex items-start gap-3 sm:gap-4">
-            <div class="w-6 h-6 sm:w-7 sm:h-7 bg-accent-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" aria-hidden="true">
-              <i data-lucide="check" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary-950"></i>
+            <div class="w-6 h-6 sm:w-7 sm:h-7 bg-ice rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" aria-hidden="true">
+              <i data-lucide="check" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-brandblue"></i>
             </div>
             <p class="text-gray-700 leading-relaxed text-xs sm:text-sm">{{ req }}</p>
           </div>
@@ -320,12 +313,12 @@
         </div>
         <div class="mt-4 sm:mt-6 flex flex-wrap gap-2 sm:gap-3">
           <a href="{% url 'eduweb:admission_requirement' %}"
-             class="inline-flex items-center gap-2 text-primary-950 border border-primary-950 hover:bg-primary-950 hover:text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all focus:outline-none focus:ring-2 focus:ring-accent-400 focus:ring-offset-2">
+             class="inline-flex items-center gap-2 text-navy border border-navy hover:bg-navy hover:text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all focus:outline-none focus:ring-2 focus:ring-brandblue focus:ring-offset-2">
             <i data-lucide="external-link" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
             Full Requirements
           </a>
           <a href="{% url 'eduweb:signup_page' %}?program={{ program.slug }}"
-             class="inline-flex items-center gap-2 bg-primary-950 hover:bg-accent-700 text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all shadow-lg focus:outline-none focus:ring-2 focus:ring-accent-400 focus:ring-offset-2">
+             class="inline-flex items-center gap-2 brand-gradient text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all shadow-brand hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-brandblue focus:ring-offset-2">
             <i data-lucide="send" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
             Apply Now
           </a>
@@ -343,20 +336,20 @@
 ════════════════════════════════════════════ -->
 {% if program.learning_outcomes %}
 <section id="outcomes"
-         class="py-12 sm:py-16 lg:py-20 xl:py-28 bg-accent-50/30 scroll-mt-28 lg:scroll-mt-32"
+         class="py-12 sm:py-16 lg:py-20 xl:py-28 bg-soft scroll-mt-28 lg:scroll-mt-32"
          aria-labelledby="outcomes-heading">
-  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center mb-10 sm:mb-12 lg:mb-14">
-      <p class="text-primary-950 font-semibold text-xs sm:text-sm tracking-widest uppercase mb-2">What You'll Achieve</p>
-      <h2 id="outcomes-heading" class="font-heading text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-gray-900">
+      <p class="text-brandblue font-semibold text-xs sm:text-sm tracking-widest uppercase mb-2">What You'll Achieve</p>
+      <h2 id="outcomes-heading" class="font-sora text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-navy">
         Learning Outcomes
       </h2>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
       {% for outcome in program.learning_outcomes %}
-      <div class="rounded-2xl sm:rounded-3xl p-5 sm:p-6 lg:p-7 bg-white border border-accent-100 hover:border-accent-300 hover:shadow-md transition-all group">
-        <div class="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-accent-100 to-accent-100 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-5 group-hover:from-primary-950 group-hover:to-accent-600 transition-all" aria-hidden="true">
-          <span class="font-heading font-black text-primary-950 text-xs sm:text-sm group-hover:text-white transition-colors">{{ forloop.counter }}</span>
+      <div class="rounded-2xl sm:rounded-3xl p-5 sm:p-6 lg:p-7 bg-white border border-borderblue hover:border-brandblue hover:shadow-brand transition-all group">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 bg-ice rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-5 group-hover:brand-gradient transition-all" aria-hidden="true">
+          <span class="font-sora font-bold text-brandblue text-xs sm:text-sm group-hover:text-white transition-colors">{{ forloop.counter }}</span>
         </div>
         <p class="text-gray-700 leading-relaxed text-xs sm:text-sm">{{ outcome }}</p>
       </div>
@@ -371,14 +364,14 @@
 ════════════════════════════════════════════ -->
 {% if courses %}
 <section id="curriculum"
-         class="py-12 sm:py-16 lg:py-20 xl:py-28 bg-gray-100 scroll-mt-28 lg:scroll-mt-32"
+         class="py-12 sm:py-16 lg:py-20 xl:py-28 bg-white scroll-mt-28 lg:scroll-mt-32"
          aria-labelledby="curriculum-heading">
-  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
     <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-8 sm:mb-10">
       <div>
-        <p class="text-primary-950 font-semibold text-xs sm:text-sm tracking-widest uppercase mb-2">Academic Structure</p>
-        <h2 id="curriculum-heading" class="font-heading text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-gray-900">Curriculum</h2>
+        <p class="text-brandblue font-semibold text-xs sm:text-sm tracking-widest uppercase mb-2">Academic Structure</p>
+        <h2 id="curriculum-heading" class="font-sora text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-navy">Curriculum</h2>
       </div>
       <span class="text-gray-400 text-xs sm:text-sm" aria-live="polite">
         {{ courses|length }} course{% if courses|length != 1 %}s{% endif %} total
@@ -407,13 +400,13 @@
          aria-label="Year {{ year_group.grouper }} courses">
       {% regroup year_group.list by semester as by_semester %}
       {% for sem_group in by_semester %}
-      <div class="rounded-2xl sm:rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
-        <div class="px-4 sm:px-6 lg:px-7 py-4 sm:py-5 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+      <div class="rounded-2xl sm:rounded-3xl border border-borderblue overflow-hidden shadow-sm">
+        <div class="px-4 sm:px-6 lg:px-7 py-4 sm:py-5 bg-soft border-b border-borderblue flex items-center justify-between">
           <div class="flex items-center gap-2 sm:gap-3">
             <div class="w-8 h-8 sm:w-9 sm:h-9 bg-white rounded-lg sm:rounded-xl flex items-center justify-center shadow-sm flex-shrink-0" aria-hidden="true">
-              <i data-lucide="calendar-days" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-950"></i>
+              <i data-lucide="calendar-days" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brandblue"></i>
             </div>
-            <h3 class="font-heading font-bold text-gray-900 text-sm sm:text-base">
+            <h3 class="font-sora font-bold text-navy text-sm sm:text-base">
               {% if sem_group.grouper == 'first' %}First Semester
               {% elif sem_group.grouper == 'second' %}Second Semester
               {% else %}Annual{% endif %}
@@ -425,11 +418,11 @@
           {% for course in sem_group.list %}
           <div class="course-row flex items-center justify-between gap-3 sm:gap-4 px-4 sm:px-6 lg:px-7 py-3 sm:py-4 group">
             <div class="flex items-center gap-3 sm:gap-4 min-w-0">
-              <span class="font-mono text-xs font-bold text-primary-950 bg-accent-50 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-md sm:rounded-lg flex-shrink-0 hidden sm:block">{{ course.code }}</span>
+              <span class="font-mono text-xs font-bold text-brandblue bg-ice px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-md sm:rounded-lg flex-shrink-0 hidden sm:block">{{ course.code }}</span>
               <div class="min-w-0">
                 <div class="font-semibold text-gray-800 text-xs sm:text-sm truncate">{{ course.name }}</div>
                 <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
-                  <span class="{% if course.course_type == 'core' %}text-accent-700 bg-accent-50{% elif course.course_type == 'elective' %}text-green-700 bg-green-50{% else %}text-gray-500 bg-gray-100{% endif %} px-1.5 sm:px-2 py-0.5 rounded-md font-bold uppercase" style="font-size:0.6rem;letter-spacing:0.07em;">
+                  <span class="{% if course.course_type == 'core' %}text-brandblue bg-ice{% elif course.course_type == 'elective' %}text-green-700 bg-green-50{% else %}text-gray-500 bg-gray-100{% endif %} px-1.5 sm:px-2 py-0.5 rounded-md font-bold uppercase" style="font-size:0.6rem;letter-spacing:0.07em;">
                     {{ course.get_course_type_display }}
                   </span>
                   {% comment %} {% if course.lecturer %}
@@ -441,7 +434,7 @@
             <div class="flex items-center gap-3 sm:gap-4 flex-shrink-0">
               <div class="text-right hidden sm:block">
                 <div class="text-xs text-gray-400">Credits</div>
-                <div class="font-heading font-bold text-gray-800 text-xs sm:text-sm">{{ course.credit_units }}</div>
+                <div class="font-sora font-bold text-gray-800 text-xs sm:text-sm">{{ course.credit_units }}</div>
               </div>
               <!-- Mobile credits -->
               <span class="text-xs font-bold text-gray-600 sm:hidden">{{ course.credit_units }} cr</span>
@@ -463,18 +456,18 @@
 ════════════════════════════════════════════ -->
 {% if program.career_paths %}
 <section id="careers"
-         class="py-12 sm:py-16 lg:py-20 xl:py-28 bg-accent-50/25 scroll-mt-28 lg:scroll-mt-32"
+         class="py-12 sm:py-16 lg:py-20 xl:py-28 bg-soft scroll-mt-28 lg:scroll-mt-32"
          aria-labelledby="careers-heading">
-  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center mb-10 sm:mb-12 lg:mb-14">
-      <p class="text-primary-950 font-semibold text-xs sm:text-sm tracking-widest uppercase mb-2">After Graduation</p>
-      <h2 id="careers-heading" class="font-heading text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-gray-900">Career Opportunities</h2>
+      <p class="text-brandblue font-semibold text-xs sm:text-sm tracking-widest uppercase mb-2">After Graduation</p>
+      <h2 id="careers-heading" class="font-sora text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-navy">Career Opportunities</h2>
     </div>
     <div class="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
       {% for path in program.career_paths %}
-      <div class="rounded-xl sm:rounded-2xl p-4 sm:p-5 bg-white border border-accent-100 flex items-center gap-3 hover:border-accent-300 hover:shadow-md transition-all group">
-        <div class="w-9 h-9 sm:w-10 sm:h-10 bg-accent-50 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-primary-950 transition-colors" aria-hidden="true">
-          <i data-lucide="briefcase" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-950 group-hover:text-white transition-colors"></i>
+      <div class="rounded-xl sm:rounded-2xl p-4 sm:p-5 bg-white border border-borderblue flex items-center gap-3 hover:border-brandblue hover:shadow-brand transition-all group">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 bg-ice rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-navy transition-colors" aria-hidden="true">
+          <i data-lucide="briefcase" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brandblue group-hover:text-white transition-colors"></i>
         </div>
         <span class="text-gray-700 font-medium text-xs sm:text-sm">{{ path }}</span>
       </div>
@@ -493,9 +486,9 @@
      INTAKES + CTA
 ════════════════════════════════════════════ -->
 <section id="intakes"
-         class="py-12 sm:py-16 lg:py-20 xl:py-28 bg-slate-50 scroll-mt-28 lg:scroll-mt-32"
+         class="py-12 sm:py-16 lg:py-20 xl:py-28 bg-white scroll-mt-28 lg:scroll-mt-32"
          aria-labelledby="intakes-heading">
-  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
     <div class="flex flex-col xl:flex-row gap-8 sm:gap-10 lg:gap-12 xl:gap-16 items-start">
 
@@ -503,14 +496,14 @@
       {% if active_intakes %}
       <div class="flex-1 min-w-0 w-full min-w-0">
         <div class="mb-6 sm:mb-8">
-          <p class="text-primary-950 font-semibold text-xs sm:text-sm tracking-widest uppercase mb-2">Enrollment Windows</p>
-          <h2 id="intakes-heading" class="font-heading text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900">Upcoming Intakes</h2>
+          <p class="text-brandblue font-semibold text-xs sm:text-sm tracking-widest uppercase mb-2">Enrollment Windows</p>
+          <h2 id="intakes-heading" class="font-sora text-2xl sm:text-3xl lg:text-4xl font-bold text-navy">Upcoming Intakes</h2>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3 gap-4 sm:gap-5">
           {% for intake in active_intakes %}
-          <div class="rounded-2xl sm:rounded-3xl p-5 sm:p-6 bg-white border border-slate-200 hover:border-accent-200 hover:shadow-md transition-all">
+          <div class="rounded-2xl sm:rounded-3xl p-5 sm:p-6 bg-white border border-borderblue hover:border-brandblue hover:shadow-brand transition-all">
             <div class="flex items-center justify-between mb-4 sm:mb-5">
-              <span class="pill-badge bg-accent-50 text-primary-950 border border-accent-200 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs">
+              <span class="pill-badge bg-ice text-navy border border-borderblue px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs">
                 {{ intake.intake_period|title }} {{ intake.year }}
               </span>
               {% if intake.is_full %}
@@ -527,7 +520,7 @@
               {% if intake.application_start_date %}
               <div class="flex items-center justify-between text-xs sm:text-sm">
                 <dt class="text-gray-500 flex items-center gap-1.5 sm:gap-2">
-                  <i data-lucide="calendar-clock" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary-950" aria-hidden="true"></i>
+                  <i data-lucide="calendar-clock" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-brandblue" aria-hidden="true"></i>
                   Applications Open
                 </dt>
                 <dd class="font-semibold text-gray-800">{{ intake.application_start_date|date:"d M Y" }}</dd>
@@ -542,7 +535,7 @@
               </div>
               <div class="flex items-center justify-between text-xs sm:text-sm border-t border-gray-100 pt-3 sm:pt-3.5">
                 <dt class="text-gray-500 flex items-center gap-1.5 sm:gap-2">
-                  <i data-lucide="calendar" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary-950" aria-hidden="true"></i>
+                  <i data-lucide="calendar" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-brandblue" aria-hidden="true"></i>
                   Program Start
                 </dt>
                 <dd class="font-semibold text-gray-800">{{ intake.start_date|date:"d M Y" }}</dd>
@@ -550,7 +543,7 @@
               {% if intake.application_fee %}
               <div class="flex items-center justify-between text-xs sm:text-sm border-t border-gray-100 pt-3 sm:pt-3.5">
                 <dt class="text-gray-500 flex items-center gap-1.5 sm:gap-2">
-                  <i data-lucide="receipt" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary-950" aria-hidden="true"></i>
+                  <i data-lucide="receipt" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-brandblue" aria-hidden="true"></i>
                   Application Fee
                 </dt>
                 <dd class="font-semibold text-gray-800">${{ intake.application_fee|floatformat:"0" }}</dd>
@@ -558,14 +551,14 @@
               {% endif %}
               <div class="flex items-center justify-between text-xs sm:text-sm border-t border-gray-100 pt-3 sm:pt-3.5">
                 <dt class="text-gray-500 flex items-center gap-1.5 sm:gap-2">
-                  <i data-lucide="users" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary-950" aria-hidden="true"></i>
+                  <i data-lucide="users" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-brandblue" aria-hidden="true"></i>
                   Available Slots
                 </dt>
                 <dd class="font-semibold text-gray-800">{% if intake.is_full %}Full{% else %}{{ intake.remaining_slots }} of {{ intake.available_slots }} remaining{% endif %}</dd>
               </div>
             </dl>
             <a href="{% url 'eduweb:signup_page' %}?program={{ program.slug }}&intake={{ intake.id }}"
-               class="mt-4 sm:mt-5 block text-center bg-primary-950 hover:bg-accent-700 text-white py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-semibold text-xs sm:text-sm transition-all focus:outline-none focus:ring-2 focus:ring-accent-400 focus:ring-offset-2">
+               class="mt-4 sm:mt-5 block text-center brand-gradient text-white py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-semibold text-xs sm:text-sm transition-all hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-brandblue focus:ring-offset-2">
               Apply for This Intake
             </a>
           </div>
@@ -576,32 +569,27 @@
 
       <!-- CTA card -->
       <div class="w-full {% if active_intakes %}xl:w-72 2xl:w-80 xl:flex-shrink-0{% else %}xl:flex-1{% endif %}">
-        <div class="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-primary-950 via-accent-700 to-accent-700 p-6 sm:p-8 lg:p-10">
-          <div class="absolute top-0 right-0 w-36 h-36 sm:w-56 sm:h-56 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" aria-hidden="true"></div>
-          <div class="absolute bottom-0 left-0 w-28 h-28 sm:w-40 sm:h-40 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none" aria-hidden="true"></div>
-          <div class="absolute inset-0 pointer-events-none opacity-faint"
-               style="background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22><circle cx=%221%22 cy=%221%22 r=%221%22 fill=%22white%22/></svg>');"
-               aria-hidden="true"></div>
+        <div class="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-navy p-6 sm:p-8 lg:p-10">
+          <div class="absolute inset-0 opacity-20 pointer-events-none" aria-hidden="true" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
           <div class="relative">
-            <div class="inline-flex items-center gap-2 bg-white/15 border border-white/20 text-white/70 px-3 py-1 rounded-full text-xs font-semibold tracking-widest uppercase mb-4 sm:mb-5"
-                 aria-hidden="true">
-              <i data-lucide="rocket" class="w-3 h-3 text-yellow-300"></i>
+            <span class="inline-flex items-center gap-2 text-xs font-semibold text-sky bg-white/5 border border-white/10 px-3 py-1 rounded-full uppercase tracking-widest mb-4 sm:mb-5">
+              <i data-lucide="rocket" class="w-3 h-3"></i>
               Next Steps
-            </div>
-            <h2 class="font-heading text-xl sm:text-2xl font-black text-white leading-tight mb-2 sm:mb-3">
-              Ready to Enrol in <span class="text-yellow-300">{{ program.name }}</span>?
+            </span>
+            <h2 class="font-sora text-xl sm:text-2xl font-bold text-white leading-tight mb-2 sm:mb-3">
+              Ready to Enrol in <span class="brand-gradient-text">{{ program.name }}</span>?
             </h2>
-            <p class="text-accent-200 text-xs sm:text-sm leading-relaxed mb-5 sm:mb-7">
+            <p class="text-white/70 text-xs sm:text-sm leading-relaxed mb-5 sm:mb-7">
               Take the first step. Apply today and our admissions team will guide you through every stage.
             </p>
             <div class="flex flex-col gap-2 sm:gap-3">
               <a href="{% url 'eduweb:signup_page' %}?program={{ program.slug }}"
-                 class="inline-flex items-center justify-center gap-2 bg-white text-primary-950 hover:bg-yellow-300 hover:text-gray-900 px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-xl focus:outline-none focus:ring-2 focus:ring-yellow-300">
+                 class="inline-flex items-center justify-center gap-2 bg-white text-navy hover:bg-ice px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-brand focus:outline-none focus:ring-2 focus:ring-white/60">
                 <i data-lucide="send" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
                 Apply Now
               </a>
               <a href="{% url 'eduweb:faculty_detail' faculty.slug %}"
-                 class="inline-flex items-center justify-center gap-2 bg-white/15 hover:bg-white/25 text-white border border-white/30 px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl font-semibold text-xs sm:text-sm transition-all focus:outline-none focus:ring-2 focus:ring-white/30">
+                 class="inline-flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/20 px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl font-semibold text-xs sm:text-sm transition-all focus:outline-none focus:ring-2 focus:ring-white/60">
                 <i data-lucide="arrow-left" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
                 Back to Faculty
               </a>
@@ -611,16 +599,16 @@
 
         <!-- Quick support mini-cards -->
         <div class="mt-4 sm:mt-5 grid grid-cols-3 gap-2 sm:gap-3">
-          <div class="rounded-xl sm:rounded-2xl p-3 sm:p-4 bg-gray-50 border border-gray-100 text-center">
-            <i data-lucide="users" class="w-4 h-4 sm:w-5 sm:h-5 text-primary-950 mx-auto mb-1.5 sm:mb-2" aria-hidden="true"></i>
+          <div class="rounded-xl sm:rounded-2xl p-3 sm:p-4 bg-soft border border-borderblue text-center">
+            <i data-lucide="users" class="w-4 h-4 sm:w-5 sm:h-5 text-brandblue mx-auto mb-1.5 sm:mb-2" aria-hidden="true"></i>
             <p class="text-gray-500 text-xs leading-tight">Admissions Team</p>
           </div>
-          <div class="rounded-xl sm:rounded-2xl p-3 sm:p-4 bg-gray-50 border border-gray-100 text-center">
-            <i data-lucide="headphones" class="w-4 h-4 sm:w-5 sm:h-5 text-primary-950 mx-auto mb-1.5 sm:mb-2" aria-hidden="true"></i>
+          <div class="rounded-xl sm:rounded-2xl p-3 sm:p-4 bg-soft border border-borderblue text-center">
+            <i data-lucide="headphones" class="w-4 h-4 sm:w-5 sm:h-5 text-brandblue mx-auto mb-1.5 sm:mb-2" aria-hidden="true"></i>
             <p class="text-gray-500 text-xs leading-tight">24/7 Support</p>
           </div>
-          <div class="rounded-xl sm:rounded-2xl p-3 sm:p-4 bg-gray-50 border border-gray-100 text-center">
-            <i data-lucide="shield-check" class="w-4 h-4 sm:w-5 sm:h-5 text-primary-950 mx-auto mb-1.5 sm:mb-2" aria-hidden="true"></i>
+          <div class="rounded-xl sm:rounded-2xl p-3 sm:p-4 bg-soft border border-borderblue text-center">
+            <i data-lucide="shield-check" class="w-4 h-4 sm:w-5 sm:h-5 text-brandblue mx-auto mb-1.5 sm:mb-2" aria-hidden="true"></i>
             <p class="text-gray-500 text-xs leading-tight">Secure Process</p>
           </div>
         </div>
@@ -630,7 +618,6 @@
   </div>
 </section>
 
-</main>
 {% endblock %}
 
 {% block extra_js %}

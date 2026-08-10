@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ product.title }} | Abraytech Store{% endblock %}
+
+{% block extra_css %}
+<meta name="description" content="{{ product.summary }}">
+{% endblock %}
+
+{% block content %}
+
+<section class="relative overflow-hidden bg-navy py-20 lg:py-28">
+    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <nav class="flex mb-6" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-2 text-sm">
+                <li><a href="{% url 'eduweb:index' %}" class="text-white/60 hover:text-white transition-colors">Home</a></li>
+                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+                <li><a href="{% url 'eduweb:store_list' %}" class="text-white/60 hover:text-white transition-colors">Store</a></li>
+                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+                <li><span class="text-white/80 font-medium">{{ product.title }}</span></li>
+            </ol>
+        </nav>
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-white mb-6">{{ product.title }}</h1>
+        <p class="text-lg text-white/70 max-w-3xl leading-relaxed">{{ product.summary }}</p>
+    </div>
+</section>
+
+<section class="py-20 bg-white">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-2 gap-12 items-start">
+            <div>
+                {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.title }}" class="w-full rounded-2xl shadow-brand object-cover border border-borderblue" loading="lazy">
+                {% else %}
+                <div class="aspect-video bg-ice rounded-2xl flex items-center justify-center">
+                    <i data-lucide="package" class="w-14 h-14 text-brandblue"></i>
+                </div>
+                {% endif %}
+            </div>
+            <div>
+                {% if product.price %}
+                <p class="text-2xl sm:text-3xl font-sora font-bold text-navy mb-4">{{ product.currency }} {{ product.price }}</p>
+                {% else %}
+                <p class="text-lg font-sora font-semibold text-brandblue mb-4">Contact for pricing</p>
+                {% endif %}
+
+                {% if product.description %}
+                <div class="prose max-w-none text-slate-700 leading-relaxed mb-8">
+                    {{ product.description|linebreaks }}
+                </div>
+                {% endif %}
+
+                <a href="{% url 'eduweb:consultation_booking' %}" class="inline-flex items-center gap-2 px-6 py-3 rounded-lg brand-gradient text-white font-semibold shadow-brand hover:opacity-95 transition">
+                    Request a Quote
+                    <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if other_products %}
+<section class="py-16 bg-soft">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl sm:text-3xl font-sora font-bold text-navy mb-8 text-center">More From the Store</h2>
+        <div class="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {% for other in other_products %}
+            <a href="{% url 'eduweb:product_detail' other.slug %}" class="reveal bg-white rounded-2xl border border-borderblue p-6 hover:shadow-brand hover:-translate-y-1 transition block">
+                <h3 class="font-sora font-semibold text-lg text-navy">{{ other.title }}</h3>
+                <p class="mt-2 text-sm text-slate-600">{{ other.summary }}</p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% endblock %}

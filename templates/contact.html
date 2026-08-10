@@ -48,52 +48,43 @@
 <!-- ═══════════════════════════════════════════════════════
      HERO
 ═══════════════════════════════════════════════════════ -->
-<section class="relative bg-gradient-to-br from-primary-950 via-primary-900 to-primary-800 pt-28 sm:pt-32 lg:pt-44 pb-14 sm:pb-16 lg:pb-20 overflow-hidden"
-         aria-labelledby="contact-hero-heading">
+<section class="relative overflow-hidden bg-navy py-20 lg:py-28" aria-labelledby="contact-hero-heading">
+  <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
 
-  <!-- Decorative blobs -->
-  <div class="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-    <div class="absolute top-10 left-4 sm:left-10 w-48 h-48 sm:w-72 sm:h-72 bg-accent-400 rounded-full blur-3xl opacity-10"></div>
-    <div class="absolute bottom-6 right-4 sm:right-10 w-56 h-56 sm:w-96 sm:h-96 bg-accent-400 rounded-full blur-3xl opacity-10"></div>
-  </div>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <div class="max-w-3xl">
 
-  <div class="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
+      <!-- Breadcrumb -->
+      <nav class="mb-6" aria-label="Breadcrumb">
+        <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm"
+            itemscope itemtype="https://schema.org/BreadcrumbList">
+          <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+            <a href="{% url 'eduweb:index' %}" itemprop="item" class="text-white/60 hover:text-white transition-colors">
+              <span itemprop="name">Home</span>
+            </a>
+            <meta itemprop="position" content="1">
+          </li>
+          <li aria-hidden="true"><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+          <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" aria-current="page">
+            <span itemprop="name" class="text-white/80 font-medium">Contact</span>
+            <meta itemprop="position" content="2">
+          </li>
+        </ol>
+      </nav>
 
-    <!-- Breadcrumb -->
-    <nav class="mb-6 sm:mb-8" aria-label="Breadcrumb">
-      <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm"
-          itemscope itemtype="https://schema.org/BreadcrumbList">
-        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-          <a href="{% url 'eduweb:index' %}" itemprop="item"
-             class="text-white/60 hover:text-white transition-colors underline-offset-2 hover:underline">
-            <span itemprop="name">Home</span>
-          </a>
-          <meta itemprop="position" content="1">
-        </li>
-        <li aria-hidden="true"><i data-lucide="chevron-right" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white/40 flex-shrink-0"></i></li>
-        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" aria-current="page">
-          <span itemprop="name" class="text-white/80 font-medium">Contact</span>
-          <meta itemprop="position" content="2">
-        </li>
-      </ol>
-    </nav>
+      <span class="inline-flex items-center gap-2 text-xs font-semibold text-sky bg-white/5 border border-white/10 px-3 py-1.5 rounded-full uppercase tracking-wider">
+        <i data-lucide="mail" class="w-3.5 h-3.5"></i> Get In Touch
+      </span>
 
-    <!-- Badge pill -->
-    <div class="inline-flex items-center gap-2 bg-accent-400/20 backdrop-blur-sm text-accent-300 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold mb-4 sm:mb-6 border border-accent-400/30"
-         aria-hidden="true">
-      <i data-lucide="mail" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
-      <span>Get In Touch</span>
+      <h1 id="contact-hero-heading" class="mt-5 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-white">
+        Contact {{ site_config.school_short_name|default:"Abraytech" }}
+      </h1>
+
+      <p class="mt-5 text-lg text-white/70 max-w-2xl leading-relaxed">
+        We're here to help. Reach out for admissions, programmes, or any enquiry — we aim to respond within 24 hours.
+      </p>
+
     </div>
-
-    <h1 id="contact-hero-heading"
-        class="font-heading font-extrabold text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-tight mb-4 sm:mb-5">
-      Contact <span class="text-accent-400">{{ site_config.school_short_name|default:"Abraytech" }}</span>
-    </h1>
-
-    <p class="text-white/70 text-base sm:text-lg lg:text-xl max-w-xl sm:max-w-2xl leading-relaxed">
-      We're here to help. Reach out for admissions, programmes, or any enquiry — we aim to respond within 24 hours.
-    </p>
-
   </div>
 </section>
 
@@ -101,13 +92,13 @@
 <!-- ═══════════════════════════════════════════════════════
      QUICK CONTACT CHIPS
 ═══════════════════════════════════════════════════════ -->
-<div class="bg-white border-b border-gray-100 py-4 sm:py-5" aria-label="Quick contact options">
-  <div class="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
+<div class="bg-white border-b border-borderblue py-4 sm:py-5" aria-label="Quick contact options">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex flex-wrap gap-2 sm:gap-3">
 
       {% if site_config.phone_primary or site_config.phone_admissions %}
       <a href="tel:{{ site_config.phone_admissions|default:site_config.phone_primary|default:'+18624057143' }}"
-         class="inline-flex items-center gap-2 bg-primary-50 hover:bg-primary-100 text-primary-800 border border-primary-200 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-primary-400">
+         class="inline-flex items-center gap-2 bg-soft hover:bg-ice text-navy border border-borderblue px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-brandblue">
         <i data-lucide="phone" class="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true"></i>
         Call Us
       </a>
@@ -124,14 +115,14 @@
 
       {% if site_config.email_admissions or site_config.email %}
       <a href="mailto:{{ site_config.email_admissions|default:site_config.email|default:'admin@miuedu.com' }}"
-         class="inline-flex items-center gap-2 bg-accent-50 hover:bg-accent-100 text-accent-800 border border-accent-200 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-accent-400">
+         class="inline-flex items-center gap-2 bg-ice hover:bg-borderblue text-brandblue border border-borderblue px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-brandblue">
         <i data-lucide="mail" class="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true"></i>
         Email Admissions
       </a>
       {% endif %}
 
       <a href="{% url 'eduweb:all_programs' %}"
-         class="inline-flex items-center gap-2 bg-primary-950 hover:bg-primary-800 text-white px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-primary-400">
+         class="inline-flex items-center gap-2 brand-gradient text-white px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-brandblue">
         <i data-lucide="send" class="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true"></i>
         Apply Now
       </a>
@@ -144,27 +135,27 @@
 <!-- ═══════════════════════════════════════════════════════
      MAIN CONTENT
 ═══════════════════════════════════════════════════════ -->
-<section class="bg-gray-50 py-12 sm:py-16 lg:py-20 xl:py-24" aria-labelledby="contact-form-heading">
-  <div class="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
+<section class="bg-soft py-12 sm:py-16 lg:py-20 xl:py-24" aria-labelledby="contact-form-heading">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-14 xl:gap-20 items-start">
 
       <!-- ══════════════════════════
            LEFT — CONTACT FORM
       ══════════════════════════ -->
-      <div class="bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-6 sm:p-8 lg:p-10">
+      <div class="reveal bg-white rounded-2xl border border-borderblue shadow-card p-6 sm:p-8 lg:p-10">
 
         <!-- Card header -->
         <div class="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
-          <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary-950 to-primary-700 rounded-xl flex items-center justify-center flex-shrink-0" aria-hidden="true">
-            <i data-lucide="send" class="w-5 h-5 sm:w-6 sm:h-6 text-white"></i>
+          <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-ice flex items-center justify-center flex-shrink-0 text-brandblue" aria-hidden="true">
+            <i data-lucide="send" class="w-5 h-5 sm:w-6 sm:h-6"></i>
           </div>
           <div>
             <h2 id="contact-form-heading"
-                class="text-lg sm:text-xl lg:text-2xl font-bold text-primary-950 font-heading">
+                class="text-lg sm:text-xl lg:text-2xl font-sora font-semibold text-navy">
               Send a Message
             </h2>
-            <p class="text-xs sm:text-sm text-gray-500 mt-0.5">We'll reply within 24 hours</p>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">We'll reply within 24 hours</p>
           </div>
         </div>
 
@@ -199,7 +190,7 @@
           <!-- Name -->
           <div>
             <label for="contactName"
-                   class="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
+                   class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">
               Your Name <span class="text-red-500" aria-hidden="true">*</span>
               <span class="sr-only">(required)</span>
             </label>
@@ -212,7 +203,7 @@
                    value="{{ form.name.value|default:'' }}"
                    aria-required="true"
                    aria-describedby="{% if form.name.errors %}name-error{% endif %}"
-                   class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-primary-950 focus:ring-4 focus:ring-accent-100 transition-all outline-none bg-white placeholder:text-gray-400">
+                   class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-borderblue rounded-lg text-sm focus:border-brandblue focus:ring-4 focus:ring-ice transition-all outline-none bg-white placeholder:text-slate-400">
             {% if form.name.errors %}
             <p id="name-error" class="mt-1.5 text-red-500 text-xs" role="alert">{{ form.name.errors.0 }}</p>
             {% endif %}
@@ -221,7 +212,7 @@
           <!-- Email -->
           <div>
             <label for="contactEmail"
-                   class="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
+                   class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">
               Your Email <span class="text-red-500" aria-hidden="true">*</span>
               <span class="sr-only">(required)</span>
             </label>
@@ -234,7 +225,7 @@
                    value="{{ form.email.value|default:'' }}"
                    aria-required="true"
                    aria-describedby="{% if form.email.errors %}email-error{% endif %}"
-                   class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-primary-950 focus:ring-4 focus:ring-accent-100 transition-all outline-none bg-white placeholder:text-gray-400">
+                   class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-borderblue rounded-lg text-sm focus:border-brandblue focus:ring-4 focus:ring-ice transition-all outline-none bg-white placeholder:text-slate-400">
             {% if form.email.errors %}
             <p id="email-error" class="mt-1.5 text-red-500 text-xs" role="alert">{{ form.email.errors.0 }}</p>
             {% endif %}
@@ -243,7 +234,7 @@
           <!-- Subject — datalist (free-type + suggestions) -->
           <div>
             <label for="contactSubject"
-                   class="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
+                   class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">
               Subject
             </label>
             <input id="contactSubject"
@@ -254,7 +245,7 @@
                    value="{{ form.subject.value|default:'' }}"
                    autocomplete="off"
                    aria-describedby="subject-hint {% if form.subject.errors %}subject-error{% endif %}"
-                   class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-primary-950 focus:ring-4 focus:ring-accent-100 transition-all outline-none bg-white placeholder:text-gray-400">
+                   class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-borderblue rounded-lg text-sm focus:border-brandblue focus:ring-4 focus:ring-ice transition-all outline-none bg-white placeholder:text-slate-400">
             <datalist id="subjectOptions">
               <option value="Admissions Inquiry">
               <option value="Program Information">
@@ -263,7 +254,7 @@
               <option value="Technical Support">
               <option value="Other">
             </datalist>
-            <p id="subject-hint" class="mt-1 text-xs text-gray-400">Choose a suggestion or type your own topic</p>
+            <p id="subject-hint" class="mt-1 text-xs text-slate-400">Choose a suggestion or type your own topic</p>
             {% if form.subject.errors %}
             <p id="subject-error" class="mt-1.5 text-red-500 text-xs" role="alert">{{ form.subject.errors.0 }}</p>
             {% endif %}
@@ -272,7 +263,7 @@
           <!-- Message -->
           <div>
             <label for="contactMessage"
-                   class="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
+                   class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">
               Your Message <span class="text-red-500" aria-hidden="true">*</span>
               <span class="sr-only">(required)</span>
             </label>
@@ -283,23 +274,23 @@
                       placeholder="I'm interested in learning more about..."
                       aria-required="true"
                       aria-describedby="{% if form.message.errors %}message-error{% endif %}"
-                      class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-primary-950 focus:ring-4 focus:ring-accent-100 transition-all outline-none resize-none bg-white placeholder:text-gray-400">{{ form.message.value|default:'' }}</textarea>
+                      class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-borderblue rounded-lg text-sm focus:border-brandblue focus:ring-4 focus:ring-ice transition-all outline-none resize-none bg-white placeholder:text-slate-400">{{ form.message.value|default:'' }}</textarea>
             {% if form.message.errors %}
             <p id="message-error" class="mt-1.5 text-red-500 text-xs" role="alert">{{ form.message.errors.0 }}</p>
             {% endif %}
           </div>
 
           <!-- Bot Check -->
-          <div class="bg-accent-50 border-2 border-accent-100 rounded-xl p-4">
-            <label for="contactCaptcha" class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+          <div class="bg-ice border border-borderblue rounded-xl p-4">
+            <label for="contactCaptcha" class="block text-xs sm:text-sm font-semibold text-slate-700 mb-2">
               <span class="flex items-center gap-2">
-                <i data-lucide="shield-check" class="w-4 h-4 text-primary-950" aria-hidden="true"></i>
+                <i data-lucide="shield-check" class="w-4 h-4 text-brandblue" aria-hidden="true"></i>
                 Bot Check <span class="text-red-500" aria-hidden="true">*</span>
                 <span class="sr-only">(required)</span>
               </span>
             </label>
-            <p class="text-xs sm:text-sm text-gray-500 mb-3">
-              What is <strong class="text-primary-950 font-bold text-base">{{ captcha_question }}</strong>?
+            <p class="text-xs sm:text-sm text-slate-500 mb-3">
+              What is <strong class="text-navy font-bold text-base">{{ captcha_question }}</strong>?
             </p>
             <input id="contactCaptcha"
                    name="captcha"
@@ -310,17 +301,17 @@
                    autocomplete="off"
                    placeholder="Enter the answer"
                    aria-required="true"
-                   class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-primary-950 focus:ring-4 focus:ring-accent-100 transition-all outline-none bg-white placeholder:text-gray-400">
+                   class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-borderblue rounded-lg text-sm focus:border-brandblue focus:ring-4 focus:ring-ice transition-all outline-none bg-white placeholder:text-slate-400">
           </div>
 
           <!-- Privacy note -->
-          <p class="text-xs text-gray-400 leading-relaxed">
+          <p class="text-xs text-slate-400 leading-relaxed">
             By submitting this form you agree that we may use your details to respond to your enquiry. We never sell or share your data with third parties.
           </p>
 
           <!-- Submit -->
           <button type="submit"
-                  class="w-full bg-gradient-to-r from-primary-950 to-primary-700 hover:from-primary-800 hover:to-primary-600 text-white py-3 sm:py-4 rounded-xl font-semibold text-sm sm:text-base hover:shadow-xl hover:scale-105 transition-all flex items-center justify-center gap-2 group focus:outline-none focus:ring-2 focus:ring-primary-950 focus:ring-offset-2">
+                  class="w-full brand-gradient text-white py-3 sm:py-4 rounded-lg font-semibold shadow-brand hover:opacity-95 transition-all flex items-center justify-center gap-2 group focus:outline-none focus:ring-2 focus:ring-brandblue focus:ring-offset-2">
             <i data-lucide="send" class="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" aria-hidden="true"></i>
             Send Message
           </button>
@@ -335,24 +326,24 @@
       <div class="space-y-4 sm:space-y-5">
 
         <!-- Section header -->
-        <div class="flex items-center gap-3 sm:gap-4 mb-2 sm:mb-4">
-          <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary-950 to-primary-700 rounded-xl flex items-center justify-center flex-shrink-0" aria-hidden="true">
-            <i data-lucide="info" class="w-5 h-5 sm:w-6 sm:h-6 text-white"></i>
+        <div class="flex items-center gap-3 sm:gap-4 mb-2 sm:mb-4 reveal">
+          <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-ice flex items-center justify-center flex-shrink-0 text-brandblue" aria-hidden="true">
+            <i data-lucide="info" class="w-5 h-5 sm:w-6 sm:h-6"></i>
           </div>
-          <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-primary-950 font-heading">
+          <h3 class="text-lg sm:text-xl lg:text-2xl font-sora font-semibold text-navy">
             Contact Information
           </h3>
         </div>
 
         <!-- USA Campus Address -->
-        <address class="not-italic bg-white rounded-2xl p-5 sm:p-6 shadow-lg hover:shadow-xl transition-all group border border-gray-100">
+        <address class="reveal not-italic bg-white rounded-2xl p-5 sm:p-6 border border-borderblue hover:shadow-card transition-all group">
           <div class="flex items-start gap-3 sm:gap-4">
-            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary-100 to-accent-200 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform" aria-hidden="true">
-              <i data-lucide="map-pin" class="w-5 h-5 sm:w-6 sm:h-6 text-primary-950"></i>
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-ice flex items-center justify-center flex-shrink-0 text-brandblue group-hover:scale-110 transition-transform" aria-hidden="true">
+              <i data-lucide="map-pin" class="w-5 h-5 sm:w-6 sm:h-6"></i>
             </div>
             <div>
-              <h4 class="font-bold text-base sm:text-lg text-primary-950 mb-1.5 sm:mb-2 font-heading">USA Campus</h4>
-              <p class="text-gray-600 text-xs sm:text-sm leading-relaxed">
+              <h4 class="font-bold text-base sm:text-lg text-navy mb-1.5 sm:mb-2 font-sora">USA Campus</h4>
+              <p class="text-slate-600 text-xs sm:text-sm leading-relaxed">
                 {% if site_config.address_usa %}
                   {{ site_config.address_usa|linebreaksbr }}
                 {% else %}
@@ -364,14 +355,14 @@
         </address>
 
         <!-- Nigeria Campus Address -->
-        <address class="not-italic bg-white rounded-2xl p-5 sm:p-6 shadow-lg hover:shadow-xl transition-all group border border-gray-100">
+        <address class="reveal not-italic bg-white rounded-2xl p-5 sm:p-6 border border-borderblue hover:shadow-card transition-all group">
           <div class="flex items-start gap-3 sm:gap-4">
-            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary-100 to-accent-200 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform" aria-hidden="true">
-              <i data-lucide="map-pin" class="w-5 h-5 sm:w-6 sm:h-6 text-primary-950"></i>
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-ice flex items-center justify-center flex-shrink-0 text-brandblue group-hover:scale-110 transition-transform" aria-hidden="true">
+              <i data-lucide="map-pin" class="w-5 h-5 sm:w-6 sm:h-6"></i>
             </div>
             <div>
-              <h4 class="font-bold text-base sm:text-lg text-primary-950 mb-1.5 sm:mb-2 font-heading">Nigeria Campus</h4>
-              <p class="text-gray-600 text-xs sm:text-sm leading-relaxed">
+              <h4 class="font-bold text-base sm:text-lg text-navy mb-1.5 sm:mb-2 font-sora">Nigeria Campus</h4>
+              <p class="text-slate-600 text-xs sm:text-sm leading-relaxed">
                 {% if site_config.address_nigeria %}
                   {{ site_config.address_nigeria|linebreaksbr }}
                 {% else %}
@@ -384,55 +375,55 @@
 
         <!-- Email -->
         {% if site_config.email_admissions or site_config.email_info or site_config.email_international or site_config.email %}
-        <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-lg hover:shadow-xl transition-all group border border-gray-100">
+        <div class="reveal bg-white rounded-2xl p-5 sm:p-6 border border-borderblue hover:shadow-card transition-all group">
           <div class="flex items-start gap-3 sm:gap-4">
-            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary-100 to-accent-200 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform" aria-hidden="true">
-              <i data-lucide="mail" class="w-5 h-5 sm:w-6 sm:h-6 text-primary-950"></i>
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-ice flex items-center justify-center flex-shrink-0 text-brandblue group-hover:scale-110 transition-transform" aria-hidden="true">
+              <i data-lucide="mail" class="w-5 h-5 sm:w-6 sm:h-6"></i>
             </div>
             <div class="min-w-0">
-              <h4 class="font-bold text-base sm:text-lg text-primary-950 mb-1.5 sm:mb-2 font-heading">Email Us</h4>
-              <div class="space-y-1.5 text-xs sm:text-sm text-gray-600">
+              <h4 class="font-bold text-base sm:text-lg text-navy mb-1.5 sm:mb-2 font-sora">Email Us</h4>
+              <div class="space-y-1.5 text-xs sm:text-sm text-slate-600">
                 {% if site_config.email_admissions %}
                 <p class="flex flex-wrap items-center gap-1">
-                  <span class="text-gray-400 flex-shrink-0">Admissions —</span>
+                  <span class="text-slate-400 flex-shrink-0">Admissions —</span>
                   <a href="mailto:{{ site_config.email_admissions }}"
-                     class="hover:text-primary-600 transition-colors break-all">{{ site_config.email_admissions }}</a>
+                     class="hover:text-brandblue transition-colors break-all">{{ site_config.email_admissions }}</a>
                 </p>
                 {% endif %}
                 {% if site_config.email_info %}
                 <p class="flex flex-wrap items-center gap-1">
-                  <span class="text-gray-400 flex-shrink-0">General —</span>
+                  <span class="text-slate-400 flex-shrink-0">General —</span>
                   <a href="mailto:{{ site_config.email_info }}"
-                     class="hover:text-primary-600 transition-colors break-all">{{ site_config.email_info }}</a>
+                     class="hover:text-brandblue transition-colors break-all">{{ site_config.email_info }}</a>
                 </p>
                 {% endif %}
                 {% if site_config.email_international %}
                 <p class="flex flex-wrap items-center gap-1">
-                  <span class="text-gray-400 flex-shrink-0">International —</span>
+                  <span class="text-slate-400 flex-shrink-0">International —</span>
                   <a href="mailto:{{ site_config.email_international }}"
-                     class="hover:text-primary-600 transition-colors break-all">{{ site_config.email_international }}</a>
+                     class="hover:text-brandblue transition-colors break-all">{{ site_config.email_international }}</a>
                 </p>
                 {% endif %}
                 {% if not site_config.email_admissions and not site_config.email_info and not site_config.email_international and site_config.email %}
-                <p><a href="mailto:{{ site_config.email }}" class="hover:text-primary-600 transition-colors break-all">{{ site_config.email }}</a></p>
+                <p><a href="mailto:{{ site_config.email }}" class="hover:text-brandblue transition-colors break-all">{{ site_config.email }}</a></p>
                 {% endif %}
                 {% if not site_config.email_admissions and not site_config.email_info and not site_config.email_international and not site_config.email %}
-                <p><a href="mailto:admin@miuedu.com" class="hover:text-primary-600 transition-colors">admin@miuedu.com</a></p>
+                <p><a href="mailto:admin@miuedu.com" class="hover:text-brandblue transition-colors">admin@miuedu.com</a></p>
                 {% endif %}
               </div>
             </div>
           </div>
         </div>
         {% else %}
-        <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-lg hover:shadow-xl transition-all group border border-gray-100">
+        <div class="reveal bg-white rounded-2xl p-5 sm:p-6 border border-borderblue hover:shadow-card transition-all group">
           <div class="flex items-start gap-3 sm:gap-4">
-            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary-100 to-accent-200 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform" aria-hidden="true">
-              <i data-lucide="mail" class="w-5 h-5 sm:w-6 sm:h-6 text-primary-950"></i>
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-ice flex items-center justify-center flex-shrink-0 text-brandblue group-hover:scale-110 transition-transform" aria-hidden="true">
+              <i data-lucide="mail" class="w-5 h-5 sm:w-6 sm:h-6"></i>
             </div>
             <div>
-              <h4 class="font-bold text-base sm:text-lg text-primary-950 mb-1.5 sm:mb-2 font-heading">Email Us</h4>
-              <p class="text-xs sm:text-sm text-gray-600">
-                <a href="mailto:admin@miuedu.com" class="hover:text-primary-600 transition-colors">admin@miuedu.com</a>
+              <h4 class="font-bold text-base sm:text-lg text-navy mb-1.5 sm:mb-2 font-sora">Email Us</h4>
+              <p class="text-xs sm:text-sm text-slate-600">
+                <a href="mailto:admin@miuedu.com" class="hover:text-brandblue transition-colors">admin@miuedu.com</a>
               </p>
             </div>
           </div>
@@ -440,49 +431,49 @@
         {% endif %}
 
         <!-- Phone -->
-        <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-lg hover:shadow-xl transition-all group border border-gray-100">
+        <div class="reveal bg-white rounded-2xl p-5 sm:p-6 border border-borderblue hover:shadow-card transition-all group">
           <div class="flex items-start gap-3 sm:gap-4">
-            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary-100 to-accent-200 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform" aria-hidden="true">
-              <i data-lucide="phone" class="w-5 h-5 sm:w-6 sm:h-6 text-primary-950"></i>
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-ice flex items-center justify-center flex-shrink-0 text-brandblue group-hover:scale-110 transition-transform" aria-hidden="true">
+              <i data-lucide="phone" class="w-5 h-5 sm:w-6 sm:h-6"></i>
             </div>
             <div>
-              <h4 class="font-bold text-base sm:text-lg text-primary-950 mb-1.5 sm:mb-2 font-heading">Call Us</h4>
-              <div class="space-y-1.5 text-xs sm:text-sm text-gray-600">
+              <h4 class="font-bold text-base sm:text-lg text-navy mb-1.5 sm:mb-2 font-sora">Call Us</h4>
+              <div class="space-y-1.5 text-xs sm:text-sm text-slate-600">
                 {% if site_config.phone_admissions %}
                 <p class="flex flex-wrap items-center gap-1">
-                  <span class="text-gray-400 flex-shrink-0">Admissions —</span>
-                  <a href="tel:{{ site_config.phone_admissions }}" class="hover:text-primary-600 transition-colors">{{ site_config.phone_admissions }}</a>
+                  <span class="text-slate-400 flex-shrink-0">Admissions —</span>
+                  <a href="tel:{{ site_config.phone_admissions }}" class="hover:text-brandblue transition-colors">{{ site_config.phone_admissions }}</a>
                 </p>
                 {% endif %}
                 {% if site_config.phone_general %}
                 <p class="flex flex-wrap items-center gap-1">
-                  <span class="text-gray-400 flex-shrink-0">General —</span>
-                  <a href="tel:{{ site_config.phone_general }}" class="hover:text-primary-600 transition-colors">{{ site_config.phone_general }}</a>
+                  <span class="text-slate-400 flex-shrink-0">General —</span>
+                  <a href="tel:{{ site_config.phone_general }}" class="hover:text-brandblue transition-colors">{{ site_config.phone_general }}</a>
                 </p>
                 {% endif %}
                 {% if site_config.phone_international %}
                 <p class="flex flex-wrap items-center gap-1">
-                  <span class="text-gray-400 flex-shrink-0">International —</span>
-                  <a href="tel:{{ site_config.phone_international }}" class="hover:text-primary-600 transition-colors">{{ site_config.phone_international }}</a>
+                  <span class="text-slate-400 flex-shrink-0">International —</span>
+                  <a href="tel:{{ site_config.phone_international }}" class="hover:text-brandblue transition-colors">{{ site_config.phone_international }}</a>
                 </p>
                 {% endif %}
                 {% if not site_config.phone_admissions and not site_config.phone_general and not site_config.phone_international %}
-                  {% if site_config.phone_primary %}<p><a href="tel:{{ site_config.phone_primary }}" class="hover:text-primary-600 transition-colors">{{ site_config.phone_primary }}</a></p>{% endif %}
-                  {% if site_config.phone_secondary %}<p><a href="tel:{{ site_config.phone_secondary }}" class="hover:text-primary-600 transition-colors">{{ site_config.phone_secondary }}</a></p>{% endif %}
-                  {% if site_config.phone_ng_primary %}<p><a href="tel:{{ site_config.phone_ng_primary }}" class="hover:text-primary-600 transition-colors">{{ site_config.phone_ng_primary }}</a> <span class="text-gray-400">(Nigeria)</span></p>{% endif %}
-                  {% if site_config.phone_ng_secondary %}<p><a href="tel:{{ site_config.phone_ng_secondary }}" class="hover:text-primary-600 transition-colors">{{ site_config.phone_ng_secondary }}</a> <span class="text-gray-400">(Nigeria)</span></p>{% endif %}
+                  {% if site_config.phone_primary %}<p><a href="tel:{{ site_config.phone_primary }}" class="hover:text-brandblue transition-colors">{{ site_config.phone_primary }}</a></p>{% endif %}
+                  {% if site_config.phone_secondary %}<p><a href="tel:{{ site_config.phone_secondary }}" class="hover:text-brandblue transition-colors">{{ site_config.phone_secondary }}</a></p>{% endif %}
+                  {% if site_config.phone_ng_primary %}<p><a href="tel:{{ site_config.phone_ng_primary }}" class="hover:text-brandblue transition-colors">{{ site_config.phone_ng_primary }}</a> <span class="text-slate-400">(Nigeria)</span></p>{% endif %}
+                  {% if site_config.phone_ng_secondary %}<p><a href="tel:{{ site_config.phone_ng_secondary }}" class="hover:text-brandblue transition-colors">{{ site_config.phone_ng_secondary }}</a> <span class="text-slate-400">(Nigeria)</span></p>{% endif %}
                 {% endif %}
                 {% if not site_config.phone_admissions and not site_config.phone_general and not site_config.phone_international and not site_config.phone_primary %}
-                <p><a href="tel:+18624057143" class="hover:text-primary-600 transition-colors">+1 862 405 7143</a></p>
-                <p><a href="tel:+19082052535" class="hover:text-primary-600 transition-colors">+1 908 205 2535</a></p>
-                <p><a href="tel:+2349038133047" class="hover:text-primary-600 transition-colors">+234 903 8133 047</a> <span class="text-gray-400">(Nigeria)</span></p>
-                <p><a href="tel:+2348153465278" class="hover:text-primary-600 transition-colors">+234 815 3465 278</a> <span class="text-gray-400">(Nigeria)</span></p>
+                <p><a href="tel:+18624057143" class="hover:text-brandblue transition-colors">+1 862 405 7143</a></p>
+                <p><a href="tel:+19082052535" class="hover:text-brandblue transition-colors">+1 908 205 2535</a></p>
+                <p><a href="tel:+2349038133047" class="hover:text-brandblue transition-colors">+234 903 8133 047</a> <span class="text-slate-400">(Nigeria)</span></p>
+                <p><a href="tel:+2348153465278" class="hover:text-brandblue transition-colors">+234 815 3465 278</a> <span class="text-slate-400">(Nigeria)</span></p>
                 {% endif %}
                 {% if site_config.whatsapp %}
                 <p class="flex flex-wrap items-center gap-1 pt-0.5">
-                  <span class="text-gray-400 flex-shrink-0">WhatsApp —</span>
+                  <span class="text-slate-400 flex-shrink-0">WhatsApp —</span>
                   <a href="https://wa.me/{{ site_config.whatsapp }}" target="_blank" rel="noopener noreferrer"
-                     class="hover:text-primary-600 transition-colors">{{ site_config.whatsapp }}</a>
+                     class="hover:text-brandblue transition-colors">{{ site_config.whatsapp }}</a>
                 </p>
                 {% endif %}
               </div>
@@ -492,17 +483,17 @@
 
         <!-- Office Hours -->
         {% if site_config.office_hours_weekday or site_config.office_hours_saturday or site_config.office_hours_sunday %}
-        <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-lg hover:shadow-xl transition-all group border border-gray-100">
+        <div class="reveal bg-white rounded-2xl p-5 sm:p-6 border border-borderblue hover:shadow-card transition-all group">
           <div class="flex items-start gap-3 sm:gap-4">
-            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary-100 to-accent-200 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform" aria-hidden="true">
-              <i data-lucide="clock" class="w-5 h-5 sm:w-6 sm:h-6 text-primary-950"></i>
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-ice flex items-center justify-center flex-shrink-0 text-brandblue group-hover:scale-110 transition-transform" aria-hidden="true">
+              <i data-lucide="clock" class="w-5 h-5 sm:w-6 sm:h-6"></i>
             </div>
             <div>
-              <h4 class="font-bold text-base sm:text-lg text-primary-950 mb-1.5 sm:mb-2 font-heading">Office Hours</h4>
-              <div class="space-y-1 text-xs sm:text-sm text-gray-600">
+              <h4 class="font-bold text-base sm:text-lg text-navy mb-1.5 sm:mb-2 font-sora">Office Hours</h4>
+              <div class="space-y-1 text-xs sm:text-sm text-slate-600">
                 {% if site_config.office_hours_weekday %}<p>{{ site_config.office_hours_weekday }}</p>{% endif %}
                 {% if site_config.office_hours_saturday %}<p>{{ site_config.office_hours_saturday }}</p>{% endif %}
-                {% if site_config.office_hours_sunday %}<p class="text-gray-400">{{ site_config.office_hours_sunday }}</p>{% endif %}
+                {% if site_config.office_hours_sunday %}<p class="text-slate-400">{{ site_config.office_hours_sunday }}</p>{% endif %}
               </div>
             </div>
           </div>
@@ -511,8 +502,8 @@
 
         <!-- Social links -->
         {% if site_config.facebook or site_config.twitter or site_config.instagram or site_config.youtube or site_config.whatsapp or site_config.linkedin or site_config.tiktok %}
-        <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-lg border border-gray-100">
-          <h4 class="font-bold text-sm sm:text-base text-primary-950 mb-3 sm:mb-4 font-heading">Connect With Us</h4>
+        <div class="reveal bg-white rounded-2xl p-5 sm:p-6 border border-borderblue">
+          <h4 class="font-bold text-sm sm:text-base text-navy mb-3 sm:mb-4 font-sora">Connect With Us</h4>
           <div class="flex flex-wrap gap-2 sm:gap-3">
             {% if site_config.whatsapp %}
             <a href="https://wa.me/{{ site_config.whatsapp }}" target="_blank" rel="noopener noreferrer"
@@ -523,16 +514,16 @@
             {% endif %}
             {% if site_config.facebook %}
             <a href="{{ site_config.facebook }}" target="_blank" rel="noopener noreferrer"
-               class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 flex items-center justify-center transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-400"
+               class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-ice hover:bg-borderblue border border-borderblue flex items-center justify-center transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-brandblue"
                aria-label="Facebook">
-              <i data-lucide="facebook" class="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" aria-hidden="true"></i>
+              <i data-lucide="facebook" class="w-4 h-4 sm:w-5 sm:h-5 text-brandblue" aria-hidden="true"></i>
             </a>
             {% endif %}
             {% if site_config.instagram %}
             <a href="{{ site_config.instagram }}" target="_blank" rel="noopener noreferrer"
-               class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary-50 hover:bg-primary-100 border border-primary-200 flex items-center justify-center transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary-400"
+               class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-ice hover:bg-borderblue border border-borderblue flex items-center justify-center transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-brandblue"
                aria-label="Instagram">
-              <i data-lucide="instagram" class="w-4 h-4 sm:w-5 sm:h-5 text-primary-600" aria-hidden="true"></i>
+              <i data-lucide="instagram" class="w-4 h-4 sm:w-5 sm:h-5 text-brandblue" aria-hidden="true"></i>
             </a>
             {% endif %}
             {% if site_config.youtube %}
@@ -544,23 +535,23 @@
             {% endif %}
             {% if site_config.twitter %}
             <a href="{{ site_config.twitter }}" target="_blank" rel="noopener noreferrer"
-               class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-sky-50 hover:bg-sky-100 border border-sky-200 flex items-center justify-center transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-sky-400"
+               class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-sky/10 hover:bg-sky/20 border border-sky/30 flex items-center justify-center transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-sky"
                aria-label="Twitter / X">
-              <i data-lucide="twitter" class="w-4 h-4 sm:w-5 sm:h-5 text-sky-500" aria-hidden="true"></i>
+              <i data-lucide="twitter" class="w-4 h-4 sm:w-5 sm:h-5 text-sky" aria-hidden="true"></i>
             </a>
             {% endif %}
             {% if site_config.linkedin %}
             <a href="{{ site_config.linkedin }}" target="_blank" rel="noopener noreferrer"
-               class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-300 flex items-center justify-center transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-400"
+               class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-ice hover:bg-borderblue border border-borderblue flex items-center justify-center transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-brandblue"
                aria-label="LinkedIn">
-              <i data-lucide="linkedin" class="w-4 h-4 sm:w-5 sm:h-5 text-blue-700" aria-hidden="true"></i>
+              <i data-lucide="linkedin" class="w-4 h-4 sm:w-5 sm:h-5 text-brandblue" aria-hidden="true"></i>
             </a>
             {% endif %}
             {% if site_config.tiktok %}
             <a href="{{ site_config.tiktok }}" target="_blank" rel="noopener noreferrer"
-               class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 flex items-center justify-center transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-gray-400"
+               class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-soft hover:bg-borderblue border border-borderblue flex items-center justify-center transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-slate-400"
                aria-label="TikTok">
-              <i data-lucide="music" class="w-4 h-4 sm:w-5 sm:h-5 text-gray-800" aria-hidden="true"></i>
+              <i data-lucide="music" class="w-4 h-4 sm:w-5 sm:h-5 text-navy" aria-hidden="true"></i>
             </a>
             {% endif %}
           </div>
@@ -582,10 +573,10 @@
   <div class="w-full h-64 sm:h-80 lg:h-96 overflow-hidden relative">
     {{ site_config.campus_map_embed_url|safe }}
     {% if site_config.campus_map_address %}
-    <div class="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg px-4 py-3 max-w-xs border border-gray-100"
+    <div class="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg px-4 py-3 max-w-xs border border-borderblue"
          aria-label="Campus address">
-      <p class="flex items-center gap-2 text-xs sm:text-sm font-semibold text-primary-950">
-        <i data-lucide="map-pin" class="w-4 h-4 text-accent-500 flex-shrink-0" aria-hidden="true"></i>
+      <p class="flex items-center gap-2 text-xs sm:text-sm font-semibold text-navy">
+        <i data-lucide="map-pin" class="w-4 h-4 text-brandblue flex-shrink-0" aria-hidden="true"></i>
         {{ site_config.campus_map_address }}
       </p>
     </div>

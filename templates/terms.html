@@ -5,20 +5,36 @@
 
 {% block content %}
 
+<!-- ===== HERO ===== -->
+<section class="relative overflow-hidden bg-navy py-20 lg:py-28">
+    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="max-w-3xl">
+            <nav class="flex mb-6" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-2 text-sm">
+                    <li><a href="{% url 'eduweb:index' %}" class="text-white/60 hover:text-white transition-colors">Home</a></li>
+                    <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+                    <li><span class="text-white/80 font-medium">Terms of Service</span></li>
+                </ol>
+            </nav>
+            <span class="inline-flex items-center gap-2 text-xs font-semibold text-sky bg-white/5 border border-white/10 px-3 py-1.5 rounded-full uppercase tracking-wider">
+                <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Legal
+            </span>
+            <h1 class="mt-5 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-white">Terms of Service</h1>
+            <p class="mt-5 text-lg text-white/70 max-w-2xl leading-relaxed">
+                The terms that govern your use of Abraytech's services, products, and training.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== TERMS CONTENT ===== -->
 <section class="py-20 bg-white">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-3xl">
-        <nav class="flex mb-8 text-sm" aria-label="Breadcrumb">
-            <ol class="inline-flex items-center space-x-2 text-gray-500">
-                <li><a href="{% url 'eduweb:index' %}" class="hover:text-primary-700 transition-colors">Home</a></li>
-                <li><i data-lucide="chevron-right" class="w-4 h-4"></i></li>
-                <li><span class="text-gray-900 font-medium">Terms of Service</span></li>
-            </ol>
-        </nav>
-        <h1 class="text-3xl sm:text-4xl font-bold text-primary-950 mb-8 font-heading">Terms of Service</h1>
-        <div class="prose max-w-none text-gray-700 leading-relaxed space-y-4">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="reveal space-y-4 text-slate-700 leading-relaxed">
             <p><em>This is placeholder content pending final legal review &mdash; not yet the published terms.</em></p>
             <p>By using Abraytech's services, products, or training, you agree to use them lawfully and in good faith. Full terms covering orders, consultations, and training enrollment will be published here.</p>
-            <p>Contact <a href="{% url 'eduweb:contact' %}" class="text-primary-700 underline">our team</a> with any questions about these terms.</p>
+            <p>Contact <a href="{% url 'eduweb:contact' %}" class="text-brandblue font-semibold hover:text-electric transition-colors underline">our team</a> with any questions about these terms.</p>
         </div>
     </div>
 </section>

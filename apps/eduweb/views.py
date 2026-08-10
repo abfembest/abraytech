@@ -965,10 +965,16 @@ THEOLOGY_SCHOOL_HOST = 'theology.miuedu.com'
 
 @check_for_auth
 def index(request):
-    from .models import Testimonial, Service
+    from .models import Testimonial, Service, Solution, Industry, Project
     captcha_question, captcha_answer = generate_captcha()
     request.session['contact_captcha_answer'] = captcha_answer
     current_host = request.get_host().split(':')[0].lower()
+
+    active_projects = Project.objects.filter(is_active=True)
+    featured_projects = active_projects.filter(is_featured=True)[:3]
+    if not featured_projects:
+        featured_projects = active_projects.order_by('-created_at')[:3]
+
     return render(request, 'index.html', {
         'show_theology_ad': current_host != THEOLOGY_SCHOOL_HOST,
         'featured_programs': (
@@ -984,12 +990,21 @@ def index(request):
             .order_by('name')[:6]
         ),
         'services': Service.objects.filter(is_active=True),
+        'solutions': Solution.objects.filter(is_active=True).order_by('order', 'title')[:4],
+        'industries': Industry.objects.filter(is_active=True).order_by('order', 'title')[:6],
+        'featured_projects': featured_projects,
         'testimonials': Testimonial.objects.filter(is_active=True).order_by('author_name'),
         'recent_posts': (
             BlogPost.objects
             .filter(status='published')
             .order_by('-publish_date')[:6]
         ),
+        # Real, dynamically-computed counts for the stats strip — never
+        # hardcoded/fabricated numbers.
+        'stat_services_count':  Service.objects.filter(is_active=True).count(),
+        'stat_solutions_count': Solution.objects.filter(is_active=True).count(),
+        'stat_projects_count':  active_projects.count(),
+        'stat_programs_count':  Program.objects.filter(is_active=True).count(),
         'captcha_question': captcha_question,
     })
 
@@ -1325,6 +1340,113 @@ def service_detail(request, slug):
 
 
 # =============================================================================
+# SOLUTIONS
+# =============================================================================
+
+@check_for_auth
+def solutions_list(request):
+    from .models import Solution
+    return render(request, 'solutions.html', {
+        'solutions': Solution.objects.filter(is_active=True),
+    })
+
+
+@check_for_auth
+def solution_detail(request, slug):
+    from .models import Solution
+    solution = get_object_or_404(Solution, slug=slug, is_active=True)
+    return render(request, 'solution_detail.html', {
+        'solution': solution,
+        'other_solutions': Solution.objects.filter(is_active=True).exclude(slug=slug),
+    })
+
+
+# =============================================================================
+# INDUSTRIES
+# =============================================================================
+
+@check_for_auth
+def industries_list(request):
+    from .models import Industry
+    return render(request, 'industries.html', {
+        'industries': Industry.objects.filter(is_active=True),
+    })
+
+
+@check_for_auth
+def industry_detail(request, slug):
+    from .models import Industry, Project
+    industry = get_object_or_404(Industry, slug=slug, is_active=True)
+    return render(request, 'industry_detail.html', {
+        'industry': industry,
+        'other_industries': Industry.objects.filter(is_active=True).exclude(slug=slug),
+        'industry_projects': Project.objects.filter(is_active=True, industry=industry),
+    })
+
+
+# =============================================================================
+# PROJECTS / PORTFOLIO
+# =============================================================================
+
+@check_for_auth
+def projects_list(request):
+    from .models import Project
+    return render(request, 'projects.html', {
+        'projects': Project.objects.filter(is_active=True).select_related('industry', 'service'),
+    })
+
+
+@check_for_auth
+def project_detail(request, slug):
+    from .models import Project
+    project = get_object_or_404(
+        Project.objects.select_related('industry', 'service'),
+        slug=slug, is_active=True,
+    )
+    return render(request, 'project_detail.html', {
+        'project': project,
+        'other_projects': Project.objects.filter(is_active=True).exclude(slug=slug)[:3],
+    })
+
+
+# =============================================================================
+# STORE
+# =============================================================================
+
+@check_for_auth
+def store_list(request):
+    from .models import Product
+    return render(request, 'store.html', {
+        'products': Product.objects.filter(is_active=True),
+    })
+
+
+@check_for_auth
+def product_detail(request, slug):
+    from .models import Product
+    product = get_object_or_404(Product, slug=slug, is_active=True)
+    return render(request, 'product_detail.html', {
+        'product': product,
+        'other_products': Product.objects.filter(is_active=True).exclude(slug=slug)[:3],
+    })
+
+
+# =============================================================================
+# COMPANY TEAM
+# =============================================================================
+
+@check_for_auth
+def team(request):
+    from .models import InstitutionMember
+    members = (
+        InstitutionMember.objects
+        .filter(is_active=True)
+        .order_by('member_type', 'name')
+    )
+    return render(request, 'team.html', {'members': members})
+
+
+# =============================================================================
 # FAQ (public)
 # =============================================================================
 
@@ -1364,7 +1486,10 @@ def cookies(request):
 
 @check_for_auth
 def careers(request):
-    return render(request, 'careers.html')
+    from .models import JobListing
+    return render(request, 'careers.html', {
+        'jobs': JobListing.objects.filter(is_active=True),
+    })
 
 
 # =============================================================================
@@ -1420,6 +1545,72 @@ def contact_submit(request):
     request.session['contact_captcha_answer'] = new_answer
     messages.error(request, 'Please correct the errors below.')
     return redirect(referer)
+
+
+# =============================================================================
+# CONSULTATION BOOKING
+# =============================================================================
+
+@check_for_auth
+def consultation_booking(request):
+    from .models import ConsultationRequest, Service
+
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        company = request.POST.get('company', '').strip()
+        service_id = request.POST.get('service_interest') or None
+        preferred_date = request.POST.get('preferred_date') or None
+        preferred_time = request.POST.get('preferred_time', '').strip()
+        message_text = request.POST.get('message', '').strip()
+
+        if not name or not email:
+            messages.error(request, 'Please provide your name and email address.')
+        else:
+            service_obj = None
+            if service_id:
+                service_obj = Service.objects.filter(pk=service_id, is_active=True).first()
+            ConsultationRequest.objects.create(
+                name=name,
+                email=email,
+                phone=phone,
+                company=company,
+                service_interest=service_obj,
+                preferred_date=preferred_date,
+                preferred_time=preferred_time,
+                message=message_text,
+            )
+            messages.success(
+                request,
+                'Thanks — your consultation request has been received. Our team will reach out shortly.',
+            )
+            return redirect('eduweb:consultation_booking')
+
+    return render(request, 'consultation.html', {
+        'services': Service.objects.filter(is_active=True),
+    })
+
+
+# =============================================================================
+# NEWSLETTER
+# =============================================================================
+
+@require_POST
+def newsletter_subscribe(request):
+    """AJAX-only endpoint backing the footer newsletter signup form."""
+    from .models import NewsletterSubscriber
+
+    email = request.POST.get('email', '').strip().lower()
+    if not email or '@' not in email or '.' not in email.split('@')[-1]:
+        return JsonResponse({'success': False, 'message': 'Please enter a valid email address.'}, status=400)
+
+    subscriber, created = NewsletterSubscriber.objects.get_or_create(email=email)
+    if not created and not subscriber.is_active:
+        subscriber.is_active = True
+        subscriber.save(update_fields=['is_active'])
+
+    return JsonResponse({'success': True, 'message': "You're subscribed! Thanks for joining."})
 
 
 # =============================================================================

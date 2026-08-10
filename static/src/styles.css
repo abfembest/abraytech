@@ -3,6 +3,10 @@
 
 @import "tailwindcss";
 
+/* Sora — display/heading font used by the "main.html" template redesign.
+   Not vendored locally (unlike Inter/Poppins above), loaded via Google
+   Fonts <link> in base.html instead — see the <head> "FONTS" block. */
+
 
 /* =====================================================
    SOURCE SCANNING — Tailwind v4 scans these paths
@@ -64,6 +68,33 @@
   --color-lime-400: #a3e635;
   --color-lime-500: #84cc16;
   --color-lime-600: #65a30d;
+
+  /* ============== "main.html" REDESIGN TOKENS (public site only) ==============
+     Flat brand colors matching the client-supplied main.html template
+     exactly (same names/hex as its tailwind.config), so front-facing
+     templates can use bg-navy / text-brandblue / border-borderblue etc.
+     directly, same as the source template, on the existing compiled
+     Tailwind v4 pipeline (no CDN Tailwind). Kept separate from the
+     primary-*/accent-* scales above, which the management/instructor/
+     finance dashboards still use untouched. */
+  --color-navy: #071A3D;
+  --color-brandblue: #0B5CFF;
+  --color-electric: #168BFF;
+  --color-sky: #38BDF8;
+  --color-ice: #EAF6FF;
+  --color-soft: #F4FAFF;
+  --color-darkslate: #0F172A;
+  --color-borderblue: #D7EAFE;
+
+  /* Sora — display font for the redesigned public pages only. A distinct
+     token name (not --font-display/--font-heading) so the existing
+     font-heading/font-display utilities used across the management,
+     instructor, and finance dashboards are completely unaffected. */
+  --font-sora: 'Sora', system-ui, -apple-system, sans-serif;
+
+  /* Box shadows matching main.html's tailwind.config boxShadow.brand/card */
+  --shadow-brand: 0 20px 45px -15px rgba(11, 92, 255, 0.35);
+  --shadow-card: 0 2px 10px rgba(7, 26, 61, 0.06);
 
   /* DANGER: single functional red for error states — not a brand color */
   --color-danger-50: #fef2f2;
@@ -1231,6 +1262,99 @@
    .delay-300 { animation-delay: 0.3s; }
    .delay-450 { animation-delay: 0.45s; }
    .delay-600 { animation-delay: 0.6s; }
+
+   /* =====================================================================
+      "main.html" REDESIGN COMPONENT SYSTEM — public site only.
+      Ported class-for-class from the client-supplied template so the
+      redesigned pages behave identically (dropdown-panel toggle, mobile
+      drawer slide, scroll-reveal, marquee) on the compiled pipeline.
+      ===================================================================== */
+   .brand-gradient {
+     background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
+   }
+   .brand-gradient-text {
+     background: linear-gradient(135deg, #0B5CFF 0%, #38BDF8 100%);
+     -webkit-background-clip: text;
+     background-clip: text;
+     color: transparent;
+   }
+
+   /* Nav link active / open state */
+   .nav-link.active,
+   .nav-link[aria-expanded="true"] {
+     background-color: #EAF6FF;
+     color: #0B5CFF;
+   }
+
+   /* Dropdown panel (desktop mega-menu / simple dropdowns) */
+   .dropdown-panel {
+     opacity: 0;
+     transform: translateY(-6px);
+     pointer-events: none;
+     transition: opacity .18s ease, transform .18s ease;
+   }
+   .dropdown-panel.open {
+     opacity: 1;
+     transform: translateY(0);
+     pointer-events: auto;
+   }
+
+   /* Header shadow on scroll */
+   header.scrolled { box-shadow: 0 4px 20px rgba(7,26,61,0.08); }
+
+   /* Mobile drawer */
+   #mobileDrawer {
+     transform: translateX(100%);
+     transition: transform .3s ease;
+   }
+   #mobileDrawer.open { transform: translateX(0); }
+   #mobileOverlay {
+     opacity: 0;
+     pointer-events: none;
+     transition: opacity .3s ease;
+   }
+   #mobileOverlay.open { opacity: 1; pointer-events: auto; }
+
+   /* Scroll reveal */
+   .reveal {
+     opacity: 0;
+     transform: translateY(18px);
+     transition: opacity .6s ease, transform .6s ease;
+   }
+   .reveal.in-view { opacity: 1; transform: translateY(0); }
+
+   @media (prefers-reduced-motion: reduce) {
+     .reveal { opacity: 1; transform: none; transition: none; }
+     #mobileDrawer, #mobileOverlay, .dropdown-panel, .nav-link { transition: none; }
+   }
+
+   details.mobile-accordion > summary { list-style: none; cursor: pointer; }
+   details.mobile-accordion > summary::-webkit-details-marker { display: none; }
+   details.mobile-accordion[open] .chev { transform: rotate(180deg); }
+
+   .marquee-track {
+     animation: marquee 28s linear infinite;
+   }
+   @media (prefers-reduced-motion: reduce) {
+     .marquee-track { animation: none; }
+   }
+   @keyframes marquee {
+     from { transform: translateX(0); }
+     to { transform: translateX(-50%); }
+   }
+
+   /* Skip-to-content link */
+   .skip-link {
+     position: absolute;
+     left: -9999px;
+     top: 0;
+     z-index: 100;
+     background: #071A3D;
+     color: #fff;
+     padding: 0.75rem 1.25rem;
+     border-radius: 0 0 0.5rem 0;
+   }
+   .skip-link:focus { left: 0; }
 }
 
 /* ── Responsive table card utility (mobile ≤ 639px) ──

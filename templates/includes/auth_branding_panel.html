@@ -1,47 +1,50 @@
 {% load static %}
 <!-- Left Side - Branding -->
-<div class="hidden lg:flex lg:col-span-2 flex-col justify-center p-8 bg-gradient-to-br from-primary-950 via-primary-900 to-accent-900 text-white">
+<div class="hidden lg:flex lg:col-span-2 flex-col justify-center p-8 bg-navy text-white relative overflow-hidden">
+    <div class="absolute inset-0 opacity-20 pointer-events-none" aria-hidden="true" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
+    <div class="relative">
     <div class="mb-8 text-center">
         {% if site_config and site_config.logo %}
         <img src="{{ site_config.logo.url }}" alt="{{ site_config.school_short_name|default:'Abraytech' }} Logo" class="h-16 w-auto mb-6 bg-white rounded-xl p-3 mx-auto">
         {% else %}
-        <span class="block text-3xl font-display font-extrabold mb-6 tracking-tight">{{ site_config.school_short_name|default:"Abraytech" }}</span>
+        <span class="block text-3xl font-sora font-extrabold mb-6 tracking-tight">{{ site_config.school_short_name|default:"Abraytech" }}</span>
         {% endif %}
-        <h2 class="text-4xl font-bold font-display mb-4">Welcome to {{ site_config.school_short_name|default:"Abraytech" }}</h2>
-        <p class="text-accent-200 text-lg leading-relaxed">
+        <h2 class="text-4xl font-bold font-sora mb-4">Welcome to {{ site_config.school_short_name|default:"Abraytech" }}</h2>
+        <p class="text-white/70 text-lg leading-relaxed">
             Sign in to manage your services, track training progress, and stay connected with our team.
         </p>
     </div>
 
     <div class="space-y-4">
         <div class="flex items-start gap-3">
-            <div class="bg-accent-700 rounded-lg p-2 mt-1">
+            <div class="brand-gradient rounded-lg p-2 mt-1">
                 <i data-lucide="check" class="w-5 h-5"></i>
             </div>
             <div>
                 <h4 class="font-semibold mb-1">Experienced Technology Team</h4>
-                <p class="text-accent-200 text-sm">Software, security, and AI expertise under one roof</p>
+                <p class="text-white/70 text-sm">Software, security, and AI expertise under one roof</p>
             </div>
         </div>
 
         <div class="flex items-start gap-3">
-            <div class="bg-accent-700 rounded-lg p-2 mt-1">
+            <div class="brand-gradient rounded-lg p-2 mt-1">
                 <i data-lucide="check" class="w-5 h-5"></i>
             </div>
             <div>
                 <h4 class="font-semibold mb-1">Flexible Engagement</h4>
-                <p class="text-accent-200 text-sm">Project-based work, consulting, or ongoing support</p>
+                <p class="text-white/70 text-sm">Project-based work, consulting, or ongoing support</p>
             </div>
         </div>
 
         <div class="flex items-start gap-3">
-            <div class="bg-accent-700 rounded-lg p-2 mt-1">
+            <div class="brand-gradient rounded-lg p-2 mt-1">
                 <i data-lucide="check" class="w-5 h-5"></i>
             </div>
             <div>
                 <h4 class="font-semibold mb-1">Hands-On Training</h4>
-                <p class="text-accent-200 text-sm">Practical, job-ready technology skills programs</p>
+                <p class="text-white/70 text-sm">Practical, job-ready technology skills programs</p>
             </div>
         </div>
+    </div>
     </div>
 </div>

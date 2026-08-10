@@ -1,0 +1,410 @@
+/* =====================================================================
+   redesign-tokens.css
+   ---------------------------------------------------------------------
+   HAND-AUTHORED, STANDALONE stopgap stylesheet.
+
+   Why this file exists: static/src/styles.css (the Tailwind v4 CSS-first
+   source) has the "main.html" redesign's @theme color tokens
+   (navy/brandblue/electric/sky/ice/soft/darkslate/borderblue), the Sora
+   font, shadow-brand/shadow-card, and a hand-written "main.html REDESIGN
+   COMPONENT SYSTEM" @layer utilities block (brand-gradient, reveal,
+   dropdown-panel, mobile drawer, marquee, etc). All of that is correctly
+   authored — but the Tailwind CLI build that turns it into the actually
+   served static/css/styles.css has not been run in this environment, so
+   none of the new utility classes used across the redesigned public
+   templates exist in the compiled/served CSS. Every element using them
+   is silently unstyled.
+
+   This file plugs that gap by hand-implementing, as plain CSS with zero
+   Tailwind dependency, every new-design-system utility class actually
+   referenced in class="..." attributes across: base.html, index.html,
+   services.html, service_detail.html, solutions.html, solution_detail.html,
+   industries.html, industry_detail.html, projects.html, project_detail.html,
+   store.html, product_detail.html, consultation.html, team.html,
+   careers.html — plus a verbatim copy of the "main.html REDESIGN COMPONENT
+   SYSTEM" block from static/src/styles.css (already plain hand-written CSS,
+   not Tailwind-generated, so it doesn't need translating).
+
+   Loaded in base.html AFTER {% static 'css/styles.css' %} so these
+   single-class-selector rules win over anything of equal specificity.
+
+   Once the Tailwind CLI build pipeline is available again, run the real
+   build (npm run build / npx tailwindcss) so static/css/styles.css picks
+   up everything below natively, and this file can be removed along with
+   its <link> in base.html.
+   ===================================================================== */
+
+/* ── Documentation-only custom properties — mirrors the @theme tokens in
+   static/src/styles.css. Not referenced by the rules below (which use
+   literal hex values so this file has zero dependency on the Tailwind
+   build/@theme step), kept here purely so the token names/values stay
+   discoverable and in sync with the source of truth. ── */
+:root {
+  --color-navy: #071A3D;
+  --color-brandblue: #0B5CFF;
+  --color-electric: #168BFF;
+  --color-sky: #38BDF8;
+  --color-ice: #EAF6FF;
+  --color-soft: #F4FAFF;
+  --color-darkslate: #0F172A;
+  --color-borderblue: #D7EAFE;
+  --font-sora: 'Sora', system-ui, -apple-system, sans-serif;
+  --shadow-brand: 0 20px 45px -15px rgba(11, 92, 255, 0.35);
+  --shadow-card: 0 2px 10px rgba(7, 26, 61, 0.06);
+}
+
+/* =====================================================================
+   1) BASE COLOR / FONT / SHADOW UTILITIES
+   Every bare (non-variant) class found via grep across the 15 templates.
+   ===================================================================== */
+.bg-navy        { background-color: #071A3D; }
+.text-navy      { color: #071A3D; }
+.border-navy    { border-color: #071A3D; }
+
+.bg-brandblue   { background-color: #0B5CFF; }
+.text-brandblue { color: #0B5CFF; }
+
+.text-sky       { color: #38BDF8; }
+.border-sky     { border-color: #38BDF8; }
+
+.bg-ice         { background-color: #EAF6FF; }
+.bg-soft        { background-color: #F4FAFF; }
+
+.text-darkslate { color: #0F172A; }
+
+.bg-borderblue     { background-color: #D7EAFE; }
+.border-borderblue { border-color: #D7EAFE; }
+
+.font-sora   { font-family: 'Sora', system-ui, -apple-system, sans-serif; }
+.shadow-brand { box-shadow: 0 20px 45px -15px rgba(11, 92, 255, 0.35); }
+.shadow-card  { box-shadow: 0 2px 10px rgba(7, 26, 61, 0.06); }
+
+/* =====================================================================
+   2) OPACITY-SLASH VARIANTS (bg-white/10, text-white/70, bg-navy/95, ...)
+   ===================================================================== */
+.bg-white\/5   { background-color: rgb(255 255 255 / 0.05); }
+.bg-white\/10  { background-color: rgb(255 255 255 / 0.1); }
+
+.text-white\/20 { color: rgb(255 255 255 / 0.2); }
+.text-white\/40 { color: rgb(255 255 255 / 0.4); }
+.text-white\/50 { color: rgb(255 255 255 / 0.5); }
+.text-white\/60 { color: rgb(255 255 255 / 0.6); }
+.text-white\/70 { color: rgb(255 255 255 / 0.7); }
+.text-white\/80 { color: rgb(255 255 255 / 0.8); }
+.text-white\/90 { color: rgb(255 255 255 / 0.9); }
+
+.border-white\/10 { border-color: rgb(255 255 255 / 0.1); }
+.border-white\/15 { border-color: rgb(255 255 255 / 0.15); }
+.border-white\/20 { border-color: rgb(255 255 255 / 0.2); }
+.border-white\/30 { border-color: rgb(255 255 255 / 0.3); }
+
+.bg-navy\/50 { background-color: rgb(7 26 61 / 0.5); }
+.bg-navy\/95 { background-color: rgb(7 26 61 / 0.95); }
+
+/* =====================================================================
+   3) HOVER VARIANTS
+   ===================================================================== */
+.hover\:bg-ice:hover         { background-color: #EAF6FF; }
+.hover\:bg-soft:hover        { background-color: #F4FAFF; }
+.hover\:bg-brandblue:hover   { background-color: #0B5CFF; }
+.hover\:text-brandblue:hover { color: #0B5CFF; }
+.hover\:text-electric:hover  { color: #168BFF; }
+.hover\:border-brandblue:hover { border-color: #0B5CFF; }
+.hover\:shadow-brand:hover   { box-shadow: 0 20px 45px -15px rgba(11, 92, 255, 0.35); }
+.hover\:shadow-card:hover    { box-shadow: 0 2px 10px rgba(7, 26, 61, 0.06); }
+.hover\:bg-white\/10:hover   { background-color: rgb(255 255 255 / 0.1); }
+.hover\:-translate-y-1:hover { transform: translateY(-0.25rem); }
+.hover\:opacity-95:hover     { opacity: 0.95; }
+
+/* =====================================================================
+   4) FOCUS VARIANTS
+   Tailwind's ring-2/ring-4/ring-offset-* width utilities (unrelated to
+   the redesign, already present in the compiled base stylesheet) build
+   their box-shadow off the --tw-ring-color custom property — so these
+   only need to set that variable (or border-color for focus:border-*),
+   not redeclare the whole box-shadow.
+   ===================================================================== */
+.focus\:ring-brandblue:focus   { --tw-ring-color: #0B5CFF; }
+.focus\:border-brandblue:focus { border-color: #0B5CFF; }
+.focus\:ring-ice:focus         { --tw-ring-color: #EAF6FF; }
+.focus\:border-sky:focus       { border-color: #38BDF8; }
+.focus\:ring-white\/60:focus   { --tw-ring-color: rgb(255 255 255 / 0.6); }
+
+/* =====================================================================
+   5) GROUP-HOVER VARIANTS (parent carries .group, child carries these)
+   ===================================================================== */
+.group:hover .group-hover\:scale-110     { transform: scale(1.1); }
+.group:hover .group-hover\:scale-105     { transform: scale(1.05); }
+.group:hover .group-hover\:translate-x-1 { transform: translateX(0.25rem); }
+
+/* =====================================================================
+   6) PLACEHOLDER VARIANT
+   ===================================================================== */
+.placeholder\:text-white\/30::placeholder { color: rgb(255 255 255 / 0.3); }
+
+/* =====================================================================
+   7) "main.html" REDESIGN COMPONENT SYSTEM
+   Verbatim copy of the @layer utilities block from static/src/styles.css
+   (search for its header comment there). This was already hand-written
+   plain CSS — not Tailwind @apply/utility-generated — so it is copied
+   as-is, just without the @layer utilities wrapper (not needed/valid
+   outside a Tailwind build context).
+   ===================================================================== */
+.brand-gradient {
+  background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
+}
+.brand-gradient-text {
+  background: linear-gradient(135deg, #0B5CFF 0%, #38BDF8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Nav link active / open state */
+.nav-link.active,
+.nav-link[aria-expanded="true"] {
+  background-color: #EAF6FF;
+  color: #0B5CFF;
+}
+
+/* Dropdown panel (desktop mega-menu / simple dropdowns) */
+.dropdown-panel {
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity .18s ease, transform .18s ease;
+}
+.dropdown-panel.open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* Header shadow on scroll */
+header.scrolled { box-shadow: 0 4px 20px rgba(7,26,61,0.08); }
+
+/* Mobile drawer */
+#mobileDrawer {
+  transform: translateX(100%);
+  transition: transform .3s ease;
+}
+#mobileDrawer.open { transform: translateX(0); }
+#mobileOverlay {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s ease;
+}
+#mobileOverlay.open { opacity: 1; pointer-events: auto; }
+
+/* Scroll reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity .6s ease, transform .6s ease;
+}
+.reveal.in-view { opacity: 1; transform: translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  #mobileDrawer, #mobileOverlay, .dropdown-panel, .nav-link { transition: none; }
+}
+
+details.mobile-accordion > summary { list-style: none; cursor: pointer; }
+details.mobile-accordion > summary::-webkit-details-marker { display: none; }
+details.mobile-accordion[open] .chev { transform: rotate(180deg); }
+
+.marquee-track {
+  animation: marquee 28s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none; }
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* Skip-to-content link */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  background: #071A3D;
+  color: #fff;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0 0 0.5rem 0;
+}
+.skip-link:focus { left: 0; }
+
+/* =====================================================================
+   8) GAP-FILL PATCH — classes found on a second manual verification pass
+   across base.html, index.html, and the 13 marketing pages that the
+   first pass (built around "new design token" keyword grepping) missed
+   because they're generic Tailwind utilities/arbitrary values rather
+   than literal navy/brandblue/etc. tokens, but are still part of this
+   same un-compiled redesign and were confirmed via grep to be genuinely
+   absent from the compiled static/css/styles.css.
+   ===================================================================== */
+
+/* Header translucent background (bg-white/90) */
+.bg-white\/90 { background-color: rgb(255 255 255 / 0.9); }
+
+/* Hero slide dark overlay gradient (bg-gradient-to-b from-black/60 via-black/50 to-black/70)
+   Implemented using Tailwind's own --tw-gradient-stops mechanism so it composes
+   correctly regardless of class order in the markup. */
+.bg-gradient-to-b { background-image: linear-gradient(to bottom, var(--tw-gradient-stops)); }
+.from-black\/60 {
+  --tw-gradient-from: rgb(0 0 0 / 0.6);
+  --tw-gradient-to: rgb(0 0 0 / 0);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+.via-black\/50 {
+  --tw-gradient-to: rgb(0 0 0 / 0);
+  --tw-gradient-stops: var(--tw-gradient-from), rgb(0 0 0 / 0.5), var(--tw-gradient-to);
+}
+.to-black\/70 { --tw-gradient-to: rgb(0 0 0 / 0.7); }
+
+/* Arbitrary-value utilities used in base.html's header/nav/dropdowns/mobile drawer
+   (pre-existing in the markup — not newly introduced here). Selectors must escape
+   every character Tailwind's own arbitrary-value class name contains literally. */
+.shadow-\[0_2px_24px_-8px_rgba\(11\,92\,255\,0\.15\)\] {
+  box-shadow: 0 2px 24px -8px rgba(11, 92, 255, 0.15);
+}
+.h-\[3px\]   { height: 3px; }
+.text-\[15px\] { font-size: 15px; }
+.text-\[10px\] { font-size: 10px; }
+.w-\[640px\] { width: 640px; }
+.w-\[86%\]   { width: 86%; }
+
+/* =====================================================================
+   9) all_programs.html PROGRAM-CATALOG COMPONENT SYSTEM — COLOR REPOINT
+   ---------------------------------------------------------------------
+   all_programs.html uses a set of named, JS-toggled component classes
+   (.fpill, .vtbtn, .snav-link, .fac-hdr, .fac-chevron, .fac-body-wrap,
+   .pgbtn, .prog-row, .dept-dot, .programs-search-input, .deg-certificate,
+   etc.) already defined in static/src/styles.css §"all_programs.html —
+   programs directory". Those classes carry real interactive/JS-toggled
+   behavior (accordion open/close, active pagination state, filter
+   selection, hover affordances) so their SELECTORS and the JS that
+   toggles them are left completely untouched. Only the old cyan (#0891b2)
+   / lime (#a3e635) brand colors baked into those rules are repointed to
+   the new navy/brandblue/sky palette here, loaded after styles.css so
+   these same-specificity single-class-selector overrides win.
+   ===================================================================== */
+.prog-row:hover {
+  border-color: rgba(11, 92, 255, .3);
+  box-shadow: 0 2px 12px rgba(11, 92, 255, .08);
+}
+.prog-row:focus-visible { outline-color: #0B5CFF; }
+.prog-row:hover .carrow { background: #0B5CFF; color: #fff; }
+.deg-certificate { --dc: #0B5CFF; --dl: #EAF6FF; }
+
+.snav-link:hover { background: #EAF6FF; color: #0B5CFF; }
+.snav-link.active { background: #EAF6FF; color: #0B5CFF; }
+.snav-link.active::before { background: #0B5CFF; }
+
+.fpill.on { background: #38BDF8; border-color: #38BDF8; color: #071A3D; }
+
+.vtbtn.on { background: #0B5CFF; color: #fff; }
+
+.fac-hdr { background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%); }
+.fac-hdr:focus-visible { outline-color: #38BDF8; }
+
+.pgbtn:hover:not(:disabled) { border-color: #0B5CFF; color: #0B5CFF; }
+.pgbtn.on { background: #0B5CFF; border-color: #0B5CFF; color: #fff; }
+
+.programs-search-input:focus {
+  border-color: #38BDF8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, .25);
+}
+
+.dept-dot { background: #0B5CFF; }
+
+/* Outline-to-filled navy button pattern (border-navy text-navy hover:bg-navy
+   hover:text-white), used on several detail pages for a secondary CTA that
+   inverts to solid navy on hover — not covered by the base hover set above. */
+.hover\:bg-navy:hover { background-color: #071A3D; }
+
+/* program_detail.html / faculty_detail.html JS-toggled component color
+   repoint (same rationale as §9 above): .course-row, .yr-tab, .nav-anchor
+   keep their selectors/JS untouched, only the old cyan (#06b6d4) is
+   repointed to brandblue. */
+.course-row:hover { border-left-color: #0B5CFF; background: rgba(11,92,255,0.04); }
+.yr-tab.active { background: #0B5CFF; color: #fff; box-shadow: 0 4px 12px rgba(11,92,255,0.3); border-color: transparent; }
+.yr-tab:not(.active):hover { border-color: #0B5CFF; color: #0B5CFF; }
+.nav-anchor.active { color: #0B5CFF; font-weight: 700; }
+.nav-anchor.active::after { content: ''; display: block; height: 2px; background: #0B5CFF; border-radius: 99px; margin-top: 2px; }
+.program-row:hover { border-left-color: #0B5CFF; background: rgba(11,92,255,0.05); }
+.tab-btn.active { background: #0B5CFF; color: #fff; box-shadow: 0 4px 12px rgba(11,92,255,0.3); }
+.outcome-item::before { background: #0B5CFF; }
+.search-input:focus { box-shadow: 0 0 0 2px rgba(11,92,255,0.5); }
+.stat-glow { text-shadow: 0 0 30px rgba(11,92,255,0.5); }
+
+/* =====================================================================
+   10) blog_detail.html ARTICLE BODY ("prose") TYPOGRAPHY
+   ---------------------------------------------------------------------
+   `.prose` (Tailwind Typography plugin) and its `prose-headings:` /
+   `prose-a:` / `prose-img:` modifier-variant classes are entirely
+   un-compiled (verified absent from static/css/styles.css — this predates
+   the redesign, the plugin's generated CSS was never in the served
+   stylesheet). blog_detail.html renders raw rich-text HTML (post.content)
+   with no other classes to hook into, so without this the article body
+   is completely unstyled. Hand-written base typography + brand color
+   hooks scoped under .prose, since the plugin's own variant syntax can't
+   work without a Tailwind build.
+   ===================================================================== */
+.prose { color: #374151; line-height: 1.75; }
+.prose :where(h1, h2, h3, h4, h5, h6) {
+  font-family: 'Sora', system-ui, -apple-system, sans-serif;
+  color: #071A3D;
+  font-weight: 700;
+  margin-top: 1.6em;
+  margin-bottom: 0.6em;
+  line-height: 1.3;
+}
+.prose :where(h1) { font-size: 1.75em; }
+.prose :where(h2) { font-size: 1.5em; }
+.prose :where(h3) { font-size: 1.25em; }
+.prose :where(p) { margin-top: 1.1em; margin-bottom: 1.1em; }
+.prose :where(a) { color: #0B5CFF; text-decoration: none; font-weight: 600; }
+.prose :where(a):hover { text-decoration: underline; }
+.prose :where(strong) { color: #071A3D; font-weight: 700; }
+.prose :where(ul, ol) { margin-top: 1.1em; margin-bottom: 1.1em; padding-left: 1.5em; }
+.prose :where(li) { margin-top: 0.4em; margin-bottom: 0.4em; }
+.prose :where(ul) :where(li) { list-style-type: disc; }
+.prose :where(ol) :where(li) { list-style-type: decimal; }
+.prose :where(blockquote) {
+  border-left: 4px solid #0B5CFF;
+  background: #F4FAFF;
+  padding: 0.75em 1.25em;
+  margin: 1.5em 0;
+  font-style: italic;
+  color: #071A3D;
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+.prose :where(img) { border-radius: 0.75rem; box-shadow: 0 4px 20px rgba(7,26,61,0.1); margin: 1.5em 0; }
+.prose :where(code) { background: #EAF6FF; color: #0B5CFF; padding: 0.15em 0.4em; border-radius: 0.3rem; font-size: 0.875em; }
+.prose :where(pre) { background: #071A3D; color: #fff; padding: 1em; border-radius: 0.75rem; overflow-x: auto; }
+.prose :where(pre code) { background: transparent; color: inherit; padding: 0; }
+.prose :where(hr) { border-color: #D7EAFE; margin: 2em 0; }
+.prose :where(table) { width: 100%; border-collapse: collapse; }
+.prose :where(th, td) { border: 1px solid #D7EAFE; padding: 0.5em 0.75em; text-align: left; }
+.prose :where(th) { background: #F4FAFF; font-weight: 700; color: #071A3D; }
+
+/* =====================================================================
+   11) MISC GAP-FILL — 404.html
+   ===================================================================== */
+.min-h-\[75vh\] { min-height: 75vh; }
+.hover\:bg-white\/15:hover { background-color: rgb(255 255 255 / 0.15); }
+
+/* signup.html two-column auth panel (branding + form) width cap — never had
+   a matching @theme width token defined, so this arbitrary class name was
+   rendering with no max-width at all. */
+.max-w-auth-panel { max-width: 64rem; }
+
+/* Extra opacity-slash variants needed by the recolored all_programs.html
+   hero (closest supported step already used elsewhere; documented per the
+   "pick the closest already-supported one" rule where an exact value like
+   /55 or /65 isn't part of the defined set). */
+.text-white\/30 { color: rgb(255 255 255 / 0.3); }

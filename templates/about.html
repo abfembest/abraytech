@@ -32,79 +32,63 @@
 {% endblock %}
 
 {% block content %}
-<main id="main-content">
 
 <!-- ═══════════════════════════════════════════════════════
      HERO
 ═══════════════════════════════════════════════════════ -->
-<section class="relative overflow-hidden bg-gradient-to-br from-primary-950 via-primary-900 to-primary-800 text-white"
-         aria-labelledby="about-heading">
+<section class="relative overflow-hidden bg-navy py-20 lg:py-28" aria-labelledby="about-heading">
+  <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
 
-  <!-- Decorative blobs -->
-  <div class="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-    <div class="absolute top-10 left-4 sm:left-10 w-40 h-40 sm:w-64 sm:h-64 lg:w-72 lg:h-72 bg-accent-400 rounded-full blur-3xl opacity-10"></div>
-    <div class="absolute bottom-6 right-4 sm:right-10 w-48 h-48 sm:w-72 sm:h-72 lg:w-96 lg:h-96 bg-accent-400 rounded-full blur-3xl opacity-10"></div>
-  </div>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <div class="max-w-3xl">
 
-  <div class="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-24 sm:pt-28 lg:pt-18 pb-14 sm:pb-18 lg:pb-24">
+      <!-- Breadcrumb -->
+      <nav class="flex mb-6" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-2 text-sm"
+            itemscope itemtype="https://schema.org/BreadcrumbList">
+          <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+            <a href="{% url 'eduweb:index' %}" itemprop="item" class="text-white/60 hover:text-white transition-colors">
+              <span itemprop="name">Home</span>
+            </a>
+            <meta itemprop="position" content="1">
+          </li>
+          <li aria-hidden="true"><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+          <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" aria-current="page">
+            <span itemprop="name" class="text-white/80 font-medium">About Us</span>
+            <meta itemprop="position" content="2">
+          </li>
+        </ol>
+      </nav>
 
-    <!-- Breadcrumb -->
-    <nav class="mb-6 sm:mb-8" aria-label="Breadcrumb">
-      <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm"
-          itemscope itemtype="https://schema.org/BreadcrumbList">
-        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-          <a href="{% url 'eduweb:index' %}" itemprop="item"
-             class="text-white/60 hover:text-white transition-colors underline-offset-2 hover:underline">
-            <span itemprop="name">Home</span>
-          </a>
-          <meta itemprop="position" content="1">
-        </li>
-        <li aria-hidden="true"><i data-lucide="chevron-right" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white/40 flex-shrink-0"></i></li>
-        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" aria-current="page">
-          <span itemprop="name" class="text-white/80 font-medium">About Us</span>
-          <meta itemprop="position" content="2">
-        </li>
-      </ol>
-    </nav>
+      <span class="inline-flex items-center gap-2 text-xs font-semibold text-sky bg-white/5 border border-white/10 px-3 py-1.5 rounded-full uppercase tracking-wider">
+        <i data-lucide="info" class="w-3.5 h-3.5"></i> Discover Our Story
+      </span>
 
-    <!-- "Discover Our Story" pill -->
-    <div class="inline-flex items-center gap-2 bg-accent-400/20 backdrop-blur-sm text-accent-300 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold mb-5 sm:mb-6 border border-accent-400/30"
-         aria-hidden="true">
-      <i data-lucide="info" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
-      <span>Discover Our Story</span>
-    </div>
-
-    <!-- Heading -->
-    <h1 id="about-heading"
-        class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold font-heading leading-tight mb-5 sm:mb-6 text-white">
-      About<br>
-      {% with name=site_config.school_name|default:"Abraytech" %}
-        {% with words=name.split %}
-          {% for word in words %}
-            {% if not forloop.last %}{{ word }} {% else %}{% if not forloop.first %}<br>{% endif %}<span class="text-accent-400">{{ word }}</span>{% endif %}
-          {% endfor %}
+      <h1 id="about-heading" class="mt-5 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-white">
+        About
+        {% with name=site_config.school_name|default:"Abraytech" %}
+          {% with words=name.split %}
+            {% for word in words %}
+              {% if not forloop.last %}{{ word }} {% else %}<span class="brand-gradient-text">{{ word }}</span>{% endif %}
+            {% endfor %}
+          {% endwith %}
         {% endwith %}
-      {% endwith %}
-    </h1>
+      </h1>
 
-    <p class="text-base sm:text-lg lg:text-xl xl:text-2xl text-gray-200 leading-relaxed max-w-2xl lg:max-w-3xl mb-8 sm:mb-10">
-      {{ site_config.about_mission|default:"A technology company delivering software development, cybersecurity, AI, IT consulting and training to clients worldwide." }}
-    </p>
+      <p class="mt-5 text-lg text-white/70 max-w-2xl leading-relaxed">
+        {{ site_config.about_mission|default:"A technology company delivering software development, cybersecurity, AI, IT consulting and training to clients worldwide." }}
+      </p>
 
-    <!-- CTA buttons -->
-    <div class="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
-      <a href="#our-story"
-         class="inline-flex items-center justify-center gap-2 bg-accent-400 hover:bg-accent-500 active:bg-accent-600 text-primary-950 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-sm sm:text-base transition-all shadow-xl hover:shadow-2xl hover:scale-105 focus:outline-none focus:ring-2 focus:ring-accent-300 focus:ring-offset-2 focus:ring-offset-primary-950">
-        <i data-lucide="book-open" class="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true"></i>
-        Our Story
-      </a>
-      <a href="#leadership"
-         class="inline-flex items-center justify-center gap-2 border-2 border-white/70 hover:border-white text-white hover:bg-white hover:text-primary-950 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-sm sm:text-base transition-all focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-950">
-        <i data-lucide="users" class="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true"></i>
-        Meet Our Leadership
-      </a>
+      <div class="mt-8 flex flex-col sm:flex-row flex-wrap gap-4">
+        <a href="#our-story" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg brand-gradient text-white font-semibold shadow-brand hover:opacity-95 transition">
+          <i data-lucide="book-open" class="w-4 h-4" aria-hidden="true"></i> Our Story
+        </a>
+        <a href="#leadership" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg border border-white/20 text-white font-semibold hover:bg-white/10 transition">
+          <i data-lucide="users" class="w-4 h-4" aria-hidden="true"></i> Meet Our Leadership
+        </a>
+      </div>
+
     </div>
-
   </div>
 </section>
 
@@ -112,60 +96,47 @@
 <!-- ═══════════════════════════════════════════════════════
      WHO WE ARE
 ═══════════════════════════════════════════════════════ -->
-<section class="section-py bg-white" id="who-we-are" aria-labelledby="who-heading">
-  <div class="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
+<section class="py-20 bg-white" id="who-we-are" aria-labelledby="who-heading">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-    <!-- Section header -->
-    <div class="text-center mb-10 sm:mb-12 lg:mb-16">
-      <div class="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold mb-3 sm:mb-4"
-           aria-hidden="true">
-        <i data-lucide="building" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
-        <span>Our Identity</span>
-      </div>
-      <h2 id="who-heading"
-          class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-primary-950 font-heading">
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <span class="inline-flex items-center gap-2 text-xs font-semibold text-brandblue bg-ice px-3 py-1.5 rounded-full uppercase tracking-wider border border-borderblue">
+        <i data-lucide="building" class="w-3.5 h-3.5"></i> Our Identity
+      </span>
+      <h2 id="who-heading" class="mt-3 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-navy">
         Who We Are
       </h2>
     </div>
 
-    <!-- ── Two-column: Founder photo  +  Intro text ── -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-center">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
 
       <!-- Founder photo -->
       <div class="order-2 lg:order-1">
         {% with founder=who_we_are_member %}
           {% if founder and founder.photo %}
-            <div class="relative rounded-2xl overflow-hidden shadow-2xl"
-                 itemscope itemtype="https://schema.org/Person">
+            <div class="relative rounded-2xl overflow-hidden shadow-brand border border-borderblue" itemscope itemtype="https://schema.org/Person">
               <img src="{{ founder.photo.url }}"
                    alt="Portrait of {{ founder.name }}, {{ founder.role }}"
                    class="w-full aspect-square object-cover object-center"
                    loading="lazy"
                    itemprop="image">
-              <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-primary-950/90 via-primary-950/50 to-transparent
-                          px-4 sm:px-6 py-4 sm:py-6">
-                <p class="font-bold text-white text-base sm:text-lg font-heading"
-                   itemprop="name">{{ founder.name }}</p>
-                <p class="text-accent-300 text-xs sm:text-sm font-semibold"
-                   itemprop="jobTitle">{{ founder.role }}</p>
+              <div class="absolute bottom-0 inset-x-0 bg-navy/95 px-6 py-6">
+                <p class="font-sora font-bold text-white text-lg" itemprop="name">{{ founder.name }}</p>
+                <p class="text-sky text-sm font-semibold" itemprop="jobTitle">{{ founder.role }}</p>
               </div>
             </div>
           {% else %}
-            <div class="relative rounded-2xl overflow-hidden shadow-2xl
-                        bg-gradient-to-br from-primary-900 to-primary-700
-                        aspect-square
-                        flex flex-col items-center justify-center gap-4 sm:gap-5"
+            <div class="relative rounded-2xl overflow-hidden shadow-brand bg-navy aspect-square flex flex-col items-center justify-center gap-5"
                  role="img"
                  aria-label="{% if founder %}{{ founder.name }}, {{ founder.role }}{% else %}Founder{% endif %}">
-              <div class="w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-white/15 flex items-center justify-center"
-                   aria-hidden="true">
-                <i data-lucide="user-circle" class="w-12 h-12 sm:w-16 sm:h-16 text-white/70"></i>
+              <div class="w-28 h-28 rounded-full bg-white/10 flex items-center justify-center" aria-hidden="true">
+                <i data-lucide="user-circle" class="w-16 h-16 text-white/70"></i>
               </div>
-              <div class="text-center px-4 sm:px-6">
-                <p class="font-bold text-white text-lg sm:text-xl font-heading mb-1">
+              <div class="text-center px-6">
+                <p class="font-sora font-bold text-white text-xl mb-1">
                   {% if founder %}{{ founder.name }}{% else %}Leadership team{% endif %}
                 </p>
-                <p class="text-accent-300 text-xs sm:text-sm font-semibold">
+                <p class="text-sky text-sm font-semibold">
                   {% if founder %}{{ founder.role }}{% else %}Coming soon{% endif %}
                 </p>
               </div>
@@ -175,67 +146,43 @@
       </div>
 
       <!-- Intro text -->
-      <div class="order-1 lg:order-2 space-y-4 sm:space-y-5">
-        <p class="text-gray-700 leading-relaxed text-sm sm:text-base lg:text-lg">
+      <div class="order-1 lg:order-2 space-y-5">
+        <p class="text-slate-600 leading-relaxed text-base lg:text-lg">
           {{ site_config.about_vision|default:"Abraytech is a technology company built to help organizations design, build, secure, and scale the software and systems they run on." }}
         </p>
-        <p class="text-gray-700 leading-relaxed text-sm sm:text-base lg:text-lg">
+        <p class="text-slate-600 leading-relaxed text-base lg:text-lg">
           We work across software development, cybersecurity, AI &amp; data, and IT consulting —
           and we invest in people through hands-on, job-ready technology training.
         </p>
 
         <!-- Key fact chips -->
-        <div class="flex flex-wrap gap-2 sm:gap-3 pt-2">
+        <div class="flex flex-wrap gap-3 pt-2">
           {% if site_config.address_nigeria or site_config.address_usa %}
-          <span class="inline-flex items-center gap-1.5 sm:gap-2 bg-primary-50 text-primary-700
-                        border border-primary-200 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full
-                        text-xs sm:text-sm font-semibold">
-            <i data-lucide="map-pin" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
+          <span class="inline-flex items-center gap-2 bg-ice text-brandblue border border-borderblue px-4 py-2 rounded-full text-sm font-semibold">
+            <i data-lucide="map-pin" class="w-4 h-4" aria-hidden="true"></i>
             {% if site_config.address_nigeria %}Nigeria{% endif %}{% if site_config.address_nigeria and site_config.address_usa %} &amp; {% endif %}{% if site_config.address_usa %}USA{% endif %}
           </span>
           {% endif %}
-          <span class="inline-flex items-center gap-1.5 sm:gap-2 bg-primary-50 text-primary-700
-                        border border-primary-200 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full
-                        text-xs sm:text-sm font-semibold">
-            <i data-lucide="code-2" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
-            Software &amp; Security
+          <span class="inline-flex items-center gap-2 bg-ice text-brandblue border border-borderblue px-4 py-2 rounded-full text-sm font-semibold">
+            <i data-lucide="code-2" class="w-4 h-4" aria-hidden="true"></i> Software &amp; Security
           </span>
-          <span class="inline-flex items-center gap-1.5 sm:gap-2 bg-accent-50 text-accent-700
-                        border border-accent-200 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full
-                        text-xs sm:text-sm font-semibold">
-            <i data-lucide="brain-circuit" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
-            AI &amp; Data
+          <span class="inline-flex items-center gap-2 bg-ice text-brandblue border border-borderblue px-4 py-2 rounded-full text-sm font-semibold">
+            <i data-lucide="brain-circuit" class="w-4 h-4" aria-hidden="true"></i> AI &amp; Data
           </span>
-          <span class="inline-flex items-center gap-1.5 sm:gap-2 bg-primary-50 text-primary-700
-                        border border-primary-200 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full
-                        text-xs sm:text-sm font-semibold">
-            <i data-lucide="graduation-cap" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
-            Training
+          <span class="inline-flex items-center gap-2 bg-ice text-brandblue border border-borderblue px-4 py-2 rounded-full text-sm font-semibold">
+            <i data-lucide="graduation-cap" class="w-4 h-4" aria-hidden="true"></i> Training
           </span>
         </div>
 
         <!-- Action buttons -->
         <div class="flex flex-col sm:flex-row flex-wrap gap-3 pt-2 w-full">
           <a href="{% url 'eduweb:all_programs' %}"
-             class="inline-flex items-center justify-center gap-2
-                    bg-gradient-to-r from-primary-950 to-primary-700
-                    hover:from-primary-800 hover:to-primary-600
-                    text-white px-5 sm:px-7 py-3 sm:py-3.5 rounded-xl
-                    font-semibold text-sm sm:text-base
-                    hover:shadow-xl hover:scale-105 transition-all
-                    focus:outline-none focus:ring-2 focus:ring-primary-700 focus:ring-offset-2">
-            <i data-lucide="send" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
-            Apply Now
+             class="inline-flex items-center justify-center gap-2 brand-gradient text-white px-7 py-3.5 rounded-lg font-semibold shadow-brand hover:opacity-95 transition">
+            <i data-lucide="send" class="w-4 h-4" aria-hidden="true"></i> Apply Now
           </a>
           <a href="#leadership"
-             class="inline-flex items-center justify-center gap-2
-                    border-2 border-primary-700 text-primary-700
-                    hover:bg-primary-700 hover:text-white
-                    px-5 sm:px-7 py-3 sm:py-3.5 rounded-xl
-                    font-semibold text-sm sm:text-base transition-all
-                    focus:outline-none focus:ring-2 focus:ring-primary-700 focus:ring-offset-2">
-            <i data-lucide="users" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
-            Our Leaders
+             class="inline-flex items-center justify-center gap-2 border border-borderblue bg-white text-navy px-7 py-3.5 rounded-lg font-semibold hover:bg-ice transition">
+            <i data-lucide="users" class="w-4 h-4" aria-hidden="true"></i> Our Leaders
           </a>
         </div>
       </div>
@@ -248,25 +195,21 @@
 <!-- ═══════════════════════════════════════════════════════
      WATCH US IN ACTION
 ═══════════════════════════════════════════════════════ -->
-<section class="section-py section-dark" id="watch-us" aria-labelledby="watch-heading">
-  <div class="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
+<section class="py-20 bg-navy relative overflow-hidden" id="watch-us" aria-labelledby="watch-heading">
+  <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
-    <!-- Section header -->
-    <div class="text-center mb-10 sm:mb-12 lg:mb-16">
-      <div class="inline-flex items-center gap-2 bg-white/10 text-accent-300 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold mb-3 sm:mb-4"
-           aria-hidden="true">
-        <i data-lucide="video" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
-        <span>Watch</span>
-      </div>
-      <h2 id="watch-heading"
-          class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-white font-heading">
+    <div class="text-center mb-12">
+      <span class="inline-flex items-center gap-2 text-xs font-semibold text-sky bg-white/5 border border-white/10 px-3 py-1.5 rounded-full uppercase tracking-wider">
+        <i data-lucide="video" class="w-3.5 h-3.5"></i> Watch
+      </span>
+      <h2 id="watch-heading" class="mt-3 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-white">
         Watch Us in Action
       </h2>
     </div>
 
-    <!-- Promo video -->
-    <div class="mt-10 sm:mt-12 lg:mt-16">
-      <div class="relative w-full rounded-2xl overflow-hidden shadow-2xl aspect-video bg-primary-900 promo-video-embed">
+    <div class="mt-10">
+      <div class="relative w-full rounded-2xl overflow-hidden shadow-brand aspect-video border border-white/10 promo-video-embed">
         {{ site_config.promo_video_url|safe }}
       </div>
     </div>
@@ -279,68 +222,61 @@
 <!-- ═══════════════════════════════════════════════════════
      HISTORY TIMELINE
 ═══════════════════════════════════════════════════════ -->
-<section class="section-py bg-gradient-to-br from-gray-50 to-accent-50"
-         id="our-story"
-         aria-labelledby="history-heading">
-  <div class="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
+<section class="py-20 bg-soft" id="our-story" aria-labelledby="history-heading">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-    <div class="text-center mb-10 sm:mb-12 lg:mb-16">
-      <div class="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold mb-3 sm:mb-4"
-           aria-hidden="true">
-        <i data-lucide="clock" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
-        <span>Our Journey</span>
-      </div>
-      <h2 id="history-heading" class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-primary-950 mb-3 sm:mb-4 font-heading">
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <span class="inline-flex items-center gap-2 text-xs font-semibold text-brandblue bg-ice px-3 py-1.5 rounded-full uppercase tracking-wider border border-borderblue">
+        <i data-lucide="clock" class="w-3.5 h-3.5"></i> Our Journey
+      </span>
+      <h2 id="history-heading" class="mt-3 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-navy">
         Our History
       </h2>
-      <p class="text-gray-600 max-w-xl sm:max-w-2xl mx-auto text-sm sm:text-base lg:text-lg leading-relaxed">
+      <p class="mt-4 text-slate-600 text-base lg:text-lg leading-relaxed">
         From a small team to a growing technology partner — our story so far.
       </p>
     </div>
 
     {% if history_milestones %}
-    <!-- Timeline — single rail on mobile, centered zigzag from lg+ -->
     <div class="relative max-w-sm sm:max-w-2xl lg:max-w-4xl mx-auto" role="list" aria-label="Historical milestones">
 
       <!-- Center rail (lg+ only) -->
-      <div class="hidden lg:block absolute left-1/2 top-2 bottom-2 w-0.5 bg-gradient-to-b from-primary-300 via-primary-200 to-accent-200 -translate-x-1/2" aria-hidden="true"></div>
+      <div class="hidden lg:block absolute left-1/2 top-2 bottom-2 w-0.5 bg-borderblue -translate-x-1/2" aria-hidden="true"></div>
       <!-- Left rail (mobile/tablet only) -->
-      <div class="lg:hidden absolute left-5 sm:left-6 top-2 bottom-2 w-0.5 bg-gradient-to-b from-primary-300 via-primary-200 to-accent-200" aria-hidden="true"></div>
+      <div class="lg:hidden absolute left-5 sm:left-6 top-2 bottom-2 w-0.5 bg-borderblue" aria-hidden="true"></div>
 
       {% for milestone in history_milestones %}
       <div class="relative flex items-start lg:items-center gap-4 sm:gap-6 lg:gap-0 {% if not forloop.last %}pb-8 sm:pb-10 lg:pb-14{% endif %}"
            role="listitem">
 
         <!-- Dot -->
-        <div class="relative z-10 flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shadow-md
+        <div class="relative z-10 flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shadow-card
                     lg:absolute lg:left-1/2 lg:-translate-x-1/2
-                    {% if forloop.first %}bg-primary-600
-                    {% elif forloop.last %}bg-accent-500
-                    {% else %}bg-white border-2 border-primary-400{% endif %}"
+                    {% if forloop.first %}brand-gradient
+                    {% elif forloop.last %}brand-gradient
+                    {% else %}bg-white border-2 border-borderblue{% endif %}"
              aria-hidden="true">
           {% if forloop.first %}<i data-lucide="flag" class="w-4 h-4 sm:w-5 sm:h-5 text-white"></i>
           {% elif forloop.last %}<i data-lucide="star" class="w-4 h-4 sm:w-5 sm:h-5 text-white"></i>
-          {% else %}<i data-lucide="clock" class="w-4 h-4 sm:w-5 sm:h-5 text-primary-600"></i>{% endif %}
+          {% else %}<i data-lucide="clock" class="w-4 h-4 sm:w-5 sm:h-5 text-brandblue"></i>{% endif %}
         </div>
 
         <!-- Card — left half on odd rows, right half on even rows (lg+) -->
         <div class="flex-1 min-w-0 lg:w-1/2 {% cycle 'lg:pr-12 lg:text-right' 'lg:ml-auto lg:pl-12' as cardside %}">
-          <span class="inline-flex items-center gap-1 sm:gap-1.5 text-xs font-bold tracking-widest uppercase px-2.5 sm:px-3 py-1 rounded-full mb-2 sm:mb-3
+          <span class="inline-flex items-center gap-1.5 text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full mb-3
             {% if cardside == 'lg:pr-12 lg:text-right' %}lg:flex-row-reverse{% endif %}
-            {% if forloop.first %}bg-primary-600 text-white
-            {% elif forloop.last %}bg-accent-500 text-white
-            {% else %}bg-primary-100 text-primary-700{% endif %}"
+            {% if forloop.first %}brand-gradient text-white
+            {% elif forloop.last %}brand-gradient text-white
+            {% else %}bg-ice text-brandblue{% endif %}"
                 aria-label="Year: {{ milestone.year }}">
-            <i data-lucide="calendar" class="w-2.5 h-2.5 sm:w-3 sm:h-3" aria-hidden="true"></i>
+            <i data-lucide="calendar" class="w-3 h-3" aria-hidden="true"></i>
             {{ milestone.year }}
           </span>
-          <article class="bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all hover:-translate-y-0.5 p-4 sm:p-6
+          <article class="bg-white rounded-2xl shadow-card hover:shadow-brand transition-all hover:-translate-y-0.5 p-6
             {% if cardside == 'lg:pr-12 lg:text-right' %}border-l-4 lg:border-l-0 lg:border-r-4{% else %}border-l-4{% endif %}
-            {% if forloop.first %}border-primary-600
-            {% elif forloop.last %}border-accent-500
-            {% else %}border-primary-300{% endif %}">
-            <h3 class="font-bold text-base sm:text-lg text-primary-950 mb-1.5 sm:mb-2 font-heading">{{ milestone.title }}</h3>
-            <p class="text-gray-600 text-xs sm:text-sm leading-relaxed">{{ milestone.description }}</p>
+            border-brandblue">
+            <h3 class="font-sora font-bold text-lg text-navy mb-2">{{ milestone.title }}</h3>
+            <p class="text-slate-600 text-sm leading-relaxed">{{ milestone.description }}</p>
           </article>
         </div>
 
@@ -352,10 +288,10 @@
     </div>
     {% else %}
     <div class="max-w-md mx-auto text-center py-10">
-      <div class="w-14 h-14 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-4" aria-hidden="true">
-        <i data-lucide="clock" class="w-7 h-7 text-primary-600"></i>
+      <div class="w-14 h-14 bg-ice rounded-2xl flex items-center justify-center mx-auto mb-4" aria-hidden="true">
+        <i data-lucide="clock" class="w-7 h-7 text-brandblue"></i>
       </div>
-      <p class="text-gray-500 text-sm sm:text-base">Our story is being written — check back soon for milestones.</p>
+      <p class="text-slate-500 text-base">Our story is being written — check back soon for milestones.</p>
     </div>
     {% endif %}
 
@@ -366,55 +302,54 @@
 <!-- ═══════════════════════════════════════════════════════
      MISSION · VISION · VALUES
 ═══════════════════════════════════════════════════════ -->
-<section class="section-py section-dark" aria-labelledby="mvv-heading">
-  <div class="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
+<section class="py-20 bg-navy relative overflow-hidden" aria-labelledby="mvv-heading">
+  <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
-    <div class="text-center mb-10 sm:mb-12 lg:mb-16">
-      <div class="inline-flex items-center gap-2 bg-white/10 text-accent-300 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold mb-3 sm:mb-4"
-           aria-hidden="true">
-        <i data-lucide="compass" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
-        <span>Our Foundation</span>
-      </div>
-      <h2 id="mvv-heading" class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-white font-heading">
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <span class="inline-flex items-center gap-2 text-xs font-semibold text-sky bg-white/5 border border-white/10 px-3 py-1.5 rounded-full uppercase tracking-wider">
+        <i data-lucide="compass" class="w-3.5 h-3.5"></i> Our Foundation
+      </span>
+      <h2 id="mvv-heading" class="mt-3 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-white">
         Mission, Vision &amp; Values
       </h2>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
 
       <!-- Mission -->
-      <article class="group bg-white p-6 sm:p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-t-4 border-primary-600">
-        <div class="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform" aria-hidden="true">
-          <i data-lucide="target" class="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-primary-700"></i>
+      <article class="group bg-white p-8 rounded-2xl border border-borderblue hover:shadow-brand hover:-translate-y-1 transition-all">
+        <div class="w-14 h-14 lg:w-16 lg:h-16 bg-ice rounded-xl flex items-center justify-center mb-6 text-brandblue group-hover:scale-110 transition-transform" aria-hidden="true">
+          <i data-lucide="target" class="w-7 h-7 lg:w-8 lg:h-8"></i>
         </div>
-        <h3 class="font-bold text-lg sm:text-xl lg:text-2xl mb-3 sm:mb-4 text-primary-950 font-heading">Our Mission</h3>
-        <p class="text-gray-700 leading-relaxed text-sm sm:text-base">
+        <h3 class="font-sora font-bold text-xl lg:text-2xl mb-4 text-navy">Our Mission</h3>
+        <p class="text-slate-600 leading-relaxed text-sm sm:text-base">
           {{ site_config.about_mission|default:"To deliver reliable, well-engineered technology services and make high-quality technical training accessible to everyone we work with." }}
         </p>
       </article>
 
       <!-- Vision -->
-      <article class="group bg-white p-6 sm:p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-t-4 border-accent-500">
-        <div class="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-accent-100 to-accent-200 rounded-xl flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform" aria-hidden="true">
-          <i data-lucide="eye" class="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-accent-600"></i>
+      <article class="group bg-white p-8 rounded-2xl border border-borderblue hover:shadow-brand hover:-translate-y-1 transition-all">
+        <div class="w-14 h-14 lg:w-16 lg:h-16 bg-ice rounded-xl flex items-center justify-center mb-6 text-brandblue group-hover:scale-110 transition-transform" aria-hidden="true">
+          <i data-lucide="eye" class="w-7 h-7 lg:w-8 lg:h-8"></i>
         </div>
-        <h3 class="font-bold text-lg sm:text-xl lg:text-2xl mb-3 sm:mb-4 text-primary-950 font-heading">Our Vision</h3>
-        <p class="text-gray-700 leading-relaxed text-sm sm:text-base">
+        <h3 class="font-sora font-bold text-xl lg:text-2xl mb-4 text-navy">Our Vision</h3>
+        <p class="text-slate-600 leading-relaxed text-sm sm:text-base">
           {{ site_config.about_vision|default:"To be a trusted technology partner known for engineering quality, security-mindedness, and practical, outcome-driven work." }}
         </p>
       </article>
 
       <!-- Core Values -->
-      <article class="group bg-white p-6 sm:p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-t-4 border-accent-400 sm:col-span-2 lg:col-span-1">
-        <div class="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-accent-100 to-accent-200 rounded-xl flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform" aria-hidden="true">
-          <i data-lucide="heart" class="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-accent-600"></i>
+      <article class="group bg-white p-8 rounded-2xl border border-borderblue hover:shadow-brand hover:-translate-y-1 transition-all sm:col-span-2 lg:col-span-1">
+        <div class="w-14 h-14 lg:w-16 lg:h-16 bg-ice rounded-xl flex items-center justify-center mb-6 text-brandblue group-hover:scale-110 transition-transform" aria-hidden="true">
+          <i data-lucide="heart" class="w-7 h-7 lg:w-8 lg:h-8"></i>
         </div>
-        <h3 class="font-bold text-lg sm:text-xl lg:text-2xl mb-3 sm:mb-4 text-primary-950 font-heading">Our Core Values</h3>
-        <ul class="space-y-2 sm:space-y-3" role="list">
+        <h3 class="font-sora font-bold text-xl lg:text-2xl mb-4 text-navy">Our Core Values</h3>
+        <ul class="space-y-3" role="list">
           {% for value in site_config.about_values|default:default_core_values %}
-            <li class="flex items-start gap-2 sm:gap-3">
-              <i data-lucide="check-circle" class="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 text-primary-600 mt-0.5" aria-hidden="true"></i>
-              <span class="text-gray-700 text-sm sm:text-base">{{ value }}</span>
+            <li class="flex items-start gap-3">
+              <i data-lucide="check-circle" class="w-5 h-5 flex-shrink-0 text-brandblue mt-0.5" aria-hidden="true"></i>
+              <span class="text-slate-600 text-sm sm:text-base">{{ value }}</span>
             </li>
           {% endfor %}
         </ul>
@@ -429,21 +364,17 @@
      GOVERNING BOARDS
 ═══════════════════════════════════════════════════════ -->
 {% if admin_board_members or academic_board_members or advisorate_board_members or staff_members %}
-<section class="section-py bg-white"
-         id="leadership"
-         aria-labelledby="leadership-heading">
-  <div class="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
+<section class="py-20 bg-white" id="leadership" aria-labelledby="leadership-heading">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-    <div class="text-center mb-10 sm:mb-12 lg:mb-16">
-      <div class="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold mb-3 sm:mb-4"
-           aria-hidden="true">
-        <i data-lucide="users" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
-        <span>Our Leaders</span>
-      </div>
-      <h2 id="leadership-heading" class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-primary-950 mb-3 sm:mb-4 font-heading">
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <span class="inline-flex items-center gap-2 text-xs font-semibold text-brandblue bg-ice px-3 py-1.5 rounded-full uppercase tracking-wider border border-borderblue">
+        <i data-lucide="users" class="w-3.5 h-3.5"></i> Our Leaders
+      </span>
+      <h2 id="leadership-heading" class="mt-3 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-navy">
         Leadership &amp; Governance
       </h2>
-      <p class="text-gray-600 max-w-xl sm:max-w-2xl mx-auto text-sm sm:text-base lg:text-lg leading-relaxed">
+      <p class="mt-4 text-slate-600 text-base lg:text-lg leading-relaxed">
         Guided by an experienced team committed to engineering quality and client outcomes.
       </p>
     </div>
@@ -451,18 +382,18 @@
     <!-- ── BOARD REUSABLE MACRO ── -->
     {% comment %}Admin board{% endcomment %}
     {% if admin_board_members %}
-    <div class="mb-10 sm:mb-14 lg:mb-16">
-      <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-primary-950 font-heading mb-5 sm:mb-6 lg:mb-8 flex items-center justify-center gap-3">
-        <span class="w-6 sm:w-8 h-1 bg-primary-600 rounded-full inline-block" aria-hidden="true"></span>
+    <div class="mb-14 lg:mb-16">
+      <h3 class="text-xl lg:text-2xl font-sora font-bold text-navy mb-6 lg:mb-8 flex items-center justify-center gap-3">
+        <span class="w-8 h-1 brand-gradient rounded-full inline-block" aria-hidden="true"></span>
         Administrative &amp; Management Board
-        <span class="w-6 sm:w-8 h-1 bg-primary-600 rounded-full inline-block" aria-hidden="true"></span>
+        <span class="w-8 h-1 brand-gradient rounded-full inline-block" aria-hidden="true"></span>
       </h3>
       <div class="flex flex-wrap justify-center -m-1.5 sm:-m-2 lg:-m-3">
         {% for member in admin_board_members %}
         <div class="w-1/2 sm:w-1/3 md:w-1/4 xl:w-1/5 p-1.5 sm:p-2 lg:p-3">
-        <article class="group bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+        <article class="group bg-white rounded-2xl border border-borderblue hover:shadow-brand hover:-translate-y-1 transition-all overflow-hidden"
                  itemscope itemtype="https://schema.org/Person">
-          <div class="relative aspect-square bg-gradient-to-br from-primary-100 to-primary-200 overflow-hidden flex items-center justify-center">
+          <div class="relative aspect-square bg-ice overflow-hidden flex items-center justify-center">
             {% if member.photo %}
               <img src="{{ member.photo.url }}"
                    alt="Portrait of {{ member.name }}"
@@ -470,14 +401,14 @@
                    loading="lazy"
                    itemprop="image">
             {% else %}
-              <i data-lucide="user-circle" class="w-12 h-12 sm:w-16 sm:h-16 text-primary-400 group-hover:scale-110 transition-transform" aria-hidden="true"></i>
+              <i data-lucide="user-circle" class="w-12 h-12 sm:w-16 sm:h-16 text-brandblue group-hover:scale-110 transition-transform" aria-hidden="true"></i>
             {% endif %}
           </div>
-          <div class="p-3 sm:p-4 text-center">
-            <p class="font-bold text-xs sm:text-sm text-primary-950 font-heading leading-snug mb-0.5 sm:mb-1" itemprop="name">{{ member.name }}</p>
-            <p class="text-xs text-primary-600 font-semibold mb-1 sm:mb-2 leading-tight" itemprop="jobTitle">{{ member.role }}</p>
+          <div class="p-4 text-center">
+            <p class="font-sora font-bold text-xs sm:text-sm text-navy leading-snug mb-1" itemprop="name">{{ member.name }}</p>
+            <p class="text-xs text-brandblue font-semibold mb-2 leading-tight" itemprop="jobTitle">{{ member.role }}</p>
             {% if member.bio %}
-              <p class="text-xs text-gray-500 line-clamp-2 leading-relaxed" itemprop="description">{{ member.bio }}</p>
+              <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed" itemprop="description">{{ member.bio }}</p>
             {% endif %}
           </div>
         </article>
@@ -489,18 +420,18 @@
 
     <!-- Academic Board -->
     {% if academic_board_members %}
-    <div class="mb-10 sm:mb-14 lg:mb-16">
-      <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-primary-950 font-heading mb-5 sm:mb-6 lg:mb-8 flex items-center justify-center gap-3">
-        <span class="w-6 sm:w-8 h-1 bg-blue-500 rounded-full inline-block" aria-hidden="true"></span>
+    <div class="mb-14 lg:mb-16">
+      <h3 class="text-xl lg:text-2xl font-sora font-bold text-navy mb-6 lg:mb-8 flex items-center justify-center gap-3">
+        <span class="w-8 h-1 bg-sky rounded-full inline-block" aria-hidden="true"></span>
         Academic Board
-        <span class="w-6 sm:w-8 h-1 bg-blue-500 rounded-full inline-block" aria-hidden="true"></span>
+        <span class="w-8 h-1 bg-sky rounded-full inline-block" aria-hidden="true"></span>
       </h3>
       <div class="flex flex-wrap justify-center -m-1.5 sm:-m-2 lg:-m-3">
         {% for member in academic_board_members %}
         <div class="w-1/2 sm:w-1/3 md:w-1/4 xl:w-1/5 p-1.5 sm:p-2 lg:p-3">
-        <article class="group bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all hover:-translate-y-1 overflow-hidden"
+        <article class="group bg-white rounded-2xl border border-borderblue hover:shadow-brand hover:-translate-y-1 transition-all overflow-hidden"
                  itemscope itemtype="https://schema.org/Person">
-          <div class="relative aspect-square bg-gradient-to-br from-blue-100 to-blue-200 overflow-hidden flex items-center justify-center">
+          <div class="relative aspect-square bg-ice overflow-hidden flex items-center justify-center">
             {% if member.photo %}
               <img src="{{ member.photo.url }}"
                    alt="Portrait of {{ member.name }}"
@@ -508,14 +439,14 @@
                    loading="lazy"
                    itemprop="image">
             {% else %}
-              <i data-lucide="user-circle" class="w-12 h-12 sm:w-16 sm:h-16 text-blue-400 group-hover:scale-110 transition-transform" aria-hidden="true"></i>
+              <i data-lucide="user-circle" class="w-12 h-12 sm:w-16 sm:h-16 text-brandblue group-hover:scale-110 transition-transform" aria-hidden="true"></i>
             {% endif %}
           </div>
-          <div class="p-3 sm:p-4 text-center">
-            <p class="font-bold text-xs sm:text-sm text-primary-950 font-heading leading-snug mb-0.5 sm:mb-1" itemprop="name">{{ member.name }}</p>
-            <p class="text-xs text-blue-600 font-semibold mb-1 sm:mb-2 leading-tight" itemprop="jobTitle">{{ member.role }}</p>
+          <div class="p-4 text-center">
+            <p class="font-sora font-bold text-xs sm:text-sm text-navy leading-snug mb-1" itemprop="name">{{ member.name }}</p>
+            <p class="text-xs text-brandblue font-semibold mb-2 leading-tight" itemprop="jobTitle">{{ member.role }}</p>
             {% if member.bio %}
-              <p class="text-xs text-gray-500 line-clamp-2 leading-relaxed" itemprop="description">{{ member.bio }}</p>
+              <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed" itemprop="description">{{ member.bio }}</p>
             {% endif %}
           </div>
         </article>
@@ -527,18 +458,18 @@
 
     <!-- Advisorate Board -->
     {% if advisorate_board_members %}
-    <div class="mb-10 sm:mb-14 lg:mb-16">
-      <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-primary-950 font-heading mb-5 sm:mb-6 lg:mb-8 flex items-center justify-center gap-3">
-        <span class="w-6 sm:w-8 h-1 bg-accent-500 rounded-full inline-block" aria-hidden="true"></span>
+    <div class="mb-14 lg:mb-16">
+      <h3 class="text-xl lg:text-2xl font-sora font-bold text-navy mb-6 lg:mb-8 flex items-center justify-center gap-3">
+        <span class="w-8 h-1 brand-gradient rounded-full inline-block" aria-hidden="true"></span>
         Advisorate Board
-        <span class="w-6 sm:w-8 h-1 bg-accent-500 rounded-full inline-block" aria-hidden="true"></span>
+        <span class="w-8 h-1 brand-gradient rounded-full inline-block" aria-hidden="true"></span>
       </h3>
       <div class="flex flex-wrap justify-center -m-1.5 sm:-m-2 lg:-m-3">
         {% for member in advisorate_board_members %}
         <div class="w-1/2 sm:w-1/3 md:w-1/4 xl:w-1/5 p-1.5 sm:p-2 lg:p-3">
-        <article class="group bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all hover:-translate-y-1 overflow-hidden"
+        <article class="group bg-white rounded-2xl border border-borderblue hover:shadow-brand hover:-translate-y-1 transition-all overflow-hidden"
                  itemscope itemtype="https://schema.org/Person">
-          <div class="relative aspect-square bg-gradient-to-br from-accent-100 to-accent-200 overflow-hidden flex items-center justify-center">
+          <div class="relative aspect-square bg-ice overflow-hidden flex items-center justify-center">
             {% if member.photo %}
               <img src="{{ member.photo.url }}"
                    alt="Portrait of {{ member.name }}"
@@ -546,14 +477,14 @@
                    loading="lazy"
                    itemprop="image">
             {% else %}
-              <i data-lucide="user-circle" class="w-12 h-12 sm:w-16 sm:h-16 text-accent-400 group-hover:scale-110 transition-transform" aria-hidden="true"></i>
+              <i data-lucide="user-circle" class="w-12 h-12 sm:w-16 sm:h-16 text-brandblue group-hover:scale-110 transition-transform" aria-hidden="true"></i>
             {% endif %}
           </div>
-          <div class="p-3 sm:p-4 text-center">
-            <p class="font-bold text-xs sm:text-sm text-primary-950 font-heading leading-snug mb-0.5 sm:mb-1" itemprop="name">{{ member.name }}</p>
-            <p class="text-xs text-accent-600 font-semibold mb-1 sm:mb-2 leading-tight" itemprop="jobTitle">{{ member.role }}</p>
+          <div class="p-4 text-center">
+            <p class="font-sora font-bold text-xs sm:text-sm text-navy leading-snug mb-1" itemprop="name">{{ member.name }}</p>
+            <p class="text-xs text-brandblue font-semibold mb-2 leading-tight" itemprop="jobTitle">{{ member.role }}</p>
             {% if member.bio %}
-              <p class="text-xs text-gray-500 line-clamp-2 leading-relaxed" itemprop="description">{{ member.bio }}</p>
+              <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed" itemprop="description">{{ member.bio }}</p>
             {% endif %}
           </div>
         </article>
@@ -566,17 +497,17 @@
     <!-- Staff (DB only) -->
     {% if staff_members %}
     <div>
-      <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-primary-950 font-heading mb-5 sm:mb-6 lg:mb-8 flex items-center justify-center gap-3">
-        <span class="w-6 sm:w-8 h-1 bg-emerald-500 rounded-full inline-block" aria-hidden="true"></span>
+      <h3 class="text-xl lg:text-2xl font-sora font-bold text-navy mb-6 lg:mb-8 flex items-center justify-center gap-3">
+        <span class="w-8 h-1 bg-electric rounded-full inline-block" aria-hidden="true"></span>
         Staff
-        <span class="w-6 sm:w-8 h-1 bg-emerald-500 rounded-full inline-block" aria-hidden="true"></span>
+        <span class="w-8 h-1 bg-electric rounded-full inline-block" aria-hidden="true"></span>
       </h3>
       <div class="flex flex-wrap justify-center -m-1.5 sm:-m-2 lg:-m-3">
         {% for member in staff_members %}
         <div class="w-1/2 sm:w-1/3 md:w-1/4 xl:w-1/5 p-1.5 sm:p-2 lg:p-3">
-        <article class="group bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all hover:-translate-y-1 overflow-hidden"
+        <article class="group bg-white rounded-2xl border border-borderblue hover:shadow-brand hover:-translate-y-1 transition-all overflow-hidden"
                  itemscope itemtype="https://schema.org/Person">
-          <div class="relative aspect-square bg-gradient-to-br from-emerald-100 to-emerald-200 overflow-hidden flex items-center justify-center">
+          <div class="relative aspect-square bg-ice overflow-hidden flex items-center justify-center">
             {% if member.photo %}
               <img src="{{ member.photo.url }}"
                    alt="Portrait of {{ member.name }}"
@@ -584,14 +515,14 @@
                    loading="lazy"
                    itemprop="image">
             {% else %}
-              <i data-lucide="user-circle" class="w-12 h-12 sm:w-16 sm:h-16 text-emerald-400 group-hover:scale-110 transition-transform" aria-hidden="true"></i>
+              <i data-lucide="user-circle" class="w-12 h-12 sm:w-16 sm:h-16 text-brandblue group-hover:scale-110 transition-transform" aria-hidden="true"></i>
             {% endif %}
           </div>
-          <div class="p-3 sm:p-4 text-center">
-            <p class="font-bold text-xs sm:text-sm text-primary-950 font-heading leading-snug mb-0.5 sm:mb-1" itemprop="name">{{ member.name }}</p>
-            <p class="text-xs text-emerald-600 font-semibold mb-1 sm:mb-2 leading-tight" itemprop="jobTitle">{{ member.role }}</p>
+          <div class="p-4 text-center">
+            <p class="font-sora font-bold text-xs sm:text-sm text-navy leading-snug mb-1" itemprop="name">{{ member.name }}</p>
+            <p class="text-xs text-brandblue font-semibold mb-2 leading-tight" itemprop="jobTitle">{{ member.role }}</p>
             {% if member.bio %}
-              <p class="text-xs text-gray-500 line-clamp-2 leading-relaxed" itemprop="description">{{ member.bio }}</p>
+              <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed" itemprop="description">{{ member.bio }}</p>
             {% endif %}
           </div>
         </article>
@@ -609,108 +540,107 @@
 <!-- ═══════════════════════════════════════════════════════
      ACCREDITATION · AFFILIATES · PARTNERS
 ═══════════════════════════════════════════════════════ -->
-<section class="section-py section-dark" aria-labelledby="accred-heading">
-  <div class="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
+<section class="py-20 bg-navy relative overflow-hidden" aria-labelledby="accred-heading">
+  <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
-    <div class="text-center mb-10 sm:mb-12 lg:mb-16">
-      <div class="inline-flex items-center gap-2 bg-white/10 text-accent-300 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold mb-3 sm:mb-4"
-           aria-hidden="true">
-        <i data-lucide="award" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
-        <span>Recognition</span>
-      </div>
-      <h2 id="accred-heading" class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-3 sm:mb-4 font-heading">
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <span class="inline-flex items-center gap-2 text-xs font-semibold text-sky bg-white/5 border border-white/10 px-3 py-1.5 rounded-full uppercase tracking-wider">
+        <i data-lucide="award" class="w-3.5 h-3.5"></i> Recognition
+      </span>
+      <h2 id="accred-heading" class="mt-3 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-white">
         Accreditation, Affiliates &amp; Partners
       </h2>
-      <p class="text-gray-300 max-w-xl sm:max-w-2xl mx-auto text-sm sm:text-base lg:text-lg leading-relaxed">
+      <p class="mt-4 text-white/70 text-base lg:text-lg leading-relaxed">
         Recognised through formal accreditations, affiliations and strategic partnerships.
       </p>
     </div>
 
-    <div class="max-w-full lg:max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
+    <div class="max-w-full lg:max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 lg:gap-6">
 
       <!-- Accreditation -->
-      <div class="bg-white border border-gray-200 rounded-xl sm:rounded-2xl shadow-sm overflow-hidden">
-        <div class="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-5 bg-primary-950" role="heading" aria-level="3">
-          <div class="w-8 h-8 sm:w-9 sm:h-9 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0" aria-hidden="true">
-            <i data-lucide="shield-check" class="w-4 h-4 sm:w-5 sm:h-5 text-white"></i>
+      <div class="bg-white border border-borderblue rounded-2xl shadow-card overflow-hidden">
+        <div class="flex items-center gap-3 px-6 py-5 brand-gradient" role="heading" aria-level="3">
+          <div class="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0" aria-hidden="true">
+            <i data-lucide="shield-check" class="w-5 h-5 text-white"></i>
           </div>
-          <span class="font-bold text-white font-heading text-sm sm:text-base">Accreditation</span>
+          <span class="font-sora font-bold text-white text-sm sm:text-base">Accreditation</span>
         </div>
-        <ul class="px-4 sm:px-6 py-4 sm:py-5 space-y-3 sm:space-y-4" role="list">
+        <ul class="px-6 py-5 space-y-4" role="list">
           {% for item in accreditations_list %}
-            <li class="flex items-start gap-3 sm:gap-4">
+            <li class="flex items-start gap-4">
               {% if item.logo %}
               <img src="{{ item.logo.url }}"
                   alt="{{ item.name }} logo"
-                  class="h-8 w-8 sm:h-10 sm:w-10 object-contain rounded flex-shrink-0 mt-0.5"
+                  class="h-10 w-10 object-contain rounded flex-shrink-0 mt-0.5"
                   loading="lazy">
               {% else %}
-              <i data-lucide="check-circle" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-600 mt-0.5 flex-shrink-0" aria-hidden="true"></i>
+              <i data-lucide="check-circle" class="w-4 h-4 text-brandblue mt-0.5 flex-shrink-0" aria-hidden="true"></i>
               {% endif %}
-              <span class="text-gray-700 text-xs sm:text-sm leading-relaxed">
-                {{ item.name }}{% if item.location %}, <span class="text-gray-500">{{ item.location }}</span>{% endif %}
+              <span class="text-slate-700 text-sm leading-relaxed">
+                {{ item.name }}{% if item.location %}, <span class="text-slate-500">{{ item.location }}</span>{% endif %}
               </span>
             </li>
             {% empty %}
-            <li class="text-gray-400 text-xs sm:text-sm italic">No accreditations listed yet.</li>
+            <li class="text-slate-400 text-sm italic">No accreditations listed yet.</li>
             {% endfor %}
         </ul>
       </div>
 
       <!-- Affiliations -->
-      <div class="bg-white border border-gray-200 rounded-xl sm:rounded-2xl shadow-sm overflow-hidden">
-        <div class="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-5 bg-primary-700" role="heading" aria-level="3">
-          <div class="w-8 h-8 sm:w-9 sm:h-9 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0" aria-hidden="true">
-            <i data-lucide="link-2" class="w-4 h-4 sm:w-5 sm:h-5 text-white"></i>
+      <div class="bg-white border border-borderblue rounded-2xl shadow-card overflow-hidden">
+        <div class="flex items-center gap-3 px-6 py-5 bg-navy" role="heading" aria-level="3">
+          <div class="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0" aria-hidden="true">
+            <i data-lucide="link-2" class="w-5 h-5 text-white"></i>
           </div>
-          <span class="font-bold text-white font-heading text-sm sm:text-base">Affiliations</span>
+          <span class="font-sora font-bold text-white text-sm sm:text-base">Affiliations</span>
         </div>
-        <ul class="px-4 sm:px-6 py-4 sm:py-5 space-y-3 sm:space-y-4" role="list">
+        <ul class="px-6 py-5 space-y-4" role="list">
           {% for item in affiliations_list %}
-            <li class="flex items-start gap-3 sm:gap-4">
+            <li class="flex items-start gap-4">
               {% if item.logo %}
               <img src="{{ item.logo.url }}"
                   alt="{{ item.name }} logo"
-                  class="h-8 w-8 sm:h-10 sm:w-10 object-contain rounded flex-shrink-0 mt-0.5"
+                  class="h-10 w-10 object-contain rounded flex-shrink-0 mt-0.5"
                   loading="lazy">
               {% else %}
-              <i data-lucide="check-circle" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-600 mt-0.5 flex-shrink-0" aria-hidden="true"></i>
+              <i data-lucide="check-circle" class="w-4 h-4 text-brandblue mt-0.5 flex-shrink-0" aria-hidden="true"></i>
               {% endif %}
-              <span class="text-gray-700 text-xs sm:text-sm leading-relaxed">
-                {{ item.name }}{% if item.location %}, <span class="text-gray-500">{{ item.location }}</span>{% endif %}
+              <span class="text-slate-700 text-sm leading-relaxed">
+                {{ item.name }}{% if item.location %}, <span class="text-slate-500">{{ item.location }}</span>{% endif %}
               </span>
             </li>
             {% empty %}
-            <li class="text-gray-400 text-xs sm:text-sm italic">No affiliations listed yet.</li>
+            <li class="text-slate-400 text-sm italic">No affiliations listed yet.</li>
             {% endfor %}
         </ul>
       </div>
 
       <!-- Partners -->
-      <div class="bg-white border border-gray-200 rounded-xl sm:rounded-2xl shadow-sm overflow-hidden sm:col-span-2 md:col-span-1">
-        <div class="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-5 bg-primary-950" role="heading" aria-level="3">
-          <div class="w-8 h-8 sm:w-9 sm:h-9 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0" aria-hidden="true">
-            <i data-lucide="handshake" class="w-4 h-4 sm:w-5 sm:h-5 text-white"></i>
+      <div class="bg-white border border-borderblue rounded-2xl shadow-card overflow-hidden sm:col-span-2 md:col-span-1">
+        <div class="flex items-center gap-3 px-6 py-5 brand-gradient" role="heading" aria-level="3">
+          <div class="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0" aria-hidden="true">
+            <i data-lucide="handshake" class="w-5 h-5 text-white"></i>
           </div>
-          <span class="font-bold text-white font-heading text-sm sm:text-base">Partners</span>
+          <span class="font-sora font-bold text-white text-sm sm:text-base">Partners</span>
         </div>
-        <ul class="px-4 sm:px-6 py-4 sm:py-5 space-y-3 sm:space-y-4" role="list">
+        <ul class="px-6 py-5 space-y-4" role="list">
           {% for partner in partners_list %}
-            <li class="flex items-start gap-3 sm:gap-4">
+            <li class="flex items-start gap-4">
               {% if partner.logo %}
               <img src="{{ partner.logo.url }}"
                   alt="{{ partner.name }} logo"
-                  class="h-8 w-8 sm:h-10 sm:w-10 object-contain rounded flex-shrink-0 mt-0.5"
+                  class="h-10 w-10 object-contain rounded flex-shrink-0 mt-0.5"
                   loading="lazy">
               {% else %}
-              <i data-lucide="check-circle" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent-600 mt-0.5 flex-shrink-0" aria-hidden="true"></i>
+              <i data-lucide="check-circle" class="w-4 h-4 text-brandblue mt-0.5 flex-shrink-0" aria-hidden="true"></i>
               {% endif %}
-              <span class="text-gray-700 text-xs sm:text-sm leading-relaxed">
-                {{ partner.name }}{% if partner.location %}, <span class="text-gray-500">{{ partner.location }}</span>{% endif %}
+              <span class="text-slate-700 text-sm leading-relaxed">
+                {{ partner.name }}{% if partner.location %}, <span class="text-slate-500">{{ partner.location }}</span>{% endif %}
               </span>
             </li>
             {% empty %}
-            <li class="text-gray-400 text-xs sm:text-sm italic">No partners listed yet.</li>
+            <li class="text-slate-400 text-sm italic">No partners listed yet.</li>
             {% endfor %}
         </ul>
       </div>
@@ -723,41 +653,33 @@
 <!-- ═══════════════════════════════════════════════════════
      CTA
 ═══════════════════════════════════════════════════════ -->
-<section class="py-14 sm:py-18 lg:py-24 bg-gradient-to-br from-gray-50 to-accent-50 relative overflow-hidden"
-         aria-labelledby="cta-heading">
-
-  <div class="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-    <div class="absolute top-6 right-8 sm:right-20 w-40 h-40 sm:w-64 sm:h-64 lg:w-72 lg:h-72 bg-accent-300 rounded-full blur-3xl opacity-20"></div>
-    <div class="absolute bottom-6 left-6 sm:left-10 w-36 h-36 sm:w-56 sm:h-56 lg:w-64 lg:h-64 bg-accent-300 rounded-full blur-3xl opacity-20"></div>
-  </div>
-
-  <div class="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 text-center">
-    <h2 id="cta-heading" class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-4 sm:mb-6 font-heading text-primary-950">
+<section class="py-20 bg-soft" aria-labelledby="cta-heading">
+  <div class="max-w-4xl mx-auto px-4 text-center">
+    <h2 id="cta-heading" class="text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-navy">
       Ready to Work with
-      <span class="text-accent-600">{{ site_config.school_short_name|default:"Abraytech" }}</span>?
+      <span class="brand-gradient-text">{{ site_config.school_short_name|default:"Abraytech" }}</span>?
     </h2>
-    <p class="text-base sm:text-lg lg:text-xl xl:text-2xl mb-8 sm:mb-10 text-gray-600 max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto leading-relaxed">
+    <p class="mt-5 text-lg lg:text-xl text-slate-600 max-w-2xl lg:max-w-3xl mx-auto leading-relaxed">
       {{ site_config.footer_tagline|default:"Software development, cybersecurity, AI & data, and IT consulting — technology services and training from Abraytech." }}
     </p>
-    <div class="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 lg:gap-6">
+    <div class="mt-8 flex flex-col sm:flex-row justify-center gap-4">
       <a href="{% url 'eduweb:all_programs' %}"
-         class="btn-brand">
-        <i data-lucide="send" class="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true"></i>
+         class="inline-flex items-center justify-center gap-2 brand-gradient text-white px-8 py-3.5 rounded-lg font-semibold shadow-brand hover:opacity-95 transition">
+        <i data-lucide="send" class="w-5 h-5" aria-hidden="true"></i>
         Apply Now
       </a>
       <a href="{% url 'eduweb:all_programs' %}"
-         class="btn-brand-outline text-primary-950">
-        <i data-lucide="grid-3x3" class="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true"></i>
+         class="inline-flex items-center justify-center gap-2 border border-borderblue bg-white text-navy px-8 py-3.5 rounded-lg font-semibold hover:bg-ice transition">
+        <i data-lucide="grid-3x3" class="w-5 h-5" aria-hidden="true"></i>
         Explore Programs
       </a>
       <a href="{% url 'eduweb:index' %}#contact"
-         class="btn-brand-outline text-primary-950">
-        <i data-lucide="phone" class="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true"></i>
+         class="inline-flex items-center justify-center gap-2 border border-borderblue bg-white text-navy px-8 py-3.5 rounded-lg font-semibold hover:bg-ice transition">
+        <i data-lucide="phone" class="w-5 h-5" aria-hidden="true"></i>
         Contact Us
       </a>
     </div>
   </div>
 </section>
 
-</main>
 {% endblock %}

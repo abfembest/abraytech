@@ -1,15 +1,14 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Services | Abraytech{% endblock %}
+{% block title %}Industries | Abraytech{% endblock %}
 
 {% block extra_css %}
-<meta name="description" content="Abraytech technology services: software development, cybersecurity, AI & data, and IT consulting.">
+<meta name="description" content="Industries Abraytech serves with tailored technology solutions.">
 {% endblock %}
 
 {% block content %}
 
-<!-- ===== HERO ===== -->
 <section class="relative overflow-hidden bg-navy py-20 lg:py-28">
     <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -18,37 +17,36 @@
                 <ol class="inline-flex items-center space-x-2 text-sm">
                     <li><a href="{% url 'eduweb:index' %}" class="text-white/60 hover:text-white transition-colors">Home</a></li>
                     <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
-                    <li><span class="text-white/80 font-medium">Services</span></li>
+                    <li><span class="text-white/80 font-medium">Industries</span></li>
                 </ol>
             </nav>
             <span class="inline-flex items-center gap-2 text-xs font-semibold text-sky bg-white/5 border border-white/10 px-3 py-1.5 rounded-full uppercase tracking-wider">
-                <i data-lucide="briefcase" class="w-3.5 h-3.5"></i> What We Do
+                <i data-lucide="building-2" class="w-3.5 h-3.5"></i> Industries
             </span>
-            <h1 class="mt-5 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-white">Our Services</h1>
+            <h1 class="mt-5 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-white">Industries We Serve</h1>
             <p class="mt-5 text-lg text-white/70 max-w-2xl leading-relaxed">
-                Technology services built for real business outcomes &mdash; from writing the software to defending it.
+                Technology work shaped by the realities of the sectors we build for.
             </p>
         </div>
     </div>
 </section>
 
-<!-- ===== SERVICE CARDS ===== -->
 <section class="py-20 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {% if services %}
+        {% if industries %}
         <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {% for service in services %}
-            <a href="{% url 'eduweb:service_detail' service.slug %}" class="reveal bg-white rounded-2xl border border-borderblue p-6 hover:shadow-brand hover:-translate-y-1 transition block">
+            {% for industry in industries %}
+            <a href="{% url 'eduweb:industry_detail' industry.slug %}" class="reveal bg-white rounded-2xl border border-borderblue p-6 hover:shadow-brand hover:-translate-y-1 transition block">
                 <div class="w-12 h-12 rounded-xl bg-ice flex items-center justify-center text-brandblue">
-                    <i data-lucide="{{ service.icon }}" class="w-6 h-6"></i>
+                    <i data-lucide="{{ industry.icon }}" class="w-6 h-6"></i>
                 </div>
-                <h3 class="mt-4 font-sora font-semibold text-lg text-navy">{{ service.title }}</h3>
-                <p class="mt-2 text-sm text-slate-600">{{ service.summary }}</p>
+                <h3 class="mt-4 font-sora font-semibold text-lg text-navy">{{ industry.title }}</h3>
+                <p class="mt-2 text-sm text-slate-600">{{ industry.summary }}</p>
             </a>
             {% endfor %}
         </div>
         {% else %}
-        <p class="text-center text-slate-500">Service listings are being finalized &mdash; check back soon.</p>
+        <p class="text-center text-slate-500">Industry pages are being finalized &mdash; check back soon.</p>
         {% endif %}
     </div>
 </section>

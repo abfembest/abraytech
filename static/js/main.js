@@ -38,184 +38,168 @@ window.showToast = function (type, message) {
     if (Toast) Toast.fire({ icon: type, title: message });
 };
 
-// ─── All DOM-dependent code ──────────────────────────────────────────────────
+// ─── Public-site chrome (header dropdowns, mobile drawer, scroll reveal,
+//     counters, cookie consent) — ported from the main.html redesign
+//     template, same behavior on the compiled pipeline. ──────────────────────
 document.addEventListener('DOMContentLoaded', function () {
 
-    // ── Mobile Menu ─────────────────────────────────────────────────────────
-    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-    const mobileMenu    = document.getElementById('mobileMenu');
+    // ---- Desktop dropdown menus (click-toggle, main.html pattern) ----
+    const dropdowns = [
+        ['servicesBtn', 'servicesPanel'],
+        ['solutionsBtn', 'solutionsPanel'],
+        ['industriesBtn', 'industriesPanel'],
+        ['trainingBtn', 'trainingPanel'],
+        ['resourcesBtn', 'resourcesPanel'],
+    ];
 
-    /**
-     * closeMobileMenu
-     * Hides the panel, resets aria-expanded, swaps the icon back to "menu",
-     * and restores normal body scrolling.
-     */
-    function closeMobileMenu() {
-        if (!mobileMenu) return;
-        mobileMenu.classList.add('hidden');
+    function closeAllDropdowns(except) {
+        dropdowns.forEach(([btnId, panelId]) => {
+            if (panelId === except) return;
+            const btn = document.getElementById(btnId);
+            const panel = document.getElementById(panelId);
+            if (panel) panel.classList.remove('open');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+        });
+    }
+
+    dropdowns.forEach(([btnId, panelId]) => {
+        const btn = document.getElementById(btnId);
+        const panel = document.getElementById(panelId);
+        if (!btn || !panel) return;
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const isOpen = panel.classList.contains('open');
+            closeAllDropdowns(isOpen ? null : panelId);
+            panel.classList.toggle('open', !isOpen);
+            btn.setAttribute('aria-expanded', String(!isOpen));
+            if (!isOpen) initLucide();
+        });
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('nav')) closeAllDropdowns(null);
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeAllDropdowns(null);
+    });
+
+    // ---- Mobile drawer ----
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileCloseBtn = document.getElementById('mobileCloseBtn');
+    const mobileDrawer = document.getElementById('mobileDrawer');
+    const mobileOverlay = document.getElementById('mobileOverlay');
+
+    function openDrawer() {
+        if (!mobileDrawer || !mobileOverlay) return;
+        mobileDrawer.classList.add('open');
+        mobileOverlay.classList.add('open');
+        if (mobileMenuBtn) mobileMenuBtn.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeDrawer() {
+        if (!mobileDrawer || !mobileOverlay) return;
+        mobileDrawer.classList.remove('open');
+        mobileOverlay.classList.remove('open');
         if (mobileMenuBtn) mobileMenuBtn.setAttribute('aria-expanded', 'false');
-        const icon = document.getElementById('menuIcon');
-        if (icon) {
-            icon.outerHTML = '<i data-lucide="menu" class="w-6 h-6 text-primary-950" id="menuIcon"></i>';
-            initLucide();
-        }
-        // Restore body scroll when menu closes
         document.body.style.overflow = '';
     }
-
-    if (mobileMenuBtn && mobileMenu) {
-        mobileMenuBtn.addEventListener('click', function (e) {
-            e.stopPropagation();
-            const isHidden = mobileMenu.classList.contains('hidden');
-            if (isHidden) {
-                // ── OPEN ──────────────────────────────────────────────────
-                mobileMenu.classList.remove('hidden');
-                mobileMenuBtn.setAttribute('aria-expanded', 'true');
-                const icon = document.getElementById('menuIcon');
-                if (icon) {
-                    icon.outerHTML = '<i data-lucide="x" class="w-6 h-6 text-primary-950" id="menuIcon"></i>';
-                    initLucide();
-                }
-                // NOTE: We do NOT lock body scroll here.
-                // The #mobileMenu panel itself scrolls (via CSS max-height +
-                // overflow-y:auto set in base.html <style>). Locking the body
-                // would prevent momentum scrolling inside the panel on iOS.
-            } else {
-                // ── CLOSE ─────────────────────────────────────────────────
-                closeMobileMenu();
-            }
-        });
-
-        // Close mobile menu on outside click
-        document.addEventListener('click', function (e) {
-            if (!mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
-                closeMobileMenu();
-            }
-        });
-    }
-
-    // ── Mobile Dropdown Handlers ─────────────────────────────────────────────
-    function setupMobileDropdown(btnId, menuId, chevronId) {
-        const btn     = document.getElementById(btnId);
-        const menu    = document.getElementById(menuId);
-        const chevron = document.getElementById(chevronId);
-
-        if (btn && menu && chevron) {
-            btn.addEventListener('click', function (e) {
-                e.stopPropagation();
-                const isOpen = !menu.classList.contains('hidden');
-                if (isOpen) {
-                    menu.classList.add('hidden');
-                    chevron.classList.remove('rotate-180');
-                    btn.setAttribute('aria-expanded', 'false');
-                } else {
-                    menu.classList.remove('hidden');
-                    chevron.classList.add('rotate-180');
-                    btn.setAttribute('aria-expanded', 'true');
-                    initLucide();
-                }
-            });
-        }
-    }
-
-    setupMobileDropdown('mobileServicesBtn',  'mobileServicesMenu',  'servicesChevron');
-    setupMobileDropdown('mobileTrainingBtn',  'mobileTrainingMenu',  'trainingChevron');
-
-    // ── Desktop Dropdown Handlers ────────────────────────────────────────────
-    document.querySelectorAll('.relative.group').forEach(function (dropdown) {
-        const button = dropdown.querySelector('button[aria-haspopup="true"]');
-        const menu   = dropdown.querySelector('[role="menu"]');
-
-        if (button && menu) {
-            button.addEventListener('click', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-
-                const isVisible = menu.classList.contains('opacity-100');
-
-                // Close all other open menus
-                document.querySelectorAll('[role="menu"]').forEach(function (m) {
-                    m.classList.remove('opacity-100', 'visible');
-                    m.classList.add('opacity-0', 'invisible');
-                });
-                document.querySelectorAll('.relative.group button[aria-haspopup="true"]').forEach(function (b) {
-                    b.setAttribute('aria-expanded', 'false');
-                });
-
-                if (!isVisible) {
-                    menu.classList.remove('opacity-0', 'invisible');
-                    menu.classList.add('opacity-100', 'visible');
-                    button.setAttribute('aria-expanded', 'true');
-                    initLucide();
-                }
-            });
-
-            // Hover behaviour on desktop only
-            if (window.matchMedia('(min-width: 1024px)').matches) {
-                dropdown.addEventListener('mouseenter', function () {
-                    menu.classList.remove('opacity-0', 'invisible');
-                    menu.classList.add('opacity-100', 'visible');
-                    button.setAttribute('aria-expanded', 'true');
-                    initLucide();
-                });
-
-                dropdown.addEventListener('mouseleave', function () {
-                    menu.classList.remove('opacity-100', 'visible');
-                    menu.classList.add('opacity-0', 'invisible');
-                    button.setAttribute('aria-expanded', 'false');
-                });
-            }
-        }
-    });
-
-    // ── Close all dropdowns on outside click ─────────────────────────────────
-    document.addEventListener('click', function (e) {
-        if (!e.target.closest('.relative.group')) {
-            document.querySelectorAll('[role="menu"]').forEach(function (m) {
-                m.classList.remove('opacity-100', 'visible');
-                m.classList.add('opacity-0', 'invisible');
-            });
-            document.querySelectorAll('.relative.group button[aria-haspopup="true"]').forEach(function (b) {
-                b.setAttribute('aria-expanded', 'false');
-            });
-        }
-    });
-
-    // ── Escape key closes everything ─────────────────────────────────────────
+    mobileMenuBtn && mobileMenuBtn.addEventListener('click', openDrawer);
+    mobileCloseBtn && mobileCloseBtn.addEventListener('click', closeDrawer);
+    mobileOverlay && mobileOverlay.addEventListener('click', closeDrawer);
     document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') {
-            document.querySelectorAll('[role="menu"]').forEach(function (m) {
-                m.classList.remove('opacity-100', 'visible');
-                m.classList.add('opacity-0', 'invisible');
-            });
-            document.querySelectorAll('.relative.group button[aria-haspopup="true"]').forEach(function (b) {
-                b.setAttribute('aria-expanded', 'false');
-            });
-            closeMobileMenu();
-        }
+        if (e.key === 'Escape') closeDrawer();
     });
 
-    // ── Smooth Scroll ────────────────────────────────────────────────────────
+    // ---- Smooth scroll for on-page anchors ----
     document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
         anchor.addEventListener('click', function (e) {
             const href = this.getAttribute('href');
             if (href !== '#' && href.length > 1) {
-                e.preventDefault();
                 const target = document.querySelector(href);
                 if (target) {
+                    e.preventDefault();
                     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    closeMobileMenu();
+                    closeDrawer();
                 }
             }
         });
     });
 
-    // ── Header Scroll Shadow ─────────────────────────────────────────────────
-    const header = document.querySelector('header');
-    if (header) {
-        window.addEventListener('scroll', function () {
-            header.classList.toggle('shadow-xl', window.pageYOffset > 50);
-        });
+    // ---- Header scroll shadow + back-to-top visibility ----
+    const header = document.getElementById('siteHeader');
+    const backToTop = document.getElementById('backToTop');
+    window.addEventListener('scroll', function () {
+        if (header) header.classList.toggle('scrolled', window.scrollY > 8);
+        if (backToTop) {
+            const showTop = window.scrollY > 500;
+            backToTop.classList.toggle('opacity-0', !showTop);
+            backToTop.classList.toggle('pointer-events-none', !showTop);
+        }
+    }, { passive: true });
+    backToTop && backToTop.addEventListener('click', function () {
+        window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    });
+
+    // ---- Scroll reveal (.reveal -> .in-view) ----
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const revealEls = document.querySelectorAll('.reveal');
+    if ('IntersectionObserver' in window && !reduceMotion) {
+        const io = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('in-view');
+                    io.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.12 });
+        revealEls.forEach((el) => io.observe(el));
+    } else {
+        revealEls.forEach((el) => el.classList.add('in-view'));
+    }
+
+    // ---- Animated stat counters (.counter[data-target]) ----
+    const counters = document.querySelectorAll('.counter');
+    function animateCounter(el) {
+        const target = parseInt(el.getAttribute('data-target'), 10) || 0;
+        if (reduceMotion) { el.textContent = target; return; }
+        const duration = 1200;
+        const startTime = performance.now();
+        function tick(now) {
+            const progress = Math.min((now - startTime) / duration, 1);
+            el.textContent = Math.floor(progress * target);
+            if (progress < 1) requestAnimationFrame(tick);
+            else el.textContent = target;
+        }
+        requestAnimationFrame(tick);
+    }
+    if ('IntersectionObserver' in window) {
+        const cio = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    animateCounter(entry.target);
+                    cio.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+        counters.forEach((el) => cio.observe(el));
+    }
+
+    // ---- Cookie consent ----
+    const cookieConsent = document.getElementById('cookieConsent');
+    const cookieAccept = document.getElementById('cookieAccept');
+    const cookieDecline = document.getElementById('cookieDecline');
+    if (cookieConsent) {
+        try {
+            if (!localStorage.getItem('abraytech_cookie_choice')) {
+                cookieConsent.classList.remove('hidden');
+            }
+        } catch (e) { /* storage unavailable */ }
+        function setCookieChoice(choice) {
+            try { localStorage.setItem('abraytech_cookie_choice', choice); } catch (e) {}
+            cookieConsent.classList.add('hidden');
+        }
+        cookieAccept && cookieAccept.addEventListener('click', () => setCookieChoice('accepted'));
+        cookieDecline && cookieDecline.addEventListener('click', () => setCookieChoice('declined'));
     }
 });
 

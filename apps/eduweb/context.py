@@ -25,6 +25,7 @@ from .models import (
     Faculty, Program, CourseApplication,
     Message, Notification, SupportTicket, ContactMessage,
     SiteConfig, AcademicSession, StudentExamResponse, Service,
+    Solution, Industry,
 )
 
 logger = logging.getLogger(__name__)
@@ -127,11 +128,35 @@ def navigation_data(request):
         logger.exception('navigation_data: failed to fetch services')
         nav_services = []
 
+    # Solutions nav dropdown
+    try:
+        nav_solutions = list(
+            Solution.objects
+            .filter(is_active=True)
+            .order_by('order', 'title')[:8]
+        )
+    except Exception:
+        logger.exception('navigation_data: failed to fetch solutions')
+        nav_solutions = []
+
+    # Industries nav dropdown
+    try:
+        nav_industries = list(
+            Industry.objects
+            .filter(is_active=True)
+            .order_by('order', 'title')[:8]
+        )
+    except Exception:
+        logger.exception('navigation_data: failed to fetch industries')
+        nav_industries = []
+
     return {
         'all_faculties': faculties,
         'all_courses': courses,
         'has_pending_application': has_pending_application,
         'nav_services': nav_services,
+        'nav_solutions': nav_solutions,
+        'nav_industries': nav_industries,
     }
 
 

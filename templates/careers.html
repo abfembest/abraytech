@@ -5,29 +5,63 @@
 
 {% block content %}
 
-<section class="relative bg-gradient-to-br from-primary-950 via-accent-900 to-primary-900 text-white py-24 lg:py-32 overflow-hidden">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <nav class="flex mb-8 text-sm" aria-label="Breadcrumb">
-            <ol class="inline-flex items-center space-x-2">
-                <li><a href="{% url 'eduweb:index' %}" class="text-accent-200 hover:text-white transition-colors">Home</a></li>
-                <li><i data-lucide="chevron-right" class="w-4 h-4 text-accent-300"></i></li>
-                <li><span class="text-white font-medium">Careers</span></li>
-            </ol>
-        </nav>
-        <h1 class="text-4xl lg:text-6xl font-bold font-heading mb-6">Careers at Abraytech</h1>
-        <p class="text-xl text-accent-100 max-w-3xl">
-            We're building a team across software development, cybersecurity, AI, and education.
-        </p>
+<section class="relative overflow-hidden bg-navy py-20 lg:py-28">
+    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="max-w-3xl">
+            <nav class="flex mb-6" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-2 text-sm">
+                    <li><a href="{% url 'eduweb:index' %}" class="text-white/60 hover:text-white transition-colors">Home</a></li>
+                    <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+                    <li><span class="text-white/80 font-medium">Careers</span></li>
+                </ol>
+            </nav>
+            <span class="inline-flex items-center gap-2 text-xs font-semibold text-sky bg-white/5 border border-white/10 px-3 py-1.5 rounded-full uppercase tracking-wider">
+                <i data-lucide="briefcase" class="w-3.5 h-3.5"></i> Careers
+            </span>
+            <h1 class="mt-5 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-white">Careers at Abraytech</h1>
+            <p class="mt-5 text-lg text-white/70 max-w-2xl leading-relaxed">
+                We're building a team across software development, cybersecurity, AI, and education.
+            </p>
+        </div>
     </div>
 </section>
 
 <section class="py-20 bg-white">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-3xl text-center">
-        <p class="text-gray-600 mb-6"><em>Open roles will be listed here once recruiting begins.</em></p>
-        <a href="{% url 'eduweb:contact' %}" class="inline-flex items-center gap-2 px-8 py-4 bg-primary-950 text-white rounded-xl font-semibold hover:bg-primary-900 transition-all duration-300 shadow-xl">
-            Get in Touch
-            <i data-lucide="arrow-right" class="w-5 h-5"></i>
-        </a>
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        {% if jobs %}
+        <div class="space-y-4">
+            {% for job in jobs %}
+            <div class="reveal bg-white rounded-2xl border border-borderblue p-6 hover:shadow-brand transition">
+                <div class="flex flex-wrap items-start justify-between gap-3 mb-2">
+                    <h3 class="font-sora font-semibold text-lg text-navy">{{ job.title }}</h3>
+                    <span class="inline-flex items-center text-xs font-semibold text-brandblue bg-ice px-2.5 py-1 rounded-full">{{ job.get_employment_type_display }}</span>
+                </div>
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500 mb-3">
+                    {% if job.department %}<span class="flex items-center gap-1"><i data-lucide="briefcase" class="w-3.5 h-3.5"></i>{{ job.department }}</span>{% endif %}
+                    {% if job.location %}<span class="flex items-center gap-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>{{ job.location }}</span>{% endif %}
+                </div>
+                {% if job.description %}
+                <p class="text-sm text-slate-600">{{ job.description|truncatewords:40 }}</p>
+                {% endif %}
+                <a href="{% url 'eduweb:contact' %}" class="inline-flex items-center gap-2 mt-4 text-brandblue font-semibold text-sm hover:text-electric transition-colors">
+                    Apply for this role
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center">
+            <p class="text-slate-600 mb-6"><em>No open roles right now &mdash; check back soon, or reach out and introduce yourself.</em></p>
+        </div>
+        {% endif %}
+        <div class="text-center mt-10">
+            <a href="{% url 'eduweb:contact' %}" class="inline-flex items-center gap-2 px-8 py-4 rounded-lg brand-gradient text-white font-semibold shadow-brand hover:opacity-95 transition">
+                Get in Touch
+                <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </a>
+        </div>
     </div>
 </section>
 

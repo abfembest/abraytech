@@ -48,6 +48,31 @@ urlpatterns = [
     path('services/', views.services_list, name='services_list'),
     path('services/<slug:slug>/', views.service_detail, name='service_detail'),
 
+    # Solutions
+    path('solutions/', views.solutions_list, name='solutions_list'),
+    path('solutions/<slug:slug>/', views.solution_detail, name='solution_detail'),
+
+    # Industries
+    path('industries/', views.industries_list, name='industries_list'),
+    path('industries/<slug:slug>/', views.industry_detail, name='industry_detail'),
+
+    # Projects / Portfolio
+    path('projects/', views.projects_list, name='projects_list'),
+    path('projects/<slug:slug>/', views.project_detail, name='project_detail'),
+
+    # Store
+    path('store/', views.store_list, name='store_list'),
+    path('store/<slug:slug>/', views.product_detail, name='product_detail'),
+
+    # Consultation booking
+    path('consultation/', views.consultation_booking, name='consultation_booking'),
+
+    # Newsletter (AJAX)
+    path('newsletter/subscribe/', views.newsletter_subscribe, name='newsletter_subscribe'),
+
+    # Company
+    path('company/team/', views.team, name='team'),
+
     # FAQ (public)
     path('faq/', views.faq_page, name='faq'),
 

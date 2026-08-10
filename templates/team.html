@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Our Team | Abraytech{% endblock %}
+
+{% block extra_css %}
+<meta name="description" content="Meet the Abraytech team.">
+{% endblock %}
+
+{% block content %}
+
+<section class="relative overflow-hidden bg-navy py-20 lg:py-28">
+    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="max-w-3xl">
+            <nav class="flex mb-6" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-2 text-sm">
+                    <li><a href="{% url 'eduweb:index' %}" class="text-white/60 hover:text-white transition-colors">Home</a></li>
+                    <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+                    <li><span class="text-white/80 font-medium">Team</span></li>
+                </ol>
+            </nav>
+            <span class="inline-flex items-center gap-2 text-xs font-semibold text-sky bg-white/5 border border-white/10 px-3 py-1.5 rounded-full uppercase tracking-wider">
+                <i data-lucide="users" class="w-3.5 h-3.5"></i> Our Team
+            </span>
+            <h1 class="mt-5 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-white">Our Team</h1>
+            <p class="mt-5 text-lg text-white/70 max-w-2xl leading-relaxed">
+                The people behind Abraytech's software development, cybersecurity, AI &amp; data, and IT consulting work.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {% if members %}
+        <div class="flex flex-wrap justify-center -m-2 sm:-m-3">
+            {% for member in members %}
+            <div class="w-1/2 sm:w-1/3 md:w-1/4 xl:w-1/5 p-2 sm:p-3">
+                <article class="reveal group bg-white rounded-2xl border border-borderblue hover:shadow-brand hover:-translate-y-1 transition-all overflow-hidden"
+                         itemscope itemtype="https://schema.org/Person">
+                    <div class="relative aspect-square bg-ice overflow-hidden flex items-center justify-center">
+                        {% if member.photo %}
+                        <img src="{{ member.photo.url }}"
+                             alt="Portrait of {{ member.name }}"
+                             class="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                             loading="lazy" itemprop="image">
+                        {% else %}
+                        <i data-lucide="user-circle" class="w-14 h-14 text-brandblue" aria-hidden="true"></i>
+                        {% endif %}
+                    </div>
+                    <div class="p-4 text-center">
+                        <p class="font-sora font-semibold text-sm text-navy leading-snug mb-1" itemprop="name">{{ member.name }}</p>
+                        <p class="text-xs text-brandblue font-semibold leading-tight" itemprop="jobTitle">{{ member.role }}</p>
+                    </div>
+                </article>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-center text-slate-500">Team profiles are being added &mdash; check back soon.</p>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}

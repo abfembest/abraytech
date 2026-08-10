@@ -29,20 +29,16 @@
 {% endblock %}
 
 {% block content %}
-<main id="main-content">
 
   <!-- ═══════════════════════════════════════════════
        HERO
   ════════════════════════════════════════════════ -->
-  <section class="relative bg-gradient-to-br from-primary-950 via-accent-900 to-primary-900 text-white overflow-hidden"
+  <section class="relative overflow-hidden bg-navy text-white"
            aria-labelledby="category-heading">
 
-    <div class="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-      <div class="absolute -top-10 -left-10 w-48 h-48 sm:w-72 sm:h-72 lg:w-96 lg:h-96 bg-accent-400 rounded-full blur-3xl opacity-20"></div>
-      <div class="absolute bottom-0 right-0 w-48 h-48 sm:w-72 sm:h-72 lg:w-80 lg:h-80 bg-primary-400 rounded-full blur-3xl opacity-15"></div>
-    </div>
+    <div class="absolute inset-0 opacity-20 pointer-events-none" aria-hidden="true" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
 
-    <div class="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-14 sm:py-18 lg:py-24 xl:py-28">
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-14 sm:py-18 lg:py-24 xl:py-28">
       <div class="max-w-4xl mx-auto">
 
         <!-- Breadcrumb -->
@@ -51,20 +47,20 @@
               itemscope itemtype="https://schema.org/BreadcrumbList">
             <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
               <a href="{% url 'eduweb:index' %}" itemprop="item"
-                 class="text-accent-200 hover:text-white transition-colors underline-offset-2 hover:underline">
+                 class="text-white/60 hover:text-white transition-colors underline-offset-2 hover:underline">
                 <span itemprop="name">Home</span>
               </a>
               <meta itemprop="position" content="1">
             </li>
-            <li aria-hidden="true"><i data-lucide="chevron-right" class="w-3 h-3 sm:w-4 sm:h-4 text-accent-300 flex-shrink-0"></i></li>
+            <li aria-hidden="true"><i data-lucide="chevron-right" class="w-3 h-3 sm:w-4 sm:h-4 text-white/40 flex-shrink-0"></i></li>
             <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
               <a href="{% url 'eduweb:blog' %}" itemprop="item"
-                 class="text-accent-200 hover:text-white transition-colors underline-offset-2 hover:underline">
+                 class="text-white/60 hover:text-white transition-colors underline-offset-2 hover:underline">
                 <span itemprop="name">Blog</span>
               </a>
               <meta itemprop="position" content="2">
             </li>
-            <li aria-hidden="true"><i data-lucide="chevron-right" class="w-3 h-3 sm:w-4 sm:h-4 text-accent-300 flex-shrink-0"></i></li>
+            <li aria-hidden="true"><i data-lucide="chevron-right" class="w-3 h-3 sm:w-4 sm:h-4 text-white/40 flex-shrink-0"></i></li>
             <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" aria-current="page">
               <span itemprop="name" class="text-white font-medium">{{ current_category.name }}</span>
               <meta itemprop="position" content="3">
@@ -74,27 +70,27 @@
 
         <!-- Icon + Title -->
         <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 mb-4 sm:mb-5">
-          <div class="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-white/20 backdrop-blur-sm rounded-xl sm:rounded-2xl flex items-center justify-center shadow-xl flex-shrink-0"
+          <div class="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-white/10 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-brand flex-shrink-0"
                aria-hidden="true">
             <i data-lucide="{{ current_category.icon|default:'folder' }}" class="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white"></i>
           </div>
           <div>
-            <p class="text-accent-200 text-xs sm:text-sm font-medium mb-1 uppercase tracking-wide">Category</p>
+            <p class="text-sky text-xs sm:text-sm font-medium mb-1 uppercase tracking-wide">Category</p>
             <h1 id="category-heading"
-                class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold font-heading leading-tight">
+                class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold font-sora leading-tight">
               {{ current_category.name }}
             </h1>
           </div>
         </div>
 
         {% if current_category.description %}
-        <p class="text-sm sm:text-base lg:text-lg text-accent-100 leading-relaxed max-w-xl sm:max-w-2xl lg:max-w-3xl mb-6">
+        <p class="text-sm sm:text-base lg:text-lg text-white/80 leading-relaxed max-w-xl sm:max-w-2xl lg:max-w-3xl mb-6">
           {{ current_category.description }}
         </p>
         {% endif %}
 
         <!-- Post count pill -->
-        <div class="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-white/15 backdrop-blur-sm rounded-full text-xs sm:text-sm text-white font-medium">
+        <div class="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-white/10 rounded-full text-xs sm:text-sm text-white font-medium">
           <i data-lucide="layers" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
           {{ posts.paginator.count }} article{{ posts.paginator.count|pluralize }}
         </div>
@@ -106,24 +102,24 @@
   <!-- ═══════════════════════════════════════════════
        CATEGORY FILTER BAR
   ════════════════════════════════════════════════ -->
-  <section class="bg-white border-b border-gray-200 sticky top-16 lg:top-20 z-30 shadow-sm"
+  <section class="bg-white border-b border-borderblue sticky top-16 lg:top-20 z-30 shadow-sm"
            aria-label="Filter by category">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-4">
       <div class="flex gap-2 sm:gap-3 overflow-x-auto pb-1 sm:pb-0 sm:flex-wrap scrollbar-none"
            role="list"
            aria-label="Blog categories">
 
         <a href="{% url 'eduweb:blog' %}"
            role="listitem"
-           class="flex-shrink-0 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-950 focus:ring-offset-1">
+           class="flex-shrink-0 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold bg-ice text-navy hover:bg-borderblue transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brandblue focus:ring-offset-1">
           All Posts
         </a>
 
         {% for category in categories %}
         <a href="{% url 'eduweb:blog_category' category.slug %}"
            role="listitem"
-           class="flex-shrink-0 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-950 focus:ring-offset-1
-                  {% if current_category.slug == category.slug %}bg-primary-950 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}"
+           class="flex-shrink-0 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brandblue focus:ring-offset-1
+                  {% if current_category.slug == category.slug %}brand-gradient text-white{% else %}bg-ice text-navy hover:bg-borderblue{% endif %}"
            {% if current_category.slug == category.slug %}aria-current="true"{% endif %}>
           {{ category.name }}
         </a>
@@ -138,19 +134,19 @@
   ════════════════════════════════════════════════ -->
   <section class="py-12 sm:py-16 lg:py-20 xl:py-24 bg-white"
            aria-labelledby="posts-section-heading">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
 
       <h2 id="posts-section-heading" class="sr-only">Posts in {{ current_category.name }}</h2>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7 lg:gap-8 max-w-6xl mx-auto">
 
         {% for post in posts %}
-        <article class="bg-white rounded-2xl overflow-hidden shadow-md border border-gray-200 hover:shadow-xl transition-shadow duration-300 flex flex-col group"
+        <article class="bg-white rounded-2xl overflow-hidden border border-borderblue hover:shadow-brand hover:-translate-y-1 transition-all duration-300 flex flex-col group"
                  itemscope itemtype="https://schema.org/BlogPosting">
 
           <!-- Thumbnail -->
           <a href="{% url 'eduweb:blog_detail' post.slug %}"
-             class="block relative h-44 sm:h-48 overflow-hidden bg-gradient-to-br from-accent-100 to-primary-100 flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-950"
+             class="block relative h-44 sm:h-48 overflow-hidden bg-ice flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brandblue"
              tabindex="-1"
              aria-hidden="true">
             {% if post.featured_image %}
@@ -161,7 +157,7 @@
                  itemprop="image">
             {% else %}
             <div class="absolute inset-0 flex items-center justify-center">
-              <i data-lucide="image" class="w-12 h-12 text-accent-300" aria-hidden="true"></i>
+              <i data-lucide="image" class="w-12 h-12 text-brandblue" aria-hidden="true"></i>
             </div>
             {% endif %}
           </a>
@@ -169,10 +165,10 @@
           <!-- Body -->
           <div class="p-5 sm:p-6 flex-1 flex flex-col">
 
-            <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-2 line-clamp-2 leading-snug font-heading"
+            <h3 class="text-base sm:text-lg font-bold text-navy mb-2 line-clamp-2 leading-snug font-sora"
                 itemprop="headline">
               <a href="{% url 'eduweb:blog_detail' post.slug %}"
-                 class="hover:text-primary-950 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-950 focus:ring-offset-1 rounded"
+                 class="hover:text-brandblue transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brandblue focus:ring-offset-1 rounded"
                  itemprop="url">
                 {{ post.title }}
               </a>
@@ -184,7 +180,7 @@
             </p>
 
             <!-- Meta -->
-            <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500 mb-4 pt-3 border-t border-gray-100">
+            <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500 mb-4 pt-3 border-t border-borderblue">
               <span class="flex items-center gap-1" itemprop="author">
                 <i data-lucide="user" class="w-3 h-3 flex-shrink-0" aria-hidden="true"></i>
                 {{ post.author_name }}
@@ -201,7 +197,7 @@
             </div>
 
             <a href="{% url 'eduweb:blog_detail' post.slug %}"
-               class="inline-flex items-center gap-1.5 text-primary-950 font-semibold text-xs sm:text-sm hover:gap-2.5 transition-all duration-200 group/link focus:outline-none focus:ring-2 focus:ring-primary-950 focus:ring-offset-1 rounded"
+               class="inline-flex items-center gap-1.5 text-brandblue font-semibold text-xs sm:text-sm hover:gap-2.5 transition-all duration-200 group/link focus:outline-none focus:ring-2 focus:ring-brandblue focus:ring-offset-1 rounded"
                aria-label="Read more about {{ post.title }}">
               Read More
               <i data-lucide="arrow-right" class="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" aria-hidden="true"></i>
@@ -211,15 +207,15 @@
         </article>
         {% empty %}
         <div class="col-span-full py-16 sm:py-20 text-center" role="status">
-          <div class="w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-5" aria-hidden="true">
-            <i data-lucide="inbox" class="w-9 h-9 sm:w-11 sm:h-11 text-gray-400"></i>
+          <div class="w-20 h-20 sm:w-24 sm:h-24 bg-ice rounded-full flex items-center justify-center mx-auto mb-5" aria-hidden="true">
+            <i data-lucide="inbox" class="w-9 h-9 sm:w-11 sm:h-11 text-brandblue"></i>
           </div>
-          <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2 font-heading">No posts yet</h3>
+          <h3 class="text-xl sm:text-2xl font-bold text-navy mb-2 font-sora">No posts yet</h3>
           <p class="text-gray-500 text-sm sm:text-base mb-6 max-w-sm mx-auto">
             There are no published posts in the <strong>{{ current_category.name }}</strong> category yet. Check back soon!
           </p>
           <a href="{% url 'eduweb:blog' %}"
-             class="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-primary-950 text-white rounded-xl font-semibold text-sm sm:text-base hover:bg-accent-800 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-950 focus:ring-offset-2">
+             class="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 brand-gradient text-white rounded-xl font-semibold text-sm sm:text-base shadow-brand hover:opacity-95 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brandblue focus:ring-offset-2">
             <i data-lucide="arrow-left" class="w-4 h-4" aria-hidden="true"></i>
             All Blog Posts
           </a>
@@ -235,7 +231,7 @@
 
         {% if posts.has_previous %}
         <a href="?page={{ posts.previous_page_number }}"
-           class="flex items-center gap-1 px-3 sm:px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-950"
+           class="flex items-center gap-1 px-3 sm:px-4 py-2 bg-white border border-borderblue rounded-lg text-sm text-navy hover:bg-ice transition-colors focus:outline-none focus:ring-2 focus:ring-brandblue"
            aria-label="Previous page">
           <i data-lucide="chevron-left" class="w-4 h-4" aria-hidden="true"></i>
           <span class="hidden sm:inline">Prev</span>
@@ -244,14 +240,14 @@
 
         {% for num in posts.paginator.page_range %}
           {% if posts.number == num %}
-          <span class="px-3 sm:px-4 py-2 bg-primary-950 text-white rounded-lg text-sm font-semibold"
+          <span class="px-3 sm:px-4 py-2 brand-gradient text-white rounded-lg text-sm font-semibold"
                 aria-current="page"
                 aria-label="Page {{ num }}, current">
             {{ num }}
           </span>
           {% elif num > posts.number|add:'-3' and num < posts.number|add:'3' %}
           <a href="?page={{ num }}"
-             class="px-3 sm:px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-950"
+             class="px-3 sm:px-4 py-2 bg-white border border-borderblue rounded-lg text-sm text-navy hover:bg-ice transition-colors focus:outline-none focus:ring-2 focus:ring-brandblue"
              aria-label="Page {{ num }}">
             {{ num }}
           </a>
@@ -260,7 +256,7 @@
 
         {% if posts.has_next %}
         <a href="?page={{ posts.next_page_number }}"
-           class="flex items-center gap-1 px-3 sm:px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-950"
+           class="flex items-center gap-1 px-3 sm:px-4 py-2 bg-white border border-borderblue rounded-lg text-sm text-navy hover:bg-ice transition-colors focus:outline-none focus:ring-2 focus:ring-brandblue"
            aria-label="Next page">
           <span class="hidden sm:inline">Next</span>
           <i data-lucide="chevron-right" class="w-4 h-4" aria-hidden="true"></i>
@@ -276,15 +272,14 @@
   <!-- ═══════════════════════════════════════════════
        BACK TO BLOG
   ════════════════════════════════════════════════ -->
-  <section class="py-8 sm:py-10 lg:py-12 bg-gray-50 border-t border-gray-200">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 text-center">
+  <section class="py-8 sm:py-10 lg:py-12 bg-soft border-t border-borderblue">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 text-center">
       <a href="{% url 'eduweb:blog' %}"
-         class="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-primary-950 to-accent-700 text-white rounded-xl font-semibold text-sm sm:text-base hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary-950 focus:ring-offset-2">
+         class="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 brand-gradient text-white rounded-xl font-semibold text-sm sm:text-base shadow-brand hover:opacity-95 hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brandblue focus:ring-offset-2">
         <i data-lucide="arrow-left" class="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true"></i>
         Back to All Posts
       </a>
     </div>
   </section>
 
-</main>
 {% endblock %}

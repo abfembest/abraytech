@@ -11,33 +11,30 @@
 {% block content %}
 
 <!-- ===== HERO ===== -->
-<section class="relative bg-gradient-to-br from-primary-950 via-purple-900 to-pink-900 text-white py-24 lg:py-32 overflow-hidden">
-    <div class="absolute inset-0 opacity-10 pointer-events-none">
-        <div class="absolute top-20 left-10 w-64 h-64 bg-purple-300 rounded-full blur-3xl"></div>
-        <div class="absolute bottom-20 right-10 w-96 h-96 bg-pink-300 rounded-full blur-3xl"></div>
-    </div>
+<section class="relative overflow-hidden bg-navy py-20 lg:py-28">
+    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
 
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="max-w-4xl">
             <nav class="flex mb-8 text-sm" aria-label="Breadcrumb">
                 <ol class="inline-flex items-center space-x-2">
-                    <li><a href="{% url 'eduweb:index' %}" class="text-purple-200 hover:text-white transition-colors">Home</a></li>
-                    <li><i data-lucide="chevron-right" class="w-4 h-4 text-purple-300"></i></li>
+                    <li><a href="{% url 'eduweb:index' %}" class="text-white/60 hover:text-white transition-colors">Home</a></li>
+                    <li><i data-lucide="chevron-right" class="w-4 h-4 text-white/40"></i></li>
                     <li><span class="text-white font-medium">Campus Life</span></li>
                 </ol>
             </nav>
 
             <div class="flex items-center gap-4 mb-6">
-                <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-500 rounded-2xl flex items-center justify-center shadow-xl flex-shrink-0">
+                <div class="w-16 h-16 brand-gradient rounded-2xl flex items-center justify-center shadow-brand flex-shrink-0">
                     <i data-lucide="heart" class="w-8 h-8 text-white"></i>
                 </div>
                 <div>
-                    <p class="text-purple-200 text-sm font-medium mb-1">Student Experience</p>
-                    <h1 class="text-4xl lg:text-6xl font-bold font-heading">Campus Life</h1>
+                    <p class="text-sky text-sm font-medium mb-1">Student Experience</p>
+                    <h1 class="text-4xl lg:text-6xl font-bold font-sora text-white">Campus Life</h1>
                 </div>
             </div>
 
-            <p class="text-xl text-purple-100 mb-8 leading-relaxed max-w-3xl">
+            <p class="text-xl text-white/70 mb-8 leading-relaxed max-w-3xl">
                 Experience a vibrant campus community where learning extends beyond the classroom through engaging activities, diverse organizations, and lifelong friendships.
             </p>
         </div>
@@ -45,35 +42,35 @@
 </section>
 
 <!-- ===== CAMPUS STATS ===== -->
-<section class="py-16 bg-gradient-to-br from-purple-50 to-pink-50">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+<section class="py-16 bg-soft">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid md:grid-cols-4 gap-8">
-            <div class="bg-white rounded-2xl p-6 shadow-lg text-center transform hover:scale-105 transition-transform duration-300">
-                <div class="w-14 h-14 bg-gradient-to-br from-primary-600 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <div class="bg-white rounded-2xl p-6 shadow-card text-center hover:-translate-y-1 hover:shadow-brand transition-all duration-300">
+                <div class="w-14 h-14 brand-gradient rounded-xl flex items-center justify-center mx-auto mb-4">
                     <i data-lucide="users" class="w-7 h-7 text-white"></i>
                 </div>
-                <h3 class="text-2xl font-bold text-gray-900 mb-2 font-heading">200+</h3>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2 font-sora">200+</h3>
                 <p class="text-gray-600">Student Organizations</p>
             </div>
-            <div class="bg-white rounded-2xl p-6 shadow-lg text-center transform hover:scale-105 transition-transform duration-300">
-                <div class="w-14 h-14 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <div class="bg-white rounded-2xl p-6 shadow-card text-center hover:-translate-y-1 hover:shadow-brand transition-all duration-300">
+                <div class="w-14 h-14 brand-gradient rounded-xl flex items-center justify-center mx-auto mb-4">
                     <i data-lucide="trophy" class="w-7 h-7 text-white"></i>
                 </div>
-                <h3 class="text-2xl font-bold text-gray-900 mb-2 font-heading">25</h3>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2 font-sora">25</h3>
                 <p class="text-gray-600">NCAA Sports Teams</p>
             </div>
-            <div class="bg-white rounded-2xl p-6 shadow-lg text-center transform hover:scale-105 transition-transform duration-300">
-                <div class="w-14 h-14 bg-gradient-to-br from-pink-600 to-rose-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <div class="bg-white rounded-2xl p-6 shadow-card text-center hover:-translate-y-1 hover:shadow-brand transition-all duration-300">
+                <div class="w-14 h-14 brand-gradient rounded-xl flex items-center justify-center mx-auto mb-4">
                     <i data-lucide="calendar" class="w-7 h-7 text-white"></i>
                 </div>
-                <h3 class="text-2xl font-bold text-gray-900 mb-2 font-heading">500+</h3>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2 font-sora">500+</h3>
                 <p class="text-gray-600">Annual Events</p>
             </div>
-            <div class="bg-white rounded-2xl p-6 shadow-lg text-center transform hover:scale-105 transition-transform duration-300">
-                <div class="w-14 h-14 bg-gradient-to-br from-rose-600 to-red-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <div class="bg-white rounded-2xl p-6 shadow-card text-center hover:-translate-y-1 hover:shadow-brand transition-all duration-300">
+                <div class="w-14 h-14 brand-gradient rounded-xl flex items-center justify-center mx-auto mb-4">
                     <i data-lucide="globe" class="w-7 h-7 text-white"></i>
                 </div>
-                <h3 class="text-2xl font-bold text-gray-900 mb-2 font-heading">85+</h3>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2 font-sora">85+</h3>
                 <p class="text-gray-600">Countries Represented</p>
             </div>
         </div>
@@ -82,52 +79,52 @@
 
 <!-- ===== STUDENT ORGANIZATIONS ===== -->
 <section class="py-20 bg-white">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
-            <div class="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-4 py-2 rounded-full text-sm font-semibold mb-4">
+            <div class="inline-flex items-center gap-2 bg-ice text-brandblue px-4 py-2 rounded-full text-sm font-semibold mb-4 border border-borderblue">
                 <i data-lucide="users" class="w-4 h-4"></i>
                 Get Involved
             </div>
-            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-950 mb-4 font-heading">Student Organizations</h2>
-            <div class="h-1 w-24 bg-gradient-to-r from-primary-950 to-purple-500 mx-auto mb-6"></div>
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-navy mb-4 font-sora">Student Organizations</h2>
+            <div class="h-1 w-24 brand-gradient mx-auto mb-6 rounded-full"></div>
             <p class="text-xl text-gray-600 max-w-3xl mx-auto">
                 Join over 200 student organizations and find your community at MIU.
             </p>
         </div>
 
         <div class="max-w-6xl mx-auto grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100 text-center hover:shadow-xl transition-shadow duration-300">
-                <div class="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <div class="bg-blue-50 rounded-2xl p-6 border border-blue-100 text-center hover:shadow-xl transition-shadow duration-300">
+                <div class="w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
                     <i data-lucide="book-open" class="w-7 h-7 text-white"></i>
                 </div>
-                <h3 class="text-lg font-bold text-gray-900 mb-2 font-heading">Academic Clubs</h3>
+                <h3 class="text-lg font-bold text-gray-900 mb-2 font-sora">Academic Clubs</h3>
                 <p class="text-sm text-gray-600 mb-4">45+ clubs related to majors and academic interests</p>
                 <a href="#" class="text-blue-600 font-semibold text-sm hover:underline">Explore Clubs</a>
             </div>
 
-            <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100 text-center hover:shadow-xl transition-shadow duration-300">
-                <div class="w-14 h-14 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <div class="bg-ice rounded-2xl p-6 border border-borderblue text-center hover:shadow-xl transition-shadow duration-300">
+                <div class="w-14 h-14 brand-gradient rounded-xl flex items-center justify-center mx-auto mb-4">
                     <i data-lucide="globe" class="w-7 h-7 text-white"></i>
                 </div>
-                <h3 class="text-lg font-bold text-gray-900 mb-2 font-heading">Cultural Groups</h3>
+                <h3 class="text-lg font-bold text-gray-900 mb-2 font-sora">Cultural Groups</h3>
                 <p class="text-sm text-gray-600 mb-4">30+ organizations celebrating diversity</p>
-                <a href="#" class="text-purple-600 font-semibold text-sm hover:underline">Learn More</a>
+                <a href="#" class="text-brandblue font-semibold text-sm hover:underline">Learn More</a>
             </div>
 
-            <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100 text-center hover:shadow-xl transition-shadow duration-300">
-                <div class="w-14 h-14 bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <div class="bg-green-50 rounded-2xl p-6 border border-green-100 text-center hover:shadow-xl transition-shadow duration-300">
+                <div class="w-14 h-14 bg-green-600 rounded-xl flex items-center justify-center mx-auto mb-4">
                     <i data-lucide="hand-heart" class="w-7 h-7 text-white"></i>
                 </div>
-                <h3 class="text-lg font-bold text-gray-900 mb-2 font-heading">Service & Volunteering</h3>
+                <h3 class="text-lg font-bold text-gray-900 mb-2 font-sora">Service & Volunteering</h3>
                 <p class="text-sm text-gray-600 mb-4">25+ organizations giving back</p>
                 <a href="#" class="text-green-600 font-semibold text-sm hover:underline">Get Involved</a>
             </div>
 
-            <div class="bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-100 text-center hover:shadow-xl transition-shadow duration-300">
-                <div class="w-14 h-14 bg-gradient-to-br from-orange-600 to-amber-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <div class="bg-orange-50 rounded-2xl p-6 border border-orange-100 text-center hover:shadow-xl transition-shadow duration-300">
+                <div class="w-14 h-14 bg-orange-600 rounded-xl flex items-center justify-center mx-auto mb-4">
                     <i data-lucide="palette" class="w-7 h-7 text-white"></i>
                 </div>
-                <h3 class="text-lg font-bold text-gray-900 mb-2 font-heading">Arts & Media</h3>
+                <h3 class="text-lg font-bold text-gray-900 mb-2 font-sora">Arts & Media</h3>
                 <p class="text-sm text-gray-600 mb-4">20+ creative and performing arts groups</p>
                 <a href="#" class="text-orange-600 font-semibold text-sm hover:underline">Discover More</a>
             </div>
@@ -136,15 +133,15 @@
 </section>
 
 <!-- ===== ATHLETICS & RECREATION ===== -->
-<section class="py-20 bg-gradient-to-br from-gray-50 to-purple-50">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+<section class="py-20 bg-soft">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
-            <div class="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-4 py-2 rounded-full text-sm font-semibold mb-4">
+            <div class="inline-flex items-center gap-2 bg-ice text-brandblue px-4 py-2 rounded-full text-sm font-semibold mb-4 border border-borderblue">
                 <i data-lucide="trophy" class="w-4 h-4"></i>
                 Stay Active
             </div>
-            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-950 mb-4 font-heading">Athletics & Recreation</h2>
-            <div class="h-1 w-24 bg-gradient-to-r from-primary-950 to-purple-500 mx-auto mb-6"></div>
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-navy mb-4 font-sora">Athletics & Recreation</h2>
+            <div class="h-1 w-24 brand-gradient mx-auto mb-6 rounded-full"></div>
             <p class="text-xl text-gray-600 max-w-3xl mx-auto">
                 Stay active with NCAA Division I sports and state-of-the-art recreation facilities.
             </p>
@@ -152,76 +149,76 @@
 
         <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 mb-12">
             <!-- Varsity Sports -->
-            <div class="bg-white rounded-2xl p-8 shadow-lg border border-purple-100">
+            <div class="bg-white rounded-2xl p-8 shadow-lg border border-borderblue">
                 <div class="flex items-center gap-3 mb-6">
-                    <div class="w-12 h-12 bg-primary-950 rounded-xl flex items-center justify-center">
+                    <div class="w-12 h-12 bg-navy rounded-xl flex items-center justify-center">
                         <i data-lucide="trophy" class="w-6 h-6 text-white"></i>
                     </div>
-                    <h3 class="text-2xl font-bold text-gray-900 font-heading">Varsity Sports</h3>
+                    <h3 class="text-2xl font-bold text-gray-900 font-sora">Varsity Sports</h3>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div class="flex items-center gap-2">
-                        <i data-lucide="check" class="w-4 h-4 text-primary-600"></i>
+                        <i data-lucide="check" class="w-4 h-4 text-brandblue"></i>
                         <span class="text-sm text-gray-700">Basketball</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <i data-lucide="check" class="w-4 h-4 text-primary-600"></i>
+                        <i data-lucide="check" class="w-4 h-4 text-brandblue"></i>
                         <span class="text-sm text-gray-700">Soccer</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <i data-lucide="check" class="w-4 h-4 text-primary-600"></i>
+                        <i data-lucide="check" class="w-4 h-4 text-brandblue"></i>
                         <span class="text-sm text-gray-700">Swimming</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <i data-lucide="check" class="w-4 h-4 text-primary-600"></i>
+                        <i data-lucide="check" class="w-4 h-4 text-brandblue"></i>
                         <span class="text-sm text-gray-700">Track & Field</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <i data-lucide="check" class="w-4 h-4 text-primary-600"></i>
+                        <i data-lucide="check" class="w-4 h-4 text-brandblue"></i>
                         <span class="text-sm text-gray-700">Volleyball</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <i data-lucide="check" class="w-4 h-4 text-primary-600"></i>
+                        <i data-lucide="check" class="w-4 h-4 text-brandblue"></i>
                         <span class="text-sm text-gray-700">Tennis</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <i data-lucide="check" class="w-4 h-4 text-primary-600"></i>
+                        <i data-lucide="check" class="w-4 h-4 text-brandblue"></i>
                         <span class="text-sm text-gray-700">Baseball</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <i data-lucide="check" class="w-4 h-4 text-primary-600"></i>
+                        <i data-lucide="check" class="w-4 h-4 text-brandblue"></i>
                         <span class="text-sm text-gray-700">Softball</span>
                     </div>
                 </div>
             </div>
 
             <!-- Recreation Facilities -->
-            <div class="bg-white rounded-2xl p-8 shadow-lg border border-purple-100">
+            <div class="bg-white rounded-2xl p-8 shadow-lg border border-borderblue">
                 <div class="flex items-center gap-3 mb-6">
-                    <div class="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center">
+                    <div class="w-12 h-12 bg-brandblue rounded-xl flex items-center justify-center">
                         <i data-lucide="dumbbell" class="w-6 h-6 text-white"></i>
                     </div>
-                    <h3 class="text-2xl font-bold text-gray-900 font-heading">Recreation Center</h3>
+                    <h3 class="text-2xl font-bold text-gray-900 font-sora">Recreation Center</h3>
                 </div>
                 <ul class="space-y-3">
                     <li class="flex items-start gap-2 text-gray-700">
-                        <i data-lucide="check-circle" class="w-5 h-5 text-purple-600 mt-0.5"></i>
+                        <i data-lucide="check-circle" class="w-5 h-5 text-brandblue mt-0.5"></i>
                         <span>50,000 sq ft fitness center</span>
                     </li>
                     <li class="flex items-start gap-2 text-gray-700">
-                        <i data-lucide="check-circle" class="w-5 h-5 text-purple-600 mt-0.5"></i>
+                        <i data-lucide="check-circle" class="w-5 h-5 text-brandblue mt-0.5"></i>
                         <span>Olympic-size swimming pool</span>
                     </li>
                     <li class="flex items-start gap-2 text-gray-700">
-                        <i data-lucide="check-circle" class="w-5 h-5 text-purple-600 mt-0.5"></i>
+                        <i data-lucide="check-circle" class="w-5 h-5 text-brandblue mt-0.5"></i>
                         <span>Indoor & outdoor courts</span>
                     </li>
                     <li class="flex items-start gap-2 text-gray-700">
-                        <i data-lucide="check-circle" class="w-5 h-5 text-purple-600 mt-0.5"></i>
+                        <i data-lucide="check-circle" class="w-5 h-5 text-brandblue mt-0.5"></i>
                         <span>Rock climbing wall</span>
                     </li>
                     <li class="flex items-start gap-2 text-gray-700">
-                        <i data-lucide="check-circle" class="w-5 h-5 text-purple-600 mt-0.5"></i>
+                        <i data-lucide="check-circle" class="w-5 h-5 text-brandblue mt-0.5"></i>
                         <span>Group fitness classes</span>
                     </li>
                 </ul>
@@ -232,14 +229,14 @@
 
 <!-- ===== HOUSING & DINING ===== -->
 <section class="py-20 bg-white">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
-            <div class="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-4 py-2 rounded-full text-sm font-semibold mb-4">
+            <div class="inline-flex items-center gap-2 bg-ice text-brandblue px-4 py-2 rounded-full text-sm font-semibold mb-4 border border-borderblue">
                 <i data-lucide="home" class="w-4 h-4"></i>
                 Live & Dine
             </div>
-            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-950 mb-4 font-heading">Housing & Dining</h2>
-            <div class="h-1 w-24 bg-gradient-to-r from-primary-950 to-purple-500 mx-auto mb-6"></div>
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-navy mb-4 font-sora">Housing & Dining</h2>
+            <div class="h-1 w-24 brand-gradient mx-auto mb-6 rounded-full"></div>
             <p class="text-xl text-gray-600 max-w-3xl mx-auto">
                 Modern, comfortable living spaces and delicious dining options on campus.
             </p>
@@ -247,29 +244,29 @@
 
         <div class="max-w-6xl mx-auto grid md:grid-cols-3 gap-8">
             <!-- Residence Halls -->
-            <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-8 border border-purple-100 hover:shadow-xl transition-shadow">
-                <div class="w-14 h-14 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center mb-6">
+            <div class="bg-ice rounded-2xl p-8 border border-borderblue hover:shadow-xl transition-shadow">
+                <div class="w-14 h-14 brand-gradient rounded-xl flex items-center justify-center mb-6">
                     <i data-lucide="home" class="w-7 h-7 text-white"></i>
                 </div>
-                <h3 class="text-2xl font-bold text-gray-900 mb-3 font-heading">Residence Halls</h3>
+                <h3 class="text-2xl font-bold text-gray-900 mb-3 font-sora">Residence Halls</h3>
                 <ul class="space-y-2 mb-6">
                     <li class="text-sm text-gray-700">• Traditional & suite-style rooms</li>
                     <li class="text-sm text-gray-700">• High-speed WiFi</li>
                     <li class="text-sm text-gray-700">• Study lounges</li>
                     <li class="text-sm text-gray-700">• 24/7 security</li>
                 </ul>
-                <a href="#" class="inline-flex items-center gap-2 text-purple-600 font-semibold hover:gap-3 transition-all">
+                <a href="#" class="inline-flex items-center gap-2 text-brandblue font-semibold hover:gap-3 transition-all">
                     Explore Housing
                     <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </a>
             </div>
 
             <!-- Apartments -->
-            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-100 hover:shadow-xl transition-shadow">
-                <div class="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center mb-6">
+            <div class="bg-blue-50 rounded-2xl p-8 border border-blue-100 hover:shadow-xl transition-shadow">
+                <div class="w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center mb-6">
                     <i data-lucide="building" class="w-7 h-7 text-white"></i>
                 </div>
-                <h3 class="text-2xl font-bold text-gray-900 mb-3 font-heading">Campus Apartments</h3>
+                <h3 class="text-2xl font-bold text-gray-900 mb-3 font-sora">Campus Apartments</h3>
                 <ul class="space-y-2 mb-6">
                     <li class="text-sm text-gray-700">• 1-4 bedroom options</li>
                     <li class="text-sm text-gray-700">• Full kitchens</li>
@@ -283,11 +280,11 @@
             </div>
 
             <!-- Dining -->
-            <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 border border-green-100 hover:shadow-xl transition-shadow">
-                <div class="w-14 h-14 bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl flex items-center justify-center mb-6">
+            <div class="bg-green-50 rounded-2xl p-8 border border-green-100 hover:shadow-xl transition-shadow">
+                <div class="w-14 h-14 bg-green-600 rounded-xl flex items-center justify-center mb-6">
                     <i data-lucide="utensils" class="w-7 h-7 text-white"></i>
                 </div>
-                <h3 class="text-2xl font-bold text-gray-900 mb-3 font-heading">Dining Options</h3>
+                <h3 class="text-2xl font-bold text-gray-900 mb-3 font-sora">Dining Options</h3>
                 <ul class="space-y-2 mb-6">
                     <li class="text-sm text-gray-700">• 5 dining halls</li>
                     <li class="text-sm text-gray-700">• 10+ campus cafés</li>
@@ -304,43 +301,43 @@
 </section>
 
 <!-- ===== EVENTS & TRADITIONS ===== -->
-<section class="py-20 bg-gradient-to-br from-gray-50 to-purple-50">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+<section class="py-20 bg-soft">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
-            <div class="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-4 py-2 rounded-full text-sm font-semibold mb-4">
+            <div class="inline-flex items-center gap-2 bg-ice text-brandblue px-4 py-2 rounded-full text-sm font-semibold mb-4 border border-borderblue">
                 <i data-lucide="sparkles" class="w-4 h-4"></i>
                 Make Memories
             </div>
-            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-950 mb-4 font-heading">Events & Traditions</h2>
-            <div class="h-1 w-24 bg-gradient-to-r from-primary-950 to-purple-500 mx-auto mb-6"></div>
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-navy mb-4 font-sora">Events & Traditions</h2>
+            <div class="h-1 w-24 brand-gradient mx-auto mb-6 rounded-full"></div>
             <p class="text-xl text-gray-600 max-w-3xl mx-auto">
                 Create lasting memories through campus events and cherished traditions.
             </p>
         </div>
 
         <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-6">
-            <div class="bg-white rounded-2xl p-6 shadow-lg border border-purple-100 hover:shadow-xl transition-shadow">
-                <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3 font-heading">
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-borderblue hover:shadow-xl transition-shadow">
+                <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3 font-sora">
                     <i data-lucide="star" class="w-6 h-6 text-amber-500"></i>
                     Annual Events
                 </h3>
                 <ul class="space-y-3">
                     <li class="flex items-start gap-2 text-gray-700">
-                        <i data-lucide="calendar" class="w-5 h-5 text-primary-600 mt-0.5"></i>
+                        <i data-lucide="calendar" class="w-5 h-5 text-brandblue mt-0.5"></i>
                         <div>
                             <span class="font-semibold">Homecoming Week</span>
                             <p class="text-sm text-gray-600">Alumni reunions, parade, and football game</p>
                         </div>
                     </li>
                     <li class="flex items-start gap-2 text-gray-700">
-                        <i data-lucide="calendar" class="w-5 h-5 text-primary-600 mt-0.5"></i>
+                        <i data-lucide="calendar" class="w-5 h-5 text-brandblue mt-0.5"></i>
                         <div>
                             <span class="font-semibold">Spring Festival</span>
                             <p class="text-sm text-gray-600">Live music, food trucks, and activities</p>
                         </div>
                     </li>
                     <li class="flex items-start gap-2 text-gray-700">
-                        <i data-lucide="calendar" class="w-5 h-5 text-primary-600 mt-0.5"></i>
+                        <i data-lucide="calendar" class="w-5 h-5 text-brandblue mt-0.5"></i>
                         <div>
                             <span class="font-semibold">Culture Night</span>
                             <p class="text-sm text-gray-600">Celebrating diversity through performances</p>
@@ -349,28 +346,28 @@
                 </ul>
             </div>
 
-            <div class="bg-white rounded-2xl p-6 shadow-lg border border-purple-100 hover:shadow-xl transition-shadow">
-                <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3 font-heading">
-                    <i data-lucide="sparkles" class="w-6 h-6 text-purple-500"></i>
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-borderblue hover:shadow-xl transition-shadow">
+                <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3 font-sora">
+                    <i data-lucide="sparkles" class="w-6 h-6 text-sky"></i>
                     Campus Traditions
                 </h3>
                 <ul class="space-y-3">
                     <li class="flex items-start gap-2 text-gray-700">
-                        <i data-lucide="heart" class="w-5 h-5 text-pink-600 mt-0.5"></i>
+                        <i data-lucide="heart" class="w-5 h-5 text-brandblue mt-0.5"></i>
                         <div>
                             <span class="font-semibold">Midnight Breakfast</span>
                             <p class="text-sm text-gray-600">Faculty serve students before finals</p>
                         </div>
                     </li>
                     <li class="flex items-start gap-2 text-gray-700">
-                        <i data-lucide="heart" class="w-5 h-5 text-pink-600 mt-0.5"></i>
+                        <i data-lucide="heart" class="w-5 h-5 text-brandblue mt-0.5"></i>
                         <div>
                             <span class="font-semibold">Senior Week</span>
                             <p class="text-sm text-gray-600">Special events for graduating class</p>
                         </div>
                     </li>
                     <li class="flex items-start gap-2 text-gray-700">
-                        <i data-lucide="heart" class="w-5 h-5 text-pink-600 mt-0.5"></i>
+                        <i data-lucide="heart" class="w-5 h-5 text-brandblue mt-0.5"></i>
                         <div>
                             <span class="font-semibold">Ring Ceremony</span>
                             <p class="text-sm text-gray-600">Juniors receive their class rings</p>
@@ -383,22 +380,19 @@
 </section>
 
 <!-- ===== CTA ===== -->
-<section class="py-20 bg-gradient-to-br from-primary-950 via-purple-900 to-pink-900 text-white relative overflow-hidden">
-    <div class="absolute inset-0 opacity-10 pointer-events-none">
-        <div class="absolute top-10 left-1/4 w-64 h-64 bg-purple-400 rounded-full blur-3xl"></div>
-        <div class="absolute bottom-10 right-1/4 w-64 h-64 bg-pink-400 rounded-full blur-3xl"></div>
-    </div>
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 font-heading">Ready to Join Our Community?</h2>
-        <p class="text-xl text-purple-100 mb-10 max-w-2xl mx-auto">
+<section class="py-20 bg-navy relative overflow-hidden">
+    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 font-sora text-white">Ready to Join Our Community?</h2>
+        <p class="text-xl text-white/70 mb-10 max-w-2xl mx-auto">
             Become part of a vibrant campus where friendships flourish and memories last a lifetime.
         </p>
         <div class="flex flex-wrap justify-center gap-6">
-            <a href="{% url 'eduweb:all_programs' %}" class="px-8 py-4 bg-white text-primary-950 rounded-xl font-semibold hover:bg-purple-50 transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105 inline-flex items-center gap-2">
+            <a href="{% url 'eduweb:all_programs' %}" class="px-8 py-4 bg-white text-navy rounded-xl font-semibold hover:bg-ice transition-all duration-300 shadow-brand inline-flex items-center gap-2">
                 Apply Now
                 <i data-lucide="arrow-right" class="w-5 h-5"></i>
             </a>
-            <a href="#" class="px-8 py-4 border-2 border-white text-white rounded-xl font-semibold hover:bg-white hover:text-primary-950 transition-all duration-300 inline-flex items-center gap-2">
+            <a href="#" class="px-8 py-4 border-2 border-white/30 text-white rounded-xl font-semibold hover:bg-white hover:text-navy transition-all duration-300 inline-flex items-center gap-2">
                 Schedule a Campus Tour
                 <i data-lucide="map" class="w-5 h-5"></i>
             </a>
