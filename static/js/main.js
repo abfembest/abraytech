@@ -202,14 +202,3 @@ document.addEventListener('DOMContentLoaded', function () {
         cookieDecline && cookieDecline.addEventListener('click', () => setCookieChoice('declined'));
     }
 });
-
-// ── Homepage hero slide backgrounds (data-hero-bg -> CSS background-image) ──
-// Avoids inline style="" attributes in index.html; the image URL is dynamic
-// per-slide (site_config upload or a static fallback), so it can't be a
-// plain CSS class — this applies it via jQuery instead.
-$(document).ready(function () {
-    $('[data-hero-bg]').each(function () {
-        const url = $(this).data('hero-bg');
-        if (url) $(this).css('background-image', "url('" + url + "')");
-    });
-});

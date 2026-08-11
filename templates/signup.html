@@ -4,14 +4,13 @@
 {% block title %}{% if blocked_reason %}Application Closed{% else %}Sign Up{% endif %} - {{ program.name }} - {{ site_config.school_short_name|default:"Abraytech" }}{% endblock %}
 
 {% block content %}
-<div class="bg-soft flex items-center py-8 px-4 min-h-screen">
-    <div class="max-w-7xl mx-auto w-full">
+<div class="bg-soft py-10 lg:py-12 px-4">
 
         {% if blocked_reason %}
 
         <!-- Wide standalone card — no form, no branding split, needs room to breathe -->
         <div class="bg-white shadow-brand rounded-2xl overflow-hidden max-w-2xl mx-auto border border-borderblue">
-            <div class="px-8 py-16 sm:px-14 sm:py-20 text-center">
+            <div class="px-4 py-8 sm:px-7 sm:py-10 text-center">
 
                 <div class="w-16 h-16 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto mb-6">
                     <i data-lucide="alert-triangle" class="w-8 h-8 text-amber-600"></i>
@@ -215,7 +214,6 @@
 
         {% endif %}
 
-    </div>
 </div>
 
 {% if not blocked_reason %}

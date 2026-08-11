@@ -75,7 +75,7 @@
      templates can use bg-navy / text-brandblue / border-borderblue etc.
      directly, same as the source template, on the existing compiled
      Tailwind v4 pipeline (no CDN Tailwind). Kept separate from the
-     primary-*/accent-* scales above, which the management/instructor/
+     primary-* / accent-* scales above, which the management/instructor/
      finance dashboards still use untouched. */
   --color-navy: #071A3D;
   --color-brandblue: #0B5CFF;
@@ -152,7 +152,7 @@
 
   /* Design tokens for responsive spacing and sizing */
   /* Container widths */
-  --container-max-width: 1400px;
+  --container-max-width: 1536px;
   --container-padding-x: clamp(1rem, 4vw, 2rem);
   --container-padding-y: clamp(1.5rem, 4vw, 3rem);
   
@@ -332,8 +332,8 @@
   }
 
   .program-row:hover {
-    border-left-color: #06b6d4;
-    background: rgba(6,182,212,0.05);
+    border-left-color: #0B5CFF;
+    background: rgba(11,92,255,0.05);
   }
 
   .course-row {
@@ -342,13 +342,13 @@
   }
 
   .course-row:hover {
-    border-left-color: #06b6d4;
-    background: rgba(6,182,212,0.04);
+    border-left-color: #0B5CFF;
+    background: rgba(11,92,255,0.04);
   }
 
   /* Stat glow */
   .stat-glow {
-    text-shadow: 0 0 30px rgba(6,182,212,0.5);
+    text-shadow: 0 0 30px rgba(11,92,255,0.5);
   }
 
   /* Badges */
@@ -369,26 +369,26 @@
   /* Search input focus */
   .search-input:focus {
     outline: none;
-    box-shadow: 0 0 0 2px rgba(6,182,212,0.5);
+    box-shadow: 0 0 0 2px rgba(11,92,255,0.5);
   }
 
   /* Tab buttons */
   .tab-btn.active {
-    background: #06b6d4;
+    background: #0B5CFF;
     color: white;
-    box-shadow: 0 4px 12px rgba(6,182,212,0.3);
+    box-shadow: 0 4px 12px rgba(11,92,255,0.3);
   }
 
   .yr-tab.active {
-    background: #06b6d4;
+    background: #0B5CFF;
     color: white;
-    box-shadow: 0 4px 12px rgba(6,182,212,0.3);
+    box-shadow: 0 4px 12px rgba(11,92,255,0.3);
     border-color: transparent;
   }
 
   .yr-tab:not(.active):hover {
-    border-color: #06b6d4;
-    color: #06b6d4;
+    border-color: #0B5CFF;
+    color: #0B5CFF;
   }
 
   /* Outcome items */
@@ -404,7 +404,7 @@
     top: 0.55em;
     width: 8px;
     height: 8px;
-    background: #06b6d4;
+    background: #0B5CFF;
     border-radius: 50%;
     flex-shrink: 0;
   }
@@ -440,7 +440,7 @@
 
   /* Nav anchor active state */
   .nav-anchor.active {
-    color: #06b6d4;
+    color: #0B5CFF;
     font-weight: 700;
   }
 
@@ -448,7 +448,7 @@
     content: '';
     display: block;
     height: 2px;
-    background: #06b6d4;
+    background: #0B5CFF;
     border-radius: 99px;
     margin-top: 2px;
   }
@@ -1098,21 +1098,72 @@
    .min-w-cta         { min-width: 220px; }
    .min-h-card-media  { min-height: 220px; }
 
-   /* Hero height — content-driven on mobile (never clips/overlaps stacked
-      hero content), capped at 90vh from the sm breakpoint up so it never
-      fills the whole first screen at a glance on larger viewports. */
-   .h-hero-brand {
-     height: auto;
-     min-height: 30rem;
-     display: flex;
-     flex-direction: column;
-     justify-content: center;
+   /* Named replacements for main.html's arbitrary bracket values used in
+      base.html's header/nav/mobile drawer. */
+   .shadow-header  { box-shadow: 0 2px 24px -8px rgba(11, 92, 255, 0.15); }
+   .h-brand-bar    { height: 3px; }
+   .text-nav       { font-size: 15px; }
+   .w-mega-panel   { width: 480px; }
+   .w-mobile-drawer { width: 86%; }
+
+   /* Three-zone header layout — logo | centered nav | actions. The middle
+      column is 1fr so the nav is always perfectly centered regardless of
+      how wide the logo or the action buttons are. */
+   .header-grid { grid-template-columns: auto 1fr auto; }
+
+   /* Caps an uploaded site_config.logo at a sane width so a very wide
+      wordmark logo can't push the header's centered nav off balance. */
+   .max-w-logo { max-width: 180px; }
+
+   /* Small uppercase caption text (stat cards, mini badges) — 10px, one
+      step below --text-caption (12px). */
+   .text-micro { font-size: 10px; }
+
+   /* Homepage hero (main.html-matching): static light hero, image right,
+      text left. Named replacements for main.html's arbitrary bracket
+      values (radial glow backdrop, image edge/bottom fades, visual pane
+      width, min-height, heading size). */
+   .hero-radial-glow {
+     background: radial-gradient(circle at 80% 0%, rgba(56,189,248,0.18), transparent 45%);
    }
+   .hero-visual { width: 48%; }
+   @media (min-width: 1280px) {
+     .hero-visual { width: 54%; }
+   }
+   /* Both fades use the section's own bg-soft color (not a dark scrim) so
+      the two overlays — one horizontal, one vertical — mix into more of
+      the same color where they overlap in the bottom-left corner, instead
+      of muddying together into a visible seam. The edge fade covers the
+      full visual pane (not just its left portion) so the image's left
+      side reads as fully blended into the page background, not just its
+      near edge. */
+   .hero-visual-edge-fade {
+     background: linear-gradient(to right,
+       #F4FAFF 0%,
+       #F4FAFF 18%,
+       rgba(244,250,255,0.85) 40%,
+       rgba(244,250,255,0.3) 65%,
+       rgba(244,250,255,0) 88%);
+   }
+   .hero-visual-bottom-fade {
+     background: linear-gradient(to top,
+       #F4FAFF 0%,
+       rgba(244,250,255,0.8) 40%,
+       rgba(244,250,255,0) 100%);
+   }
+   .hero-min-h { min-height: 0; }
+   @media (min-width: 1024px) {
+     .hero-min-h { min-height: 620px; }
+   }
+   @media (min-width: 1280px) {
+     .hero-min-h { min-height: 680px; }
+   }
+   .hero-heading { font-size: 2.25rem; }
    @media (min-width: 640px) {
-     .h-hero-brand {
-       height: clamp(34rem, 90vh, 55rem);
-       min-height: 0;
-     }
+     .hero-heading { font-size: 3rem; }
+   }
+   @media (min-width: 1024px) {
+     .hero-heading { font-size: 3.4rem; }
    }
 
    /* Consistent ~100px section rhythm on desktop, fluidly smaller on
@@ -1143,35 +1194,6 @@
    .shadow-glow-brand { box-shadow: 0 20px 60px -15px rgba(6,182,212,0.6); }
    .shadow-glow-lime   { box-shadow: 0 20px 60px -15px rgba(163,230,53,0.6); }
 
-   /* Hero carousel dot navigation — the visible dot stays small; the
-      button around it carries the real ~40px touch target so mobile
-      tapping stays accessible without the dot looking oversized. */
-   .hero-dot-btn {
-     display: flex;
-     align-items: center;
-     justify-content: center;
-     padding: 0.625rem;
-     line-height: 0;
-   }
-
-   .hero-indicator {
-     display: block;
-     width: 0.5rem;
-     height: 0.5rem;
-     border-radius: 999px;
-     background: rgba(255,255,255,0.4);
-     transition: background-color 0.3s ease, transform 0.3s ease;
-   }
-
-   .hero-dot-btn:hover .hero-indicator {
-     background: rgba(255,255,255,0.65);
-   }
-
-   .hero-indicator.active {
-     background: #ffffff;
-     transform: scale(1.35);
-   }
-
    /* site_config.promo_video_url stores a full embed <iframe> — this sizes
       whatever iframe lands inside it to fill the wrapper. */
    .promo-video-embed iframe {
@@ -1179,89 +1201,9 @@
      height: 100%;
    }
 
-   /* ── Homepage hero background carousel
-      (relocated from an inline <style> tag in index.html) ── */
-   .hero-bg {
-     will-change: opacity;
-     transform: translateZ(0);
-     backface-visibility: hidden;
-     z-index: 0;
-   }
 
-   .hero-bg.active {
-     opacity: 1;
-     z-index: 1;
-   }
-
-   .hero-bg video,
-   .hero-bg > div {
-     transform: scale(1.05);
-     transition: transform 20s ease-out;
-   }
-
-   .hero-bg.active video,
-   .hero-bg.active > div {
-     transform: scale(1);
-   }
-
-   .hero-bg[data-type="image"] > div {
-     background-size: cover;
-     background-position: center;
-     image-rendering: -webkit-optimize-contrast;
-     image-rendering: crisp-edges;
-   }
-
-   .hero-bg video {
-     object-fit: cover;
-     width: 100%;
-     height: 100%;
-   }
-
-   .hero-bg video[poster] {
-     background-color: #1a1a1a;
-   }
-
-   .hero-bg .bg-gradient-to-b {
-     background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.5) 40%, rgba(0,0,0,0.7) 100%);
-   }
-
-   .hero-indicator {
-     cursor: pointer;
-     position: relative;
-     overflow: hidden;
-   }
-
-   .hero-indicator.active {
-     background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%);
-     height: 0.5rem;
-   }
-
-   .hero-indicator:not(.active):hover {
-     background-color: rgba(255,255,255,0.7);
-   }
-
-   @media (prefers-reduced-motion: reduce) {
-     .hero-bg,
-     .hero-bg video,
-     .hero-bg > div,
-     .hero-indicator {
-       transition: none !important;
-       animation: none !important;
-     }
-   }
-
-   @media (max-width: 640px) {
-     .hero-cta-group {
-       padding-left: 1rem;
-       padding-right: 1rem;
-     }
-   }
-
-   /* Staggered entrance-animation delays (hero content sequence) */
+   /* Staggered entrance-animation delay (used by loading-dot pulses) */
    .delay-150 { animation-delay: 0.15s; }
-   .delay-300 { animation-delay: 0.3s; }
-   .delay-450 { animation-delay: 0.45s; }
-   .delay-600 { animation-delay: 0.6s; }
 
    /* =====================================================================
       "main.html" REDESIGN COMPONENT SYSTEM — public site only.
@@ -1322,6 +1264,19 @@
      transition: opacity .6s ease, transform .6s ease;
    }
    .reveal.in-view { opacity: 1; transform: translateY(0); }
+
+   /* Staggered .reveal entrance delays — named replacements for repeated
+      inline style="transition-delay:..." across index.html's grid/card rows. */
+   .reveal-delay-sm { transition-delay: .05s; }
+   .reveal-delay-md { transition-delay: .1s; }
+   .reveal-delay-lg { transition-delay: .15s; }
+
+   /* Decorative dot-grid backdrop (dark spotlight sections) — named
+      replacement for a repeated inline background-image radial-gradient. */
+   .dot-grid-sky {
+     background-image: radial-gradient(circle, #38BDF8 1px, transparent 1px);
+     background-size: 28px 28px;
+   }
 
    @media (prefers-reduced-motion: reduce) {
      .reveal { opacity: 1; transform: none; transition: none; }
@@ -1432,7 +1387,7 @@
 .deg-postgraduate { --dc: #7c3aed; --dl: #f5f3ff; }
 .deg-undergraduate{ --dc: #059669; --dl: #ecfdf5; }
 .deg-diploma      { --dc: #d97706; --dl: #fffbeb; }
-.deg-certificate  { --dc: #0891b2; --dl: #ecfeff; }
+.deg-certificate  { --dc: #0B5CFF; --dl: #EAF6FF; }
 .deg-default      { --dc: #6b7280; --dl: #f9fafb; }
 
 /* Program row (list mode) */
@@ -1446,11 +1401,11 @@
   transition: border-color .15s, box-shadow .15s, transform .15s;
 }
 .prog-row:hover {
-  border-color: rgba(8,145,178,.3);
-  box-shadow: 0 2px 12px rgba(8,145,178,.08);
+  border-color: rgba(11,92,255,.3);
+  box-shadow: 0 2px 12px rgba(11,92,255,.08);
   transform: translateX(3px);
 }
-.prog-row:focus-visible { outline: 2px solid #0891b2; outline-offset: 2px; }
+.prog-row:focus-visible { outline: 2px solid #0B5CFF; outline-offset: 2px; }
 
 .prog-row .cdot { width: 7px; height: 7px; border-radius: 50%; background: var(--dc,#9ca3af); flex-shrink: 0; }
 .prog-row .cbadge {
@@ -1466,7 +1421,7 @@
   background: #f1f5f9; flex-shrink: 0;
   transition: background .15s; color: #6b7280;
 }
-.prog-row:hover .carrow { background: #0891b2; color: #fff; }
+.prog-row:hover .carrow { background: #0B5CFF; color: #fff; }
 
 /* Grid (card) mode override */
 .prog-grid { display: flex; flex-direction: column; gap: .4rem; }
@@ -1487,11 +1442,11 @@
   color: #6b7280; position: relative;
   transition: all .15s;
 }
-.snav-link:hover { background: #ecfeff; color: #0e7490; }
-.snav-link.active { background: #ecfeff; color: #0e7490; }
+.snav-link:hover { background: #EAF6FF; color: #0B5CFF; }
+.snav-link.active { background: #EAF6FF; color: #0B5CFF; }
 .snav-link.active::before {
   content: ''; position: absolute; left: 0; top: 25%; bottom: 25%;
-  width: 3px; border-radius: 2px; background: #0891b2;
+  width: 3px; border-radius: 2px; background: #0B5CFF;
 }
 
 /* Filter pills */
@@ -1503,7 +1458,7 @@
   cursor: pointer; transition: all .15s;
 }
 .fpill:hover { background: rgba(255,255,255,.12); color: #fff; }
-.fpill.on { background: #a3e635; border-color: #a3e635; color: #1c1917; font-weight: 700; }
+.fpill.on { background: #38BDF8; border-color: #38BDF8; color: #071A3D; font-weight: 700; }
 
 /* View toggle */
 .vtbtn {
@@ -1512,14 +1467,14 @@
   color: #9ca3af; transition: all .15s;
 }
 .vtbtn:hover { background: #f3f4f6; color: #374151; }
-.vtbtn.on { background: #0891b2; color: #fff; }
+.vtbtn.on { background: #0B5CFF; color: #fff; }
 
 /* Faculty header / accordion toggle */
 .fac-hdr {
-  background: linear-gradient(135deg, #030b13 0%, #0a1e30 55%, #0f2236 100%);
+  background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
   cursor: pointer;
 }
-.fac-hdr:focus-visible { outline: 2px solid #a3e635; outline-offset: -2px; }
+.fac-hdr:focus-visible { outline: 2px solid #38BDF8; outline-offset: -2px; }
 .fac-chevron { transition: transform .2s ease; flex-shrink: 0; }
 .fac-hdr[aria-expanded="true"] .fac-chevron { transform: rotate(180deg); }
 
@@ -1535,9 +1490,9 @@
   background: #fff; border: 1.5px solid #e5e7eb;
   transition: all .15s; cursor: pointer;
 }
-.pgbtn:hover:not(:disabled) { border-color: #0891b2; color: #0891b2; }
+.pgbtn:hover:not(:disabled) { border-color: #0B5CFF; color: #0B5CFF; }
 .pgbtn:disabled { opacity: .35; cursor: not-allowed; }
-.pgbtn.on { background: #0891b2; border-color: #0891b2; color: #fff; }
+.pgbtn.on { background: #0B5CFF; border-color: #0B5CFF; color: #fff; }
 
 /* Scroll margin — clears the fixed header + sticky toolbar stacked above a
    faculty section when jumping to it via an anchor link */
@@ -1573,8 +1528,8 @@
 }
 .programs-search-input:focus {
   background: rgba(255,255,255,.16);
-  border-color: #a3e635;
-  box-shadow: 0 0 0 3px rgba(163,230,53,.25);
+  border-color: #38BDF8;
+  box-shadow: 0 0 0 3px rgba(56,189,248,.25);
 }
 
 /* Faculty accent stripe + icon tile + code badge + department dot
@@ -1585,8 +1540,51 @@
 .fac-icon-tile { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.18); }
 .fac-code-badge { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); }
 .fac-page-link { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); }
-.dept-dot { background: #0891b2; }
+.dept-dot { background: #0B5CFF; }
 .max-h-sidebar-sticky { max-height: calc(100vh - 8.5rem); }
+
+/* signup.html two-column auth panel (branding + form) width cap */
+.max-w-auth-panel { max-width: 64rem; }
+
+/* blog_detail.html article body ("prose") typography — post.content is
+   raw rich-text HTML with no other classes to hook into. */
+.prose { color: #374151; line-height: 1.75; }
+.prose :where(h1, h2, h3, h4, h5, h6) {
+  font-family: 'Sora', system-ui, -apple-system, sans-serif;
+  color: #071A3D;
+  font-weight: 700;
+  margin-top: 1.6em;
+  margin-bottom: 0.6em;
+  line-height: 1.3;
+}
+.prose :where(h1) { font-size: 1.75em; }
+.prose :where(h2) { font-size: 1.5em; }
+.prose :where(h3) { font-size: 1.25em; }
+.prose :where(p) { margin-top: 1.1em; margin-bottom: 1.1em; }
+.prose :where(a) { color: #0B5CFF; text-decoration: none; font-weight: 600; }
+.prose :where(a):hover { text-decoration: underline; }
+.prose :where(strong) { color: #071A3D; font-weight: 700; }
+.prose :where(ul, ol) { margin-top: 1.1em; margin-bottom: 1.1em; padding-left: 1.5em; }
+.prose :where(li) { margin-top: 0.4em; margin-bottom: 0.4em; }
+.prose :where(ul) :where(li) { list-style-type: disc; }
+.prose :where(ol) :where(li) { list-style-type: decimal; }
+.prose :where(blockquote) {
+  border-left: 4px solid #0B5CFF;
+  background: #F4FAFF;
+  padding: 0.75em 1.25em;
+  margin: 1.5em 0;
+  font-style: italic;
+  color: #071A3D;
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+.prose :where(img) { border-radius: 0.75rem; box-shadow: 0 4px 20px rgba(7,26,61,0.1); margin: 1.5em 0; }
+.prose :where(code) { background: #EAF6FF; color: #0B5CFF; padding: 0.15em 0.4em; border-radius: 0.3rem; font-size: 0.875em; }
+.prose :where(pre) { background: #071A3D; color: #fff; padding: 1em; border-radius: 0.75rem; overflow-x: auto; }
+.prose :where(pre code) { background: transparent; color: inherit; padding: 0; }
+.prose :where(hr) { border-color: #D7EAFE; margin: 2em 0; }
+.prose :where(table) { width: 100%; border-collapse: collapse; }
+.prose :where(th, td) { border: 1px solid #D7EAFE; padding: 0.5em 0.75em; text-align: left; }
+.prose :where(th) { background: #F4FAFF; font-weight: 700; color: #071A3D; }
 
 /* ═══════════════════════════════════════════════════════════════════════
    chatbot/chatbot.html — floating widget, included site-wide via base.html.

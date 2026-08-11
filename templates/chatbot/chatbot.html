@@ -390,6 +390,13 @@ MOBILE LAYOUT NOTE:
     }
 
     function hideWin() {
+        /* Move focus out of the window BEFORE hiding it from assistive tech —
+           setting aria-hidden while focus is still on a descendant (e.g. the
+           close button that triggered this) is an ARIA violation the browser
+           flags directly. */
+        if (win.contains(document.activeElement)) {
+            toggle.focus();
+        }
         win.classList.remove('opacity-100', 'scale-100');
         win.classList.add('opacity-0', 'scale-95', 'pointer-events-none', 'invisible');
         win.setAttribute('aria-hidden', 'true');

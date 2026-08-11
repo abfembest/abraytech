@@ -82,7 +82,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-    <link rel="stylesheet" href="{% static 'css/redesign-tokens.css' %}">
 
     <!-- jQuery (vendored) -->
     <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
@@ -109,11 +108,11 @@
     <a href="#main-content" class="skip-link">Skip to main content</a>
 
     <!-- ================= NAVIGATION (main.html redesign) ================= -->
-    <header id="siteHeader" class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-b border-borderblue shadow-[0_2px_24px_-8px_rgba(11,92,255,0.15)] transition-shadow duration-300"
+    <header id="siteHeader" class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-b border-borderblue shadow-header transition-shadow duration-300"
             role="banner">
-        <div class="h-[3px] w-full brand-gradient"></div>
-        <div class="container-responsive mx-auto px-4 lg:px-4">
-            <div class="flex items-center justify-between h-16 lg:h-20">
+        <div class="h-brand-bar w-full brand-gradient"></div>
+        <div class="container-responsive mx-auto px-4 lg:px-6">
+            <div class="grid header-grid items-center gap-4 lg:gap-8 h-16 lg:h-20">
 
                 <!-- Logo -->
                 <a href="{% url 'eduweb:index' %}"
@@ -122,7 +121,7 @@
                     {% if site_config.logo %}
                     <img src="{{ site_config.logo.url }}"
                          alt="{{ site_config.school_short_name|default:'Abraytech' }} Logo"
-                         class="h-10 lg:h-12 w-auto object-contain"
+                         class="h-10 lg:h-12 w-auto max-w-logo object-contain"
                          loading="lazy">
                     {% else %}
                     <span class="w-10 h-10 lg:w-11 lg:h-11 rounded-xl brand-gradient flex items-center justify-center text-white font-sora font-bold text-base shadow-brand">{{ site_config.school_short_name|default:"Abraytech"|slice:":1" }}</span>
@@ -130,33 +129,35 @@
                     {% endif %}
                 </a>
 
-                <!-- Desktop Nav -->
-                <nav class="hidden xl:flex items-center gap-1 mx-8" aria-label="Primary">
+                <!-- Desktop Nav — only the primary items live at the top level;
+                     everything secondary (Industries, Store, Blog, FAQ, Team,
+                     Careers) is grouped under Resources so the bar stays short
+                     and centered regardless of viewport width. -->
+                <nav class="hidden xl:flex items-center justify-center gap-2" aria-label="Primary">
 
-                    <!-- Services mega menu -->
+                    <!-- Services mega menu — anchored left-0 (opens rightward from
+                         the first nav item) so it never gets clipped by the left
+                         OR right viewport edge the way center-anchoring could. -->
                     <div class="relative">
-                        <button id="servicesBtn" class="nav-link flex items-center gap-1.5 px-4 py-2.5 rounded-full text-[15px] font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors" aria-haspopup="true" aria-expanded="false" aria-controls="servicesPanel">
+                        <button id="servicesBtn" class="nav-link flex items-center gap-1.5 px-4 py-2.5 rounded-full text-nav font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors" aria-haspopup="true" aria-expanded="false" aria-controls="servicesPanel">
                             Services <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
                         </button>
-                        <div id="servicesPanel" class="dropdown-panel absolute left-1/2 -translate-x-1/2 top-full mt-2 w-[640px] bg-white rounded-2xl shadow-brand border border-borderblue p-6 grid grid-cols-2 gap-1" role="menu">
+                        <div id="servicesPanel" class="dropdown-panel absolute left-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-brand border border-borderblue p-3" role="menu">
                             {% for service in nav_services %}
-                            <a href="{% url 'eduweb:service_detail' service.slug %}" class="flex items-start gap-3 p-3 rounded-xl hover:bg-soft" role="menuitem">
-                                <i data-lucide="{{ service.icon }}" class="w-4 h-4 text-brandblue mt-1"></i>
-                                <span><span class="block font-semibold text-navy text-sm">{{ service.title }}</span><span class="block text-xs text-slate-500 mt-0.5">{{ service.summary|truncatechars:44 }}</span></span>
+                            <a href="{% url 'eduweb:service_detail' service.slug %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">
+                                <i data-lucide="{{ service.icon }}" class="w-4 h-4 text-brandblue shrink-0"></i>
+                                {{ service.title }}
                             </a>
                             {% empty %}
-                            <p class="col-span-2 text-sm text-slate-500 p-3">Service listings coming soon</p>
+                            <p class="px-3 py-2 text-sm text-slate-500">Service listings coming soon</p>
                             {% endfor %}
-                            <a href="{% url 'eduweb:services_list' %}" class="flex items-center justify-between p-3 rounded-xl bg-soft mt-1 col-span-2" role="menuitem">
-                                <span class="font-semibold text-brandblue text-sm">View all services</span>
-                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-brandblue"></i>
-                            </a>
+                            <a href="{% url 'eduweb:services_list' %}" class="block px-3 py-2 mt-1 rounded-lg text-sm font-semibold text-brandblue hover:bg-soft" role="menuitem">View all services →</a>
                         </div>
                     </div>
 
                     <!-- Solutions -->
                     <div class="relative">
-                        <button id="solutionsBtn" class="nav-link flex items-center gap-1.5 px-4 py-2.5 rounded-full text-[15px] font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors" aria-haspopup="true" aria-expanded="false" aria-controls="solutionsPanel">
+                        <button id="solutionsBtn" class="nav-link flex items-center gap-1.5 px-4 py-2.5 rounded-full text-nav font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors" aria-haspopup="true" aria-expanded="false" aria-controls="solutionsPanel">
                             Solutions <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
                         </button>
                         <div id="solutionsPanel" class="dropdown-panel absolute left-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-brand border border-borderblue p-3" role="menu">
@@ -169,26 +170,11 @@
                         </div>
                     </div>
 
-                    <!-- Industries -->
-                    <div class="relative">
-                        <button id="industriesBtn" class="nav-link flex items-center gap-1.5 px-4 py-2.5 rounded-full text-[15px] font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors" aria-haspopup="true" aria-expanded="false" aria-controls="industriesPanel">
-                            Industries <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
-                        </button>
-                        <div id="industriesPanel" class="dropdown-panel absolute left-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-brand border border-borderblue p-3" role="menu">
-                            {% for industry in nav_industries %}
-                            <a href="{% url 'eduweb:industry_detail' industry.slug %}" class="block px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">{{ industry.title }}</a>
-                            {% empty %}
-                            <p class="px-3 py-2 text-sm text-slate-500">Industries coming soon</p>
-                            {% endfor %}
-                            <a href="{% url 'eduweb:industries_list' %}" class="block px-3 py-2 mt-1 rounded-lg text-sm font-semibold text-brandblue hover:bg-soft" role="menuitem">View all industries →</a>
-                        </div>
-                    </div>
-
-                    <a href="{% url 'eduweb:projects_list' %}" class="nav-link px-4 py-2.5 rounded-full text-[15px] font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors">Projects</a>
+                    <a href="{% url 'eduweb:projects_list' %}" class="nav-link px-4 py-2.5 rounded-full text-nav font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors">Projects</a>
 
                     <!-- Training (real Faculty/Program catalog) -->
                     <div class="relative">
-                        <button id="trainingBtn" class="nav-link flex items-center gap-1.5 px-4 py-2.5 rounded-full text-[15px] font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors" aria-haspopup="true" aria-expanded="false" aria-controls="trainingPanel">
+                        <button id="trainingBtn" class="nav-link flex items-center gap-1.5 px-4 py-2.5 rounded-full text-nav font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors" aria-haspopup="true" aria-expanded="false" aria-controls="trainingPanel">
                             Training <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
                         </button>
                         <div id="trainingPanel" class="dropdown-panel absolute left-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-brand border border-borderblue p-3" role="menu">
@@ -201,26 +187,36 @@
                         </div>
                     </div>
 
-                    <a href="{% url 'eduweb:store_list' %}" class="nav-link px-4 py-2.5 rounded-full text-[15px] font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors">Store</a>
+                    <a href="{% url 'eduweb:about' %}" class="nav-link px-4 py-2.5 rounded-full text-nav font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors">About</a>
 
-                    <!-- Resources -->
+                    <!-- Resources — catch-all for everything secondary: Industries,
+                         Store, Blog, FAQ, Team, Careers. Anchored right-0 (opens
+                         leftward) since it's the last item, closest to the right
+                         viewport edge. -->
                     <div class="relative">
-                        <button id="resourcesBtn" class="nav-link flex items-center gap-1.5 px-4 py-2.5 rounded-full text-[15px] font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors" aria-haspopup="true" aria-expanded="false" aria-controls="resourcesPanel">
+                        <button id="resourcesBtn" class="nav-link flex items-center gap-1.5 px-4 py-2.5 rounded-full text-nav font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors" aria-haspopup="true" aria-expanded="false" aria-controls="resourcesPanel">
                             Resources <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
                         </button>
-                        <div id="resourcesPanel" class="dropdown-panel absolute left-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-brand border border-borderblue p-3" role="menu">
+                        <div id="resourcesPanel" class="dropdown-panel absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-brand border border-borderblue p-3" role="menu">
+                            <span class="block px-3 pt-1 pb-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">Industries</span>
+                            {% for industry in nav_industries %}
+                            <a href="{% url 'eduweb:industry_detail' industry.slug %}" class="block px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">{{ industry.title }}</a>
+                            {% empty %}
+                            <p class="px-3 py-2 text-sm text-slate-500">Industries coming soon</p>
+                            {% endfor %}
+                            <a href="{% url 'eduweb:industries_list' %}" class="block px-3 py-2 mb-1 rounded-lg text-sm font-semibold text-brandblue hover:bg-soft" role="menuitem">View all industries →</a>
+                            <div class="border-t border-borderblue my-1"></div>
+                            <a href="{% url 'eduweb:store_list' %}" class="block px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">Store</a>
                             <a href="{% url 'eduweb:blog' %}" class="block px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">Blog</a>
                             <a href="{% url 'eduweb:faq' %}" class="block px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">FAQ</a>
                             <a href="{% url 'eduweb:team' %}" class="block px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">Our Team</a>
                             <a href="{% url 'eduweb:careers' %}" class="block px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">Careers</a>
                         </div>
                     </div>
-
-                    <a href="{% url 'eduweb:about' %}" class="nav-link px-4 py-2.5 rounded-full text-[15px] font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors">About</a>
                 </nav>
 
                 <!-- Right side -->
-                <div class="flex items-center gap-3">
+                <div class="flex items-center justify-end gap-3 shrink-0">
                     {% if user.is_authenticated %}
                     {% if has_pending_application %}
                     <a href="{% url 'eduweb:application_status' %}"
@@ -238,8 +234,8 @@
                         <i data-lucide="log-out" class="w-4 h-4"></i> Logout
                     </a>
                     {% else %}
-                    <a href="{% url 'eduweb:auth_page' %}" class="hidden lg:inline-block text-[15px] font-semibold text-slate-700 hover:text-brandblue transition-colors">Log in</a>
-                    <a href="{% url 'eduweb:consultation_booking' %}" class="hidden sm:inline-flex items-center gap-2 px-6 py-3 rounded-full text-[15px] font-semibold text-white brand-gradient shadow-brand hover:opacity-95 hover:shadow-lg transition">
+                    <a href="{% url 'eduweb:auth_page' %}" class="hidden lg:inline-flex items-center px-5 py-2.5 rounded-full bg-soft text-nav font-semibold text-navy hover:bg-ice transition-colors">Log in</a>
+                    <a href="{% url 'eduweb:consultation_booking' %}" class="hidden sm:inline-flex items-center gap-2 px-6 py-3 rounded-full text-nav font-semibold text-white brand-gradient shadow-brand hover:opacity-95 hover:shadow-lg transition">
                         Book Consultation
                     </a>
                     {% endif %}
@@ -254,7 +250,7 @@
 
     <!-- Mobile drawer overlay + panel -->
     <div id="mobileOverlay" class="fixed inset-0 bg-navy/50 z-40 xl:hidden"></div>
-    <aside id="mobileDrawer" class="fixed top-0 right-0 h-full w-[86%] max-w-sm bg-white z-50 xl:hidden overflow-y-auto shadow-2xl" aria-label="Mobile navigation">
+    <aside id="mobileDrawer" class="fixed top-0 right-0 h-full w-mobile-drawer max-w-sm bg-white z-50 xl:hidden overflow-y-auto shadow-2xl" aria-label="Mobile navigation">
         <div class="flex items-center justify-between px-5 h-16 border-b border-borderblue">
             <span class="font-sora font-bold text-navy">Menu</span>
             <button id="mobileCloseBtn" class="w-9 h-9 inline-flex items-center justify-center rounded-lg hover:bg-soft" aria-label="Close menu">
@@ -284,17 +280,6 @@
                     <a href="{% url 'eduweb:solutions_list' %}" class="block py-1.5 font-semibold text-brandblue">View all solutions →</a>
                 </div>
             </details>
-            <details class="mobile-accordion border-b border-borderblue py-1">
-                <summary class="flex items-center justify-between py-2 font-semibold text-navy">Industries <i data-lucide="chevron-down" class="chev w-3.5 h-3.5 transition-transform"></i></summary>
-                <div class="pl-3 pb-2 space-y-1 text-slate-600">
-                    {% for industry in nav_industries %}
-                    <a href="{% url 'eduweb:industry_detail' industry.slug %}" class="block py-1.5">{{ industry.title }}</a>
-                    {% empty %}
-                    <p class="py-1.5 text-slate-400">Coming soon</p>
-                    {% endfor %}
-                    <a href="{% url 'eduweb:industries_list' %}" class="block py-1.5 font-semibold text-brandblue">View all industries →</a>
-                </div>
-            </details>
             <a href="{% url 'eduweb:projects_list' %}" class="block py-3 font-semibold text-navy border-b border-borderblue">Projects</a>
             <details class="mobile-accordion border-b border-borderblue py-1">
                 <summary class="flex items-center justify-between py-2 font-semibold text-navy">Training <i data-lucide="chevron-down" class="chev w-3.5 h-3.5 transition-transform"></i></summary>
@@ -307,17 +292,24 @@
                     <a href="{% url 'eduweb:all_programs' %}" class="block py-1.5 font-semibold text-brandblue">View all training →</a>
                 </div>
             </details>
-            <a href="{% url 'eduweb:store_list' %}" class="block py-3 font-semibold text-navy border-b border-borderblue">Store</a>
+            <a href="{% url 'eduweb:about' %}" class="block py-3 font-semibold text-navy border-b border-borderblue">About</a>
             <details class="mobile-accordion border-b border-borderblue py-1">
                 <summary class="flex items-center justify-between py-2 font-semibold text-navy">Resources <i data-lucide="chevron-down" class="chev w-3.5 h-3.5 transition-transform"></i></summary>
                 <div class="pl-3 pb-2 space-y-1 text-slate-600">
+                    <span class="block pt-1 pb-0.5 text-xs font-semibold uppercase tracking-wider text-slate-400">Industries</span>
+                    {% for industry in nav_industries %}
+                    <a href="{% url 'eduweb:industry_detail' industry.slug %}" class="block py-1.5">{{ industry.title }}</a>
+                    {% empty %}
+                    <p class="py-1.5 text-slate-400">Coming soon</p>
+                    {% endfor %}
+                    <a href="{% url 'eduweb:industries_list' %}" class="block py-1.5 font-semibold text-brandblue">View all industries →</a>
+                    <a href="{% url 'eduweb:store_list' %}" class="block py-1.5">Store</a>
                     <a href="{% url 'eduweb:blog' %}" class="block py-1.5">Blog</a>
                     <a href="{% url 'eduweb:faq' %}" class="block py-1.5">FAQ</a>
                     <a href="{% url 'eduweb:team' %}" class="block py-1.5">Our Team</a>
                     <a href="{% url 'eduweb:careers' %}" class="block py-1.5">Careers</a>
                 </div>
             </details>
-            <a href="{% url 'eduweb:about' %}" class="block py-3 font-semibold text-navy">About</a>
         </nav>
         <div class="p-5 border-t border-borderblue space-y-3">
             {% if user.is_authenticated %}
@@ -348,7 +340,7 @@
                 <div class="lg:col-span-2">
                     <a href="{% url 'eduweb:index' %}" class="flex items-center gap-2" aria-label="{{ site_config.school_name|default:'Abraytech' }} Home">
                         {% if site_config.logo %}
-                        <img src="{{ site_config.logo.url }}" alt="{{ site_config.school_short_name|default:'Abraytech' }} Logo" class="h-10 w-auto object-contain">
+                        <img src="{{ site_config.logo.url }}" alt="{{ site_config.school_short_name|default:'Abraytech' }} Logo" class="h-10 w-auto max-w-logo object-contain">
                         {% else %}
                         <span class="w-9 h-9 rounded-lg brand-gradient flex items-center justify-center text-white font-sora font-bold text-sm">{{ site_config.school_short_name|default:"Abraytech"|slice:":1" }}</span>
                         <span class="font-sora font-bold text-xl text-white">{{ site_config.school_short_name|default:"Abraytech" }}</span>
@@ -439,10 +431,10 @@
                         <li><a href="{% url 'eduweb:blog' %}" class="hover:text-white transition-colors">Blog</a></li>
                         <li><a href="{% url 'eduweb:faq' %}" class="hover:text-white transition-colors">FAQ</a></li>
                         {% if site_config.phone_primary %}
-                        <li><a href="tel:{{ site_config.phone_primary }}" class="hover:text-white transition-colors">{{ site_config.phone_primary }}</a></li>
+                        <li><a href="tel:{{ site_config.phone_primary }}" class="flex items-center gap-2 hover:text-white transition-colors"><i data-lucide="phone" class="w-3.5 h-3.5 shrink-0"></i> {{ site_config.phone_primary }}</a></li>
                         {% endif %}
                         {% if site_config.email %}
-                        <li><a href="mailto:{{ site_config.email }}" class="hover:text-white transition-colors break-all">{{ site_config.email }}</a></li>
+                        <li><a href="mailto:{{ site_config.email }}" class="flex items-center gap-2 hover:text-white transition-colors"><i data-lucide="mail" class="w-3.5 h-3.5 shrink-0"></i> <span class="break-all">{{ site_config.email }}</span></a></li>
                         {% endif %}
                     </ul>
                 </div>

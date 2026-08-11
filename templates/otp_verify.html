@@ -4,13 +4,13 @@
 {% block title %}Verify Your Identity{% endblock %}
 
 {% block content %}
-<div class="bg-soft flex items-center justify-center py-8 px-4 min-h-screen">
-  <div class="w-full max-w-md">
+<div class="bg-soft py-10 lg:py-12 px-4">
+  <div class="w-full max-w-md mx-auto">
 
     <div class="bg-white rounded-2xl shadow-brand overflow-hidden border border-borderblue">
 
       <!-- Header -->
-      <div class="brand-gradient p-8 text-center text-white">
+      <div class="brand-gradient p-5 text-center text-white">
         <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
           <i data-lucide="shield-check" class="w-8 h-8"></i>
         </div>
@@ -19,7 +19,7 @@
       </div>
 
       <!-- Body -->
-      <div class="p-8">
+      <div class="p-5">
         <p class="text-gray-600 text-sm text-center mb-6">
           We sent a 6-digit code to<br>
           <strong class="text-gray-800">{{ masked_email }}</strong>

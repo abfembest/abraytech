@@ -24,294 +24,100 @@
 
 {% block content %}
 
-<!-- Hero Section with Auto-Rotating Video & Images -->
-<section class="relative overflow-hidden" aria-label="Hero Section" role="banner">
-    <div id="hero-background" class="relative h-hero-brand">
-        
-        <!-- Background Media Container -->
-        <div class="absolute inset-0">
+<!-- ============================================================ -->
+<!-- Section order follows the PRD's recommended homepage flow:    -->
+<!-- Hero -> Company intro -> Core services -> Tech capabilities -> -->
+<!-- Featured projects -> Cybersecurity -> AI/data -> Training ->  -->
+<!-- Testimonials -> Latest articles -> Call to action -> Footer,  -->
+<!-- with Abraytech's extra real features (Solutions, Industries,  -->
+<!-- Stats, Programs, Training Tracks, How to Apply, Contact,      -->
+<!-- Find Us) woven into the nearest matching PRD stage rather      -->
+<!-- than bolted on at the end.                                     -->
+<!-- ============================================================ -->
 
-            {% comment %}
-            Each slide checks: if a video file is set → video slide.
-            Else if an image is set → image slide.
-            Else → falls back to the original static file so the hero
-            never goes blank before any media is uploaded.
-            First active slide gets class 'active opacity-100',
-            remaining slides get 'opacity-0'.
-            {% endcomment %}
+<!-- Hero Section -->
+<section class="relative overflow-hidden bg-soft" aria-label="Hero Section">
+    <div class="absolute inset-0 hero-radial-glow"></div>
 
-            {# ── SLIDE 1 ── #}
-            {% if site_config.hero_slide_1_video %}
-            <div class="hero-bg active absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-100"
-                 data-type="video"
-                 data-duration="{{ site_config.hero_slide_1_duration|default:15 }}">
-                <video class="absolute inset-0 w-full h-full object-cover"
-                       muted playsinline preload="auto" aria-hidden="true" data-video-index="0">
-                    <source src="{{ site_config.hero_slide_1_video.url }}" type="video/mp4">
-                </video>
-                <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70"></div>
-            </div>
-            {% else %}
-            <div class="hero-bg active absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-100"
-                 data-type="image"
-                 data-duration="{{ site_config.hero_slide_1_duration|default:6 }}">
-                <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                     data-hero-bg="{% if site_config.hero_slide_1_image %}{{ site_config.hero_slide_1_image.url }}{% else %}{% static 'images/hero.webp' %}{% endif %}"
-                     role="img"
-                     aria-label="{{ site_config.hero_slide_1_alt|default:'Abraytech engineering team collaborating' }}"
-                     aria-hidden="true"></div>
-                <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70"></div>
-            </div>
-            {% endif %}
-
-            {# ── SLIDE 2 ── #}
-            {% if site_config.hero_slide_2_video or site_config.hero_slide_2_image %}
-            {% if site_config.hero_slide_2_video %}
-            <div class="hero-bg absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-0"
-                 data-type="video"
-                 data-duration="{{ site_config.hero_slide_2_duration|default:15 }}">
-                <video class="absolute inset-0 w-full h-full object-cover"
-                       muted playsinline preload="metadata" aria-hidden="true" data-video-index="1">
-                    <source src="{{ site_config.hero_slide_2_video.url }}" type="video/mp4">
-                </video>
-                <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70"></div>
-            </div>
-            {% else %}
-            <div class="hero-bg absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-0"
-                 data-type="image"
-                 data-duration="{{ site_config.hero_slide_2_duration|default:6 }}">
-                <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                     data-hero-bg="{% if site_config.hero_slide_2_image %}{{ site_config.hero_slide_2_image.url }}{% else %}{% static 'images/hero2.webp' %}{% endif %}"
-                     role="img"
-                     aria-label="{{ site_config.hero_slide_2_alt|default:'Abraytech technology training in progress' }}"
-                     aria-hidden="true"></div>
-                <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70"></div>
-            </div>
-            {% endif %}
-            {% else %}
-            <div class="hero-bg absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-0"
-                 data-type="image" data-duration="6">
-                <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                     data-hero-bg="{% static 'images/hero2.webp' %}"
-                     role="img" aria-label="Abraytech technology training in progress" aria-hidden="true"></div>
-                <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70"></div>
-            </div>
-            {% endif %}
-
-            {# ── SLIDE 3 ── #}
-            {% if site_config.hero_slide_3_video or site_config.hero_slide_3_image %}
-            {% if site_config.hero_slide_3_video %}
-            <div class="hero-bg absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-0"
-                 data-type="video"
-                 data-duration="{{ site_config.hero_slide_3_duration|default:15 }}">
-                <video class="absolute inset-0 w-full h-full object-cover"
-                       muted playsinline preload="metadata" aria-hidden="true" data-video-index="2">
-                    <source src="{{ site_config.hero_slide_3_video.url }}" type="video/mp4">
-                </video>
-                <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70"></div>
-            </div>
-            {% else %}
-            <div class="hero-bg absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-0"
-                 data-type="image"
-                 data-duration="{{ site_config.hero_slide_3_duration|default:6 }}">
-                <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                     data-hero-bg="{% if site_config.hero_slide_3_image %}{{ site_config.hero_slide_3_image.url }}{% else %}{% static 'images/hero3.webp' %}{% endif %}"
-                     role="img"
-                     aria-label="{{ site_config.hero_slide_3_alt|default:'Technology professionals at work' }}"
-                     aria-hidden="true"></div>
-                <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70"></div>
-            </div>
-            {% endif %}
-            {% else %}
-            <div class="hero-bg absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-0"
-                 data-type="image" data-duration="6">
-                <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                     data-hero-bg="{% static 'images/hero3.webp' %}"
-                     role="img" aria-label="Technology professionals at work" aria-hidden="true"></div>
-                <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70"></div>
-            </div>
-            {% endif %}
-
-        </div>
-        
-        <!-- Hero Content Overlay -->
-        <div class="relative z-10 py-10 sm:py-0">
-            <div class="container-responsive mx-auto">
-                <div class="text-center max-w-5xl mx-auto">
-
-                    <!-- Trust Badge -->
-                    <div class="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-1.5 sm:py-2 mb-4 sm:mb-6 bg-white/10 backdrop-blur-md rounded-full border border-white/20 animate-fade-in uppercase tracking-wider">
-                        <i data-lucide="sparkles" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky flex-shrink-0"></i>
-                        <span class="text-xs sm:text-sm font-semibold text-white tracking-wide">
-                            Technology · Innovation · Digital Excellence
-                        </span>
-                    </div>
-
-                    <!-- Main Heading -->
-                    <h1 class="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 sm:mb-6 leading-tighter text-white animate-slide-up font-sora delay-300">
-                        Building Digital Solutions for a
-                        <span class="block mt-1 sm:mt-2 brand-gradient-text">Smarter Future.</span>
-                    </h1>
-
-                    <!-- Subtitle -->
-                    <p class="text-sm sm:text-xl lg:text-2xl text-white/90 font-light leading-relaxed max-w-3xl mx-auto mb-6 sm:mb-12 animate-slide-up delay-450">
-                        {{ site_config.school_short_name|default:"Abraytech" }} delivers software, cybersecurity, AI, data and digital transformation solutions that help businesses innovate, operate securely and grow.
-                    </p>
-
-                    <!-- CTA Buttons -->
-                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center items-center animate-scale-in px-2 sm:px-0 delay-600">
-
-                        <a href="{% url 'eduweb:consultation_booking' %}"
-                           class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 sm:px-10 sm:py-5 text-sm sm:text-lg font-bold text-white rounded-xl brand-gradient shadow-brand hover:opacity-95 transition"
-                           aria-label="Start a Project">
-                            Start a Project <i data-lucide="arrow-right" class="w-4 h-4 sm:w-5 sm:h-5"></i>
-                        </a>
-
-                        <a href="{% url 'eduweb:services_list' %}"
-                           class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 sm:px-10 sm:py-5 text-sm sm:text-lg font-bold text-navy rounded-xl bg-white border border-borderblue hover:bg-ice transition"
-                           aria-label="Explore Services">
-                            Explore Services
-                        </a>
-                    </div>
-
-                    <div class="mt-8 flex flex-wrap justify-center items-center gap-6 text-sm text-white/70">
-                        <div class="flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4 text-sky"></i> Security-first delivery</div>
-                        <div class="flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4 text-sky"></i> Agile engineering teams</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Progress Indicators — small dot stack; bottom-center on mobile, side stack from sm+ -->
-        <div class="absolute z-20 flex bottom-4 left-1/2 -translate-x-1/2 flex-row gap-2 sm:bottom-auto sm:left-auto sm:right-4 lg:right-6 sm:top-1/2 sm:-translate-y-1/2 sm:translate-x-0 sm:flex-col sm:gap-2.5"
-             role="navigation" aria-label="Hero carousel navigation">
-            <button class="hero-dot-btn rounded-full focus:outline-none focus:ring-2 focus:ring-white/60" aria-label="Go to slide 1" data-index="0">
-                <span class="hero-indicator active"></span>
-            </button>
-            <button class="hero-dot-btn rounded-full focus:outline-none focus:ring-2 focus:ring-white/60" aria-label="Go to slide 2" data-index="1">
-                <span class="hero-indicator"></span>
-            </button>
-            <button class="hero-dot-btn rounded-full focus:outline-none focus:ring-2 focus:ring-white/60" aria-label="Go to slide 3" data-index="2">
-                <span class="hero-indicator"></span>
-            </button>
-        </div>
+    <!-- Hero visual -->
+    <div class="reveal hidden lg:block absolute inset-y-0 right-0 hero-visual">
+        <img src="{% if site_config.hero_slide_1_image %}{{ site_config.hero_slide_1_image.url }}{% else %}{% static 'images/hero.webp' %}{% endif %}"
+             alt="{{ site_config.hero_slide_1_alt|default:'Abraytech engineering team collaborating' }}"
+             class="w-full h-full object-cover"
+             loading="lazy">
+        <!-- Blend the image into the section background: full-pane horizontal
+             fade toward the text, plus a taller bottom fade so the image's
+             lower-left corner disappears into the page rather than showing
+             a visible edge. -->
+        <div class="absolute inset-0 hero-visual-edge-fade"></div>
+        <div class="absolute inset-x-0 bottom-0 h-40 hero-visual-bottom-fade"></div>
     </div>
-</section>
 
-<!-- Technology Strip -->
-<section class="border-y border-borderblue bg-white py-8 overflow-hidden" aria-label="Core technologies">
-    <p class="text-center text-xs font-semibold uppercase tracking-widest text-slate-400 mb-5">Engineered with technologies built for scale</p>
-    <div class="max-w-7xl mx-auto overflow-hidden">
-        <div class="flex gap-14 marquee-track w-max text-slate-400 text-2xl items-center">
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="code-2" class="w-4 h-4"></i> Python</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="layers" class="w-4 h-4"></i> Django</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="braces" class="w-4 h-4"></i> JavaScript</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="database" class="w-4 h-4"></i> PostgreSQL</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="container" class="w-4 h-4"></i> Docker</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="terminal" class="w-4 h-4"></i> Linux</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="cloud" class="w-4 h-4"></i> Cloud</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="git-branch" class="w-4 h-4"></i> Git</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="bot" class="w-4 h-4"></i> AI / ML</span>
-            <!-- duplicated for a seamless marquee loop -->
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="code-2" class="w-4 h-4"></i> Python</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="layers" class="w-4 h-4"></i> Django</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="braces" class="w-4 h-4"></i> JavaScript</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="database" class="w-4 h-4"></i> PostgreSQL</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="container" class="w-4 h-4"></i> Docker</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="terminal" class="w-4 h-4"></i> Linux</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="cloud" class="w-4 h-4"></i> Cloud</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="git-branch" class="w-4 h-4"></i> Git</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="bot" class="w-4 h-4"></i> AI / ML</span>
-        </div>
-    </div>
-</section>
-
-<!-- Train Tech Leaders / Academy Intro -->
-<section class="py-20 bg-white" id="academy-intro">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-14 items-center">
-        <div class="reveal">
-            <span class="inline-flex items-center gap-2 text-xs font-semibold text-brandblue bg-ice px-3 py-1.5 rounded-full uppercase tracking-wider border border-borderblue">
-                <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i> {{ site_config.school_short_name|default:"Abraytech" }} Academy
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex items-center py-20 lg:py-28 hero-min-h">
+        <div class="reveal max-w-lg">
+            <span class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-brandblue bg-ice rounded-full uppercase tracking-wider border border-borderblue">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Technology · Innovation · Digital Excellence
             </span>
-            <h2 class="mt-5 text-3xl sm:text-4xl font-sora font-bold text-navy">Training the tech leaders of tomorrow.</h2>
-            <p class="mt-5 text-slate-600 leading-relaxed">
-                {{ site_config.school_short_name|default:"Abraytech" }} isn't only a delivery platform — it's a learning environment. Alongside the software, security and AI work we ship for clients, we train the next generation of engineers, analysts and technology leaders on real systems, with practitioners who build the same platforms they teach.
+
+            <h1 class="mt-5 hero-heading font-sora font-extrabold text-navy leading-tighter">
+                Building Digital Solutions for a <span class="brand-gradient-text">Smarter Future.</span>
+            </h1>
+
+            <p class="mt-6 text-lg text-slate-600 max-w-xl leading-relaxed">
+                {{ site_config.school_short_name|default:"Abraytech" }} delivers software, cybersecurity, AI, data and digital transformation solutions that help businesses innovate, operate securely and grow.
             </p>
-            <ul class="mt-6 space-y-3 text-sm text-slate-700">
-                <li class="flex items-start gap-3"><i data-lucide="check" class="w-4 h-4 text-brandblue mt-1"></i> Practitioner-led mentorship from our own engineering and security teams</li>
-                <li class="flex items-start gap-3"><i data-lucide="check" class="w-4 h-4 text-brandblue mt-1"></i> Hands-on exposure to live projects, not just theory</li>
-                <li class="flex items-start gap-3"><i data-lucide="check" class="w-4 h-4 text-brandblue mt-1"></i> Structured pathways across software, cybersecurity, AI and data</li>
-                <li class="flex items-start gap-3"><i data-lucide="check" class="w-4 h-4 text-brandblue mt-1"></i> A pipeline into {{ site_config.school_short_name|default:"Abraytech" }} teams and partner organizations</li>
-            </ul>
-            <div class="mt-8 flex flex-wrap gap-4">
-                <a href="{% url 'eduweb:all_programs' %}" class="inline-flex items-center gap-2 px-6 py-3 rounded-lg brand-gradient text-white font-semibold hover:opacity-95 transition">
-                    Explore Training Programs <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+
+            <div class="mt-9 flex flex-wrap gap-4">
+                <a href="{% url 'eduweb:consultation_booking' %}" class="inline-flex items-center gap-2 px-7 py-3.5 rounded-lg text-white font-semibold brand-gradient shadow-brand hover:opacity-95 transition">
+                    Start a Project <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </a>
-                <a href="#training-tracks" class="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-borderblue text-navy font-semibold hover:bg-ice transition">
-                    About {{ site_config.school_short_name|default:"Abraytech" }} Academy
+                <a href="{% url 'eduweb:services_list' %}" class="inline-flex items-center gap-2 px-7 py-3.5 rounded-lg border border-borderblue text-navy font-semibold bg-white hover:bg-ice transition">
+                    Explore Services
                 </a>
             </div>
-        </div>
 
-        <div class="reveal" style="transition-delay:.1s">
-            <div class="rounded-2xl border border-borderblue bg-navy p-6">
-                <div class="flex items-center justify-between text-white/50 text-xs font-mono mb-5">
-                    <span>programs.directory</span>
-                    <span class="text-sky">● {{ stat_programs_count }} active</span>
-                </div>
-                {% if featured_programs %}
-                <ol class="space-y-4">
-                    {% for program in featured_programs|slice:":4" %}
-                    <li class="flex items-center gap-4">
-                        <a href="{% url 'eduweb:program_detail' program.slug %}" class="flex items-center gap-4 flex-1 group">
-                            <span class="w-8 h-8 rounded-full brand-gradient text-white text-xs font-bold flex items-center justify-center shrink-0">
-                                <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i>
-                            </span>
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center justify-between text-sm gap-2">
-                                    <span class="text-white font-medium truncate group-hover:text-sky transition-colors">{{ program.name }}</span>
-                                    <span class="text-sky text-xs shrink-0">{{ program.get_degree_level_display }}</span>
-                                </div>
-                                {% if program.department.faculty %}
-                                <div class="text-white/40 text-xs mt-1">{{ program.department.faculty.name }}</div>
-                                {% endif %}
-                            </div>
-                        </a>
-                    </li>
-                    {% endfor %}
-                </ol>
+            <div class="mt-10 flex flex-wrap items-center gap-6 text-sm text-slate-500">
+                <div class="flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4 text-electric"></i> Security-first delivery</div>
+                <div class="flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4 text-electric"></i> Agile engineering teams</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- About Section (PRD "Company introduction" — right after Hero) -->
+<section id="about" class="py-20 bg-white" aria-labelledby="about-heading">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16 items-center">
+            <div class="reveal">
+                <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Who we are</span>
+                <h2 id="about-heading" class="mt-3 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-sora font-bold text-navy">
+                    A technology partner, not just a vendor
+                </h2>
+                <p class="mt-5 text-slate-600 text-base lg:text-lg leading-relaxed">
+                    {{ site_config.about_mission|default:"Abraytech delivers reliable, well-engineered technology services and makes high-quality technical training accessible to everyone we work with." }}
+                </p>
+                <p class="mt-4 text-slate-600 text-base lg:text-lg leading-relaxed">
+                    {{ site_config.about_vision|default:"Our mission is to be a trusted technology partner known for engineering quality, security-mindedness, and practical, outcome-driven work." }}
+                </p>
+                <a href="{% url 'eduweb:about' %}" class="mt-8 inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-white font-semibold text-base lg:text-lg brand-gradient shadow-brand hover:opacity-95 transition-all focus:outline-none focus:ring-2 focus:ring-brandblue focus:ring-offset-2">
+                    Learn More About Us
+                    <i data-lucide="arrow-right" class="w-5 h-5" aria-hidden="true"></i>
+                </a>
+            </div>
+            <div class="reveal rounded-2xl overflow-hidden shadow-brand h-56 sm:h-72 lg:h-96 border border-borderblue">
+                {% if site_config.promo_video_url %}
+                <div class="w-full h-full promo-video-embed">{{ site_config.promo_video_url|safe }}</div>
                 {% else %}
-                <p class="text-white/50 text-sm">Program catalog is being finalized — check back soon.</p>
-                {% endif %}
-                <div class="grid grid-cols-3 gap-3 mt-6">
-                    {% for faculty in faculties|slice:":3" %}
-                    <a href="{% url 'eduweb:faculty_detail' faculty.slug %}" class="rounded-lg bg-white/5 p-3 text-center hover:bg-white/10 transition-colors block">
-                        <i data-lucide="{{ faculty.icon }}" class="w-4 h-4 text-sky mx-auto"></i>
-                        <div class="text-[10px] text-white/50 mt-1 truncate">{{ faculty.name }}</div>
-                    </a>
-                    {% empty %}
-                    <div class="rounded-lg bg-white/5 p-3 text-center"><i data-lucide="code-2" class="w-4 h-4 text-sky mx-auto"></i><div class="text-[10px] text-white/50 mt-1">Software</div></div>
-                    <div class="rounded-lg bg-white/5 p-3 text-center"><i data-lucide="shield-check" class="w-4 h-4 text-sky mx-auto"></i><div class="text-[10px] text-white/50 mt-1">Security</div></div>
-                    <div class="rounded-lg bg-white/5 p-3 text-center"><i data-lucide="brain" class="w-4 h-4 text-sky mx-auto"></i><div class="text-[10px] text-white/50 mt-1">AI &amp; Data</div></div>
-                    {% endfor %}
+                <div class="w-full h-full brand-gradient flex items-center justify-center">
+                    <i data-lucide="play-circle" class="w-16 h-16 text-white/40" aria-hidden="true"></i>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </section>
 
-<!-- Company Intro -->
-<section class="py-20 bg-white">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center reveal">
-        <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Who we are</span>
-        <h2 class="mt-3 text-3xl sm:text-4xl font-sora font-bold text-navy">A technology partner, not just a vendor</h2>
-        <p class="mt-5 text-lg text-slate-600 leading-relaxed">
-            {{ site_config.school_short_name|default:"Abraytech" }} is a full-service ICT company. We build software, secure infrastructure, apply artificial intelligence to real business problems, and train the next generation of technologists — all under one roof, so our clients get consistency from strategy through to support.
-        </p>
-    </div>
-</section>
-
-<!-- Services Section -->
+<!-- Services Section (PRD "Core services") -->
 {% if services %}
 <section id="services" class="section-py bg-soft" aria-labelledby="services-heading">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -366,53 +172,35 @@
 </section>
 {% endif %}
 
-<!-- Industries Section -->
-{% if industries %}
-<section id="industries" class="py-20 bg-soft" aria-labelledby="industries-heading">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center max-w-2xl mx-auto reveal">
-            <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Industries</span>
-            <h2 id="industries-heading" class="mt-3 text-3xl sm:text-4xl font-sora font-bold text-navy">Built for the sectors we serve</h2>
-        </div>
-        <div class="mt-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {% for industry in industries %}
-            <a href="{% url 'eduweb:industry_detail' industry.slug %}" class="reveal text-center bg-white rounded-xl p-5 border border-borderblue hover:shadow-card block">
-                <i data-lucide="{{ industry.icon }}" class="w-6 h-6 text-brandblue mx-auto"></i>
-                <div class="mt-2 text-sm font-medium text-navy">{{ industry.title }}</div>
-            </a>
-            {% endfor %}
-            <a href="{% url 'eduweb:industries_list' %}" class="reveal text-center bg-navy rounded-xl p-5 border border-navy hover:shadow-card flex flex-col items-center justify-center">
-                <i data-lucide="arrow-right" class="w-6 h-6 text-sky"></i>
-                <div class="mt-2 text-sm font-medium text-white">All Industries</div>
-            </a>
-        </div>
-    </div>
-</section>
-{% endif %}
-
-<!-- Stats Strip — real, dynamically-computed counts, never hardcoded -->
-<section class="py-16 brand-gradient" aria-label="{{ site_config.school_short_name|default:'Abraytech' }} by the numbers">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
-        <div class="reveal">
-            <div class="text-4xl font-sora font-extrabold text-white counter" data-target="{{ stat_services_count }}">0</div>
-            <div class="mt-2 text-sm text-white/70">Services Offered</div>
-        </div>
-        <div class="reveal" style="transition-delay:.05s">
-            <div class="text-4xl font-sora font-extrabold text-white counter" data-target="{{ stat_solutions_count }}">0</div>
-            <div class="mt-2 text-sm text-white/70">Solutions Delivered</div>
-        </div>
-        <div class="reveal" style="transition-delay:.1s">
-            <div class="text-4xl font-sora font-extrabold text-white counter" data-target="{{ stat_projects_count }}">0</div>
-            <div class="mt-2 text-sm text-white/70">Projects Completed</div>
-        </div>
-        <div class="reveal" style="transition-delay:.15s">
-            <div class="text-4xl font-sora font-extrabold text-white counter" data-target="{{ stat_programs_count }}">0</div>
-            <div class="mt-2 text-sm text-white/70">Training Programs</div>
+<!-- Technology Strip (PRD "Technology capabilities") -->
+<section class="border-y border-borderblue bg-soft py-8 overflow-hidden" aria-label="Core technologies">
+    <p class="text-center text-xs font-semibold uppercase tracking-widest text-slate-400 mb-5">Engineered with technologies built for scale</p>
+    <div class="max-w-7xl mx-auto overflow-hidden">
+        <div class="flex gap-14 marquee-track w-max text-slate-400 text-2xl items-center">
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="code-2" class="w-4 h-4"></i> Python</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="layers" class="w-4 h-4"></i> Django</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="braces" class="w-4 h-4"></i> JavaScript</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="database" class="w-4 h-4"></i> PostgreSQL</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="container" class="w-4 h-4"></i> Docker</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="terminal" class="w-4 h-4"></i> Linux</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="cloud" class="w-4 h-4"></i> Cloud</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="git-branch" class="w-4 h-4"></i> Git</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="bot" class="w-4 h-4"></i> AI / ML</span>
+            <!-- duplicated for a seamless marquee loop -->
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="code-2" class="w-4 h-4"></i> Python</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="layers" class="w-4 h-4"></i> Django</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="braces" class="w-4 h-4"></i> JavaScript</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="database" class="w-4 h-4"></i> PostgreSQL</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="container" class="w-4 h-4"></i> Docker</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="terminal" class="w-4 h-4"></i> Linux</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="cloud" class="w-4 h-4"></i> Cloud</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="git-branch" class="w-4 h-4"></i> Git</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="bot" class="w-4 h-4"></i> AI / ML</span>
         </div>
     </div>
 </section>
 
-<!-- Featured Projects Section -->
+<!-- Featured Projects Section (PRD "Featured projects") -->
 {% if featured_projects %}
 <section id="projects" class="py-20 bg-white" aria-labelledby="projects-heading">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -447,6 +235,30 @@
 </section>
 {% endif %}
 
+<!-- Stats Strip — real, dynamically-computed counts, never hardcoded.
+     Placed right after Featured Projects so the numbers back up the work
+     just shown. -->
+<section class="py-16 brand-gradient" aria-label="{{ site_config.school_short_name|default:'Abraytech' }} by the numbers">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
+        <div class="reveal">
+            <div class="text-4xl font-sora font-extrabold text-white counter" data-target="{{ stat_services_count }}">0</div>
+            <div class="mt-2 text-sm text-white/70">Services Offered</div>
+        </div>
+        <div class="reveal reveal-delay-sm">
+            <div class="text-4xl font-sora font-extrabold text-white counter" data-target="{{ stat_solutions_count }}">0</div>
+            <div class="mt-2 text-sm text-white/70">Solutions Delivered</div>
+        </div>
+        <div class="reveal reveal-delay-md">
+            <div class="text-4xl font-sora font-extrabold text-white counter" data-target="{{ stat_projects_count }}">0</div>
+            <div class="mt-2 text-sm text-white/70">Projects Completed</div>
+        </div>
+        <div class="reveal reveal-delay-lg">
+            <div class="text-4xl font-sora font-extrabold text-white counter" data-target="{{ stat_programs_count }}">0</div>
+            <div class="mt-2 text-sm text-white/70">Training Programs</div>
+        </div>
+    </div>
+</section>
+
 <!-- Why Abraytech + Process -->
 <section class="py-20 bg-soft">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-16">
@@ -468,7 +280,7 @@
                 </div>
             </div>
         </div>
-        <div class="reveal" style="transition-delay:.1s">
+        <div class="reveal reveal-delay-md">
             <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">How we work</span>
             <h2 class="mt-3 text-3xl font-sora font-bold text-navy">Our process</h2>
             <ol class="mt-8 space-y-5">
@@ -481,9 +293,9 @@
     </div>
 </section>
 
-<!-- Cybersecurity Spotlight -->
+<!-- Cybersecurity Spotlight (PRD "Cybersecurity") -->
 <section class="py-24 bg-navy relative overflow-hidden">
-    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
+    <div class="absolute inset-0 opacity-20 dot-grid-sky"></div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative grid lg:grid-cols-2 gap-14 items-center">
         <div class="reveal">
             <span class="inline-flex items-center gap-2 text-xs font-semibold text-sky bg-white/5 border border-white/10 px-3 py-1.5 rounded-full uppercase tracking-wider"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Cybersecurity</span>
@@ -499,7 +311,7 @@
             </ul>
             <a href="{% url 'eduweb:consultation_booking' %}" class="mt-8 inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-white text-navy font-semibold hover:bg-ice transition">Request Security Consultation <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
         </div>
-        <div class="reveal" style="transition-delay:.1s">
+        <div class="reveal reveal-delay-md">
             <div class="rounded-2xl border border-white/10 bg-white/5 p-6">
                 <div class="flex items-center justify-between text-white/60 text-xs font-mono mb-4"><span>security_status.log</span><span class="text-sky">● monitoring</span></div>
                 <div class="space-y-2 text-xs font-mono text-white/70">
@@ -510,16 +322,16 @@
                     <div class="text-sky">[watch] Anomaly detection — analyzing…</div>
                 </div>
                 <div class="mt-6 grid grid-cols-3 gap-3">
-                    <div class="rounded-lg bg-white/5 p-3 text-center"><div class="text-white font-sora font-bold">24/7</div><div class="text-[10px] text-white/50 mt-1">Monitoring</div></div>
-                    <div class="rounded-lg bg-white/5 p-3 text-center"><div class="text-white font-sora font-bold">Layered</div><div class="text-[10px] text-white/50 mt-1">Defense</div></div>
-                    <div class="rounded-lg bg-white/5 p-3 text-center"><div class="text-white font-sora font-bold">Rapid</div><div class="text-[10px] text-white/50 mt-1">Response</div></div>
+                    <div class="rounded-lg bg-white/5 p-3 text-center"><div class="text-white font-sora font-bold">24/7</div><div class="text-micro text-white/50 mt-1">Monitoring</div></div>
+                    <div class="rounded-lg bg-white/5 p-3 text-center"><div class="text-white font-sora font-bold">Layered</div><div class="text-micro text-white/50 mt-1">Defense</div></div>
+                    <div class="rounded-lg bg-white/5 p-3 text-center"><div class="text-white font-sora font-bold">Rapid</div><div class="text-micro text-white/50 mt-1">Response</div></div>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- AI Spotlight -->
+<!-- AI Spotlight (PRD "AI/data") -->
 <section class="py-24 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-14 items-center">
         <div class="reveal order-2 lg:order-1">
@@ -552,171 +364,105 @@
     </div>
 </section>
 
-<!-- Training / Academy CTA -->
-<section class="py-24 brand-gradient relative overflow-hidden">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative reveal">
-        <span class="inline-flex items-center gap-2 text-xs font-semibold text-white bg-white/10 px-3 py-1.5 rounded-full uppercase tracking-wider border border-white/20"><i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i> {{ site_config.school_short_name|default:"Abraytech" }} Academy</span>
-        <h2 class="mt-5 text-3xl sm:text-4xl font-sora font-bold text-white">Learn. Build. Innovate.</h2>
-        <p class="mt-5 text-white/80 max-w-2xl mx-auto">Hands-on training in the technologies shaping tomorrow — software, cybersecurity, AI, data science and cloud — taught by practitioners.</p>
-        <div class="mt-10 grid sm:grid-cols-3 gap-5 max-w-3xl mx-auto text-left">
-            {% for faculty in faculties|slice:":3" %}
-            <a href="{% url 'eduweb:faculty_detail' faculty.slug %}" class="bg-white/10 border border-white/15 rounded-xl p-5 hover:bg-white/15 transition-colors block">
-                <i data-lucide="{{ faculty.icon }}" class="w-5 h-5 text-sky"></i>
-                <h3 class="mt-3 text-white font-semibold text-sm">{{ faculty.name }}</h3>
-            </a>
-            {% empty %}
-            <div class="bg-white/10 border border-white/15 rounded-xl p-5"><i data-lucide="code-2" class="w-5 h-5 text-sky"></i><h3 class="mt-3 text-white font-semibold text-sm">Software &amp; Web Dev</h3></div>
-            <div class="bg-white/10 border border-white/15 rounded-xl p-5"><i data-lucide="shield-check" class="w-5 h-5 text-sky"></i><h3 class="mt-3 text-white font-semibold text-sm">Cybersecurity</h3></div>
-            <div class="bg-white/10 border border-white/15 rounded-xl p-5"><i data-lucide="brain" class="w-5 h-5 text-sky"></i><h3 class="mt-3 text-white font-semibold text-sm">AI &amp; Data Science</h3></div>
-            {% endfor %}
-        </div>
-        <a href="{% url 'eduweb:all_programs' %}" class="mt-10 inline-flex items-center gap-2 px-7 py-3.5 rounded-lg bg-white text-navy font-semibold hover:bg-ice transition">Explore Courses <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
-    </div>
-</section>
-
-<!-- Testimonials Section -->
-{% if testimonials %}
-<section class="py-20 bg-white" aria-labelledby="testimonials-heading">
+<!-- Industries Section — who we serve, right before the Training cluster -->
+{% if industries %}
+<section id="industries" class="py-20 bg-ice" aria-labelledby="industries-heading">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center max-w-2xl mx-auto reveal mb-12">
-            <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Testimonials</span>
-            <h2 id="testimonials-heading" class="mt-3 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-navy">What our clients say</h2>
-            <p class="mt-4 text-slate-600">Hear from the people we've worked with</p>
+        <div class="text-center max-w-2xl mx-auto reveal">
+            <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Industries</span>
+            <h2 id="industries-heading" class="mt-3 text-3xl sm:text-4xl font-sora font-bold text-navy">Built for the sectors we serve</h2>
         </div>
-        <div id="testimonial" class="reveal bg-soft border border-borderblue rounded-2xl p-6 sm:p-8 md:p-12 max-w-4xl mx-auto relative" aria-live="polite" aria-atomic="true">
-            <i data-lucide="quote" class="w-10 h-10 sm:w-14 sm:h-14 text-brandblue mb-4 sm:mb-6" aria-hidden="true"></i>
-            <blockquote>
-                <p id="testimonialQuote" class="italic text-slate-700 text-base sm:text-lg md:text-xl mb-6 sm:mb-8 leading-relaxed">
-                    {% with testimonials|first as first_t %}{{ first_t.quote|default:"Abraytech delivered exactly what we needed, on time and with clear communication throughout." }}{% endwith %}
-                </p>
-            </blockquote>
-            <div class="flex items-center">
-                <div id="testimonialAvatar" class="w-12 h-12 sm:w-16 sm:h-16 brand-gradient rounded-full flex items-center justify-center text-white font-bold text-base sm:text-xl mr-3 sm:mr-4 flex-shrink-0 overflow-hidden" aria-hidden="true">
-                    {% with testimonials|first as first_t %}
-                        {% if first_t.avatar %}<img src="{{ first_t.avatar.url }}" alt="{{ first_t.author_name }}" class="w-full h-full object-cover">
-                        {% else %}{{ first_t.author_name|slice:":2"|upper|default:"AB" }}{% endif %}
-                    {% endwith %}
-                </div>
-                <div>
-                    <p id="testimonialAuthor" class="font-semibold text-base sm:text-lg text-navy">{% with testimonials|first as first_t %}{{ first_t.author_name|default:"Client" }}{% endwith %}</p>
-                    <p id="testimonialRole" class="text-slate-600 text-sm sm:text-base">{% with testimonials|first as first_t %}{{ first_t.author_role|default:"" }}{% endwith %}</p>
-                </div>
-            </div>
-
-            <div class="flex justify-center mt-6 sm:mt-8 space-x-2" role="tablist" aria-label="Testimonials navigation">
-                {% for t in testimonials %}
-                <button class="testimonial-indicator w-3 h-3 rounded-full {% if forloop.first %}bg-brandblue active{% else %}bg-borderblue hover:bg-brandblue{% endif %} transition-all focus:outline-none focus:ring-2 focus:ring-brandblue"
-                        data-index="{{ forloop.counter0 }}"
-                        aria-label="Show testimonial {{ forloop.counter }}"
-                        role="tab"
-                        aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"></button>
-                {% empty %}
-                <button class="testimonial-indicator w-3 h-3 rounded-full bg-brandblue active transition-all focus:outline-none focus:ring-2 focus:ring-brandblue" data-index="0" role="tab" aria-selected="true"></button>
-                <button class="testimonial-indicator w-3 h-3 rounded-full bg-borderblue hover:bg-brandblue transition-all focus:outline-none focus:ring-2 focus:ring-brandblue" data-index="1" role="tab" aria-selected="false"></button>
-                <button class="testimonial-indicator w-3 h-3 rounded-full bg-borderblue hover:bg-brandblue transition-all focus:outline-none focus:ring-2 focus:ring-brandblue" data-index="2" role="tab" aria-selected="false"></button>
-                {% endfor %}
-            </div>
+        <div class="mt-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {% for industry in industries %}
+            <a href="{% url 'eduweb:industry_detail' industry.slug %}" class="reveal text-center bg-white rounded-xl p-5 border border-borderblue hover:shadow-card block">
+                <i data-lucide="{{ industry.icon }}" class="w-6 h-6 text-brandblue mx-auto"></i>
+                <div class="mt-2 text-sm font-medium text-navy">{{ industry.title }}</div>
+            </a>
+            {% endfor %}
+            <a href="{% url 'eduweb:industries_list' %}" class="reveal text-center bg-navy rounded-xl p-5 border border-navy hover:shadow-card flex flex-col items-center justify-center">
+                <i data-lucide="arrow-right" class="w-6 h-6 text-sky"></i>
+                <div class="mt-2 text-sm font-medium text-white">All Industries</div>
+            </a>
         </div>
     </div>
 </section>
 {% endif %}
 
-<!-- Blog Preview -->
-{% if recent_posts %}
-<section class="py-20 bg-soft">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-wrap items-end justify-between gap-4 reveal">
-            <div>
-                <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Knowledge centre</span>
-                <h2 class="mt-3 text-3xl sm:text-4xl font-sora font-bold text-navy">From the blog</h2>
-            </div>
-            <a href="{% url 'eduweb:blog' %}" class="inline-flex items-center gap-1 text-sm font-semibold text-brandblue">Visit the blog <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
-        </div>
-        <div class="mt-10 grid md:grid-cols-3 gap-6">
-            {% for post in recent_posts|slice:":3" %}
-            <a href="{% url 'eduweb:blog_detail' post.slug %}" class="reveal bg-white rounded-2xl border border-borderblue overflow-hidden hover:shadow-brand transition block">
-                {% if post.featured_image %}
-                <div class="h-36 bg-gray-100 overflow-hidden">
-                    <img src="{{ post.featured_image.url }}" alt="{{ post.featured_image_alt|default:post.title }}" class="w-full h-full object-cover" loading="lazy">
-                </div>
-                {% else %}
-                <div class="h-36 brand-gradient flex items-center justify-center"><i data-lucide="file-text" class="w-8 h-8 text-white/80"></i></div>
-                {% endif %}
-                <div class="p-5">
-                    {% if post.category %}<span class="text-xs font-semibold text-brandblue uppercase">{{ post.category.name }}</span>{% endif %}
-                    <h3 class="mt-2 font-sora font-semibold text-navy">{{ post.title }}</h3>
-                    <div class="mt-3 text-xs text-slate-500">{{ post.read_time }} min read</div>
-                </div>
-            </a>
-            {% endfor %}
-        </div>
-    </div>
-</section>
-{% endif %}
-
-<!-- CTA -->
-<section class="py-20 bg-navy">
-    <div class="max-w-4xl mx-auto text-center px-4 reveal">
-        <h2 class="text-3xl sm:text-4xl font-sora font-bold text-white">Have a technology challenge?</h2>
-        <p class="mt-4 text-lg text-white/70">Tell us what you're building or what's at risk — we'll help you plan the right next step.</p>
-        <div class="mt-8 flex flex-wrap gap-4 justify-center">
-            <a href="{% url 'eduweb:consultation_booking' %}" class="inline-flex items-center gap-2 px-8 py-3.5 rounded-lg text-navy font-semibold bg-white hover:bg-ice shadow-lg transition">Book a Consultation <i data-lucide="arrow-right" class="w-4 h-4"></i></a>
-            <a href="#contact" class="inline-flex items-center gap-2 px-8 py-3.5 rounded-lg text-white font-semibold border border-white/30 hover:bg-white/10 transition">Contact Us</a>
-        </div>
-    </div>
-</section>
-
-<!-- Newsletter -->
-<section class="py-14 bg-white border-t border-borderblue">
-    <div class="max-w-3xl mx-auto px-4 text-center reveal">
-        <h3 class="text-xl font-sora font-bold text-navy">Stay ahead of the curve</h3>
-        <p class="mt-2 text-sm text-slate-600">Occasional insights on software, security and AI. No spam.</p>
-        <form id="homepageNewsletterForm" action="{% url 'eduweb:newsletter_subscribe' %}" method="POST" class="mt-6 flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
-            {% csrf_token %}
-            <label for="homepageNewsletterEmail" class="sr-only">Email address</label>
-            <input id="homepageNewsletterEmail" name="email" type="email" required placeholder="you@company.com" class="flex-1 px-4 py-3 rounded-lg border border-borderblue text-sm outline-none focus:border-brandblue" />
-            <button type="submit" class="px-6 py-3 rounded-lg brand-gradient text-white font-semibold text-sm hover:opacity-95">Subscribe</button>
-        </form>
-    </div>
-</section>
-
 <!-- ============================================================ -->
-<!-- The sections below are real, working Abraytech site features -->
-<!-- (About, Training Tracks, Apply, Contact, Find Us) that have  -->
-<!-- no equivalent in the main.html reference template. They are  -->
-<!-- kept — per explicit instruction — appended after the         -->
-<!-- main.html-matching homepage content above, rather than       -->
-<!-- removed, so no existing functionality is lost.                -->
+<!-- Training cluster (PRD "Training"): Academy intro -> Programs -->
+<!-- -> Training Tracks -> Academy CTA -> How to Apply, grouped    -->
+<!-- together as one coherent block instead of scattered.          -->
 <!-- ============================================================ -->
 
-<!-- About Section -->
-<section id="about" class="py-20 bg-white" aria-labelledby="about-heading">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16 items-center">
-            <div class="reveal">
-                <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">About us</span>
-                <h2 id="about-heading" class="mt-3 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-sora font-bold text-navy">
-                    About {{ site_config.school_short_name|default:"Abraytech" }}
-                </h2>
-                <p class="mt-5 text-slate-600 text-base lg:text-lg leading-relaxed">
-                    {{ site_config.about_mission|default:"Abraytech delivers reliable, well-engineered technology services and makes high-quality technical training accessible to everyone we work with." }}
-                </p>
-                <p class="mt-4 text-slate-600 text-base lg:text-lg leading-relaxed">
-                    {{ site_config.about_vision|default:"Our mission is to be a trusted technology partner known for engineering quality, security-mindedness, and practical, outcome-driven work." }}
-                </p>
-                <a href="{% url 'eduweb:about' %}" class="mt-8 inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-white font-semibold text-base lg:text-lg brand-gradient shadow-brand hover:opacity-95 transition-all focus:outline-none focus:ring-2 focus:ring-brandblue focus:ring-offset-2">
-                    Learn More About Us
-                    <i data-lucide="arrow-right" class="w-5 h-5" aria-hidden="true"></i>
+<!-- Train Tech Leaders / Academy Intro -->
+<section class="py-20 bg-soft" id="academy-intro">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-14 items-center">
+        <div class="reveal">
+            <span class="inline-flex items-center gap-2 text-xs font-semibold text-brandblue bg-ice px-3 py-1.5 rounded-full uppercase tracking-wider border border-borderblue">
+                <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i> {{ site_config.school_short_name|default:"Abraytech" }} Academy
+            </span>
+            <h2 class="mt-5 text-3xl sm:text-4xl font-sora font-bold text-navy">Training the tech leaders of tomorrow.</h2>
+            <p class="mt-5 text-slate-600 leading-relaxed">
+                {{ site_config.school_short_name|default:"Abraytech" }} isn't only a delivery platform — it's a learning environment. Alongside the software, security and AI work we ship for clients, we train the next generation of engineers, analysts and technology leaders on real systems, with practitioners who build the same platforms they teach.
+            </p>
+            <ul class="mt-6 space-y-3 text-sm text-slate-700">
+                <li class="flex items-start gap-3"><i data-lucide="check" class="w-4 h-4 text-brandblue mt-1"></i> Practitioner-led mentorship from our own engineering and security teams</li>
+                <li class="flex items-start gap-3"><i data-lucide="check" class="w-4 h-4 text-brandblue mt-1"></i> Hands-on exposure to live projects, not just theory</li>
+                <li class="flex items-start gap-3"><i data-lucide="check" class="w-4 h-4 text-brandblue mt-1"></i> Structured pathways across software, cybersecurity, AI and data</li>
+                <li class="flex items-start gap-3"><i data-lucide="check" class="w-4 h-4 text-brandblue mt-1"></i> A pipeline into {{ site_config.school_short_name|default:"Abraytech" }} teams and partner organizations</li>
+            </ul>
+            <div class="mt-8 flex flex-wrap gap-4">
+                <a href="{% url 'eduweb:all_programs' %}" class="inline-flex items-center gap-2 px-6 py-3 rounded-lg brand-gradient text-white font-semibold hover:opacity-95 transition">
+                    Explore Training Programs <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                </a>
+                <a href="#training-tracks" class="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-borderblue text-navy font-semibold hover:bg-ice transition">
+                    About {{ site_config.school_short_name|default:"Abraytech" }} Academy
                 </a>
             </div>
-            <div class="reveal rounded-2xl overflow-hidden shadow-brand h-56 sm:h-72 lg:h-96 border border-borderblue">
-                {% if site_config.promo_video_url %}
-                <div class="w-full h-full promo-video-embed">{{ site_config.promo_video_url|safe }}</div>
-                {% else %}
-                <div class="w-full h-full brand-gradient flex items-center justify-center">
-                    <i data-lucide="play-circle" class="w-16 h-16 text-white/40" aria-hidden="true"></i>
+        </div>
+
+        <div class="reveal reveal-delay-md">
+            <div class="rounded-2xl border border-borderblue bg-navy p-6">
+                <div class="flex items-center justify-between text-white/50 text-xs font-mono mb-5">
+                    <span>programs.directory</span>
+                    <span class="text-sky">● {{ stat_programs_count }} active</span>
                 </div>
+                {% if featured_programs %}
+                <ol class="space-y-4">
+                    {% for program in featured_programs|slice:":4" %}
+                    <li class="flex items-center gap-4">
+                        <a href="{% url 'eduweb:program_detail' program.slug %}" class="flex items-center gap-4 flex-1 group">
+                            <span class="w-8 h-8 rounded-full brand-gradient text-white text-xs font-bold flex items-center justify-center shrink-0">
+                                <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i>
+                            </span>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between text-sm gap-2">
+                                    <span class="text-white font-medium truncate group-hover:text-sky transition-colors">{{ program.name }}</span>
+                                    <span class="text-sky text-xs shrink-0">{{ program.get_degree_level_display }}</span>
+                                </div>
+                                {% if program.department.faculty %}
+                                <div class="text-white/40 text-xs mt-1">{{ program.department.faculty.name }}</div>
+                                {% endif %}
+                            </div>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ol>
+                {% else %}
+                <p class="text-white/50 text-sm">Program catalog is being finalized — check back soon.</p>
                 {% endif %}
+                <div class="grid grid-cols-3 gap-3 mt-6">
+                    {% for faculty in faculties|slice:":3" %}
+                    <a href="{% url 'eduweb:faculty_detail' faculty.slug %}" class="rounded-lg bg-white/5 p-3 text-center hover:bg-white/10 transition-colors block">
+                        <i data-lucide="{{ faculty.icon }}" class="w-4 h-4 text-sky mx-auto"></i>
+                        <div class="text-micro text-white/50 mt-1 truncate">{{ faculty.name }}</div>
+                    </a>
+                    {% empty %}
+                    <div class="rounded-lg bg-white/5 p-3 text-center"><i data-lucide="code-2" class="w-4 h-4 text-sky mx-auto"></i><div class="text-micro text-white/50 mt-1">Software</div></div>
+                    <div class="rounded-lg bg-white/5 p-3 text-center"><i data-lucide="shield-check" class="w-4 h-4 text-sky mx-auto"></i><div class="text-micro text-white/50 mt-1">Security</div></div>
+                    <div class="rounded-lg bg-white/5 p-3 text-center"><i data-lucide="brain" class="w-4 h-4 text-sky mx-auto"></i><div class="text-micro text-white/50 mt-1">AI &amp; Data</div></div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
@@ -815,9 +561,84 @@
 </section>
 {% endif %}
 
+<!-- Training / Academy CTA — light (white), not dark: sits between AI
+     Spotlight/Academy Intro and How to Apply, both of which are also
+     unconditional, so this can't be dark without risking a dark-on-dark
+     run whenever Testimonials (DB-driven, between this and How to Apply)
+     has no data to show. -->
+<section class="py-24 bg-white relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative reveal">
+        <span class="inline-flex items-center gap-2 text-xs font-semibold text-brandblue bg-ice px-3 py-1.5 rounded-full uppercase tracking-wider border border-borderblue"><i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i> {{ site_config.school_short_name|default:"Abraytech" }} Academy</span>
+        <h2 class="mt-5 text-3xl sm:text-4xl font-sora font-bold text-navy">Learn. Build. Innovate.</h2>
+        <p class="mt-5 text-slate-600 max-w-2xl mx-auto">Hands-on training in the technologies shaping tomorrow — software, cybersecurity, AI, data science and cloud — taught by practitioners.</p>
+        <div class="mt-10 grid sm:grid-cols-3 gap-5 max-w-3xl mx-auto text-left">
+            {% for faculty in faculties|slice:":3" %}
+            <a href="{% url 'eduweb:faculty_detail' faculty.slug %}" class="bg-soft border border-borderblue rounded-xl p-5 hover:bg-ice transition-colors block">
+                <i data-lucide="{{ faculty.icon }}" class="w-5 h-5 text-brandblue"></i>
+                <h3 class="mt-3 text-navy font-semibold text-sm">{{ faculty.name }}</h3>
+            </a>
+            {% empty %}
+            <div class="bg-soft border border-borderblue rounded-xl p-5"><i data-lucide="code-2" class="w-5 h-5 text-brandblue"></i><h3 class="mt-3 text-navy font-semibold text-sm">Software &amp; Web Dev</h3></div>
+            <div class="bg-soft border border-borderblue rounded-xl p-5"><i data-lucide="shield-check" class="w-5 h-5 text-brandblue"></i><h3 class="mt-3 text-navy font-semibold text-sm">Cybersecurity</h3></div>
+            <div class="bg-soft border border-borderblue rounded-xl p-5"><i data-lucide="brain" class="w-5 h-5 text-brandblue"></i><h3 class="mt-3 text-navy font-semibold text-sm">AI &amp; Data Science</h3></div>
+            {% endfor %}
+        </div>
+        <a href="{% url 'eduweb:all_programs' %}" class="mt-10 inline-flex items-center gap-2 px-7 py-3.5 rounded-lg brand-gradient text-white font-semibold shadow-brand hover:opacity-95 transition">Explore Courses <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+    </div>
+</section>
+
+<!-- Testimonials Section (PRD "Testimonials") — placed right after the
+     Training/Academy CTA (dark) so it stays light, and right before How to
+     Apply (dark) keeps the light/dark rhythm from clashing there too. -->
+{% if testimonials %}
+<section class="py-20 bg-white" aria-labelledby="testimonials-heading">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto reveal mb-12">
+            <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Testimonials</span>
+            <h2 id="testimonials-heading" class="mt-3 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-navy">What our clients say</h2>
+            <p class="mt-4 text-slate-600">Hear from the people we've worked with</p>
+        </div>
+        <div id="testimonial" class="reveal bg-soft border border-borderblue rounded-2xl p-6 sm:p-8 md:p-12 max-w-4xl mx-auto relative" aria-live="polite" aria-atomic="true">
+            <i data-lucide="quote" class="w-10 h-10 sm:w-14 sm:h-14 text-brandblue mb-4 sm:mb-6" aria-hidden="true"></i>
+            <blockquote>
+                <p id="testimonialQuote" class="italic text-slate-700 text-base sm:text-lg md:text-xl mb-6 sm:mb-8 leading-relaxed">
+                    {% with testimonials|first as first_t %}{{ first_t.quote|default:"Abraytech delivered exactly what we needed, on time and with clear communication throughout." }}{% endwith %}
+                </p>
+            </blockquote>
+            <div class="flex items-center">
+                <div id="testimonialAvatar" class="w-12 h-12 sm:w-16 sm:h-16 brand-gradient rounded-full flex items-center justify-center text-white font-bold text-base sm:text-xl mr-3 sm:mr-4 flex-shrink-0 overflow-hidden" aria-hidden="true">
+                    {% with testimonials|first as first_t %}
+                        {% if first_t.avatar %}<img src="{{ first_t.avatar.url }}" alt="{{ first_t.author_name }}" class="w-full h-full object-cover">
+                        {% else %}{{ first_t.author_name|slice:":2"|upper|default:"AB" }}{% endif %}
+                    {% endwith %}
+                </div>
+                <div>
+                    <p id="testimonialAuthor" class="font-semibold text-base sm:text-lg text-navy">{% with testimonials|first as first_t %}{{ first_t.author_name|default:"Client" }}{% endwith %}</p>
+                    <p id="testimonialRole" class="text-slate-600 text-sm sm:text-base">{% with testimonials|first as first_t %}{{ first_t.author_role|default:"" }}{% endwith %}</p>
+                </div>
+            </div>
+
+            <div class="flex justify-center mt-6 sm:mt-8 space-x-2" role="tablist" aria-label="Testimonials navigation">
+                {% for t in testimonials %}
+                <button class="testimonial-indicator w-3 h-3 rounded-full {% if forloop.first %}bg-brandblue active{% else %}bg-borderblue hover:bg-brandblue{% endif %} transition-all focus:outline-none focus:ring-2 focus:ring-brandblue"
+                        data-index="{{ forloop.counter0 }}"
+                        aria-label="Show testimonial {{ forloop.counter }}"
+                        role="tab"
+                        aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"></button>
+                {% empty %}
+                <button class="testimonial-indicator w-3 h-3 rounded-full bg-brandblue active transition-all focus:outline-none focus:ring-2 focus:ring-brandblue" data-index="0" role="tab" aria-selected="true"></button>
+                <button class="testimonial-indicator w-3 h-3 rounded-full bg-borderblue hover:bg-brandblue transition-all focus:outline-none focus:ring-2 focus:ring-brandblue" data-index="1" role="tab" aria-selected="false"></button>
+                <button class="testimonial-indicator w-3 h-3 rounded-full bg-borderblue hover:bg-brandblue transition-all focus:outline-none focus:ring-2 focus:ring-brandblue" data-index="2" role="tab" aria-selected="false"></button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
 <!-- How to Apply Section -->
 <section id="apply" class="py-24 bg-navy relative overflow-hidden" aria-labelledby="apply-heading">
-    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
+    <div class="absolute inset-0 opacity-20 dot-grid-sky"></div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
         <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-10 reveal">
@@ -836,51 +657,119 @@
             </div>
         </div>
 
-        <div class="reveal bg-white/5 border border-white/10 rounded-2xl p-6 lg:p-8">
-            <ol class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <li class="flex items-start gap-3">
-                    <div class="w-9 h-9 flex-shrink-0 brand-gradient text-white rounded-lg flex items-center justify-center font-bold text-sm">1</div>
-                    <div>
-                        <h4 class="font-semibold text-white text-sm mb-1">Submit Application</h4>
-                        <p class="text-white/60 text-xs leading-relaxed">Complete our online form with your background and goals.</p>
-                    </div>
-                </li>
-                <li class="flex items-start gap-3">
-                    <div class="w-9 h-9 flex-shrink-0 brand-gradient text-white rounded-lg flex items-center justify-center font-bold text-sm">2</div>
-                    <div>
-                        <h4 class="font-semibold text-white text-sm mb-1">Application Review</h4>
-                        <p class="text-white/60 text-xs leading-relaxed">Our team reviews your application within 2–3 weeks.</p>
-                    </div>
-                </li>
-                <li class="flex items-start gap-3">
-                    <div class="w-9 h-9 flex-shrink-0 brand-gradient text-white rounded-lg flex items-center justify-center font-bold text-sm">3</div>
-                    <div>
-                        <h4 class="font-semibold text-white text-sm mb-1">Interview Stage</h4>
-                        <p class="text-white/60 text-xs leading-relaxed">Virtual or in-person interview for select programs.</p>
-                    </div>
-                </li>
-                <li class="flex items-start gap-3">
-                    <div class="w-9 h-9 flex-shrink-0 brand-gradient text-white rounded-lg flex items-center justify-center font-bold text-sm">4</div>
-                    <div>
-                        <h4 class="font-semibold text-white text-sm mb-1">Decision &amp; Enrollment</h4>
-                        <p class="text-white/60 text-xs leading-relaxed">Receive your decision and begin the enrollment process.</p>
-                    </div>
-                </li>
-            </ol>
-            <div class="mt-6 pt-6 border-t border-white/10 flex flex-wrap items-center gap-2">
-                <i data-lucide="users" class="w-4 h-4 text-sky" aria-hidden="true"></i>
-                <span class="text-white/60 text-xs">Our team is here to help you through the process</span>
-                <span class="mx-2 text-white/20">|</span>
-                <i data-lucide="shield-check" class="w-4 h-4 text-sky" aria-hidden="true"></i>
-                <span class="text-white/60 text-xs">Secure &amp; confidential process</span>
+        <div class="flex flex-col sm:flex-row gap-6">
+            <div class="reveal flex-1 bg-white/5 border border-white/10 rounded-2xl p-6 lg:p-8">
+                <ol class="space-y-6">
+                    <li class="flex items-start gap-3">
+                        <div class="w-9 h-9 flex-shrink-0 brand-gradient text-white rounded-lg flex items-center justify-center font-bold text-sm">1</div>
+                        <div>
+                            <h4 class="font-semibold text-white text-sm mb-1">Submit Application</h4>
+                            <p class="text-white/60 text-xs leading-relaxed">Complete our online form with your background and goals.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <div class="w-9 h-9 flex-shrink-0 brand-gradient text-white rounded-lg flex items-center justify-center font-bold text-sm">2</div>
+                        <div>
+                            <h4 class="font-semibold text-white text-sm mb-1">Application Review</h4>
+                            <p class="text-white/60 text-xs leading-relaxed">Our team reviews your application within 2–3 weeks.</p>
+                        </div>
+                    </li>
+                </ol>
             </div>
+            <div class="reveal reveal-delay-sm flex-1 bg-white/5 border border-white/10 rounded-2xl p-6 lg:p-8">
+                <ol class="space-y-6">
+                    <li class="flex items-start gap-3">
+                        <div class="w-9 h-9 flex-shrink-0 brand-gradient text-white rounded-lg flex items-center justify-center font-bold text-sm">3</div>
+                        <div>
+                            <h4 class="font-semibold text-white text-sm mb-1">Interview Stage</h4>
+                            <p class="text-white/60 text-xs leading-relaxed">Virtual or in-person interview for select programs.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <div class="w-9 h-9 flex-shrink-0 brand-gradient text-white rounded-lg flex items-center justify-center font-bold text-sm">4</div>
+                        <div>
+                            <h4 class="font-semibold text-white text-sm mb-1">Decision &amp; Enrollment</h4>
+                            <p class="text-white/60 text-xs leading-relaxed">Receive your decision and begin the enrollment process.</p>
+                        </div>
+                    </li>
+                </ol>
+            </div>
+        </div>
+        <div class="reveal mt-6 pt-6 border-t border-white/10 flex flex-wrap items-center gap-2">
+            <i data-lucide="users" class="w-4 h-4 text-sky" aria-hidden="true"></i>
+            <span class="text-white/60 text-xs">Our team is here to help you through the process</span>
+            <span class="mx-2 text-white/20">|</span>
+            <i data-lucide="shield-check" class="w-4 h-4 text-sky" aria-hidden="true"></i>
+            <span class="text-white/60 text-xs">Secure &amp; confidential process</span>
         </div>
 
     </div>
 </section>
 
-<!-- Contact Form Section -->
-<section id="contact" class="py-20 bg-soft" aria-labelledby="contact-heading">
+<!-- Blog Preview (PRD "Latest articles") -->
+{% if recent_posts %}
+<section class="py-20 bg-soft">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-wrap items-end justify-between gap-4 reveal">
+            <div>
+                <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Knowledge centre</span>
+                <h2 class="mt-3 text-3xl sm:text-4xl font-sora font-bold text-navy">From the blog</h2>
+            </div>
+            <a href="{% url 'eduweb:blog' %}" class="inline-flex items-center gap-1 text-sm font-semibold text-brandblue">Visit the blog <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+        </div>
+        <div class="mt-10 grid md:grid-cols-3 gap-6">
+            {% for post in recent_posts|slice:":3" %}
+            <a href="{% url 'eduweb:blog_detail' post.slug %}" class="reveal bg-white rounded-2xl border border-borderblue overflow-hidden hover:shadow-brand transition block">
+                {% if post.featured_image %}
+                <div class="h-36 bg-gray-100 overflow-hidden">
+                    <img src="{{ post.featured_image.url }}" alt="{{ post.featured_image_alt|default:post.title }}" class="w-full h-full object-cover" loading="lazy">
+                </div>
+                {% else %}
+                <div class="h-36 brand-gradient flex items-center justify-center"><i data-lucide="file-text" class="w-8 h-8 text-white/80"></i></div>
+                {% endif %}
+                <div class="p-5">
+                    {% if post.category %}<span class="text-xs font-semibold text-brandblue uppercase">{{ post.category.name }}</span>{% endif %}
+                    <h3 class="mt-2 font-sora font-semibold text-navy">{{ post.title }}</h3>
+                    <div class="mt-3 text-xs text-slate-500">{{ post.read_time }} min read</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- CTA (PRD "Call to action") — light (white): sits right after the always-
+     rendering dark How to Apply section, and Blog Preview (DB-driven,
+     between them) can't be relied on to break up the dark-on-dark. -->
+<section class="py-20 bg-white">
+    <div class="max-w-4xl mx-auto text-center px-4 reveal">
+        <h2 class="text-3xl sm:text-4xl font-sora font-bold text-navy">Have a technology challenge?</h2>
+        <p class="mt-4 text-lg text-slate-600">Tell us what you're building or what's at risk — we'll help you plan the right next step.</p>
+        <div class="mt-8 flex flex-wrap gap-4 justify-center">
+            <a href="{% url 'eduweb:consultation_booking' %}" class="inline-flex items-center gap-2 px-8 py-3.5 rounded-lg text-white font-semibold brand-gradient shadow-brand hover:opacity-95 transition">Book a Consultation <i data-lucide="arrow-right" class="w-4 h-4"></i></a>
+            <a href="#contact" class="inline-flex items-center gap-2 px-8 py-3.5 rounded-lg text-navy font-semibold border border-borderblue hover:bg-ice transition">Contact Us</a>
+        </div>
+    </div>
+</section>
+
+<!-- Newsletter -->
+<section class="py-14 bg-soft border-t border-borderblue">
+    <div class="max-w-3xl mx-auto px-4 text-center reveal">
+        <h3 class="text-xl font-sora font-bold text-navy">Stay ahead of the curve</h3>
+        <p class="mt-2 text-sm text-slate-600">Occasional insights on software, security and AI. No spam.</p>
+        <form id="homepageNewsletterForm" action="{% url 'eduweb:newsletter_subscribe' %}" method="POST" class="mt-6 flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
+            {% csrf_token %}
+            <label for="homepageNewsletterEmail" class="sr-only">Email address</label>
+            <input id="homepageNewsletterEmail" name="email" type="email" required placeholder="you@company.com" class="flex-1 px-4 py-3 rounded-lg border border-borderblue text-sm outline-none focus:border-brandblue" />
+            <button type="submit" class="px-6 py-3 rounded-lg brand-gradient text-white font-semibold text-sm hover:opacity-95">Subscribe</button>
+        </form>
+    </div>
+</section>
+
+<!-- Contact Form Section — white, so it doesn't land on the same dark tone
+     as the footer immediately below it (or Find Us, if that renders too). -->
+<section id="contact" class="py-20 bg-white" aria-labelledby="contact-heading">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-2xl mx-auto reveal mb-12">
             <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Get In Touch</span>
@@ -890,7 +779,11 @@
             <p class="mt-4 text-slate-600">Ready to start a project or have a question about our services? Reach out below.</p>
         </div>
 
+        {% if site_config.address_usa or site_config.email_admissions or site_config.email_info or site_config.email_international or site_config.email or site_config.phone_admissions or site_config.phone_general or site_config.phone_international or site_config.phone_primary or site_config.office_hours_weekday or site_config.office_hours_saturday or site_config.office_hours_sunday %}
         <div class="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+        {% else %}
+        <div class="max-w-2xl mx-auto">
+        {% endif %}
 
             <!-- Contact Form -->
             <div class="reveal bg-white rounded-2xl border border-borderblue shadow-card p-6 sm:p-8 lg:p-10">
@@ -916,18 +809,20 @@
                     <input type="hidden" name="next" value="{{ request.path }}">
                     {% csrf_token %}
 
-                    <div>
-                        <label for="contactName" class="block text-sm font-semibold text-slate-700 mb-2">
-                            Your Name <span class="text-red-500">*</span>
-                        </label>
-                        <input id="contactName" name="name" required type="text" class="w-full px-4 py-3 border border-borderblue rounded-lg focus:border-brandblue focus:ring-4 focus:ring-ice transition-all outline-none" placeholder="John Smith" />
-                    </div>
+                    <div class="grid sm:grid-cols-2 gap-5">
+                        <div>
+                            <label for="contactName" class="block text-sm font-semibold text-slate-700 mb-2">
+                                Your Name <span class="text-red-500">*</span>
+                            </label>
+                            <input id="contactName" name="name" required type="text" class="w-full px-4 py-3 border border-borderblue rounded-lg focus:border-brandblue focus:ring-4 focus:ring-ice transition-all outline-none" placeholder="John Smith" />
+                        </div>
 
-                    <div>
-                        <label for="contactEmail" class="block text-sm font-semibold text-slate-700 mb-2">
-                            Your Email <span class="text-red-500">*</span>
-                        </label>
-                        <input id="contactEmail" name="email" required type="email" class="w-full px-4 py-3 border border-borderblue rounded-lg focus:border-brandblue focus:ring-4 focus:ring-ice transition-all outline-none" placeholder="john@example.com" />
+                        <div>
+                            <label for="contactEmail" class="block text-sm font-semibold text-slate-700 mb-2">
+                                Your Email <span class="text-red-500">*</span>
+                            </label>
+                            <input id="contactEmail" name="email" required type="email" class="w-full px-4 py-3 border border-borderblue rounded-lg focus:border-brandblue focus:ring-4 focus:ring-ice transition-all outline-none" placeholder="john@example.com" />
+                        </div>
                     </div>
 
                     <div>
@@ -974,7 +869,11 @@
                 </form>
             </div>
 
-            <!-- Contact Information Cards -->
+            <!-- Contact Information Cards — only when at least one of the four
+                 cards below actually has data; otherwise this whole column
+                 (including its heading) is skipped and the form centers
+                 itself via the max-w-2xl mx-auto wrapper above. -->
+            {% if site_config.address_usa or site_config.email_admissions or site_config.email_info or site_config.email_international or site_config.email or site_config.phone_admissions or site_config.phone_general or site_config.phone_international or site_config.phone_primary or site_config.office_hours_weekday or site_config.office_hours_saturday or site_config.office_hours_sunday %}
             <div class="space-y-6">
                 <div class="flex items-center gap-3 mb-4 reveal">
                     <div class="w-12 h-12 rounded-xl bg-ice flex items-center justify-center text-brandblue">
@@ -1072,13 +971,14 @@
                 </div>
                 {% endif %}
             </div>
+            {% endif %}
         </div>
     </div>
 </section>
 
 <!-- Find Us Section — only renders when real location data is configured -->
 {% if site_config.campus_map_embed_url or site_config.address_usa or site_config.address_nigeria %}
-<section id="find-us" class="py-20 bg-white" aria-labelledby="find-us-heading">
+<section id="find-us" class="py-20 bg-soft" aria-labelledby="find-us-heading">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-2xl mx-auto reveal mb-12">
             <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Find Us</span>
@@ -1152,212 +1052,6 @@
 
 {% block extra_js %}
 <script>
-    // Enhanced Hero Carousel with Video Completion Detection
-    (function() {
-        const heroBackgrounds = document.querySelectorAll('.hero-bg');
-        const heroIndicators = document.querySelectorAll('.hero-indicator');
-        const heroDotButtons = document.querySelectorAll('.hero-dot-btn');
-        const heroVideos = document.querySelectorAll('.hero-bg video');
-        let currentBg = 0;
-        let rotationTimer = null;
-        let isUserInteracting = false;
-
-        // Preload and setup all videos
-        function setupVideos() {
-            heroVideos.forEach((video, index) => {
-                // Set preload strategy
-                if (index === 0) {
-                    video.preload = 'auto';
-                    video.load();
-                } else {
-                    video.preload = 'metadata';
-                }
-
-                // Add ended event listener for auto-advance
-                video.addEventListener('ended', () => {
-                    if (!isUserInteracting && index === currentBg) {
-                        advanceToNext();
-                    }
-                });
-
-                // Add error handling
-                video.addEventListener('error', (e) => {
-                    console.log(`Video ${index} load issue, using poster image`);
-                });
-            });
-        }
-
-        // Update progress indicators
-        function updateIndicators(index) {
-            heroIndicators.forEach((indicator, i) => {
-                indicator.classList.toggle('active', i === index);
-            });
-        }
-
-        // Show specific background
-        function showBackground(index) {
-            const targetBg = heroBackgrounds[index];
-            const targetType = targetBg.getAttribute('data-type');
-            const targetDuration = parseInt(targetBg.getAttribute('data-duration')) * 1000;
-
-            // Hide all backgrounds
-            heroBackgrounds.forEach(bg => {
-                bg.classList.remove('active');
-                bg.style.opacity = '0';
-                const video = bg.querySelector('video');
-                if (video) {
-                    video.pause();
-                    video.currentTime = 0;
-                }
-            });
-
-            // Show target background
-            setTimeout(() => {
-                targetBg.classList.add('active');
-                targetBg.style.opacity = '1';
-                updateIndicators(index);
-
-                // Handle video or image
-                if (targetType === 'video') {
-                    const video = targetBg.querySelector('video');
-                    if (video) {
-                        // Preload next video
-                        const nextIndex = (index + 1) % heroBackgrounds.length;
-                        const nextVideo = heroBackgrounds[nextIndex].querySelector('video');
-                        if (nextVideo && nextVideo.preload !== 'auto') {
-                            nextVideo.preload = 'auto';
-                            nextVideo.load();
-                        }
-
-                        // Play current video
-                        const playPromise = video.play();
-                        if (playPromise !== undefined) {
-                            playPromise.catch(err => {
-                                console.log('Video autoplay prevented, using fallback timer');
-                                scheduleNextTransition(targetDuration);
-                            });
-                        }
-                    }
-                } else {
-                    // For images, schedule next transition
-                    scheduleNextTransition(targetDuration);
-                }
-
-                currentBg = index;
-            }, 100);
-        }
-
-        // Schedule next transition for images
-        function scheduleNextTransition(duration) {
-            clearTimeout(rotationTimer);
-            if (!isUserInteracting) {
-                rotationTimer = setTimeout(advanceToNext, duration);
-            }
-        }
-
-        // Advance to next background
-        function advanceToNext() {
-            const nextIndex = (currentBg + 1) % heroBackgrounds.length;
-            showBackground(nextIndex);
-        }
-
-        // Manual navigation via indicators
-        heroDotButtons.forEach((btn, index) => {
-            btn.addEventListener('click', () => {
-                isUserInteracting = true;
-                clearTimeout(rotationTimer);
-                showBackground(index);
-                
-                // Resume auto-rotation after 10 seconds of user interaction
-                setTimeout(() => {
-                    isUserInteracting = false;
-                    const currentBgElem = heroBackgrounds[currentBg];
-                    const currentType = currentBgElem.getAttribute('data-type');
-                    if (currentType === 'image') {
-                        const duration = parseInt(currentBgElem.getAttribute('data-duration')) * 1000;
-                        scheduleNextTransition(duration);
-                    }
-                }, 10000);
-            });
-        });
-
-        // Pause on hover (optional)
-        const heroSection = document.getElementById('hero-background');
-        heroSection.addEventListener('mouseenter', () => {
-            isUserInteracting = true;
-            clearTimeout(rotationTimer);
-        });
-
-        heroSection.addEventListener('mouseleave', () => {
-            isUserInteracting = false;
-            const currentBgElem = heroBackgrounds[currentBg];
-            const currentType = currentBgElem.getAttribute('data-type');
-            const currentVideo = currentBgElem.querySelector('video');
-            
-            // Resume based on media type
-            if (currentType === 'video' && currentVideo && currentVideo.paused) {
-                currentVideo.play().catch(() => {});
-            } else if (currentType === 'image') {
-                const duration = parseInt(currentBgElem.getAttribute('data-duration')) * 1000;
-                scheduleNextTransition(duration);
-            }
-        });
-
-        // Handle visibility change (tab switching)
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                isUserInteracting = true;
-                clearTimeout(rotationTimer);
-                const currentVideo = heroBackgrounds[currentBg].querySelector('video');
-                if (currentVideo) currentVideo.pause();
-            } else {
-                isUserInteracting = false;
-                const currentBgElem = heroBackgrounds[currentBg];
-                const currentType = currentBgElem.getAttribute('data-type');
-                const currentVideo = currentBgElem.querySelector('video');
-                
-                if (currentType === 'video' && currentVideo) {
-                    currentVideo.play().catch(() => {});
-                } else if (currentType === 'image') {
-                    const duration = parseInt(currentBgElem.getAttribute('data-duration')) * 1000;
-                    scheduleNextTransition(duration);
-                }
-            }
-        });
-
-        // Keyboard navigation for accessibility
-        heroSection.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') {
-                e.preventDefault();
-                const prevIndex = (currentBg - 1 + heroBackgrounds.length) % heroBackgrounds.length;
-                showBackground(prevIndex);
-            } else if (e.key === 'ArrowRight') {
-                e.preventDefault();
-                advanceToNext();
-            }
-        });
-
-        // Initialize
-        setupVideos();
-        updateIndicators(0);
-        
-        // Initialize first slide based on its type
-        const firstBg = heroBackgrounds[0];
-        const firstType = firstBg.getAttribute('data-type');
-        const firstVideo = firstBg.querySelector('video');
-
-        if (firstType === 'video' && firstVideo) {
-            firstVideo.play().catch(() => {
-                const duration = parseInt(firstBg.getAttribute('data-duration')) * 1000;
-                scheduleNextTransition(duration);
-            });
-        } else {
-            // It's an image — schedule the next transition
-            const duration = parseInt(firstBg.getAttribute('data-duration')) * 1000;
-            scheduleNextTransition(duration);
-        }
-    })();
-
     // Testimonials — DB-driven
     {% if testimonials %}
     const testimonials = [
@@ -1394,11 +1088,11 @@
 
         document.querySelectorAll('.testimonial-indicator').forEach((indicator, i) => {
             if (i === index) {
-                indicator.classList.remove('bg-accent-300');
-                indicator.classList.add('bg-primary-950', 'active');
+                indicator.classList.remove('bg-borderblue');
+                indicator.classList.add('bg-brandblue', 'active');
             } else {
-                indicator.classList.remove('bg-primary-950', 'active');
-                indicator.classList.add('bg-accent-300');
+                indicator.classList.remove('bg-brandblue', 'active');
+                indicator.classList.add('bg-borderblue');
             }
         });
     }
