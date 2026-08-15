@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Application Status - Modern International University{% endblock %}
+{% block title %}Application Status - {{ site_config.school_name|default:"Abraytech" }}{% endblock %}
 
 {% block content %}
 <style>
@@ -27,13 +27,29 @@
     }
 
     .document-upload-area:hover {
-        border-color: #840384;
+        border-color: #0B5CFF;
         background-color: #F9FAFB;
     }
 
     .document-upload-area.dragover {
-        border-color: #840384;
-        background-color: #F3E8FF;
+        border-color: #0B5CFF;
+        background-color: #EAF6FF;
+    }
+
+    .document-upload-area-mini {
+        transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .document-upload-area-mini.dragover {
+        border-color: #0B5CFF;
+        background-color: #EAF6FF;
+        box-shadow: 0 0 0 4px rgba(11, 92, 255, 0.15);
+    }
+
+    /* A lone trailing card in the 2-col grid (odd total count) spans the
+       full row instead of sitting half-width next to empty space. */
+    #uploadSections .upload-section:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
     }
 
     .modal {
@@ -77,7 +93,7 @@
     }
 </style>
 
-<div class="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 py-12">
+<div class="min-h-screen bg-gradient-to-br from-soft via-ice to-soft py-12">
     <div class="container mx-auto px-4 max-w-[90rem]">
         
         <!-- Header -->
@@ -85,7 +101,7 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
                 <div>
                     <h1 class="text-3xl md:text-4xl font-bold text-gray-900 flex items-center gap-3">
-                        <div class="w-12 h-12 bg-gradient-to-br from-primary-950 to-purple-700 rounded-xl flex items-center justify-center shadow-lg">
+                        <div class="w-12 h-12 bg-gradient-to-br from-navy to-brandblue rounded-xl flex items-center justify-center shadow-lg">
                             <i data-lucide="clipboard-list" class="w-7 h-7 text-white"></i>
                         </div>
                         Application Dashboard
@@ -106,7 +122,7 @@
                     <form method="post" action="{% url 'eduweb:accept_admission' application.application_id %}" style="display: inline;">
                         {% csrf_token %}
                         <button type="submit" 
-                        class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300">
+                        class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-brandblue to-sky text-white rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300">
                             <i data-lucide="check-circle" class="w-5 h-5"></i>
                             Accept Admission Offer
                         </button>
@@ -115,14 +131,14 @@
                     {% if application.can_access_student_portal %}
                     <!-- Student Dashboard Access -->
                     <a href="{% url 'students:dashboard' %}" 
-                    class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300">
+                    class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-brandblue to-sky text-white rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300">
                         <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                         Go to Student Dashboard
                     </a>
                     {% endif %}
 
                     <a href="{% url 'eduweb:index' %}" 
-                    class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-gray-300 rounded-lg font-semibold text-gray-700 hover:border-primary-950 hover:text-primary-950 transition-all duration-300 shadow-sm hover:shadow-md">
+                    class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-gray-300 rounded-lg font-semibold text-gray-700 hover:border-brandblue hover:text-navy transition-all duration-300 shadow-sm hover:shadow-md">
                         <i data-lucide="home" class="w-5 h-5"></i>
                         Back to Home
                     </a>
@@ -135,14 +151,14 @@
             <div class="rounded-xl p-6 mb-8 border-2 animate-slide-down 
                 {% if application.status == 'approved' %}bg-gradient-to-r from-green-50 to-emerald-50 border-green-300
                 {% elif application.status == 'rejected' %}bg-gradient-to-r from-red-50 to-rose-50 border-red-300
-                {% else %}bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-300{% endif %} shadow-lg">
+                {% else %}bg-gradient-to-r from-ice to-soft border-borderblue{% endif %} shadow-lg">
                 <div class="flex items-start">
                     <div class="flex-shrink-0">
                         <div class="w-12 h-12 rounded-full 
                             {% if application.status == 'approved' %}bg-green-500
                             {% elif application.status == 'rejected' %}bg-red-500
                             {% elif application.status == 'waitlisted' %}bg-yellow-500
-                            {% else %}bg-blue-500{% endif %} flex items-center justify-center shadow-md">
+                            {% else %}bg-brandblue{% endif %} flex items-center justify-center shadow-md">
                             <i data-lucide="{% if application.status == 'approved' %}check-circle{% elif application.status == 'rejected' %}x-circle{% else %}clock{% endif %}" class="w-7 h-7 text-white"></i>
                         </div>
                     </div>
@@ -194,14 +210,14 @@
             </div>
             {% else %}
             <!-- No Application -->
-            <div class="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-xl p-8 text-center shadow-lg animate-scale-in">
+            <div class="bg-gradient-to-r from-gold-50 to-gold-100 border-2 border-gold-300 rounded-xl p-8 text-center shadow-lg animate-scale-in">
                 <div class="w-20 h-20 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
                     <i data-lucide="alert-triangle" class="w-10 h-10 text-white"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-3">No Application Found</h3>
                 <p class="text-gray-700 mb-6 max-w-md mx-auto">You haven't submitted an application yet. Start your journey with us today!</p>
                 <a href="{% url 'eduweb:apply' %}" 
-                   class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary-950 to-purple-700 text-white rounded-lg font-bold text-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
+                   class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-navy to-brandblue text-white rounded-lg font-bold text-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
                     <i data-lucide="rocket" class="w-6 h-6"></i>
                     Start Application
                 </a>
@@ -218,7 +234,7 @@
                 <!-- Progress Tracker -->
                 <section class="bg-white rounded-xl shadow-xl p-6 md:p-8 border border-gray-200 animate-slide-up">
                     <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                        <div class="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-primary-950 to-purple-700 rounded-lg flex items-center justify-center mr-3 shadow-md">
+                        <div class="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-navy to-brandblue rounded-lg flex items-center justify-center mr-3 shadow-md">
                             <i data-lucide="activity" class="w-5 h-5 md:w-6 md:h-6 text-white"></i>
                         </div>
                         Application Progress
@@ -260,7 +276,7 @@
 
                                     {% if not application.is_paid %}
                                     <a href="{% url 'eduweb:payments' %}?application_id={{ application.application_id }}"
-                                       class="mt-3 px-4 py-2 bg-primary-950 text-white rounded-lg text-xs font-semibold hover:opacity-90 transition">
+                                       class="mt-3 px-4 py-2 bg-brandblue text-white rounded-lg text-xs font-semibold hover:opacity-90 transition">
                                         Make Payment
                                     </a>
                                     {% endif %}
@@ -270,7 +286,7 @@
 
                                 <!-- Step 3: Documents -->
                                 <div class="flex flex-col items-center">
-                                    <div class="w-16 h-16 rounded-full {% if application.is_paid %}{% if application.documents.all %}bg-green-500{% else %}bg-blue-500 shadow-xl animate-pulse{% endif %}{% else %}bg-gray-300{% endif %} text-white flex items-center justify-center text-lg mb-3 z-10 shadow-lg relative">
+                                    <div class="w-16 h-16 rounded-full {% if application.is_paid %}{% if application.documents.all %}bg-green-500{% else %}bg-brandblue shadow-xl animate-pulse{% endif %}{% else %}bg-gray-300{% endif %} text-white flex items-center justify-center text-lg mb-3 z-10 shadow-lg relative">
                                         {% if application.documents.all %}
                                         <i data-lucide="check" class="w-8 h-8"></i>
                                         {% else %}
@@ -286,7 +302,7 @@
 
                                     {% if application.is_paid and not application.documents.all %}
                                     <button onclick="openUploadModal()"
-                                            class="mt-3 px-4 py-2 bg-primary-950 text-white rounded-lg text-xs font-semibold hover:opacity-90 transition">
+                                            class="mt-3 px-4 py-2 bg-brandblue text-white rounded-lg text-xs font-semibold hover:opacity-90 transition">
                                         Upload Documents
                                     </button>
                                     {% elif application.documents.all %}
@@ -300,7 +316,7 @@
                                 <div class="flex flex-col items-center">
                                     <div class="w-16 h-16 rounded-full
                                         {% if application.status in 'under_review,approved,rejected' %}bg-green-500
-                                        {% elif application.status == 'documents_uploaded' %}bg-blue-500 shadow-xl animate-pulse
+                                        {% elif application.status == 'documents_uploaded' %}bg-brandblue shadow-xl animate-pulse
                                         {% else %}bg-gray-300{% endif %}
                                         text-white flex items-center justify-center text-lg mb-3 z-10 shadow-lg relative">
                                         {% if application.status in 'under_review,approved,rejected' %}
@@ -326,7 +342,7 @@
                                     <div class="w-16 h-16 rounded-full
                                         {% if application.status == 'approved' %}bg-green-500 shadow-xl
                                         {% elif application.status == 'rejected' %}bg-red-500 shadow-xl
-                                        {% elif application.status in 'under_review,reviewed' %}bg-blue-500 animate-pulse
+                                        {% elif application.status in 'under_review,reviewed' %}bg-brandblue animate-pulse
                                         {% else %}bg-gray-300{% endif %} text-white flex items-center justify-center text-lg mb-3 z-10 shadow-lg relative">
                                         {% if application.status == 'approved' %}
                                         <i data-lucide="check-circle" class="w-8 h-8"></i>
@@ -353,7 +369,7 @@
                                 <div class="flex flex-col items-center">
                                     <div class="w-16 h-16 rounded-full
                                         {% if application.can_access_student_portal %}bg-green-500 shadow-xl
-                                        {% elif application.admission_accepted %}bg-blue-500 animate-pulse
+                                        {% elif application.admission_accepted %}bg-brandblue animate-pulse
                                         {% else %}bg-gray-300{% endif %}
                                         text-white flex items-center justify-center text-lg mb-3 z-10 shadow-lg relative">
                                         {% if application.can_access_student_portal %}
@@ -393,7 +409,7 @@
                         <!-- STEP 2: Payment -->
                         <div class="p-4 rounded-xl border
         {% if application.is_paid %}bg-green-50 border-green-400
-        {% else %}bg-blue-50 border-blue-400{% endif %}">
+        {% else %}bg-ice border-brandblue{% endif %}">
                             <h4 class="font-bold text-gray-900">💳 Payment</h4>
                             <p class="text-sm text-gray-600">
                                 {% if application.is_paid %}Payment completed{% else %}Payment required{% endif %}
@@ -401,7 +417,7 @@
 
                             {% if not application.is_paid %}
                             <a href="{% url 'eduweb:payments' %}?application_id={{ application.application_id }}"
-                               class="mt-3 inline-block w-full text-center px-4 py-2 bg-primary-950 text-white rounded-lg text-sm font-semibold">
+                               class="mt-3 inline-block w-full text-center px-4 py-2 bg-brandblue text-white rounded-lg text-sm font-semibold">
                                 Make Payment
                             </a>
                             {% endif %}
@@ -410,7 +426,7 @@
                         <!-- STEP 3: Documents -->
                         <div class="p-4 rounded-xl border
         {% if application.documents.all %}bg-green-50 border-green-400
-        {% elif application.is_paid %}bg-blue-50 border-blue-400
+        {% elif application.is_paid %}bg-ice border-brandblue
         {% else %}bg-gray-50 border-gray-300{% endif %}">
                             <h4 class="font-bold text-gray-900">📄 Documents</h4>
                             <p class="text-sm text-gray-600">
@@ -425,7 +441,7 @@
 
                             {% if application.is_paid and not application.documents.all %}
                             <button onclick="openUploadModal()"
-                                    class="mt-3 w-full px-4 py-2 bg-primary-950 text-white rounded-lg text-sm font-semibold">
+                                    class="mt-3 w-full px-4 py-2 bg-brandblue text-white rounded-lg text-sm font-semibold">
                                 Upload Documents
                             </button>
                             {% endif %}
@@ -436,7 +452,7 @@
         {% if application.status in 'under_review,approved,rejected' %}
             bg-green-50 border-green-400
         {% elif application.documents.all %}
-            bg-blue-50 border-blue-400
+            bg-ice border-brandblue
         {% else %}
             bg-gray-50 border-gray-300
         {% endif %}">
@@ -459,7 +475,7 @@
         {% elif application.status == 'rejected' %}
             bg-red-50 border-red-400
         {% elif application.status in 'under_review,reviewed' %}
-            bg-blue-50 border-blue-400
+            bg-ice border-brandblue
         {% else %}
             bg-gray-50 border-gray-300
         {% endif %}">
@@ -490,7 +506,7 @@
         {% if application.can_access_student_portal %}
             bg-green-50 border-green-400
         {% elif application.admission_accepted %}
-            bg-blue-50 border-blue-400
+            bg-ice border-brandblue
         {% else %}
             bg-gray-50 border-gray-300
         {% endif %}">
@@ -509,7 +525,7 @@
                             <form method="post" action="{% url 'eduweb:accept_admission' application.application_id %}">
                                 {% csrf_token %}
                                 <button type="submit"
-                                        class="mt-3 w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold">
+                                        class="mt-3 w-full px-4 py-2 bg-brandblue text-white rounded-lg text-sm font-semibold">
                                     Accept Admission Offer
                                 </button>
                             </form>
@@ -517,7 +533,7 @@
 
                             {% if application.can_access_student_portal %}
                             <a href="{% url 'students:dashboard' %}"
-                               class="mt-3 inline-block w-full text-center px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold">
+                               class="mt-3 inline-block w-full text-center px-4 py-2 bg-brandblue text-white rounded-lg text-sm font-semibold">
                                 Go to Student Dashboard
                             </a>
                             {% endif %}
@@ -532,130 +548,108 @@
                 <!-- Application Summary -->
                 <section class="bg-white rounded-xl shadow-xl p-8 border border-gray-200 animate-slide-up">
                     <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                        <div class="w-10 h-10 bg-gradient-to-br from-primary-950 to-purple-700 rounded-lg flex items-center justify-center mr-3 shadow-md">
+                        <div class="w-10 h-10 bg-gradient-to-br from-navy to-brandblue rounded-lg flex items-center justify-center mr-3 shadow-md">
                             <i data-lucide="file-text" class="w-6 h-6 text-white"></i>
                         </div>
                         Application Summary
                     </h2>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="space-y-6">
-                            <div class="group">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i data-lucide="user" class="w-4 h-4 text-primary-950"></i>
-                                    <p class="text-sm font-medium text-gray-500">Applicant Name</p>
-                                </div>
-                                <p class="text-lg font-semibold text-gray-900 ml-6">{{ application.get_full_name }}</p>
-                            </div>
-                            <div class="group">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i data-lucide="hash" class="w-4 h-4 text-primary-950"></i>
-                                    <p class="text-sm font-medium text-gray-500">Application ID</p>
-                                </div>
-                                <p class="text-lg font-semibold text-gray-900 ml-6 font-mono">{{ application.application_id }}</p>
-                            </div>
-                            <div class="group">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i data-lucide="book-open" class="w-4 h-4 text-primary-950"></i>
-                                    <p class="text-sm font-medium text-gray-500">Program Applied</p>
-                                </div>
-                                <p class="text-lg font-semibold text-gray-900 ml-6">{{ application.program.name }}</p>
-                            </div>
-                            <div class="group">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i data-lucide="layers" class="w-4 h-4 text-primary-950"></i>
-                                    <p class="text-sm font-medium text-gray-500">Study Mode</p>
-                                </div>
-                                <p class="text-lg font-semibold text-gray-900 ml-6">{{ application.get_study_mode_display }}</p>
-                            </div>
-                            <div class="group">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i data-lucide="phone" class="w-4 h-4 text-primary-950"></i>
-                                    <p class="text-sm font-medium text-gray-500">Phone Number</p>
-                                </div>
-                                <p class="text-lg font-semibold text-gray-900 ml-6">{{ application.phone }}</p>
-                            </div>
-                            <div class="group">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i data-lucide="flag" class="w-4 h-4 text-primary-950"></i>
-                                    <p class="text-sm font-medium text-gray-500">Nationality</p>
-                                </div>
-                                <p class="text-lg font-semibold text-gray-900 ml-6">{{ application.nationality }}</p>
-                            </div>
-                            <div class="group">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i data-lucide="cake" class="w-4 h-4 text-primary-950"></i>
-                                    <p class="text-sm font-medium text-gray-500">Date of Birth</p>
-                                </div>
-                                <p class="text-lg font-semibold text-gray-900 ml-6">{{ application.date_of_birth|date:"F d, Y" }}</p>
-                            </div>
-                        </div>
-
-                        <div class="space-y-6">
-                            <div class="group">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i data-lucide="graduation-cap" class="w-4 h-4 text-primary-950"></i>
-                                    <p class="text-sm font-medium text-gray-500">Degree Level</p>
-                                </div>
-                                <p class="text-lg font-semibold text-gray-900 ml-6">{{ application.program.get_degree_level_display }}</p>
-                            </div>
-                            <div class="group">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i data-lucide="calendar" class="w-4 h-4 text-primary-950"></i>
-                                    <p class="text-sm font-medium text-gray-500">Academic Session</p>
-                                </div>
-                                <p class="text-lg font-semibold text-gray-900 ml-6">{{ application.academic_session.name|default:"—" }}</p>
-                            </div>
-                            <div class="group">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i data-lucide="layers" class="w-4 h-4 text-primary-950"></i>
-                                    <p class="text-sm font-medium text-gray-500">entry level</p>
-                                </div>
-                                <p class="text-lg font-semibold text-gray-900 ml-6">{% if application.entry_level %}{{ application.entry_level }} level{% else %}—{% endif %}</p>
-                            </div>
-                            <div class="group">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i data-lucide="clock" class="w-4 h-4 text-primary-950"></i>
-                                    <p class="text-sm font-medium text-gray-500">Application Date</p>
-                                </div>
-                                <p class="text-lg font-semibold text-gray-900 ml-6">{{ application.created_at|date:"F d, Y" }}</p>
-                            </div>
-                            <div class="group">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i data-lucide="award" class="w-4 h-4 text-primary-950"></i>
-                                    <p class="text-sm font-medium text-gray-500">Highest Qualification</p>
-                                </div>
-                                <p class="text-lg font-semibold text-gray-900 ml-6">{{ application.highest_qualification }}</p>
-                            </div>
-                            <div class="group">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i data-lucide="building" class="w-4 h-4 text-primary-950"></i>
-                                    <p class="text-sm font-medium text-gray-500">Previous Institution</p>
-                                </div>
-                                <p class="text-lg font-semibold text-gray-900 ml-6">{{ application.institution_name }}</p>
-                            </div>
-                            <div class="group">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i data-lucide="bar-chart" class="w-4 h-4 text-primary-950"></i>
-                                    <p class="text-sm font-medium text-gray-500">GPA / Grade</p>
-                                </div>
-                                <p class="text-lg font-semibold text-gray-900 ml-6">{{ application.gpa_or_grade }}</p>
-                            </div>
-                            <div class="group">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i data-lucide="map-pin" class="w-4 h-4 text-primary-950"></i>
-                                    <p class="text-sm font-medium text-gray-500">Address</p>
-                                </div>
-                                <p class="text-lg font-semibold text-gray-900 ml-6">{{ application.address_line1 }}{% if application.address_line2 %}, {{ application.address_line2 }}{% endif %}, {{ application.city }}, {{ application.country }}</p>
-                            </div>
-                        </div>
+                    <div class="overflow-x-auto rounded-lg border border-gray-200">
+                        <table class="w-full text-sm">
+                            <tbody class="divide-y divide-gray-200">
+                                <tr class="hover:bg-ice/40 transition-colors">
+                                    <th scope="row" class="w-1/3 text-left align-top px-4 py-3 bg-gray-50 font-medium text-gray-500">
+                                        <span class="inline-flex items-center gap-2"><i data-lucide="user" class="w-4 h-4 text-navy"></i> Applicant Name</span>
+                                    </th>
+                                    <td class="px-4 py-3 font-semibold text-gray-900">{{ application.get_full_name }}</td>
+                                </tr>
+                                <tr class="hover:bg-ice/40 transition-colors">
+                                    <th scope="row" class="text-left align-top px-4 py-3 bg-gray-50 font-medium text-gray-500">
+                                        <span class="inline-flex items-center gap-2"><i data-lucide="hash" class="w-4 h-4 text-navy"></i> Application ID</span>
+                                    </th>
+                                    <td class="px-4 py-3 font-semibold text-gray-900 font-mono">{{ application.application_id }}</td>
+                                </tr>
+                                <tr class="hover:bg-ice/40 transition-colors">
+                                    <th scope="row" class="text-left align-top px-4 py-3 bg-gray-50 font-medium text-gray-500">
+                                        <span class="inline-flex items-center gap-2"><i data-lucide="book-open" class="w-4 h-4 text-navy"></i> Program Applied</span>
+                                    </th>
+                                    <td class="px-4 py-3 font-semibold text-gray-900">{{ application.program.name }}</td>
+                                </tr>
+                                <tr class="hover:bg-ice/40 transition-colors">
+                                    <th scope="row" class="text-left align-top px-4 py-3 bg-gray-50 font-medium text-gray-500">
+                                        <span class="inline-flex items-center gap-2"><i data-lucide="phone" class="w-4 h-4 text-navy"></i> Phone Number</span>
+                                    </th>
+                                    <td class="px-4 py-3 font-semibold text-gray-900">{{ application.phone }}</td>
+                                </tr>
+                                <tr class="hover:bg-ice/40 transition-colors">
+                                    <th scope="row" class="text-left align-top px-4 py-3 bg-gray-50 font-medium text-gray-500">
+                                        <span class="inline-flex items-center gap-2"><i data-lucide="cake" class="w-4 h-4 text-navy"></i> Age</span>
+                                    </th>
+                                    <td class="px-4 py-3 font-semibold text-gray-900">{{ application.age|default:"—" }}</td>
+                                </tr>
+                                <tr class="hover:bg-ice/40 transition-colors">
+                                    <th scope="row" class="text-left align-top px-4 py-3 bg-gray-50 font-medium text-gray-500">
+                                        <span class="inline-flex items-center gap-2"><i data-lucide="award" class="w-4 h-4 text-navy"></i> Highest Level of Education</span>
+                                    </th>
+                                    <td class="px-4 py-3 font-semibold text-gray-900">{{ application.highest_qualification }}</td>
+                                </tr>
+                                <tr class="hover:bg-ice/40 transition-colors">
+                                    <th scope="row" class="text-left align-top px-4 py-3 bg-gray-50 font-medium text-gray-500">
+                                        <span class="inline-flex items-center gap-2"><i data-lucide="globe" class="w-4 h-4 text-navy"></i> Country</span>
+                                    </th>
+                                    <td class="px-4 py-3 font-semibold text-gray-900">{{ application.country }}</td>
+                                </tr>
+                                <tr class="hover:bg-ice/40 transition-colors">
+                                    <th scope="row" class="text-left align-top px-4 py-3 bg-gray-50 font-medium text-gray-500">
+                                        <span class="inline-flex items-center gap-2"><i data-lucide="map" class="w-4 h-4 text-navy"></i> State</span>
+                                    </th>
+                                    <td class="px-4 py-3 font-semibold text-gray-900">{{ application.state }}</td>
+                                </tr>
+                                <tr class="hover:bg-ice/40 transition-colors">
+                                    <th scope="row" class="text-left align-top px-4 py-3 bg-gray-50 font-medium text-gray-500">
+                                        <span class="inline-flex items-center gap-2"><i data-lucide="map-pin" class="w-4 h-4 text-navy"></i> Address</span>
+                                    </th>
+                                    <td class="px-4 py-3 font-semibold text-gray-900">{{ application.address_line1 }}</td>
+                                </tr>
+                                <tr class="hover:bg-ice/40 transition-colors">
+                                    <th scope="row" class="text-left align-top px-4 py-3 bg-gray-50 font-medium text-gray-500">
+                                        <span class="inline-flex items-center gap-2"><i data-lucide="clock" class="w-4 h-4 text-navy"></i> Application Date</span>
+                                    </th>
+                                    <td class="px-4 py-3 font-semibold text-gray-900">{{ application.created_at|date:"F d, Y" }}</td>
+                                </tr>
+                                {% if application.has_internet_access is not None %}
+                                <tr class="hover:bg-ice/40 transition-colors">
+                                    <th scope="row" class="text-left align-top px-4 py-3 bg-gray-50 font-medium text-gray-500">
+                                        <span class="inline-flex items-center gap-2"><i data-lucide="wifi" class="w-4 h-4 text-navy"></i> Internet Access</span>
+                                    </th>
+                                    <td class="px-4 py-3 font-semibold text-gray-900">{{ application.has_internet_access|yesno:"Yes,No" }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if application.has_laptop is not None %}
+                                <tr class="hover:bg-ice/40 transition-colors">
+                                    <th scope="row" class="text-left align-top px-4 py-3 bg-gray-50 font-medium text-gray-500">
+                                        <span class="inline-flex items-center gap-2"><i data-lucide="laptop" class="w-4 h-4 text-navy"></i> Has Laptop</span>
+                                    </th>
+                                    <td class="px-4 py-3 font-semibold text-gray-900">{{ application.has_laptop|yesno:"Yes,No" }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if application.laptop_configuration %}
+                                <tr class="hover:bg-ice/40 transition-colors">
+                                    <th scope="row" class="text-left align-top px-4 py-3 bg-gray-50 font-medium text-gray-500">
+                                        <span class="inline-flex items-center gap-2"><i data-lucide="cpu" class="w-4 h-4 text-navy"></i> Laptop Configuration</span>
+                                    </th>
+                                    <td class="px-4 py-3 font-semibold text-gray-900">{{ application.laptop_configuration }}</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
                     </div>
                 </section>
 
                 <!-- Uploaded Documents -->
                 <section class="bg-white rounded-xl shadow-xl p-8 border border-gray-200 animate-slide-up">
                     <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                        <div class="w-10 h-10 bg-gradient-to-br from-primary-950 to-purple-700 rounded-lg flex items-center justify-center mr-3 shadow-md">
+                        <div class="w-10 h-10 bg-gradient-to-br from-navy to-brandblue rounded-lg flex items-center justify-center mr-3 shadow-md">
                             <i data-lucide="folder-open" class="w-6 h-6 text-white"></i>
                         </div>
                         Uploaded Documents
@@ -664,9 +658,9 @@
                     {% if application.documents.all %}
                     <div class="space-y-3">
                         {% for document in application.documents.all %}
-                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-purple-300 transition-colors">
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-borderblue transition-colors">
                             <div class="flex items-center gap-3 flex-1">
-                                <div class="w-10 h-10 bg-primary-950 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                                <div class="w-10 h-10 bg-brandblue rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
                                     <i data-lucide="file-text" class="w-5 h-5 text-white"></i>
                                 </div>
                                 <div class="flex-1 min-w-0">
@@ -677,7 +671,7 @@
                             {% if document.file %}
                             <div class="flex items-center gap-2">
                                 <a href="{{ document.file.url }}" target="_blank" 
-                                   class="px-4 py-2 bg-white border-2 border-primary-950 text-primary-950 rounded-lg text-sm font-semibold hover:bg-primary-950 hover:text-white transition-all duration-300 flex items-center gap-2">
+                                   class="px-4 py-2 bg-white border-2 border-brandblue text-navy rounded-lg text-sm font-semibold hover:bg-brandblue hover:text-white transition-all duration-300 flex items-center gap-2">
                                     <i data-lucide="eye" class="w-4 h-4"></i>
                                     View
                                 </a>
@@ -694,7 +688,7 @@
                         <p class="text-gray-500 font-medium">No documents uploaded yet</p>
                         {% if application.is_paid and application.status in 'payment_complete,pending_payment,documents_uploaded' %}
                         <button onclick="openUploadModal()" 
-                                class="mt-4 inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-950 to-purple-700 text-white rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300">
+                                class="mt-4 inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-navy to-brandblue text-white rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300">
                             <i data-lucide="upload" class="w-5 h-5"></i>
                             Upload Now
                         </button>
@@ -706,7 +700,7 @@
                 <!-- Activity Timeline -->
                 <section class="bg-white rounded-xl shadow-xl p-8 border border-gray-200 animate-slide-up">
                     <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                        <div class="w-10 h-10 bg-gradient-to-br from-primary-950 to-purple-700 rounded-lg flex items-center justify-center mr-3 shadow-md">
+                        <div class="w-10 h-10 bg-gradient-to-br from-navy to-brandblue rounded-lg flex items-center justify-center mr-3 shadow-md">
                             <i data-lucide="activity" class="w-6 h-6 text-white"></i>
                         </div>
                         Activity Timeline
@@ -730,7 +724,7 @@
                         {% if application.payment %}
                         <div class="flex gap-4">
                             <div class="flex flex-col items-center">
-                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-brandblue to-sky flex items-center justify-center shadow-md">
                                     <i data-lucide="credit-card" class="w-5 h-5 text-white"></i>
                                 </div>
                                 <div class="w-0.5 h-full bg-gray-200 mt-2"></div>
@@ -754,7 +748,7 @@
                         {% if application.documents.exists %}
                         <div class="flex gap-4">
                             <div class="flex flex-col items-center">
-                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-md">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-navy to-brandblue flex items-center justify-center shadow-md">
                                     <i data-lucide="file-text" class="w-5 h-5 text-white"></i>
                                 </div>
                                 {% if application.status not in 'under_review,approved,rejected' %}
@@ -829,9 +823,9 @@
             <div class="space-y-8">
                 
                 <!-- Next Steps Card -->
-                <section class="bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl shadow-xl p-8 border-2 border-purple-200 animate-scale-in sticky top-8">
+                <section class="bg-gradient-to-br from-ice to-soft rounded-xl shadow-xl p-8 border-2 border-borderblue animate-scale-in sticky top-8">
                     <h3 class="font-bold text-gray-900 mb-4 flex items-center text-lg">
-                        <div class="w-8 h-8 bg-gradient-to-br from-primary-950 to-purple-700 rounded-lg flex items-center justify-center mr-2 shadow-md">
+                        <div class="w-8 h-8 bg-gradient-to-br from-navy to-brandblue rounded-lg flex items-center justify-center mr-2 shadow-md">
                             <i data-lucide="compass" class="w-5 h-5 text-white"></i>
                         </div>
                         Next Steps
@@ -840,13 +834,13 @@
                     {% if not application.is_paid %}
                     <!-- Need Payment -->
                     <div class="text-center py-6">
-                        <div class="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                            <i data-lucide="credit-card" class="w-14 h-14 text-blue-600"></i>
+                        <div class="w-24 h-24 bg-ice rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                            <i data-lucide="credit-card" class="w-14 h-14 text-brandblue"></i>
                         </div>
                         <h3 class="text-xl font-bold text-gray-900 mb-3">Complete Payment</h3>
                         <p class="text-gray-600 mb-6 leading-relaxed">Pay the application fee to proceed with document upload and submission.</p>
                         <a href="{% url 'eduweb:payments' %}?application_id={{ application.application_id }}" 
-                           class="inline-flex items-center justify-center gap-2 w-full px-6 py-3 bg-gradient-to-r from-primary-950 to-purple-700 text-white rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300">
+                           class="inline-flex items-center justify-center gap-2 w-full px-6 py-3 bg-gradient-to-r from-navy to-brandblue text-white rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300">
                             <i data-lucide="arrow-right" class="w-5 h-5"></i>
                             Proceed to Payment
                         </a>
@@ -855,13 +849,13 @@
                     {% elif application.is_paid and application.status in 'payment_complete,pending_payment,documents_uploaded' and not application.documents.all %}
                     <!-- Need Documents -->
                     <div class="text-center py-6">
-                        <div class="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                            <i data-lucide="upload" class="w-14 h-14 text-purple-600"></i>
+                        <div class="w-24 h-24 bg-ice rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                            <i data-lucide="upload" class="w-14 h-14 text-brandblue"></i>
                         </div>
                         <h3 class="text-xl font-bold text-gray-900 mb-3">Upload Documents</h3>
                         <p class="text-gray-600 mb-6 leading-relaxed">Payment complete! Upload required documents to submit your application.</p>
                         <button onclick="openUploadModal()" 
-                                class="inline-flex items-center justify-center gap-2 w-full px-6 py-3 bg-gradient-to-r from-primary-950 to-purple-700 text-white rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300">
+                                class="inline-flex items-center justify-center gap-2 w-full px-6 py-3 bg-gradient-to-r from-navy to-brandblue text-white rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300">
                             <i data-lucide="arrow-down" class="w-5 h-5"></i>
                             Upload Documents
                         </button>
@@ -885,7 +879,7 @@
                             </p>
                         </div>
                         <button onclick="openUploadModal()" 
-                                class="inline-flex items-center justify-center gap-2 w-full px-6 py-3 bg-gradient-to-r from-primary-950 to-purple-700 text-white rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300">
+                                class="inline-flex items-center justify-center gap-2 w-full px-6 py-3 bg-gradient-to-r from-navy to-brandblue text-white rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300">
                             <i data-lucide="upload" class="w-5 h-5"></i>
                             Upload More Documents
                         </button>
@@ -919,16 +913,16 @@
                     {% else %}
                     <!-- Under Review -->
                     <div class="text-center py-6">
-                        <div class="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                            <i data-lucide="hourglass" class="w-14 h-14 text-blue-600"></i>
+                        <div class="w-24 h-24 bg-ice rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                            <i data-lucide="hourglass" class="w-14 h-14 text-brandblue"></i>
                         </div>
                         <h3 class="text-xl font-bold text-gray-900 mb-3">Under Review</h3>
                         <p class="text-gray-600 mb-6 leading-relaxed">
                             Your application is being reviewed. Decision will be released within 4-6 weeks.
                         </p>
                         <div class="flex justify-center mb-4">
-                            <div class="h-2 bg-blue-200 rounded-full w-3/4 overflow-hidden shadow-inner">
-                                <div class="h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full animate-pulse" 
+                            <div class="h-2 bg-borderblue rounded-full w-3/4 overflow-hidden shadow-inner">
+                                <div class="h-full bg-gradient-to-r from-brandblue to-sky rounded-full animate-pulse" 
                                     style="width: {% if application.status == 'reviewed' %}90{% elif application.status == 'under_review' %}60{% else %}30{% endif %}%"></div>
                             </div>
                         </div>
@@ -937,29 +931,29 @@
                 </section>
 
                 <!-- Help Section -->
-                <section class="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl shadow-xl p-8 border-2 border-blue-200 animate-scale-in">
+                <section class="bg-gradient-to-br from-ice to-soft rounded-xl shadow-xl p-8 border-2 border-borderblue animate-scale-in">
                     <h3 class="font-bold text-gray-900 mb-4 flex items-center text-lg">
-                        <div class="w-8 h-8 bg-gradient-to-br from-primary-950 to-purple-700 rounded-lg flex items-center justify-center mr-2 shadow-md">
+                        <div class="w-8 h-8 bg-gradient-to-br from-navy to-brandblue rounded-lg flex items-center justify-center mr-2 shadow-md">
                             <i data-lucide="headphones" class="w-5 h-5 text-white"></i>
                         </div>
                         Need Help?
                     </h3>
                     <p class="text-gray-700 mb-4 leading-relaxed">If you have questions about your application, contact our admissions team:</p>
                     <div class="space-y-3">
-                        <a href="mailto:admissions@miu.edu" class="flex items-center gap-3 p-3 bg-white rounded-lg hover:bg-blue-50 transition-colors group">
-                            <div class="w-10 h-10 bg-primary-950 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-sm">
+                        <a href="mailto:{% if site_config.email_admissions %}{{ site_config.email_admissions }}{% else %}admissions@abraytech.com{% endif %}" class="flex items-center gap-3 p-3 bg-white rounded-lg hover:bg-ice transition-colors group">
+                            <div class="w-10 h-10 bg-brandblue rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-sm">
                                 <i data-lucide="mail" class="w-5 h-5 text-white"></i>
                             </div>
-                            <span class="text-sm font-medium text-gray-700 group-hover:text-primary-950">admissions@miu.edu</span>
+                            <span class="text-sm font-medium text-gray-700 group-hover:text-navy">{% if site_config.email_admissions %}{{ site_config.email_admissions }}{% else %}admissions@abraytech.com{% endif %}</span>
                         </a>
-                        <a href="tel:+15551234567" class="flex items-center gap-3 p-3 bg-white rounded-lg hover:bg-blue-50 transition-colors group">
-                            <div class="w-10 h-10 bg-primary-950 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-sm">
+                        <a href="tel:{% if site_config.phone_admissions %}{{ site_config.phone_admissions }}{% elif site_config.phone_primary %}{{ site_config.phone_primary }}{% else %}+18624057143{% endif %}" class="flex items-center gap-3 p-3 bg-white rounded-lg hover:bg-ice transition-colors group">
+                            <div class="w-10 h-10 bg-brandblue rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-sm">
                                 <i data-lucide="phone" class="w-5 h-5 text-white"></i>
                             </div>
-                            <span class="text-sm font-medium text-gray-700 group-hover:text-primary-950">+1 (555) 123-4567</span>
+                            <span class="text-sm font-medium text-gray-700 group-hover:text-navy">+1 (555) 123-4567</span>
                         </a>
                         <div class="flex items-center gap-3 p-3 bg-white rounded-lg">
-                            <div class="w-10 h-10 bg-primary-950 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                            <div class="w-10 h-10 bg-brandblue rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
                                 <i data-lucide="clock" class="w-5 h-5 text-white"></i>
                             </div>
                             <span class="text-sm font-medium text-gray-700">Mon-Fri, 9 AM - 5 PM EST</span>
@@ -977,7 +971,7 @@
     <div class="modal-content bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-4 p-8">
         <div class="flex justify-between items-center mb-6 border-b pb-4">
             <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-primary-950 to-purple-700 rounded-lg flex items-center justify-center shadow-md">
+                <div class="w-10 h-10 bg-gradient-to-br from-navy to-brandblue rounded-lg flex items-center justify-center shadow-md">
                     <i data-lucide="upload" class="w-6 h-6 text-white"></i>
                 </div>
                 Upload Documents
@@ -988,12 +982,12 @@
         </div>
 
         <!-- Enhanced Instructions Section -->
-        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6 mb-6">
+        <div class="bg-gradient-to-br from-ice to-soft border-2 border-borderblue rounded-xl p-6 mb-6">
 
             <div class="flex items-start gap-4">
 
                 <div class="flex-shrink-0">
-                    <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center shadow-lg">
+                    <div class="w-12 h-12 bg-brandblue rounded-full flex items-center justify-center shadow-lg">
                         <i data-lucide="info" class="w-7 h-7 text-white"></i>
                     </div>
                 </div>
@@ -1028,7 +1022,7 @@
 
         </div>
 
-        <div id="uploadSections" class="space-y-4 max-h-96 overflow-y-auto mb-6">
+        <div id="uploadSections" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[32rem] overflow-y-auto mb-6 p-1">
             <!-- Upload sections will be added here dynamically -->
         </div>
 
@@ -1041,17 +1035,17 @@
             </button>
             <button type="button" 
                     onclick="uploadAllDocuments()" 
-                    class="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-950 to-purple-700 text-white rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300">
+                    class="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-navy to-brandblue text-white rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300">
                 <i data-lucide="upload" class="w-5 h-5"></i>
                 Upload All Documents
             </button>
         </div>
 
-        <div class="mt-6 bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+        <div class="mt-6 bg-ice border-2 border-borderblue rounded-lg p-4">
             <label class="flex items-start gap-3 cursor-pointer">
                 <input type="checkbox" 
                        id="globalAutoSubmit" 
-                       class="mt-1 w-5 h-5 text-primary-950 border-gray-300 rounded focus:ring-primary-950">
+                       class="mt-1 w-5 h-5 text-navy border-gray-300 rounded focus:ring-brandblue">
                 <div>
                     <p class="font-semibold text-gray-900">Submit application after all uploads complete</p>
                     <p class="text-sm text-gray-600 mt-1">
@@ -1068,7 +1062,7 @@
                 <span id="progressCount">0 / 0</span>
             </div>
             <div class="h-3 bg-gray-200 rounded-full overflow-hidden">
-                <div id="progressBar" class="h-full bg-gradient-to-r from-primary-950 to-purple-700 transition-all duration-300" style="width: 0%"></div>
+                <div id="progressBar" class="h-full bg-gradient-to-r from-navy to-brandblue transition-all duration-300" style="width: 0%"></div>
             </div>
         </div>
     </div>
@@ -1078,16 +1072,28 @@
     let uploadSectionCounter = 0;
     let uploadedFiles = [];
 
+    const DOC_TYPES = [
+        { value: 'transcript',     label: 'Academic Transcript' },
+        { value: 'certificate',    label: 'Certificate/Diploma' },
+        { value: 'id_document',    label: 'ID Document (Passport/National ID)' },
+        { value: 'passport',       label: 'Passport Copy' },
+        { value: 'cv',             label: 'CV/Resume' },
+        { value: 'recommendation', label: 'Letter of Recommendation' },
+        { value: 'other',          label: 'Other Document' },
+    ];
+    const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
     function createUploadSection() {
         const sectionId = `section-${uploadSectionCounter++}`;
-        
+        const options = DOC_TYPES.map(t => `<option value="${t.value}">${t.label}</option>`).join('');
+
         return `
             <div class="upload-section bg-gray-50 border-2 border-gray-200 rounded-lg p-4" data-section-id="${sectionId}">
                 <div class="flex justify-between items-start mb-3">
                     <h3 class="font-semibold text-gray-900">Document ${uploadSectionCounter}</h3>
                     ${uploadSectionCounter > 1 ? `
-                        <button type="button" 
-                                onclick="removeUploadSection('${sectionId}')" 
+                        <button type="button"
+                                onclick="removeUploadSection('${sectionId}')"
                                 class="text-red-500 hover:text-red-700 transition-colors">
                             <i data-lucide="trash-2" class="w-5 h-5"></i>
                         </button>
@@ -1099,15 +1105,9 @@
                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                             Document Type <span class="text-red-500">*</span>
                         </label>
-                        <select class="doc-type w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-950 focus:border-primary-950" required>
+                        <select class="doc-type w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brandblue focus:border-brandblue" required onchange="syncDocTypeOptions()">
                             <option value="" disabled selected>-- Select Type --</option>
-                            <option value="transcript">Academic Transcript</option>
-                            <option value="certificate">Certificate/Diploma</option>
-                            <option value="id_document">ID Document (Passport/National ID)</option>
-                            <option value="passport">Passport Copy</option>
-                            <option value="cv">CV/Resume</option>
-                            <option value="recommendation">Letter of Recommendation</option>
-                            <option value="other">Other Document</option>
+                            ${options}
                         </select>
                     </div>
 
@@ -1115,17 +1115,22 @@
                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                             Select File <span class="text-red-500">*</span>
                         </label>
-                        <div class="document-upload-area-mini border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-primary-950 hover:bg-purple-50 transition-all cursor-pointer">
-                            <input type="file" 
-                                   class="doc-file hidden" 
-                                   accept=".pdf,.jpg,.jpeg,.png" 
+                        <div class="document-upload-area-mini border-2 border-dashed border-gray-300 rounded-lg p-3"
+                             data-section-id="${sectionId}"
+                             ondragover="handleDragOver(event, this)"
+                             ondragleave="handleDragLeave(event, this)"
+                             ondrop="handleDrop(event, this, '${sectionId}')">
+                            <input type="file"
+                                   class="doc-file hidden"
+                                   accept=".pdf,.jpg,.jpeg,.png"
                                    required
                                    onchange="handleFileSelect(this, '${sectionId}')">
-                            <label class="cursor-pointer block" onclick="this.previousElementSibling.click()">
-                                <i data-lucide="file-plus" class="w-8 h-8 text-primary-950 mx-auto mb-2"></i>
-                                <p class="text-sm text-gray-700 font-medium file-name">Click to select file</p>
-                                <p class="text-xs text-gray-500 mt-1">PDF, JPG, PNG (max 5MB)</p>
-                            </label>
+                            <div class="file-chooser cursor-pointer text-center" onclick="this.closest('.document-upload-area-mini').querySelector('.doc-file').click()">
+                                <i data-lucide="upload-cloud" class="w-7 h-7 text-navy mx-auto mb-1.5"></i>
+                                <p class="text-sm text-gray-700 font-medium">Click or drag a file here</p>
+                                <p class="text-xs text-gray-500 mt-0.5">PDF, JPG, PNG · max 5MB</p>
+                            </div>
+                            <div class="file-preview hidden" onclick="event.stopPropagation()"></div>
                         </div>
                     </div>
                 </div>
@@ -1133,24 +1138,114 @@
         `;
     }
 
+    function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    }
+
+    function getFileKind(filename) {
+        const ext = (filename.split('.').pop() || '').toLowerCase();
+        if (ext === 'pdf') return { icon: 'file-text', color: 'text-red-600', bg: 'bg-red-100', label: 'PDF' };
+        if (IMAGE_EXTENSIONS.includes(ext)) return { icon: 'image', color: 'text-green-600', bg: 'bg-green-100', label: ext.toUpperCase() };
+        return { icon: 'file', color: 'text-gray-600', bg: 'bg-gray-100', label: ext ? ext.toUpperCase() : 'FILE' };
+    }
+
     function handleFileSelect(input, sectionId) {
-        const section = document.querySelector(`[data-section-id="${sectionId}"]`);
-        const fileNameDisplay = section.querySelector('.file-name');
-        
-        if (input.files && input.files[0]) {
-            const file = input.files[0];
-            const fileSize = (file.size / 1024 / 1024).toFixed(2);
-            
-            if (file.size > 5 * 1024 * 1024) {
-                alert('File size must be less than 5MB');
-                input.value = '';
-                fileNameDisplay.textContent = 'Click to select file';
-                return;
-            }
-            
-            fileNameDisplay.textContent = `${file.name} (${fileSize} MB)`;
-            fileNameDisplay.classList.add('text-green-600', 'font-semibold');
+        const zone = document.querySelector(`.document-upload-area-mini[data-section-id="${sectionId}"]`);
+        if (!zone || !input.files || !input.files[0]) return;
+
+        const file = input.files[0];
+        if (file.size > 5 * 1024 * 1024) {
+            alert('File size must be less than 5MB');
+            input.value = '';
+            return;
         }
+
+        const kind = getFileKind(file.name);
+        const isImage = IMAGE_EXTENSIONS.includes((file.name.split('.').pop() || '').toLowerCase());
+        const thumbId = `thumb-${sectionId}`;
+
+        const chooser = zone.querySelector('.file-chooser');
+        const preview = zone.querySelector('.file-preview');
+
+        preview.innerHTML = `
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-lg ${kind.bg} flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    ${isImage
+                        ? `<img id="${thumbId}" class="w-full h-full object-cover" alt="${file.name}">`
+                        : `<i data-lucide="${kind.icon}" class="w-5 h-5 ${kind.color}"></i>`}
+                </div>
+                <div class="min-w-0 flex-1 text-left">
+                    <p class="text-sm font-semibold text-gray-900 truncate" title="${file.name}">${file.name}</p>
+                    <p class="text-xs text-gray-500">${kind.label} · ${formatFileSize(file.size)}</p>
+                </div>
+                <button type="button" class="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0" onclick="clearFileSelection('${sectionId}')" aria-label="Remove file">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>`;
+        chooser.classList.add('hidden');
+        preview.classList.remove('hidden');
+        lucide.createIcons();
+
+        if (isImage) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const img = document.getElementById(thumbId);
+                if (img) img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function clearFileSelection(sectionId) {
+        const zone = document.querySelector(`.document-upload-area-mini[data-section-id="${sectionId}"]`);
+        if (!zone) return;
+        zone.querySelector('.doc-file').value = '';
+        zone.querySelector('.file-chooser').classList.remove('hidden');
+        const preview = zone.querySelector('.file-preview');
+        preview.classList.add('hidden');
+        preview.innerHTML = '';
+    }
+
+    // ── Drag & drop feedback ─────────────────────────────────────────────
+    function handleDragOver(e, zone) {
+        e.preventDefault();
+        e.stopPropagation();
+        zone.classList.add('dragover');
+    }
+
+    function handleDragLeave(e, zone) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!zone.contains(e.relatedTarget)) zone.classList.remove('dragover');
+    }
+
+    function handleDrop(e, zone, sectionId) {
+        e.preventDefault();
+        e.stopPropagation();
+        zone.classList.remove('dragover');
+        const files = e.dataTransfer && e.dataTransfer.files;
+        if (files && files.length) {
+            const input = zone.querySelector('.doc-file');
+            input.files = files;
+            handleFileSelect(input, sectionId);
+        }
+    }
+
+    // ── Prevent the same document type being picked in more than one section ──
+    function syncDocTypeOptions() {
+        const selects = Array.from(document.querySelectorAll('.doc-type'));
+        const selectedValues = selects.map(s => s.value).filter(Boolean);
+        selects.forEach(select => {
+            const myValue = select.value;
+            Array.from(select.options).forEach(opt => {
+                if (!opt.value) return;
+                const takenElsewhere = selectedValues.includes(opt.value) && opt.value !== myValue;
+                opt.hidden = takenElsewhere;
+                opt.disabled = takenElsewhere;
+            });
+        });
     }
 
     function addUploadSection() {
@@ -1158,6 +1253,7 @@
         const newSection = createUploadSection();
         container.insertAdjacentHTML('beforeend', newSection);
         lucide.createIcons();
+        syncDocTypeOptions();
     }
 
     function removeUploadSection(sectionId) {
@@ -1169,6 +1265,7 @@
             sections.forEach((s, index) => {
                 s.querySelector('h3').textContent = `Document ${index + 1}`;
             });
+            syncDocTypeOptions();
         }
     }
 
@@ -1195,7 +1292,7 @@
         const toast = document.createElement('div');
         toast.id = 'upload-toast';
         toast.className = 'fixed bottom-6 right-6 z-50 bg-white border border-gray-200 shadow-xl rounded-xl px-6 py-4 flex items-center gap-3 text-sm font-medium text-gray-800';
-        toast.innerHTML = `<svg class="animate-spin w-5 h-5 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Uploading ${uploads.length} document${uploads.length > 1 ? 's' : ''}...`;
+        toast.innerHTML = `<svg class="animate-spin w-5 h-5 text-brandblue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Uploading ${uploads.length} document${uploads.length > 1 ? 's' : ''}...`;
         document.body.appendChild(toast);
 
         try {

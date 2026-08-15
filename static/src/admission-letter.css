@@ -1,22 +1,31 @@
-@import "../vendor/fonts/inter/inter.css";
-@import "../vendor/fonts/poppins/poppins.css";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
 
 @import "tailwindcss";
 
 @source "../templates/applications/admission_letter.html";
 
+/* Navy/Cyan/Lime — matches the Abraytech brand system in static/src/styles.css.
+   Kept as a separate theme block (own compiled bundle) since this page
+   isn't loaded through base.html/styles.css. The local vendor/fonts
+   @import previously here produced a compiled stylesheet with zero
+   working @font-face rules for Inter/Poppins — loaded from Google
+   Fonts instead now (same fix as styles.css). */
 @theme {
-  --color-primary-50: #faf5ff;
-  --color-primary-100: #f3e8ff;
-  --color-primary-200: #e9d5ff;
-  --color-primary-300: #d8b4fe;
-  --color-primary-400: #c084fc;
-  --color-primary-500: #a855f7;
-  --color-primary-600: #9333ea;
-  --color-primary-700: #7e22ce;
-  --color-primary-800: #6b21a8;
-  --color-primary-900: #581c87;
-  --color-primary-950: #840384;
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-200: #c7d2fe;
+  --color-primary-300: #a5b4fc;
+  --color-primary-400: #818cf8;
+  --color-primary-500: #1e3a5f;
+  --color-primary-600: #162e4d;
+  --color-primary-700: #0f2236;
+  --color-primary-800: #091829;
+  --color-primary-900: #060f1a;
+  --color-primary-950: #030b13;
+
+  --color-navy: #071A3D;
+  --color-brandblue: #0B5CFF;
+  --color-sky: #38BDF8;
 
   --font-sans: Inter, system-ui, sans-serif;
   --font-display: Poppins, system-ui, sans-serif;

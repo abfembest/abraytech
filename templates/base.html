@@ -74,12 +74,13 @@
     <link rel="canonical" href="{{ request.build_absolute_uri }}">
     {% endblock %}
 
-    <!-- Fonts: Inter & Poppins are bundled into styles.css via @import (static/src/styles.css).
-         Sora is the public-site display font used by the redesigned pages only — loaded
-         here via Google Fonts since it isn't vendored locally. -->
+    <!-- Fonts: Inter, Poppins & Sora, loaded both ways as a belt-and-suspenders fix —
+         via this <link> AND via @import inside static/src/styles.css. Not vendored
+         locally: the local vendor/fonts @font-face bundle previously used there
+         produced a compiled stylesheet with zero working @font-face rules. -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 

@@ -1814,12 +1814,12 @@ def _get_states(country_code):
 @login_required
 @smart_redirect_applicant
 def apply(request):
-    """Multi-step course application form.
+    """Single-page course application form.
 
-    Handles three request types in one view:
-    1. GET  → render initial page with countries from pycountry
-    2. AJAX POST action=location_data → return states/cities/phone/nationality JSON
-    3. Normal POST → save application (existing logic unchanged)
+    Handles two request types in one view:
+    1. GET/POST → render/save the form (countries from pycountry)
+    2. AJAX POST action=get_location_data → return states/phone/nationality JSON
+       for the country → state cascade
     """
 
     if not request.user.profile.email_verified:
@@ -1851,7 +1851,7 @@ def apply(request):
             country_code = request.POST.get('country_code', '').strip().upper()
             if not country_code:
                 return JsonResponse({'error': 'country_code required'}, status=400)
-            
+
             # Security check: reject territories/dependencies
             if country_code in EXCLUDED_TERRITORIES:
                 return JsonResponse({
@@ -1882,79 +1882,18 @@ def apply(request):
                 'states':      states,
             })
 
-        # get_cities and get_postal_code removed — city/postal are now plain text inputs
-
-    # ── Build data for initial page render ────────────────────────────────────
-    programs  = (
-        Program.objects
-        .filter(is_active=True)
-        .select_related('department__faculty')
-        .order_by('department__faculty__name', 'name')
-    )
-    faculties = Faculty.objects.filter(is_active=True)
-
     # Countries from pycountry (NOT from ListOfCountry model)
     pycountry_countries = _build_countries_list()
 
-    # Build JSON for JS-driven dynamic dropdowns
-    courses_by_faculty = {}
-    for prog in programs:
-        faculty_name = prog.department.faculty.name
-        courses_by_faculty.setdefault(faculty_name, [])
-        courses_by_faculty[faculty_name].append({
-            'id':                    prog.id,
-            'name':                  prog.name,
-            'code':                  prog.code,
-            'degree_level':          prog.degree_level,
-            'available_study_modes': prog.available_study_modes,
-            'tuition_fee':           str(prog.tuition_fee),
-        })
-    courses_json = json.dumps(courses_by_faculty, cls=DjangoJSONEncoder)
-
     if request.method == 'POST':
-        form = CourseApplicationForm(request.POST, request.FILES)
+        form = CourseApplicationForm(request.POST)
         if form.is_valid():
             try:
                 application = form.save(commit=False)
                 application.user = request.user
                 application.resolve_intake()
-
-                academic_history = []
-                entry_count = 1
-                while True:
-                    education_level = request.POST.get(f'education_level_{entry_count}')
-                    if not education_level:
-                        break
-                    academic_history.append({
-                        'degree':          education_level,
-                        'institution':     request.POST.get(f'institution_{entry_count}', '').strip(),
-                        'field_of_study':  request.POST.get(f'field_of_study_{entry_count}', '').strip(),
-                        'graduation_year': request.POST.get(f'graduation_year_{entry_count}', '').strip(),
-                        'gpa':             request.POST.get(f'gpa_{entry_count}', '').strip(),
-                    })
-                    entry_count += 1
-
                 application.status = 'draft'
                 application.save()
-
-                file_field_mapping = {
-                    'transcript_file':      'transcript',
-                    'certificate_file':     'certificate',
-                    'english_test_file':    'other',
-                    'id_document_file':     'id_document',
-                    'cv_file':              'cv',
-                    'recommendation_file':  'recommendation',
-                }
-                for field_name, file_type in file_field_mapping.items():
-                    if field_name in request.FILES:
-                        f = request.FILES[field_name]
-                        ApplicationDocument.objects.create(
-                            application=application,
-                            file=f,
-                            file_type=file_type,
-                            original_filename=f.name,
-                            file_size=f.size,
-                        )
 
                 # Was backgrounded via a daemon Thread — matches the same
                 # failure mode already hit in production for other emails on
@@ -2004,18 +1943,9 @@ def apply(request):
             initial['program'] = apply_program_id
         form = CourseApplicationForm(initial=initial)
 
-    from apps.eduweb.models import AcademicSession
-    academic_sessions = AcademicSession.objects.filter(
-        status__in=['active', 'upcoming']
-    ).order_by('-name')
-
     return render(request, 'form.html', {
-        'form':                 form,
-        'courses':              programs,
-        'faculties':            faculties,
-        'courses_json':         courses_json,
-        'countries':            pycountry_countries,   # replaces ListOfCountry queryset
-        'academic_sessions':    academic_sessions,
+        'form':      form,
+        'countries': pycountry_countries,   # replaces ListOfCountry queryset
     })
 
 

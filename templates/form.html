@@ -5,66 +5,11 @@
 
 {% block extra_css %}
 <style>
-    .form-step {
-        display: none;
-        animation: fadeIn 0.3s ease-out;
-    }
-
-        .form-step.active {
-            display: block;
-        }
-
-    .progress-step {
-        transition: all 0.3s ease;
-    }
-
-        .progress-step.active {
-            background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 60%, #38BDF8 100%);
-            color: white;
-            border-color: #0B5CFF;
-            box-shadow: 0 4px 15px rgba(11, 92, 255, 0.3);
-        }
-
-            .progress-step.active .step-number {
-                background-color: white;
-                color: #0B5CFF;
-            }
-
-        .progress-step.completed {
-            background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
-            color: white;
-            border-color: #10B981;
-        }
-
-            .progress-step.completed .step-number {
-                background-color: white;
-                color: #10B981;
-            }
-
-        .progress-step.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
     /* ── Unified input height token ── */
     :root { --field-h: 48px; }
 
-    /* ── Native inputs / textareas ── */
-    #step1 input:not([type="checkbox"]):not([type="date"]),
-    #step1 textarea,
-    #step3 input:not([type="checkbox"]) {
+    #appForm input:not([type="checkbox"]):not([type="radio"]),
+    #appForm textarea {
         height: var(--field-h);
         padding: 0 1rem;
         border: 2px solid #e5e7eb;
@@ -77,30 +22,8 @@
         box-sizing: border-box;
     }
 
-    #step1 input:not([type="checkbox"]):not([type="date"]):focus,
-    #step1 textarea:focus,
-    #step3 input:not([type="checkbox"]):focus {
-        border-color: #0B5CFF;
-        box-shadow: 0 0 0 3px rgba(11,92,255,0.12);
-        outline: none;
-    }
-
-    #step1 textarea { height: auto; padding: 0.75rem 1rem; }
-
-    /* date input keeps its native height */
-    input[type="date"] {
-        height: var(--field-h);
-        padding: 0 0.75rem;
-        border: 2px solid #e5e7eb;
-        border-radius: 0.5rem;
-        font-size: 0.9375rem;
-        color: #374151;
-        background: #fff;
-        width: 100%;
-        box-sizing: border-box;
-        transition: border-color 0.18s, box-shadow 0.18s;
-    }
-    input[type="date"]:focus {
+    #appForm input:not([type="checkbox"]):not([type="radio"]):focus,
+    #appForm textarea:focus {
         border-color: #0B5CFF;
         box-shadow: 0 0 0 3px rgba(11,92,255,0.12);
         outline: none;
@@ -136,12 +59,10 @@
         right: 8px !important;
     }
 
-    /* placeholder colour */
     .select2-container--default .select2-selection--single .select2-selection__placeholder {
         color: #9ca3af !important;
     }
 
-    /* dropdown panel */
     .select2-dropdown {
         border: 2px solid #0B5CFF !important;
         border-radius: 0.5rem !important;
@@ -159,7 +80,6 @@
         font-weight: 600;
     }
 
-    /* search box inside dropdown */
     .select2-container--default .select2-search--dropdown .select2-search__field {
         border: 1px solid #d1d5db !important;
         border-radius: 0.375rem !important;
@@ -177,7 +97,7 @@
     }
 
     /* native <select> elements that aren't Select2-enhanced */
-    select:not(.select2-hidden-accessible) {
+    #appForm select:not(.select2-hidden-accessible) {
         height: var(--field-h);
         padding: 0 0.75rem;
         border: 2px solid #e5e7eb;
@@ -189,7 +109,7 @@
         box-sizing: border-box;
         transition: border-color 0.18s;
     }
-    select:not(.select2-hidden-accessible):focus {
+    #appForm select:not(.select2-hidden-accessible):focus {
         border-color: #0B5CFF;
         box-shadow: 0 0 0 3px rgba(11,92,255,0.12);
         outline: none;
@@ -202,8 +122,7 @@
         height: var(--field-h) !important;
     }
 
-    /* the number input joined to the right of the phone code selector */
-    #localnumber, #emergencylocalnumber {
+    #localNumber {
         height: var(--field-h) !important;
         border-radius: 0 0.5rem 0.5rem 0 !important;
         border-left: none !important;
@@ -216,726 +135,332 @@
         box-sizing: border-box;
         transition: border-color 0.18s, box-shadow 0.18s;
     }
-    #localnumber:focus, #emergencylocalnumber:focus {
+    #localNumber:focus {
         border-color: #0B5CFF;
         box-shadow: 0 0 0 3px rgba(11,92,255,0.12);
         outline: none;
         z-index: 1;
         position: relative;
     }
+
     /* Phone dropdown: name on top, flag + code below — no x-overflow */
-.select2-phone-dropdown {
-    min-width: 220px !important;
-    max-width: 280px !important;
-    overflow-x: hidden !important;
-}
-.select2-phone-dropdown .select2-results__option {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
-    padding: 6px 10px;
-    font-size: 0.8125rem;
-    overflow: hidden;
-}
-.select2-phone-dropdown .select2-results__option .phone-opt-name {
-    font-weight: 600;
-    color: #111827;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    width: 100%;
-}
-.select2-phone-dropdown .select2-results__option .phone-opt-sub {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-.select2-phone-dropdown .select2-results__option .fi {
-    width: 20px;
-    height: 14px;
-    flex-shrink: 0;
-    border-radius: 2px;
-}
-.select2-phone-dropdown .select2-results__option .phone-opt-dial {
-    color: #6b7280;
-    font-size: 0.8em;
-}
-.select2-phone-dropdown .select2-search--dropdown {
-    padding: 6px 8px;
-}
-.select2-phone-dropdown .select2-search__field {
-    border: 1px solid #d1d5db;
-    border-radius: 4px;
-    padding: 4px 8px;
-    font-size: 0.875rem;
-    width: 100%;
-    box-sizing: border-box;
-}
-/* Selected value shown in the trigger button */
-.select2-phone-rendered-flag {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 0.875rem;
-    overflow: hidden;
-}
-.select2-phone-rendered-flag .fi {
-    width: 20px;
-    height: 14px;
-    border-radius: 2px;
-    flex-shrink: 0;
-}
+    .select2-phone-dropdown {
+        min-width: 220px !important;
+        max-width: 280px !important;
+        overflow-x: hidden !important;
+    }
+    .select2-phone-dropdown .select2-results__option {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+        padding: 6px 10px;
+        font-size: 0.8125rem;
+        overflow: hidden;
+    }
+    .select2-phone-dropdown .select2-results__option .phone-opt-name {
+        font-weight: 600;
+        color: #111827;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 100%;
+    }
+    .select2-phone-dropdown .select2-results__option .phone-opt-sub {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .select2-phone-dropdown .select2-results__option .fi {
+        width: 20px;
+        height: 14px;
+        flex-shrink: 0;
+        border-radius: 2px;
+    }
+    .select2-phone-dropdown .select2-results__option .phone-opt-dial {
+        color: #6b7280;
+        font-size: 0.8em;
+    }
+    .select2-phone-dropdown .select2-search--dropdown {
+        padding: 6px 8px;
+    }
+    .select2-phone-dropdown .select2-search__field {
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 0.875rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .select2-phone-rendered-flag {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.875rem;
+        overflow: hidden;
+    }
+    .select2-phone-rendered-flag .fi {
+        width: 20px;
+        height: 14px;
+        border-radius: 2px;
+        flex-shrink: 0;
+    }
+
+    .yes-no-option {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+    }
+
+    #countryCode { width: 90px; }
+    #laptopConfigContainer.js-hidden { display: none; }
 </style>
 {# jQuery is loaded globally in base.html — no per-page script tag needed here anymore #}
 <!-- Select2 CSS -->
 <link href="{% static 'vendor/select2/select2.min.css' %}" rel="stylesheet" />
-<!-- Flag icons (used by phone code Select2 dropdowns) -->
+<!-- Flag icons (used by the phone code Select2 dropdown) -->
 <link href="{% static 'vendor/flag-icons/css/flag-icons.min.css' %}" rel="stylesheet" />
 {% endblock %}
 
 {% block content %}
 <section class="py-20 bg-soft min-h-screen">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <!-- Header -->
-        <div class="text-center mb-12">
+        <div class="text-center mb-10">
             <h1 class="text-4xl md:text-5xl font-bold font-sora text-navy mb-4">
                 Course Application Form
             </h1>
-            <p class="text-gray-600 text-lg max-w-3xl mx-auto">
-                Complete your application in 4 simple steps. Your progress will be saved automatically.
+            <p class="text-gray-600 text-lg max-w-2xl mx-auto">
+                Fill out the form below to apply. It only takes a couple of minutes.
             </p>
         </div>
 
-        <!-- Mobile Progress Indicator -->
-        <div class="lg:hidden bg-white rounded-xl shadow-lg p-6 mb-6 max-w-4xl mx-auto">
-            <div class="flex justify-between items-center mb-3">
-                <span class="font-semibold text-gray-800">
-                    Step <span id="mobileCurrentStep">1</span> of 4
-                </span>
-                <span class="font-bold text-sm text-brandblue">
-                    <span id="mobileProgressPercentage">0</span>%
-                </span>
-            </div>
-            <div class="w-full bg-gray-200 rounded-full h-2">
-                <div id="mobileProgressBar" class="h-2 rounded-full transition-all duration-300 bg-brandblue"
-                     style="width: 0%;"></div>
-            </div>
-            <p id="mobileStepTitle" class="text-center mt-3 font-medium text-brandblue">
-                Personal Information
-            </p>
-        </div>
+        <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+            <form id="appForm" method="POST" action="{% url 'eduweb:apply' %}">
+                {% csrf_token %}
 
-        <div class="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto">
+                {% if form.non_field_errors %}
+                <div class="bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-6">
+                    {% for error in form.non_field_errors %}
+                    <p class="text-red-700 text-sm">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
 
-            <!-- Desktop Progress Sidebar -->
-            <aside class="hidden lg:block lg:w-1/4">
-                <div class="bg-white rounded-xl shadow-lg p-6 sticky top-24">
-                    <h2 class="text-xl font-bold font-sora text-navy mb-6 pb-3 border-b">
-                        Application Progress
-                    </h2>
+                <!-- Email -->
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-medium mb-2">
+                        {{ form.email.label }} <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                    <div class="text-red-500 text-sm mt-1">{{ form.email.errors.0 }}</div>
+                    {% endif %}
+                </div>
 
-                    <div class="space-y-3" id="progressSteps">
-                        <!-- Steps 1-4: Interactive -->
-                        <div class="progress-step flex items-start gap-3 p-4 rounded-lg border-2 border-gray-300 cursor-pointer hover:shadow-md transition-all" data-step="1">
-                            <div class="step-number w-10 h-10 rounded-full border-2 border-gray-800 flex items-center justify-center flex-shrink-0 font-bold text-gray-800 bg-white">1</div>
-                            <div class="flex-1">
-                                <h3 class="font-bold text-gray-900">Personal Information</h3>
-                                <p class="text-xs text-gray-600 mt-0.5">Basic details</p>
-                            </div>
-                        </div>
-
-                        <div class="progress-step flex items-start gap-3 p-4 rounded-lg border-2 border-gray-300 cursor-pointer hover:shadow-md transition-all" data-step="2">
-                            <div class="step-number w-10 h-10 rounded-full border-2 border-gray-800 flex items-center justify-center flex-shrink-0 font-bold text-gray-800 bg-white">2</div>
-                            <div class="flex-1">
-                                <h3 class="font-bold text-gray-900">Academic History</h3>
-                                <p class="text-xs text-gray-600 mt-0.5">Education background</p>
-                            </div>
-                        </div>
-
-                        <div class="progress-step flex items-start gap-3 p-4 rounded-lg border-2 border-gray-300 cursor-pointer hover:shadow-md transition-all" data-step="3">
-                            <div class="step-number w-10 h-10 rounded-full border-2 border-gray-800 flex items-center justify-center flex-shrink-0 font-bold text-gray-800 bg-white">3</div>
-                            <div class="flex-1">
-                                <h3 class="font-bold text-gray-900">Course Selection</h3>
-                                <p class="text-xs text-gray-600 mt-0.5">Program preferences</p>
-                            </div>
-                        </div>
-
-                        <div class="progress-step flex items-start gap-3 p-4 rounded-lg border-2 border-gray-300 cursor-pointer hover:shadow-md transition-all" data-step="4">
-                            <div class="step-number w-10 h-10 rounded-full border-2 border-gray-800 flex items-center justify-center flex-shrink-0 font-bold text-gray-800 bg-white">4</div>
-                            <div class="flex-1">
-                                <h3 class="font-bold text-gray-900">Review & Save</h3>
-                                <p class="text-xs text-gray-600 mt-0.5">Confirm details</p>
-                            </div>
-                        </div>
-
-                        <!-- Steps 5-6: Preview Only (Disabled) -->
-                        <div class="progress-step disabled flex items-start gap-3 p-4 rounded-lg border-2 border-gray-300" data-step="5">
-                            <div class="step-number w-10 h-10 rounded-full border-2 border-gray-400 flex items-center justify-center flex-shrink-0 font-bold text-gray-400 bg-gray-100">5</div>
-                            <div class="flex-1">
-                                <h3 class="font-bold text-gray-500">Make Payment</h3>
-                                <p class="text-xs text-gray-400 mt-0.5">Application fee</p>
-                            </div>
-                        </div>
-
-                        <div class="progress-step disabled flex items-start gap-3 p-4 rounded-lg border-2 border-gray-300" data-step="6">
-                            <div class="step-number w-10 h-10 rounded-full border-2 border-gray-400 flex items-center justify-center flex-shrink-0 font-bold text-gray-400 bg-gray-100">6</div>
-                            <div class="flex-1">
-                                <h3 class="font-bold text-gray-500">Upload Documents</h3>
-                                <p class="text-xs text-gray-400 mt-0.5">Required files</p>
-                            </div>
-                        </div>
+                <!-- First / Last name -->
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">
+                            {{ form.first_name.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.first_name.errors.0 }}</div>
+                        {% endif %}
                     </div>
-
-                    <!-- Overall Progress Bar -->
-                    <div class="mt-8 pt-6 border-t border-gray-300">
-                        <div class="flex justify-between items-center mb-3">
-                            <span class="text-sm font-semibold text-gray-900">Overall Progress</span>
-                            <span class="font-bold text-lg text-brandblue">
-                                <span id="progressPercentage">0</span>%
-                            </span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-3 shadow-inner">
-                            <div id="progressBar" class="h-3 rounded-full transition-all duration-300 shadow-sm bg-brandblue"
-                                 style="width: 0%;"></div>
-                        </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">
+                            {{ form.last_name.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.last_name.errors.0 }}</div>
+                        {% endif %}
                     </div>
                 </div>
-            </aside>
 
-            <!-- Main Form Content -->
-            <main class="flex-1">
-                <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <!-- Highest level of education / Age -->
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">
+                            Highest Level of Education <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.highest_qualification }}
+                        {% if form.highest_qualification.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.highest_qualification.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">
+                            {{ form.age.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.age }}
+                        {% if form.age.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.age.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
 
-                    <div class="mb-8">
-                        <h2 id="stepTitle" class="text-2xl font-bold font-sora text-navy mb-2">
-                            Personal Information
-                        </h2>
-                        <div class="w-full bg-gray-200 rounded-full h-2 mt-4">
-                            <div id="stepProgressBar" class="h-2 rounded-full transition-all duration-300 bg-brandblue"
-                                 style="width: 0%;"></div>
+                <!-- Country / Phone number -->
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">
+                            Country <span class="text-red-500">*</span>
+                        </label>
+                        <select name="country" id="id_country" class="select2-country w-full p-3 border-2 border-gray-300 rounded-lg bg-white" required>
+                            <option value="">-- Select Country --</option>
+                            {% for c in countries %}
+                            <option value="{{ c.code }}"
+                                    data-phone="{{ c.phone_code }}"
+                                    {% if form.country.value == c.code %}selected{% endif %}>
+                                {{ c.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        {% if form.country.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.country.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">
+                            Phone Number <span class="text-red-500">*</span>
+                        </label>
+                        <div class="flex items-stretch gap-0">
+                            <select id="countryCode" class="phone-code-select">
+                                <option value="">Code</option>
+                                {% for c in countries %}
+                                <option value="{{ c.phone_code }}"
+                                        data-country-name="{{ c.name }}"
+                                        data-country-code="{{ c.code|lower }}">
+                                    {{ c.phone_code }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <input type="tel" id="localNumber"
+                                   class="flex-1 px-4 py-3 border-2 border-l-0 border-gray-300 rounded-r-lg transition-all"
+                                   placeholder="XXX XXX XXXX"
+                                   value="{{ form.phone.value|default:''|slice:'5:' }}">
                         </div>
+                        <input type="hidden" name="phone" id="fullPhone" value="{{ form.phone.value|default:'' }}">
+                        {% if form.phone.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.phone.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Application for which course -->
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-medium mb-2">
+                        {{ form.program.label }} <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.program }}
+                    {% if form.program.errors %}
+                    <div class="text-red-500 text-sm mt-1">{{ form.program.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- State / Address -->
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">
+                            State / Province <span class="text-red-500">*</span>
+                        </label>
+                        <select name="state" id="id_state" class="select2-state w-full p-3 border-2 border-gray-300 rounded-lg bg-white" required>
+                            <option value="">-- Select State --</option>
+                            {% if form.state.value %}
+                            <option value="{{ form.state.value }}" selected>{{ form.state.value }}</option>
+                            {% endif %}
+                        </select>
+                        {% if form.state.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.state.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">
+                            Address <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.address_line1 }}
+                        {% if form.address_line1.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.address_line1.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Questions -->
+                <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 mb-6">
+                    <h4 class="font-semibold text-gray-800 mb-4">A Few Quick Questions</h4>
+
+                    <div class="mb-5">
+                        <label class="block text-gray-700 font-medium mb-2">
+                            Do you have access to the internet? <span class="text-red-500">*</span>
+                        </label>
+                        <div class="flex gap-6">
+                            <label class="yes-no-option">
+                                <input type="radio" name="has_internet_access" value="yes"
+                                       {% if form.has_internet_access.value == 'yes' or form.has_internet_access.value == True %}checked{% endif %}
+                                       required>
+                                <span>Yes</span>
+                            </label>
+                            <label class="yes-no-option">
+                                <input type="radio" name="has_internet_access" value="no"
+                                       {% if form.has_internet_access.value == 'no' or form.has_internet_access.value == False %}checked{% endif %}
+                                       required>
+                                <span>No</span>
+                            </label>
+                        </div>
+                        {% if form.has_internet_access.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.has_internet_access.errors.0 }}</div>
+                        {% endif %}
                     </div>
 
-                    <form id="applicationForm" method="POST" action="{% url 'eduweb:save_application_draft' %}">
-                        {% csrf_token %}
-
-                        <input type="hidden" id="applicationId" name="application_id">
-                        <input type="hidden" name="academic_history" id="academicHistoryPayload">
-
-                        <!-- STEP 1: Personal Information -->
-                        <div class="form-step active" id="step1">
-                            <p class="text-gray-600 mb-6">Please provide your personal details and contact information.</p>
-
-                            <div class="grid md:grid-cols-2 gap-6 mb-6">
-                                <div>
-                                    <label class="block text-gray-700 font-medium mb-2">
-                                        {{ form.first_name.label }} <span class="text-red-500">*</span>
-                                    </label>
-                                    {{ form.first_name }}
-                                    {% if form.first_name.errors %}
-                                    <div class="text-red-500 text-sm mt-1">{{ form.first_name.errors.0 }}</div>
-                                    {% endif %}
-                                </div>
-
-                                <div>
-                                    <label class="block text-gray-700 font-medium mb-2">
-                                        {{ form.last_name.label }} <span class="text-red-500">*</span>
-                                    </label>
-                                    {{ form.last_name }}
-                                    {% if form.last_name.errors %}
-                                    <div class="text-red-500 text-sm mt-1">{{ form.last_name.errors.0 }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <div class="mb-6">
-                                <label class="block text-gray-700 font-medium mb-2">
-                                    {{ form.email.label }} <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.email }}
-                                {% if form.email.errors %}
-                                <div class="text-red-500 text-sm mt-1">{{ form.email.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-
-                            <!-- Country (moved above phone so JS can use country to auto-fill phone code) -->
-                            <div class="grid md:grid-cols-2 gap-6 mb-6">
-                                <div>
-                                    <label class="block text-gray-700 font-medium mb-2">
-                                        {{ form.country.label }} <span class="text-red-500">*</span>
-                                    </label>
-                                    <select name="country" id="id_country" class="select2-country w-full p-3 border-2 border-gray-300 rounded-lg bg-white" required>
-                                        <option value="">-- Select Country --</option>
-                                        {% for c in countries %}
-                                        <option value="{{ c.code }}"
-                                                data-phone="{{ c.phone_code }}"
-                                                data-nationality="{{ c.nationality }}"
-                                                {% if form.country.value == c.code %}selected{% endif %}>
-                                            {{ c.name }}
-                                        </option>
-                                        {% endfor %}
-                                    </select>
-                                    {% if form.country.errors %}
-                                    <div class="text-red-500 text-sm mt-1">{{ form.country.errors.0 }}</div>
-                                    {% endif %}
-                                </div>
-
-                                <div>
-                                    <label class="block text-gray-700 font-medium mb-2">
-                                        {{ form.gender.label }} <span class="text-red-500">*</span>
-                                    </label>
-                                    {{ form.gender }}
-                                    {% if form.gender.errors %}
-                                    <div class="text-red-500 text-sm mt-1">{{ form.gender.errors.0 }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <!-- Nationality: auto-filled from country, but user can override -->
-                            <div class="mb-6">
-                                <label class="block text-gray-700 font-medium mb-2">
-                                    Nationality <span class="text-red-500">*</span>
-                                </label>
-                                <select name="nationality" id="id_nationality" class="select2-nationality w-full p-3 border-2 border-gray-300 rounded-lg bg-white" required>
-                                    <option value="">-- Select Nationality --</option>
-                                    {% for c in countries %}
-                                    <option value="{{ c.nationality }}"
-                                            {% if form.nationality.value == c.nationality %}selected{% endif %}>
-                                        {{ c.nationality }}
-                                    </option>
-                                    {% endfor %}
-                                </select>
-                                {% if form.nationality.errors %}
-                                <div class="text-red-500 text-sm mt-1">{{ form.nationality.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-
-                            <!-- Phone (after country so the code auto-populates) -->
-                            <div class="grid md:grid-cols-2 gap-6 mb-6">
-                                <div>
-                                    <label class="block text-gray-700 font-medium mb-2">
-                                        {{ form.phone.label }} <span class="text-red-500">*</span>
-                                    </label>
-                                    <div class="flex items-stretch gap-0">
-                                        <!-- Phone code: Select2 with flags, searchable by country name or dial code -->
-                                        <select id="countryCode" class="phone-code-select" style="width:38%;">
-                                            <option value="">Code</option>
-                                            {% for c in countries %}
-                                            <option value="{{ c.phone_code }}"
-                                                    data-country-name="{{ c.name }}"
-                                                    data-country-code="{{ c.code|lower }}">
-                                                {{ c.phone_code }}
-                                            </option>
-                                            {% endfor %}
-                                        </select>
-                                        <input type="tel" id="localNumber"
-                                               class="flex-1 px-4 py-3 border-2 border-l-0 border-gray-300 rounded-r-lg transition-all"
-                                               placeholder="XXX XXX XXXX"
-                                               value="{{ form.phone.value|default:''|slice:'5:' }}">
-                                    </div>
-                                    <input type="hidden" name="phone" id="fullPhone" value="{{ form.phone.value }}">
-                                    {% if form.phone.errors %}
-                                    <div class="text-red-500 text-sm mt-1">{{ form.phone.errors.0 }}</div>
-                                    {% endif %}
-                                </div>
-
-                                <div>
-                                    <label class="block text-gray-700 font-medium mb-2">
-                                        {{ form.date_of_birth.label }} <span class="text-red-500">*</span>
-                                    </label>
-                                    {{ form.date_of_birth }}
-                                    {% if form.date_of_birth.errors %}
-                                    <div class="text-red-500 text-sm mt-1">{{ form.date_of_birth.errors.0 }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <div class="mb-6 py-0.5">
-                                <label class="block text-gray-700 font-medium mb-2">
-                                    Address Line 1 <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.address_line1 }}
-                                {% if form.address_line1.errors %}
-                                <div class="text-red-500 text-sm mt-1">{{ form.address_line1.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-
-                            <div class="mb-6">
-                                <label class="block text-gray-700 font-medium mb-2">
-                                    Address Line 2 <span class="text-gray-500 text-sm">(Optional)</span>
-                                </label>
-                                {{ form.address_line2 }}
-                            </div>
-
-                            <!-- State, City, Postal: dynamically loaded in this order -->
-                            <div class="grid md:grid-cols-3 gap-6 mb-6">
-                                <div>
-                                    <label class="block text-gray-700 font-medium mb-2">
-                                        State / Province <span class="text-red-500">*</span>
-                                    </label>
-                                    <select name="state" id="id_state" class="select2-state w-full p-3 border-2 border-gray-300 rounded-lg bg-white" required>
-                                        <option value="">-- Select State --</option>
-                                        {% if form.state.value %}
-                                        <option value="{{ form.state.value }}" selected>{{ form.state.value }}</option>
-                                        {% endif %}
-                                    </select>
-                                    {% if form.state.errors %}
-                                    <div class="text-red-500 text-sm mt-1">{{ form.state.errors.0 }}</div>
-                                    {% endif %}
-                                </div>
-                                <div>
-                                    <label class="block text-gray-700 font-medium mb-2">
-                                        City / Town <span class="text-red-500">*</span>
-                                    </label>
-                                    <input type="text" name="city" id="id_city"
-                                           class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg transition-all"
-                                           placeholder="Enter your city or town"
-                                           value="{{ form.city.value|default:'' }}"
-                                           required>
-                                    {% if form.city.errors %}
-                                    <div class="text-red-500 text-sm mt-1">{{ form.city.errors.0 }}</div>
-                                    {% endif %}
-                                </div>
-                                <div>
-                                    <label class="block text-gray-700 font-medium mb-2">
-                                        Postal / ZIP Code
-                                    </label>
-                                    <input type="text" name="postal_code" id="id_postal_code"
-                                           class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg transition-all"
-                                           placeholder="e.g. 100001"
-                                           value="{{ form.postal_code.value|default:'' }}">
-                                    {% if form.postal_code.errors %}
-                                    <div class="text-red-500 text-sm mt-1">{{ form.postal_code.errors.0 }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
+                    <div class="mb-2">
+                        <label class="block text-gray-700 font-medium mb-2">
+                            Do you have a laptop? <span class="text-red-500">*</span>
+                        </label>
+                        <div class="flex gap-6">
+                            <label class="yes-no-option">
+                                <input type="radio" name="has_laptop" id="hasLaptopYes" value="yes"
+                                       {% if form.has_laptop.value == 'yes' or form.has_laptop.value == True %}checked{% endif %}
+                                       required>
+                                <span>Yes</span>
+                            </label>
+                            <label class="yes-no-option">
+                                <input type="radio" name="has_laptop" id="hasLaptopNo" value="no"
+                                       {% if form.has_laptop.value == 'no' or form.has_laptop.value == False %}checked{% endif %}
+                                       required>
+                                <span>No</span>
+                            </label>
                         </div>
+                        {% if form.has_laptop.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.has_laptop.errors.0 }}</div>
+                        {% endif %}
+                    </div>
 
-                        <!-- STEP 2: Academic History -->
-                        <div class="form-step" id="step2">
-                            <p class="text-gray-600 mb-6">Please provide details of your previous education.</p>
-
-                            <div id="academicEntriesContainer" class="space-y-6 mb-6"></div>
-
-                            <div class="text-center mb-8">
-                                <button type="button" id="addAcademicEntryBtn"
-                                        class="px-6 py-3 border-2 border-dashed rounded-lg font-medium hover:bg-ice border-brandblue text-brandblue">
-                                    + Add Another Academic Entry
-                                </button>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-
-                                <div>
-                                    <label class="block text-gray-700 font-medium mb-3">
-                                        English Language Proficiency <span class="text-red-500">*</span>
-                                    </label>
-                                    {{ form.language_skill }}
-
-                                    {% if form.english_proficiency_test.errors %}
-                                    <div class="text-red-500 text-sm mt-1">
-                                        {{ form.english_proficiency_test.errors.0 }}
-                                    </div>
-                                    {% endif %}
-                                </div>
-
-                                <div id="scoreContainer">
-                                    <label class="block text-gray-700 font-medium mb-3">
-                                        Test Score <span class="text-red-500">*</span>
-                                    </label>
-                                    {{ form.language_score }}
-
-                                    {% if form.english_proficiency_score.errors %}
-                                    <div class="text-red-500 text-sm mt-1">
-                                        {{ form.english_proficiency_score.errors.0 }}
-                                    </div>
-                                    {% endif %}
-                                </div>
-
-                            </div>
+                    <div id="laptopConfigContainer" class="mt-4 js-hidden">
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3 text-sm text-gray-700">
+                            <strong>Minimum required spec:</strong> 8GB RAM, Intel i5-i7-i9, SSD.
                         </div>
-
-                        <!-- STEP 3: Course Selection -->
-                        <div class="form-step" id="step3">
-                            <p class="text-gray-600 mb-6">Select your desired program and preferences.</p>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                                <div class="mb-6">
-                                    <label class="block text-gray-700 font-medium mb-2">
-                                        {{ form.program.label }} <span class="text-red-500">*</span>
-                                    </label>
-                                    {{ form.program }}
-                                    {% if form.program.errors %}
-                                    <div class="text-red-500 text-sm mt-1">{{ form.program.errors.0 }}</div>
-                                    {% endif %}
-                                </div>
-
-                                <div class="mb-6">
-                                    <label class="block text-gray-700 font-medium mb-2">
-                                        academic session <span class="text-red-500">*</span>
-                                    </label>
-                                    <select name="academic_session" id="id_academic_session" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-brandblue bg-white" required>
-                                        <option value="" selected disabled>-- select academic session --</option>
-                                        {% for session in academic_sessions %}
-                                        <option value="{{ session.id }}">{{ session.name }} ({{ session.get_status_display }})</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-
-                                <div class="mb-6">
-                                    <label class="block text-gray-700 font-medium mb-2">
-                                        entry level <span class="text-red-500">*</span>
-                                    </label>
-                                    <select name="entry_level" id="id_entry_level" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-brandblue bg-white" required>
-                                        <option value="" selected disabled>-- select level --</option>
-                                        <option value="100">100 level</option>
-                                        <option value="200">200 level</option>
-                                        <option value="300">300 level</option>
-                                        <option value="400">400 level</option>
-                                        <option value="500">500 level</option>
-                                        <option value="600">600 level</option>
-                                        <option value="700">700 level</option>
-                                        <option value="800">800 level</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-6">
-                                    <label class="block text-gray-700 font-medium mb-2">
-                                        {{ form.study_mode.label }} <span class="text-red-500">*</span>
-                                    </label>
-                                    {{ form.study_mode }}
-                                    {% if form.study_mode.errors %}
-                                    <div class="text-red-500 text-sm mt-1">{{ form.study_mode.errors.0 }}</div>
-                                    {% endif %}
-                                </div>
-
-                            </div>
-
-                            <!-- Personal Statement (commented out and made optional in form) -->
-                            <!--
-                            <div class="mb-6">
-                                <label class="block text-gray-700 font-medium mb-2">
-                                    {{ form.personal_statement.label }} <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.personal_statement }}
-                                {% if form.personal_statement.errors %}
-                                <div class="text-red-500 text-sm mt-1">{{ form.personal_statement.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-                            -->
-
-                            <div class="grid md:grid-cols-2 gap-6 mb-6">
-                                <div>
-                                    <label class="block text-gray-700 font-medium mb-2">
-                                        Work experience (in years)
-                                    </label>
-                                    {{ form.work_experience_years }}
-                                </div>
-                                <div>
-                                    <label class="block text-gray-700 font-medium mb-2">
-                                        {{ form.how_did_you_hear.label }} <span class="text-red-500">*</span>
-                                    </label>
-                                    {{ form.how_did_you_hear }}
-                                    {% if form.how_did_you_hear.errors %}
-                                    <div class="text-red-500 text-sm mt-1">{{ form.how_did_you_hear.errors.0 }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <!-- Other Hear Container -->
-                            <div id="otherHearContainer" style="display: none;" class="mb-6">
-                                <label class="block text-gray-700 font-medium mb-2">
-                                    Please specify
-                                </label>
-                                <input type="text" name="how_did_you_hear_other" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-brandblue focus:ring-2 focus:ring-ice transition-all" placeholder="Please specify..." value="{{ form.how_did_you_hear_other.value|default:'' }}">
-                            </div>
-
-                            <!-- Emergency Contact -->
-                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 mb-6">
-                                <h4 class="font-semibold text-gray-800 mb-4">Emergency Contact</h4>
-                                <div class="grid md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label class="block text-gray-700 font-medium mb-2">
-                                            {{ form.emergency_contact_name.label }} <span class="text-red-500">*</span>
-                                        </label>
-                                        {{ form.emergency_contact_name }}
-                                    </div>
-
-
-                                    <!-- Emergency Phone with country code dropdown -->
-                                    <div>
-                                        <label class="block text-gray-700 font-medium mb-2">
-                                            {{ form.emergency_contact_phone.label }}
-                                            <span class="text-red-500">*</span>
-                                        </label>
-
-                                        <div class="flex items-stretch gap-0 w-full">
-                                            <select id="emergencyCountryCode"
-                                                    class="phone-code-select" style="width:38%;">
-                                                <option value="">Code</option>
-                                                {% for c in countries %}
-                                                <option value="{{ c.phone_code }}"
-                                                        data-country-name="{{ c.name }}"
-                                                        data-country-code="{{ c.code|lower }}">
-                                                    {{ c.phone_code }}
-                                                </option>
-                                                {% endfor %}
-                                            </select>
-
-                                            <input type="tel"
-                                                   id="emergencyLocalNumber"
-                                                   class="flex-1 px-3 py-2 border-2 border-l-0 border-gray-300 rounded-r-lg focus:border-brandblue focus:ring-2 focus:ring-ice"
-                                                   placeholder="XXX XXX XXXX"
-                                                   value="{{ form.emergency_contact_phone.value|default:''|slice:'5:' }}">
-                                        </div>
-
-                                        <!-- Hidden full phone with correct name -->
-                                        <input type="hidden" name="emergency_contact_phone" id="emergencyFullPhone"
-                                               value="{{ form.emergency_contact_phone.value }}">
-
-                                        {% if form.emergency_contact_phone.errors %}
-                                        <div class="text-red-500 text-sm mt-1">
-                                            {{ form.emergency_contact_phone.errors.0 }}
-                                        </div>
-                                        {% endif %}
-                                    </div>
-
-
-
-                                    <!-- Emergency Contact Relationship -->
-                                    <div>
-                                        <label class="block text-gray-700 font-medium mb-2">
-                                            {{ form.emergency_contact_relationship.label }}
-                                            <span class="text-red-500">*</span>
-                                        </label>
-
-                                        {{ form.emergency_contact_relationship }}
-
-                                        {% if form.emergency_contact_relationship.errors %}
-                                        <div class="text-red-500 text-sm mt-1">
-                                            {{ form.emergency_contact_relationship.errors.0 }}
-                                        </div>
-                                        {% endif %}
-                                    </div>
-
-
-                                    <div>
-                                        <label class="block text-gray-700 font-medium mb-2">
-                                            Emergency Email <span class="text-red-500">*</span>
-                                        </label>
-                                        <input type="email" name="emergency_contact_email" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-brandblue focus:ring-2 focus:ring-ice transition-all" value="{{ form.emergency_contact_email.value|default:'' }}" required>
-                                    </div>
-                                    <div class="md:col-span-2">
-                                        <label class="block text-gray-700 font-medium mb-2">
-                                            Emergency Address <span class="text-red-500">*</span>
-                                        </label>
-                                        <input type="text" name="emergency_contact_address" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-brandblue focus:ring-2 focus:ring-ice transition-all" value="{{ form.emergency_contact_address.value|default:'' }}" required>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Terms & Privacy -->
-                            <div class="space-y-4 mb-6">
-
-                                <!-- Terms -->
-                                <div class="p-4 border-2 rounded-xl hover:border-brandblue transition bg-white">
-                                    <label class="flex items-center gap-3 cursor-pointer text-gray-700">
-                                        {{ form.accept_terms_conditions }}
-
-                                        <span class="text-sm">
-                                            I agree to the
-                                            <a href="" class="text-brandblue font-medium hover:underline" target="_blank">
-                                                Terms & Conditions
-                                            </a>
-                                            <span class="text-red-500">*</span>
-                                        </span>
-                                    </label>
-
-                                    {% if form.accept_terms_conditions.errors %}
-                                    <p class="text-red-500 text-sm mt-1">
-                                        {{ form.accept_terms_conditions.errors.0 }}
-                                    </p>
-                                    {% endif %}
-                                </div>
-
-                                <!-- Privacy -->
-                                <div class="p-4 border-2 rounded-xl hover:border-brandblue transition bg-white">
-                                    <label class="flex items-center gap-3 cursor-pointer text-gray-700">
-                                        {{ form.accept_privacy_policy }}
-
-                                        <span class="text-sm">
-                                            I agree to the
-                                            <a href="" class="text-brandblue font-medium hover:underline" target="_blank">
-                                                Privacy Policy
-                                            </a>
-                                            <span class="text-red-500">*</span>
-                                        </span>
-                                    </label>
-
-                                    {% if form.accept_privacy_policy.errors %}
-                                    <p class="text-red-500 text-sm mt-1">
-                                        {{ form.accept_privacy_policy.errors.0 }}
-                                    </p>
-                                    {% endif %}
-                                </div>
-
-
-                                <!-- Scholarship Option -->
-                                <div class="mb-6 p-4 bg-ice rounded-xl border-2 border-borderblue hover:border-brandblue transition">
-                                    <label class="flex items-center gap-3 cursor-pointer">
-                                        {{ form.scholarship }}
-                                        <div>
-                                            <span class="font-medium text-navy">
-                                                Apply for Scholarship Consideration
-                                            </span>
-                                            <p class="text-sm text-gray-600">
-                                                Check to be considered for merit-based scholarships
-                                            </p>
-                                        </div>
-                                    </label>
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        <!-- STEP 4: Review & Save -->
-                        <div class="form-step" id="step4">
-                            <p class="text-gray-600 mb-6">Please review your application details before saving.</p>
-
-                            <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-6">
-                                <h3 class="text-lg font-bold font-sora text-navy mb-4">Application Summary</h3>
-                                <div id="reviewSummary" class="space-y-3 text-sm"></div>
-                            </div>
-
-                            <div class="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 mb-6">
-                                <div class="flex items-start gap-3">
-                                    <i data-lucide="info" class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5"></i>
-                                    <p class="text-sm text-gray-700">
-                                        Click "Save & Continue" below to save your application and proceed to payment.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Navigation Buttons -->
-                        <div class="flex justify-between items-center pt-8 border-t mt-8">
-                            <button type="button" id="prevBtn"
-                                    class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-all hidden">
-                                ← Previous
-                            </button>
-
-                            <button type="button" id="nextBtn"
-                                    class="px-8 py-3 text-white rounded-lg font-semibold hover:opacity-95 transition-all shadow-brand ml-auto brand-gradient">
-                                <span id="nextBtnText">Next Step →</span>
-                            </button>
-                        </div>
-                    </form>
+                        <label class="block text-gray-700 font-medium mb-2">
+                            {{ form.laptop_configuration.label }}
+                        </label>
+                        {{ form.laptop_configuration }}
+                        {% if form.laptop_configuration.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.laptop_configuration.errors.0 }}</div>
+                        {% endif %}
+                    </div>
                 </div>
-            </main>
+
+                <!-- Submit -->
+                <div class="flex justify-end pt-6 border-t">
+                    <button type="submit"
+                            class="px-8 py-3 text-white rounded-lg font-semibold hover:opacity-95 transition-all shadow-brand brand-gradient">
+                        Submit Application
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </section>
@@ -945,41 +470,8 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // ----- Global State -----
-    let currentStep = 1;
-    const totalSteps = 4;
     const CSRF_TOKEN = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
     const LOCATION_URL = "{% url 'eduweb:apply' %}"; // AJAX posts go here
-
-    const stepTitles = {
-        1: "Personal Information",
-        2: "Academic History",
-        3: "Course Selection",
-        4: "Review & Save"
-    };
-
-    // DOM Elements
-    const form = document.getElementById('applicationForm');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const progressSteps = document.querySelectorAll('.progress-step');
-    const formSteps = document.querySelectorAll('.form-step');
-    const progressBar = document.getElementById('progressBar');
-    const mobileProgressBar = document.getElementById('mobileProgressBar');
-    const stepProgressBar = document.getElementById('stepProgressBar');
-    const progressPercentage = document.getElementById('progressPercentage');
-    const mobileProgressPercentage = document.getElementById('mobileProgressPercentage');
-    const currentStepElement = document.getElementById('mobileCurrentStep');
-    const stepTitleElement = document.getElementById('stepTitle');
-    const mobileStepTitleElement = document.getElementById('mobileStepTitle');
-
-    // Gating state
-    let gatingState = {
-        step1Completed: false,
-        step2Completed: false,
-        step3Completed: false,
-        step4Saved: false
-    };
 
     // =========================================================
     // SELECT2 INITIALIZATION
@@ -993,30 +485,27 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    initSelect2('#id_country',     'Select Country');
-    initSelect2('#id_nationality', 'Select Nationality');
-    initSelect2('#id_state',       'Select State / Province');
-    // NOTE: #id_city is now a plain text input — no Select2 needed
+    initSelect2('#id_country', 'Select Country');
+    initSelect2('#id_state',   'Select State / Province');
+    initSelect2('#id_program', 'Select Your Course');
 
     // ── Phone code Select2 with flags ─────────────────────────────────────────
     function phoneCodeTemplateResult(option) {
-    if (!option.id) return option.text;
-    const code = $(option.element).data('country-code') || '';
-    const dial = option.text || '';
-    const name = $(option.element).data('country-name') || '';
-    return $(`<span>
-                <span class="phone-opt-name">${name}</span>
-                <span class="phone-opt-sub">
-                    <span class="fi fi-${code}"></span>
-                    <span class="phone-opt-dial">${dial}</span>
-                </span>
-              </span>`);
-}
-
-function phoneCodeTemplateSelection(option) {
         if (!option.id) return option.text;
-        // option.element can be undefined when value is set programmatically;
-        // fall back to looking up the <option> directly from the DOM
+        const code = $(option.element).data('country-code') || '';
+        const dial = option.text || '';
+        const name = $(option.element).data('country-name') || '';
+        return $(`<span>
+                    <span class="phone-opt-name">${name}</span>
+                    <span class="phone-opt-sub">
+                        <span class="fi fi-${code}"></span>
+                        <span class="phone-opt-dial">${dial}</span>
+                    </span>
+                  </span>`);
+    }
+
+    function phoneCodeTemplateSelection(option) {
+        if (!option.id) return option.text;
         const el   = option.element || document.querySelector(`option[value="${option.id}"]`);
         const code = (el ? $(el).data('country-code') : '') || '';
         const dial = option.text || '';
@@ -1026,49 +515,30 @@ function phoneCodeTemplateSelection(option) {
                   </span>`);
     }
 
-    function initPhoneCodeSelect2(selector) {
-        $(selector).select2({
-            width: selector === '#countryCode' ? '38%' : '38%',
-            dropdownCssClass: 'select2-phone-dropdown',
-            templateResult:    phoneCodeTemplateResult,
-            templateSelection: phoneCodeTemplateSelection,
-            allowClear: false,
-            // Custom search: match dial code OR country name
-            matcher: function(params, data) {
-                if (!params.term || params.term.trim() === '') return data;
-                const term        = params.term.toLowerCase();
-                const dial        = (data.text || '').toLowerCase();
-                const countryName = ($(data.element).data('country-name') || '').toLowerCase();
-                if (dial.includes(term) || countryName.includes(term)) return data;
-                return null;
-            }
-        });
-    }
-
-    initPhoneCodeSelect2('#countryCode');
-    initPhoneCodeSelect2('#emergencyCountryCode');
-
-    // ── Auto-focus Select2 search box on open ────────────────────────────────
-    $(document).on('select2:open', function () {
-        const searchField = document.querySelector('.select2-container--open .select2-search__field');
-        if (searchField) {
-            searchField.focus();
+    $('#countryCode').select2({
+        width: '90px',
+        dropdownCssClass: 'select2-phone-dropdown',
+        templateResult:    phoneCodeTemplateResult,
+        templateSelection: phoneCodeTemplateSelection,
+        allowClear: false,
+        matcher: function(params, data) {
+            if (!params.term || params.term.trim() === '') return data;
+            const term        = params.term.toLowerCase();
+            const dial        = (data.text || '').toLowerCase();
+            const countryName = ($(data.element).data('country-name') || '').toLowerCase();
+            if (dial.includes(term) || countryName.includes(term)) return data;
+            return null;
         }
     });
 
-    // =========================================================
-    // LOCATION AJAX HELPERS  (states only — city/postal are now text inputs)
-    // =========================================================
+    $(document).on('select2:open', function () {
+        const searchField = document.querySelector('.select2-container--open .select2-search__field');
+        if (searchField) searchField.focus();
+    });
 
-    function locationPost(data, callback) {
-        data['csrfmiddlewaretoken'] = CSRF_TOKEN;
-        data['x_requested_with'] = 'XMLHttpRequest';
-        $.post(LOCATION_URL, data, callback, 'json').fail(function(err) {
-            console.warn('Location AJAX error:', err);
-        });
-    }
-
-    // Rebuild a Select2 dropdown with new options
+    // =========================================================
+    // COUNTRY → auto-fill phone code, load states
+    // =========================================================
     function repopulateSelect2(selectId, options, valueProp, labelProp, placeholder) {
         const $sel = $(selectId);
         $sel.empty().append(new Option(placeholder, '', true, false));
@@ -1080,53 +550,37 @@ function phoneCodeTemplateSelection(option) {
         $sel.trigger('change');
     }
 
-    // =========================================================
-    // COUNTRY → auto-fill phone code, nationality, load states
-    // =========================================================
+    function locationPost(data, callback) {
+        data['csrfmiddlewaretoken'] = CSRF_TOKEN;
+        data['x_requested_with'] = 'XMLHttpRequest';
+        $.post(LOCATION_URL, data, callback, 'json').fail(function(err) {
+            console.warn('Location AJAX error:', err);
+        });
+    }
+
     $('#id_country').on('change', function () {
         const $opt        = $(this).find('option:selected');
         const countryCode = $(this).val();
-        const phoneCode   = $opt.data('phone')       || '';
-        const nationality = $opt.data('nationality') || '';
+        const phoneCode    = $opt.data('phone') || '';
 
-        // 1. Sync phone country code Select2
         if (phoneCode) {
             $('#countryCode').val(phoneCode).trigger('change');
             updateFullPhone();
         }
 
-        // 2. Auto-select matching nationality
-        if (nationality) {
-            const $natSel = $('#id_nationality');
-            let matched = false;
-            $natSel.find('option').each(function() {
-                if ($(this).val() === nationality) matched = true;
-            });
-            if (matched) $natSel.val(nationality).trigger('change');
-        }
-
-        // 3. Reset state only (city/postal are now plain text)
         repopulateSelect2('#id_state', [], 'code', 'name', '-- Select State --');
 
         if (!countryCode) return;
 
-        // 4. Load states from server
         locationPost({ action: 'get_location_data', country_code: countryCode }, function(data) {
             if (data.states && data.states.length) {
                 repopulateSelect2('#id_state', data.states, 'code', 'name', '-- Select State --');
             }
-            // Fallback phone sync if data attributes were missing
             if (!phoneCode && data.phone_code) {
                 $('#countryCode').val(data.phone_code).trigger('change');
                 updateFullPhone();
             }
         });
-    });
-
-    // STATE change: nothing to auto-load anymore (city is a text field)
-    // Kept as a no-op listener so validation fires on change
-    $('#id_state').on('change', function() {
-        validateStep1();
     });
 
     // =========================================================
@@ -1139,539 +593,43 @@ function phoneCodeTemplateSelection(option) {
     }
     document.getElementById('countryCode').addEventListener('change', updateFullPhone);
 
-// Strip any leading +digits the user pastes/types (country code guard)
-document.getElementById('localNumber').addEventListener('input', function () {
-    // Remove anything that looks like a pasted full number with country code: +XX or 00XX
-    let val = this.value.replace(/^\+?\d{1,3}[\s\-\.]?(\(?\d)/, function(match, digit) {
-        // Only strip if it looks like a country code prefix was typed
-        return digit;
-    });
-    // More aggressive: if value starts with + or 00, strip until first non-code digit
-    val = this.value;
-    if (/^(\+|00)/.test(val)) {
-        // Remove the leading country code portion
-        val = val.replace(/^(\+|00)\d{1,3}[\s\-\.]?/, '');
-    }
-    this.value = val;
-    updateFullPhone();
-});
-
-// Also block typing '+' or starting with country code on keydown
-document.getElementById('localNumber').addEventListener('keydown', function(e) {
-    if (e.key === '+' && this.selectionStart === 0) {
-        e.preventDefault();
-    }
-});
-
-updateFullPhone();
-
-    // ----- Emergency Phone -----
-    function updateEmergencyPhone() {
-        const code  = document.getElementById('emergencyCountryCode');
-        const local = document.getElementById('emergencyLocalNumber');
-        const full  = document.getElementById('emergencyFullPhone');
-        if (code && local && full) {
-            full.value = (code.value + ' ' + local.value).trim();
-        }
-    }
-    const emergencyCountry = document.getElementById('emergencyCountryCode');
-const emergencyLocal   = document.getElementById('emergencyLocalNumber');
-if (emergencyCountry && emergencyLocal) {
-    emergencyCountry.addEventListener('change', updateEmergencyPhone);
-    emergencyLocal.addEventListener('input', function() {
+    document.getElementById('localNumber').addEventListener('input', function () {
         let val = this.value;
         if (/^(\+|00)/.test(val)) {
             val = val.replace(/^(\+|00)\d{1,3}[\s\-\.]?/, '');
         }
         this.value = val;
-        updateEmergencyPhone();
+        updateFullPhone();
     });
-    emergencyLocal.addEventListener('keydown', function(e) {
+
+    document.getElementById('localNumber').addEventListener('keydown', function(e) {
         if (e.key === '+' && this.selectionStart === 0) {
             e.preventDefault();
         }
     });
-    updateEmergencyPhone();
-}
+
+    updateFullPhone();
 
     // =========================================================
-    // LANGUAGE PROFICIENCY TOGGLE
+    // LAPTOP CONFIGURATION TOGGLE
     // =========================================================
-    const langSkill = document.querySelector('select[name="language_skill"]');
-    const langScore = document.querySelector('input[name="language_score"]');
-    function toggleLanguageScore() {
-        if (langSkill.value === 'none') {
-            langScore.disabled = true;
-            langScore.value = '';
-        } else {
-            langScore.disabled = false;
-        }
+    const laptopConfigContainer = document.getElementById('laptopConfigContainer');
+    const laptopConfigInput     = document.querySelector('input[name="laptop_configuration"]');
+    function toggleLaptopConfig() {
+        const hasLaptop = document.getElementById('hasLaptopYes').checked;
+        if (laptopConfigContainer) laptopConfigContainer.classList.toggle('js-hidden', !hasLaptop);
+        if (laptopConfigInput) laptopConfigInput.required = hasLaptop;
     }
-    if (langSkill) {
-        langSkill.addEventListener('change', toggleLanguageScore);
-        toggleLanguageScore();
-    }
-
-    // =========================================================
-    // "HOW DID YOU HEAR" OTHER FIELD
-    // =========================================================
-    const hearSelect      = document.querySelector('select[name="how_did_you_hear"]');
-    const otherContainer  = document.getElementById('otherHearContainer');
-    const otherInput      = document.querySelector('input[name="how_did_you_hear_other"]');
-    function toggleOtherHear() {
-        if (hearSelect.value === 'other') {
-            otherContainer.style.display = 'block';
-            otherInput.required = true;
-        } else {
-            otherContainer.style.display = 'none';
-            otherInput.required = false;
-            otherInput.value = '';
-        }
-    }
-    if (hearSelect) {
-        hearSelect.addEventListener('change', toggleOtherHear);
-        toggleOtherHear();
-    }
-
-    // =========================================================
-    // VALIDATION
-    // =========================================================
-    function validateStep1() {
-        let allValid = true;
-        document.querySelectorAll('#step1 .error-highlight').forEach(el =>
-            el.classList.remove('error-highlight', 'border-red-500'));
-
-        const requiredSelectors = [
-            'input[name="first_name"]', 'input[name="last_name"]', 'input[name="email"]',
-            '#fullPhone', 'input[name="date_of_birth"]',
-            'select[name="country"]', 'select[name="gender"]', 'select[name="nationality"]',
-            'textarea[name="address_line1"]',
-            'select[name="state"]', 'input[name="city"]'
-        ];
-
-        requiredSelectors.forEach(function(selector) {
-            const el = selector === '#fullPhone'
-                ? document.getElementById('fullPhone')
-                : document.querySelector(selector);
-            if (el) {
-                if (!el.value || !el.value.trim()) {
-                    allValid = false;
-                    el.classList.add('border-red-500', 'error-highlight');
-                } else {
-                    el.classList.remove('border-red-500', 'error-highlight');
-                }
-            }
-        });
-
-        const email = document.querySelector('input[name="email"]');
-        if (email && email.value) {
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
-                allValid = false;
-                email.classList.add('border-red-500', 'error-highlight');
-            }
-        }
-
-        gatingState.step1Completed = allValid;
-        updateNavigationGating();
-        return allValid;
-    }
-
-    function validateStep2() {
-        const academicEntries = document.querySelectorAll('.academic-entry');
-        if (academicEntries.length === 0) {
-            gatingState.step2Completed = false;
-            updateNavigationGating();
-            return false;
-        }
-        let allEntriesValid = true;
-        academicEntries.forEach(entry => {
-            const entryId = entry.getAttribute('data-entry');
-            [`select[name="education_level_${entryId}"]`,
-             `input[name="graduation_year_${entryId}"]`,
-             `input[name="institution_${entryId}"]`,
-             `input[name="field_of_study_${entryId}"]`].forEach(pattern => {
-                const field = entry.querySelector(pattern);
-                if (field) {
-                    if (!field.value || !field.value.trim()) {
-                        allEntriesValid = false;
-                        field.classList.add('border-red-500', 'error-highlight');
-                    } else {
-                        field.classList.remove('border-red-500', 'error-highlight');
-                        if (pattern.includes('graduation_year')) {
-                            const yr = parseInt(field.value);
-                            const now = new Date().getFullYear();
-                            if (isNaN(yr) || yr < 1950 || yr > now + 5) {
-                                allEntriesValid = false;
-                                field.classList.add('border-red-500', 'error-highlight');
-                            }
-                        }
-                    }
-                }
-            });
-        });
-
-        const ls = document.querySelector('select[name="language_skill"]');
-        const lsc = document.querySelector('input[name="language_score"]');
-        if (!ls || !ls.value || ls.value === '--------') {
-            allEntriesValid = false;
-            if (ls) ls.classList.add('border-red-500', 'error-highlight');
-        } else {
-            ls.classList.remove('border-red-500', 'error-highlight');
-            if (ls.value !== 'none') {
-                if (!lsc || !lsc.value.trim()) {
-                    allEntriesValid = false;
-                    if (lsc) lsc.classList.add('border-red-500', 'error-highlight');
-                } else {
-                    lsc.classList.remove('border-red-500', 'error-highlight');
-                }
-            }
-        }
-
-        gatingState.step2Completed = allEntriesValid;
-        updateNavigationGating();
-        return allEntriesValid;
-    }
-
-    function validateStep3() {
-        let allValid = true;
-        const required3 = [
-            'select[name="program"]', 'select[name="academic_session"]',
-            'select[name="study_mode"]', 'select[name="how_did_you_hear"]',
-            'input[name="emergency_contact_name"]', 'input[name="emergency_contact_email"]',
-            'input[name="emergency_contact_address"]', '#emergencyFullPhone'
-        ];
-        required3.forEach(sel => {
-            const el = sel === '#emergencyFullPhone'
-                ? document.getElementById('emergencyFullPhone')
-                : document.querySelector(sel);
-            if (el && (!el.value || !el.value.trim())) {
-                allValid = false;
-            }
-        });
-        const terms   = document.querySelector('input[name="accept_terms_conditions"]');
-        const privacy = document.querySelector('input[name="accept_privacy_policy"]');
-        if (!terms?.checked)   allValid = false;
-        if (!privacy?.checked) allValid = false;
-
-        gatingState.step3Completed = allValid;
-        updateNavigationGating();
-        return allValid;
-    }
-
-    // =========================================================
-    // STEP NAVIGATION & PROGRESS
-    // =========================================================
-    function updateStep() {
-        formSteps.forEach((step, i) => {
-            step.classList.toggle('active', i + 1 === currentStep);
-        });
-        progressSteps.forEach((step, i) => {
-            const n = i + 1;
-            step.classList.remove('active', 'completed');
-            if (n === currentStep) step.classList.add('active');
-            else if (n < currentStep) step.classList.add('completed');
-        });
-
-        prevBtn.classList.toggle('hidden', currentStep === 1);
-        const nextText = document.getElementById('nextBtnText');
-        nextText.textContent = currentStep === 4 ? 'Save & Continue →' : 'Next Step →';
-
-        if (stepTitleElement)       stepTitleElement.textContent       = stepTitles[currentStep] || '';
-        if (mobileStepTitleElement) mobileStepTitleElement.textContent = stepTitles[currentStep] || '';
-        if (currentStepElement)     currentStepElement.textContent     = currentStep;
-
-        const pct = Math.round(((currentStep - 1) / totalSteps) * 100);
-        [progressBar, mobileProgressBar, stepProgressBar].forEach(b => {
-            if (b) b.style.width = pct + '%';
-        });
-        if (progressPercentage)       progressPercentage.textContent       = pct;
-        if (mobileProgressPercentage) mobileProgressPercentage.textContent = pct;
-    }
-
-    function updateNavigationGating() {
-        // allow free movement within already-completed steps; no-op here
-    }
-
-    function goToNextStep() {
-        let valid = false;
-        if (currentStep === 1) valid = validateStep1();
-        else if (currentStep === 2) valid = validateStep2();
-        else if (currentStep === 3) valid = validateStep3();
-        else valid = true;
-
-        if (!valid) { showValidationError(); return; }
-        if (currentStep < totalSteps) {
-            currentStep++;
-            updateStep();
-            if (currentStep === 4) updateReviewSection();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-    }
-
-    function goToPrevStep() {
-        if (currentStep > 1) {
-            currentStep--;
-            updateStep();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-    }
-
-    // =========================================================
-    // ACADEMIC ENTRY
-    // =========================================================
-    let academicEntryCount = 0;
-    function addAcademicEntry() {
-        academicEntryCount++;
-        const id = academicEntryCount;
-        const container = document.getElementById('academicEntriesContainer');
-        const entry = document.createElement('div');
-        entry.className = 'academic-entry bg-gray-50 rounded-xl border border-gray-200 p-6';
-        entry.setAttribute('data-entry', id);
-        entry.innerHTML = `
-            <div class="flex justify-between items-center mb-4">
-                <h4 class="font-semibold text-gray-800">Academic Entry #${id}</h4>
-                ${id > 1 ? `<button type="button" onclick="this.closest('.academic-entry').remove();validateStep2();" class="text-red-500 text-sm hover:text-red-700">Remove</button>` : ''}
-            </div>
-            <div class="grid md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Education Level <span class="text-red-500">*</span></label>
-                    <select name="education_level_${id}" class="w-full p-3 border-2 border-gray-300 rounded-lg bg-white" required>
-                        <option value="">-- Select Level --</option>
-                        <option value="high_school">High School / Secondary</option>
-                        <option value="diploma">Diploma / Certificate</option>
-                        <option value="associate">Associate Degree</option>
-                        <option value="bachelor">Bachelor's Degree</option>
-                        <option value="master">Master's Degree</option>
-                        <option value="phd">PhD / Doctorate</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Institution <span class="text-red-500">*</span></label>
-                    <input type="text" name="institution_${id}" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg" placeholder="University / School name" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Field of Study <span class="text-red-500">*</span></label>
-                    <input type="text" name="field_of_study_${id}" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg" placeholder="e.g. Computer Science" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Graduation Year <span class="text-red-500">*</span></label>
-                    <input type="number" name="graduation_year_${id}" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg" placeholder="e.g. 2020" min="1950" max="2030" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">GPA / Grade <span class="text-gray-400 text-xs">(Optional)</span></label>
-                    <input type="text" name="gpa_${id}" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg" placeholder="e.g. 3.8 / 4.0">
-                </div>
-            </div>`;
-        container.appendChild(entry);
-
-        entry.querySelectorAll('input, select').forEach(el => {
-            el.addEventListener('input',  validateStep2);
-            el.addEventListener('change', validateStep2);
-        });
-    }
-
-    // =========================================================
-    // REVIEW SECTION
-    // =========================================================
-    function updateReviewSection() {
-        const get = (sel) => {
-            const el = document.querySelector(sel);
-            if (!el) return 'N/A';
-            if (el.tagName === 'SELECT') return el.options[el.selectedIndex]?.text || el.value || 'N/A';
-            return el.value || 'N/A';
-        };
-
-        const firstName = get('input[name="first_name"]');
-        const lastName  = get('input[name="last_name"]');
-        const email     = get('input[name="email"]');
-        const phone     = get('#fullPhone');
-        const dob       = get('input[name="date_of_birth"]');
-        const country   = get('select[name="country"]');
-        const gender    = get('select[name="gender"]');
-        const nat       = get('select[name="nationality"]');
-        const addr1     = get('textarea[name="address_line1"]');
-        const addr2     = get('textarea[name="address_line2"]') !== 'N/A' ? get('textarea[name="address_line2"]') : '';
-        const state     = get('select[name="state"]');
-        const city      = get('select[name="city"]');
-        const postal    = get('input[name="postal_code"]');
-        const program   = get('select[name="program"]');
-        const intake    = get('select[name="academic_session"]');
-        const studyMode = get('select[name="study_mode"]');
-        const scholarship = document.querySelector('input[name="scholarship"]')?.checked ? 'Yes' : 'No';
-        const workExp   = get('input[name="work_experience_years"]');
-        const hear      = get('select[name="how_did_you_hear"]');
-        const hearOther = get('input[name="how_did_you_hear_other"]');
-        const emName    = get('input[name="emergency_contact_name"]');
-        const emRel     = get('select[name="emergency_contact_relationship"]');
-        const emPhone   = get('#emergencyFullPhone');
-        const emEmail   = get('input[name="emergency_contact_email"]');
-        const emAddr    = get('input[name="emergency_contact_address"]');
-        const terms     = document.querySelector('input[name="accept_terms_conditions"]')?.checked ? 'Accepted' : 'Not accepted';
-        const privacy   = document.querySelector('input[name="accept_privacy_policy"]')?.checked ? 'Accepted' : 'Not accepted';
-
-        const reviewSummary = document.getElementById('reviewSummary');
-        let summaryHTML = `
-        <div class="mb-6">
-            <h4 class="font-semibold mb-3 text-lg text-navy border-b pb-2">Personal Information</h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div><strong>Name:</strong> ${firstName} ${lastName}</div>
-                <div><strong>Email:</strong> ${email}</div>
-                <div><strong>Phone:</strong> ${phone}</div>
-                <div><strong>Date of Birth:</strong> ${dob}</div>
-                <div><strong>Country:</strong> ${country}</div>
-                <div><strong>Gender:</strong> ${gender}</div>
-                <div><strong>Nationality:</strong> ${nat}</div>
-                <div><strong>State:</strong> ${state}</div>
-                <div><strong>City:</strong> ${city}</div>
-                <div><strong>Postal Code:</strong> ${postal}</div>
-                <div class="md:col-span-2"><strong>Address:</strong> ${addr1}${addr2 ? ', ' + addr2 : ''}</div>
-            </div>
-        </div>
-        <div class="mb-6">
-            <h4 class="font-semibold mb-3 text-lg text-navy border-b pb-2">Course Selection</h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div><strong>Program:</strong> ${program}</div>
-                <div><strong>Academic Session:</strong> ${intake}</div>
-                <div><strong>Study Mode:</strong> ${studyMode}</div>
-                <div><strong>Scholarship:</strong> ${scholarship}</div>
-                <div><strong>Work Experience (years):</strong> ${workExp}</div>
-                <div><strong>How Did You Hear:</strong> ${hear}${hearOther && hearOther !== 'N/A' ? ' - ' + hearOther : ''}</div>
-                <div><strong>Emergency Contact:</strong> ${emName} (${emRel})</div>
-                <div><strong>Emergency Phone:</strong> ${emPhone}</div>
-                <div><strong>Emergency Email:</strong> ${emEmail}</div>
-                <div><strong>Emergency Address:</strong> ${emAddr}</div>
-                <div class="md:col-span-2"><strong>Terms Accepted:</strong> ${terms} | <strong>Privacy Policy:</strong> ${privacy}</div>
-            </div>
-        </div>`;
-
-        reviewSummary.innerHTML = summaryHTML;
-        serializeAcademicHistory();
-    }
-
-    function serializeAcademicHistory() {
-        const entries = [];
-        document.querySelectorAll('.academic-entry').forEach(entry => {
-            const id = entry.getAttribute('data-entry');
-            const level   = entry.querySelector(`select[name="education_level_${id}"]`)?.value || '';
-            const inst    = entry.querySelector(`input[name="institution_${id}"]`)?.value || '';
-            const year    = entry.querySelector(`input[name="graduation_year_${id}"]`)?.value || '';
-            const field   = entry.querySelector(`input[name="field_of_study_${id}"]`)?.value || '';
-            const gpa     = entry.querySelector(`input[name="gpa_${id}"]`)?.value || '';
-            if (level || inst || year || field) {
-                entries.push({ degree: level, institution: inst, graduation_year: year, field_of_study: field, gpa });
-            }
-        });
-        const payload = document.getElementById('academicHistoryPayload');
-        if (payload) payload.value = JSON.stringify(entries);
-    }
-
-    function submitApplication(event) {
-        event.preventDefault();
-        if (!gatingState.step1Completed || !gatingState.step2Completed || !gatingState.step3Completed) {
-            showValidationError();
-            return false;
-        }
-        serializeAcademicHistory();
-        const nextBtnText = document.getElementById('nextBtnText');
-        nextBtnText.innerHTML = '<span class="inline-block animate-spin mr-2">⏳</span> Saving...';
-        nextBtn.disabled = true;
-        form.submit();
-        return false;
-    }
-
-    function showValidationError() {
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-6 validation-error-message';
-        errorDiv.innerHTML = `<div class="flex items-start gap-3">
-            <div class="flex-1">
-                <h4 class="font-bold text-red-800 mb-2">Please complete all required fields</h4>
-                <p class="text-sm text-red-700">Some required fields are missing or contain invalid information.</p>
-            </div></div>`;
-        const existing = document.querySelector('.validation-error-message');
-        if (existing) existing.remove();
-        const currentFormStep = document.querySelector(`#step${currentStep}`);
-        if (currentFormStep) currentFormStep.insertBefore(errorDiv, currentFormStep.firstChild);
-        setTimeout(() => errorDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-    }
-
-    // =========================================================
-    // EVENT LISTENERS
-    // =========================================================
-    if (prevBtn) prevBtn.addEventListener('click', goToPrevStep);
-    if (nextBtn) {
-        nextBtn.addEventListener('click', function(e) {
-            if (currentStep === 4) submitApplication(e);
-            else goToNextStep();
-        });
-    }
-
-    const addAcademicBtn = document.getElementById('addAcademicEntryBtn');
-    if (addAcademicBtn) addAcademicBtn.addEventListener('click', addAcademicEntry);
-
-    progressSteps.forEach(step => {
-        if (!step.classList.contains('disabled')) {
-            step.addEventListener('click', function() {
-                const stepNum = parseInt(this.getAttribute('data-step'));
-                if (stepNum <= 4) {
-                    let canNavigate = true;
-                    if (stepNum > currentStep) {
-                        if (stepNum > 1 && !gatingState.step1Completed) canNavigate = false;
-                        if (stepNum > 2 && !gatingState.step2Completed) canNavigate = false;
-                        if (stepNum > 3 && !gatingState.step3Completed) canNavigate = false;
-                    }
-                    if (canNavigate) {
-                        currentStep = stepNum;
-                        updateStep();
-                        if (currentStep === 4) updateReviewSection();
-                    } else {
-                        showValidationError();
-                    }
-                }
-            });
-        }
+    document.querySelectorAll('input[name="has_laptop"]').forEach(function(radio) {
+        radio.addEventListener('change', toggleLaptopConfig);
     });
+    toggleLaptopConfig();
 
-    // Listen to Select2 changes for validation (select2 fires 'change' on jQuery element)
-    $('#id_country, #id_nationality, #id_state').on('change', validateStep1);
-    // city is now a plain text input — handled by the generic input listener below
-
-    // =========================================================
-    // INIT
-    // =========================================================
-    function initForm() {
-        addAcademicEntry();
-
-        document.querySelectorAll('#step1 input, #step1 textarea').forEach(el => {
-            el.addEventListener('input',  validateStep1);
-            el.addEventListener('change', validateStep1);
-        });
-        // Native selects in step1 (gender etc.)
-        document.querySelectorAll('#step1 select:not(.select2-hidden-accessible)').forEach(el => {
-            el.addEventListener('change', validateStep1);
-        });
-
-        document.querySelectorAll('#step2 input').forEach(el => {
-            el.addEventListener('input',  validateStep2);
-            el.addEventListener('change', validateStep2);
-        });
-
-        const academicContainer = document.getElementById('academicEntriesContainer');
-        if (academicContainer) {
-            new MutationObserver(() => requestAnimationFrame(validateStep2))
-                .observe(academicContainer, { childList: true, subtree: true });
-        }
-
-        document.querySelectorAll('#step3 input, #step3 select, #step3 textarea').forEach(el => {
-            el.addEventListener('change', validateStep3);
-            el.addEventListener('input',  validateStep3);
-        });
-
-        validateStep1();
-        updateStep();
+    // Trigger country change once on load if a value is already selected
+    // (e.g. after a validation error re-render) so the state list repopulates.
+    if ($('#id_country').val()) {
+        $('#id_country').trigger('change');
     }
-
-    initForm();
 });
 </script>
 {% endblock %}

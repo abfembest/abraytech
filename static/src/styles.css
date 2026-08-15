@@ -1,11 +1,11 @@
-@import "../vendor/fonts/inter/inter.css";
-@import "../vendor/fonts/poppins/poppins.css";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap');
 
 @import "tailwindcss";
 
-/* Sora — display/heading font used by the "main.html" template redesign.
-   Not vendored locally (unlike Inter/Poppins above), loaded via Google
-   Fonts <link> in base.html instead — see the <head> "FONTS" block. */
+/* Inter, Poppins & Sora are loaded via the Google Fonts @import above —
+   not vendored locally. The local vendor/fonts @import approach
+   previously here produced a compiled stylesheet with zero working
+   @font-face rules for Inter/Poppins. */
 
 
 /* =====================================================
@@ -188,10 +188,17 @@
   --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
 }
 
+/* Font variables — single source of truth, referenced by every rule below
+   instead of repeating the raw font stacks. */
+:root {
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Poppins', system-ui, -apple-system, sans-serif;
+}
+
 /* Base element styles — fonts are controlled here so every page gets them
    the moment styles.css loads, with no per-template overrides needed.
 
-   font-family goes on `body`, not a universal `*` selector: it's an
+   font-family goes on `html`/`body`, not a universal `*` selector: it's an
    inherited CSS property, so body's value already reaches every descendant
    on its own. A `*` rule instead sets font-family DIRECTLY on every
    element — including icon-font glyphs like FontAwesome's `.fas`/`.far`/
@@ -202,11 +209,27 @@
    silently broke every dashboard icon: 'Inter' has no glyph for those
    codepoints, so they rendered blank. Plain inheritance never has that
    problem — FontAwesome's own explicit class rule still wins over an
-   inherited value regardless of load order. */
+   inherited value regardless of load order.
+
+   Form controls are the one thing browsers do NOT inherit font-family
+   into by default (input/select/textarea/button/optgroup all fall back to
+   the OS UI font on their own UA stylesheet) — on a form-heavy site like
+   this one, that alone made most on-page text look "off" even once the
+   webfont itself was loading correctly. Explicitly inheriting on those
+   elements closes that gap. */
 @layer base {
+  html,
   body,
   .font-\[\'Inter\'\] {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: var(--font-body);
+  }
+
+  input,
+  select,
+  textarea,
+  button,
+  optgroup {
+    font-family: inherit;
   }
 
   h1,
@@ -217,7 +240,7 @@
   h6,
   .font-heading,
   .font-\[\'Poppins\'\] {
-    font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+    font-family: var(--font-heading);
   }
 }
 
@@ -250,11 +273,11 @@
 /* Custom utility classes */
 @layer utilities {
   .font-heading {
-    font-family: Poppins, system-ui, -apple-system, sans-serif;
+    font-family: var(--font-heading);
   }
 
   .gradient-text {
-    background: linear-gradient(135deg, #840384 0%, #a855f7 100%);
+    background: linear-gradient(135deg, var(--color-navy) 0%, var(--color-brandblue) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;

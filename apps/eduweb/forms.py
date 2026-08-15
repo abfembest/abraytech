@@ -1,7 +1,7 @@
 ﻿from django import forms
 from .models import (
     ContactMessage, CourseApplication,
-    ListOfCountry, ApplicationDocument
+    ApplicationDocument, Program
 )
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
@@ -154,152 +154,69 @@ class DisabledEmptySelect(forms.Select):
         return option
 
 
-# COURSE APPLICATION FORM  — all model fields included
+# COURSE APPLICATION FORM  — simple one-page inquiry form
 # ─────────────────────────────────────────────────────────────────────────────
 class CourseApplicationForm(forms.ModelForm):
 
-    HEAR_CHOICES = [
-        ('', 'Select an option'),
-        ('linkedin',       'LinkedIn'),
-        ('facebook',       'Facebook'),
-        ('tiktok',         'TikTok'),
-        ('instagram',      'Instagram'),
-        ('youtube',        'YouTube'),
-        ('twitter',        'Twitter'),
-        ('email_campaign', 'Email Campaign'),
-        ('miu_website',    'MIU Website'),
-        ('search_engine',  'Search Engine (Google, Bing, Yahoo)'),
-        ('referral',       'Referral (friend, family)'),
-        ('other',          'Other'),
-    ]
+    YES_NO_CHOICES = [('yes', 'Yes'), ('no', 'No')]
 
-    # ── Override fields that need dynamic choices or special widgets ──────────
-
-    # Country — populated dynamically from ListOfCountry in __init__
-    country = forms.ChoiceField(
-        choices=[('', 'Select Country')],
-        required=True,
-        widget=DisabledEmptySelect(attrs={'class': f'{_SELECT} select2-country'}),
+    age = forms.IntegerField(
+        required=True, min_value=10, max_value=100,
+        widget=forms.NumberInput(attrs={'class': _INPUT, 'placeholder': 'Your age'}),
     )
 
-    nationality = forms.ChoiceField(
-        choices=[('', 'Select Nationality')],
+    has_internet_access = forms.TypedChoiceField(
+        choices=YES_NO_CHOICES,
+        coerce=lambda v: v == 'yes',
         required=True,
-        widget=DisabledEmptySelect(attrs={'class': f'{_SELECT} select2-nationality'}),
+        widget=forms.RadioSelect,
+        label='Do you have access to the internet?',
     )
-
-    how_did_you_hear = forms.ChoiceField(
-        choices=HEAR_CHOICES,
+    has_laptop = forms.TypedChoiceField(
+        choices=YES_NO_CHOICES,
+        coerce=lambda v: v == 'yes',
         required=True,
-        widget=DisabledEmptySelect(attrs={'class': _SELECT}),
+        widget=forms.RadioSelect,
+        label='Do you have a laptop?',
     )
-
-    # Additional model fields exposed as explicit form fields
-    how_did_you_hear_other = forms.CharField(
+    laptop_configuration = forms.CharField(
         required=False,
-        widget=forms.TextInput(attrs={'class': _INPUT, 'placeholder': 'Please specify...'}),
-    )
-    emergency_contact_email = forms.EmailField(
-        required=True,
-        widget=forms.EmailInput(attrs={'class': _INPUT, 'placeholder': 'emergency@example.com'}),
-    )
-    emergency_contact_address = forms.CharField(
-        required=True,
-        widget=forms.TextInput(attrs={'class': _INPUT, 'placeholder': 'Emergency contact full address'}),
+        widget=forms.TextInput(attrs={'class': _INPUT, 'placeholder': 'e.g. 8GB RAM, Intel i5-i7-i9, SSD'}),
+        label='Your laptop configuration',
     )
 
     class Meta:
         model = CourseApplication
         fields = [
-            # ── Course, Session & Level
-            'program', 'study_mode',
-            # ── Personal
-            'first_name', 'last_name', 'email', 'phone',
-            'date_of_birth', 'gender', 'nationality',
-            # ── Address
-            'address_line1', 'address_line2',
-            'city', 'state', 'postal_code', 'country',
-            # ── Academic Background
-            'highest_qualification', 'institution_name',
-            'graduation_year', 'gpa_or_grade',
-            'language_skill', 'language_score',
-            # ── Additional
-            'work_experience_years', 'personal_statement',
-            'how_did_you_hear', 'how_did_you_hear_other',
-            # ── Emergency Contact
-            'emergency_contact_name', 'emergency_contact_phone',
-            'emergency_contact_relationship',
-            'emergency_contact_email', 'emergency_contact_address',
-            # ── Consent & Options
-            'accept_terms_conditions', 'accept_privacy_policy',
-            'marketing_consent', 'scholarship',
+            'program',
+            'first_name', 'last_name', 'email', 'phone', 'age',
+            'country', 'state', 'address_line1',
+            'highest_qualification',
+            'has_internet_access', 'has_laptop', 'laptop_configuration',
         ]
 
         widgets = {
-            # Course, Session & Level
-            'program':    DisabledEmptySelect(attrs={'class': _SELECT}),
-            'study_mode': DisabledEmptySelect(attrs={'class': _SELECT}),
+            'program': DisabledEmptySelect(attrs={'class': _SELECT}),
 
-            # Personal Information
-            'first_name':    forms.TextInput(attrs={'class': _INPUT, 'placeholder': 'Enter your first name'}),
-            'last_name':     forms.TextInput(attrs={'class': _INPUT, 'placeholder': 'Enter your last name'}),
-            'email':         forms.EmailInput(attrs={'class': _INPUT, 'placeholder': 'your.email@example.com', 'readonly': 'readonly'}),
-            'phone':         forms.TextInput(attrs={'class': _INPUT, 'placeholder': '+234 XXX XXX XXXX'}),
-            'date_of_birth': forms.DateInput(attrs={'type': 'date', 'class': _INPUT}),
-            'gender':        DisabledEmptySelect(attrs={'class': _SELECT}),
+            'first_name': forms.TextInput(attrs={'class': _INPUT, 'placeholder': 'Enter your first name'}),
+            'last_name':  forms.TextInput(attrs={'class': _INPUT, 'placeholder': 'Enter your last name'}),
+            'email':      forms.EmailInput(attrs={'class': _INPUT, 'placeholder': 'your.email@example.com', 'readonly': 'readonly'}),
+            'phone':      forms.TextInput(attrs={'class': _INPUT, 'placeholder': '+234 XXX XXX XXXX'}),
 
-            # Address
-            'address_line1': forms.TextInput(attrs={'class': _INPUT, 'placeholder': 'Street address'}),
-            'address_line2': forms.TextInput(attrs={'class': _INPUT, 'placeholder': 'Apartment, suite, etc. (optional)'}),
-            'city':          forms.TextInput(attrs={'class': _INPUT, 'placeholder': 'City'}),
-            'state':         forms.TextInput(attrs={'class': _INPUT, 'placeholder': 'State / Province'}),
-            'postal_code':   forms.TextInput(attrs={'class': _INPUT, 'placeholder': 'Postal / ZIP code'}),
+            'country':        forms.TextInput(attrs={'class': f'{_SELECT} select2-country'}),
+            'state':          forms.TextInput(attrs={'class': f'{_SELECT} select2-state'}),
+            'address_line1':  forms.TextInput(attrs={'class': _INPUT, 'placeholder': 'Street address'}),
 
-            # Academic Background
             'highest_qualification': forms.TextInput(attrs={'class': _INPUT, 'placeholder': "e.g., High School Diploma, Bachelor's Degree"}),
-            'institution_name':      forms.TextInput(attrs={'class': _INPUT, 'placeholder': 'Name of institution attended'}),
-            'graduation_year':       forms.NumberInput(attrs={'class': _INPUT, 'placeholder': 'e.g., 2020', 'min': 1950, 'max': 2030}),
-            'gpa_or_grade':          forms.TextInput(attrs={'class': _INPUT, 'placeholder': 'e.g., 3.5/4.0 or First Class'}),
-            'language_skill':        DisabledEmptySelect(attrs={'class': _SELECT}),
-            'language_score':        forms.NumberInput(attrs={'class': _INPUT, 'placeholder': 'e.g., 7.5 (IELTS) or 95 (TOEFL)', 'min': 0, 'step': '0.01'}),
-
-            # Additional Information
-            'work_experience_years': forms.NumberInput(attrs={'class': _INPUT, 'placeholder': '0', 'min': 0}),
-            'personal_statement':    forms.Textarea(attrs={'class': _AREA, 'rows': 6, 'placeholder': 'Tell us about yourself and your goals...'}),
-
-            # Emergency Contact
-            'emergency_contact_name':         forms.TextInput(attrs={'class': _INPUT, 'placeholder': 'Full name'}),
-            'emergency_contact_phone':        forms.TextInput(attrs={'class': _INPUT, 'placeholder': '+234 XXX XXX XXXX'}),
-            'emergency_contact_relationship': forms.TextInput(attrs={'class': _INPUT, 'placeholder': 'e.g., Parent, Spouse, Sibling'}),
-
-            # Consent & Options
-            'accept_terms_conditions': forms.CheckboxInput(attrs={'class': _CHECK}),
-            'accept_privacy_policy':   forms.CheckboxInput(attrs={'class': _CHECK}),
-            'marketing_consent':       forms.CheckboxInput(attrs={'class': _CHECK}),
-            'scholarship':             forms.CheckboxInput(attrs={'class': 'h-5 w-5 text-purple-700 rounded focus:ring-purple-500 cursor-pointer'}),
         }
 
-    # ── __init__: populate dynamic choices ───────────────────────────────────
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        # Country choices from database
-        countries = ListOfCountry.objects.order_by('country')
-        self.fields['country'].choices = [('', 'Select Country')] + [
-            (c.country_code, c.country) for c in countries
-        ]
-
-        # Nationality choices from database (use nationality field, fall back to country name)
-        self.fields['nationality'].choices = [('', 'Select Nationality')] + [
-            (c.nationality or c.country, c.nationality or c.country)
-            for c in countries if (c.nationality or c.country)
-        ]
-
-        # personal_statement is optional at form level (model allows blank)
-        self.fields['personal_statement'].required = False
-
-        # language_score is optional if language_skill == 'none'
-        self.fields['language_score'].required = False
+        self.fields['program'].queryset = (
+            Program.objects.filter(is_active=True)
+            .select_related('department__faculty')
+            .order_by('department__faculty__name', 'name')
+        )
 
     # ── Validation helpers ────────────────────────────────────────────────────
     def clean_email(self):
@@ -308,31 +225,10 @@ class CourseApplicationForm(forms.ModelForm):
     def clean_phone(self):
         return self.cleaned_data.get('phone', '').strip()
 
-    def clean_graduation_year(self):
-        from datetime import datetime
-        year = self.cleaned_data.get('graduation_year')
-        try:
-            year_int = int(year)
-        except (ValueError, TypeError):
-            raise forms.ValidationError('Please enter a valid graduation year.')
-        if year_int < 1950:
-            raise forms.ValidationError('Please enter a valid graduation year (1950 or later).')
-        if year_int > datetime.now().year + 5:
-            raise forms.ValidationError('Graduation year cannot be more than 5 years in the future.')
-        return str(year_int)  # model field is TextField
-
     def clean(self):
         cleaned = super().clean()
-        # If language_skill is set and not 'none', score is required
-        skill = cleaned.get('language_skill')
-        score = cleaned.get('language_score')
-        if skill and skill != 'none' and not score:
-            self.add_error('language_score', 'Please enter your test score.')
-        # If how_did_you_hear == 'other', the other field is required
-        hear = cleaned.get('how_did_you_hear')
-        other = cleaned.get('how_did_you_hear_other', '').strip()
-        if hear == 'other' and not other:
-            self.add_error('how_did_you_hear_other', 'Please specify how you heard about us.')
+        if cleaned.get('has_laptop') and not cleaned.get('laptop_configuration', '').strip():
+            self.add_error('laptop_configuration', 'Please specify your laptop configuration.')
         return cleaned
 
 

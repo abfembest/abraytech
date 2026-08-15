@@ -1595,38 +1595,44 @@ class CourseApplication(models.Model):
         null=True, blank=True,
         help_text="Entry level e.g. 100, 200, 300 etc."
     )
-    study_mode = models.CharField(max_length=20, choices=STUDY_MODE_CHOICES)
+    study_mode = models.CharField(max_length=20, choices=STUDY_MODE_CHOICES, blank=True)
     
     # Personal Information
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     email = models.EmailField()
     phone = models.CharField(max_length=20)
-    date_of_birth = models.DateField()
-    gender = models.CharField(max_length=10, choices=[('male', 'Male'), ('female', 'Female'), ('other', 'Other')])
-    nationality = models.CharField(max_length=100)
+    age = models.PositiveIntegerField(null=True, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
+    gender = models.CharField(max_length=10, choices=[('male', 'Male'), ('female', 'Female'), ('other', 'Other')], blank=True)
+    nationality = models.CharField(max_length=100, blank=True)
 
     payment_status = models.CharField(max_length=20, default='pending')
-    
+
+    # Access & Equipment
+    has_internet_access = models.BooleanField(null=True, blank=True, help_text="Does the applicant have access to the internet?")
+    has_laptop = models.BooleanField(null=True, blank=True, help_text="Does the applicant have a laptop?")
+    laptop_configuration = models.CharField(max_length=255, blank=True, default='', help_text="Applicant-provided laptop spec, e.g. 8GB RAM, Intel i5, SSD")
+
     # Address
     address_line1 = models.CharField(max_length=200)
     address_line2 = models.CharField(max_length=200, blank=True)
-    city = models.CharField(max_length=100)
+    city = models.CharField(max_length=100, blank=True)
     state = models.CharField(max_length=100)
-    postal_code = models.CharField(max_length=20)
+    postal_code = models.CharField(max_length=20, blank=True)
     country = models.CharField(max_length=100)
-    
+
     # Academic Background
     highest_qualification = models.CharField(max_length=100)
-    institution_name = models.CharField(max_length=200)
-    graduation_year = models.TextField()
-    gpa_or_grade = models.CharField(max_length=20)
+    institution_name = models.CharField(max_length=200, blank=True)
+    graduation_year = models.TextField(blank=True)
+    gpa_or_grade = models.CharField(max_length=20, blank=True)
     language_skill = models.CharField(max_length=20, choices=LANGUAGE_CHOICES,blank=True, null=True)
     language_score = models.DecimalField(max_digits=5,decimal_places=2,blank=True,null=True,help_text="Enter test score (e.g. 7.5 for IELTS, 95 for TOEFL)")
-    
+
     # Additional Information
     work_experience_years = models.IntegerField(default=0)
-    personal_statement = models.TextField()
+    personal_statement = models.TextField(blank=True)
     how_did_you_hear = models.CharField(max_length=100, blank=True)
     scholarship = models.BooleanField(default=False)
     # Privacy & Consent
@@ -1634,11 +1640,11 @@ class CourseApplication(models.Model):
     accept_terms_conditions = models.BooleanField(default=False)
     marketing_consent = models.BooleanField(default=False)
 
-    
+
     # Emergency Contact
-    emergency_contact_name = models.CharField(max_length=100)
-    emergency_contact_phone = models.CharField(max_length=20)
-    emergency_contact_relationship = models.CharField(max_length=50)
+    emergency_contact_name = models.CharField(max_length=100, blank=True)
+    emergency_contact_phone = models.CharField(max_length=20, blank=True)
+    emergency_contact_relationship = models.CharField(max_length=50, blank=True)
     
     # Application Status
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='draft')

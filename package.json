@@ -43,12 +43,10 @@
     "build:admission-letter":   "npx @tailwindcss/cli -i ./static/src/admission-letter.css  -o ./static/css/admission-letter.css  --minify",
     "watch:certificate-print":  "npx @tailwindcss/cli -i ./static/src/certificate-print.css -o ./static/css/certificate-print.css --watch",
     "build:certificate-print":  "npx @tailwindcss/cli -i ./static/src/certificate-print.css -o ./static/css/certificate-print.css --minify",
-    "watch:charts":             "npx @tailwindcss/cli -i ./static/src/charts.css             -o ./static/css/charts.css             --watch",
-    "build:charts":             "npx @tailwindcss/cli -i ./static/src/charts.css             -o ./static/css/charts.css             --minify",
     "watch:blank-page":         "npx @tailwindcss/cli -i ./static/src/blank-page.css         -o ./static/css/blank-page.css         --watch",
     "build:blank-page":         "npx @tailwindcss/cli -i ./static/src/blank-page.css         -o ./static/css/blank-page.css         --minify",
-    "watch:all":                "npx concurrently \"npm run watch:css\" \"npm run watch:library\" \"npm run watch:admission-letter\" \"npm run watch:certificate-print\" \"npm run watch:charts\" \"npm run watch:blank-page\"",
-    "build:all":                "npm run build:css && npm run build:library && npm run build:admission-letter && npm run build:certificate-print && npm run build:charts && npm run build:blank-page",
+    "watch:all":                "npx concurrently \"npm run watch:css\" \"npm run watch:library\" \"npm run watch:admission-letter\" \"npm run watch:certificate-print\" \"npm run watch:blank-page\"",
+    "build:all":                "npm run build:css && npm run build:library && npm run build:admission-letter && npm run build:certificate-print && npm run build:blank-page",
     "vendor":                   "node scripts/vendor-assets.js"
   }
 }
