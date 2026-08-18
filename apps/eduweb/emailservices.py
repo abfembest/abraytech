@@ -591,10 +591,6 @@ def send_application_admin_notification(application):
                     {application.program.department.faculty.name}
                 </p>
                 <p>
-                    <strong>Intake:</strong>
-                    {f"{application.intake.get_intake_period_display()} {application.intake.year}" if application.intake else "Not yet assigned"}
-                </p>
-                <p>
                     <strong>Study Mode:</strong>
                     {application.get_study_mode_display()}
                 </p>

@@ -2,14 +2,13 @@
 {% load static %}
 {% load humanize %}
 
-{% block title %}Financial Analytics - MIU Admin Portal{% endblock %}
+{% block title %}Financial Analytics - Abraytech Admin Portal{% endblock %}
 {% block meta_description %}Comprehensive financial analytics — all student payments, application fees, required fees, invoices, and transactions{% endblock %}
 
 {% block content %}
 
 <!-- Page Header -->
 <div class="mb-8">
-    <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
     <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2 font-display">Financial Analytics Dashboard</h1>
     <p class="text-gray-600">Complete payment records — application fees, student fees, invoices &amp; transactions</p>
 </div>
@@ -228,7 +227,6 @@
     {% endif %}
 </div>
 
-
 <!-- ═══════════════════════════════════════════════════════
      STUDENT FEE PAYMENTS (FeePayment) TABLE
 ═══════════════════════════════════════════════════════ -->
@@ -256,7 +254,6 @@
                     <th class="py-3 px-5 text-left font-semibold text-gray-600">Student</th>
                     <th class="py-3 px-5 text-left font-semibold text-gray-600">Fee Purpose</th>
                     <th class="py-3 px-5 text-left font-semibold text-gray-600">Program</th>
-                    <th class="py-3 px-5 text-left font-semibold text-gray-600">Session</th>
                     <th class="py-3 px-5 text-right font-semibold text-gray-600">Amount</th>
                     <th class="py-3 px-5 text-center font-semibold text-gray-600">Method</th>
                     <th class="py-3 px-5 text-center font-semibold text-gray-600">Timing</th>
@@ -276,9 +273,6 @@
                     </td>
                     <td class="py-3 px-5 text-gray-700" data-label="Fee Purpose">{{ fp.fee.purpose }}</td>
                     <td class="py-3 px-5 text-gray-600 text-xs" data-label="Program">{{ fp.fee.program.code }}</td>
-                    <td class="py-3 px-5 text-gray-500 text-xs" data-label="Session">
-                        {% if fp.fee.academic_session %}{{ fp.fee.academic_session.name }}{% else %}—{% endif %}
-                    </td>
                     <td class="py-3 px-5 text-right font-semibold text-gray-800" data-label="Amount">
                         {{ fp.currency }} {{ fp.amount|floatformat:2|intcomma }}
                     </td>
@@ -334,7 +328,6 @@
     </div>
     {% endif %}
 </div>
-
 
 <!-- ═══════════════════════════════════════════════════════
      TRANSACTIONS TABLE (General)
@@ -413,7 +406,6 @@
     {% endif %}
 </div>
 
-
 <!-- ═══════════════════════════════════════════════════════
      INVOICES TABLE
 ═══════════════════════════════════════════════════════ -->
@@ -488,7 +480,6 @@
     {% endif %}
 </div>
 
-
 <!-- ═══════════════════════════════════════════════════════
      INSTRUCTOR PAYOUT HISTORY
 ═══════════════════════════════════════════════════════ -->
@@ -541,7 +532,6 @@
 </div>
 
 {% endblock %}
-
 
 {% block extra_js %}
 <script>

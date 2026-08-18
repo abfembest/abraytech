@@ -5,7 +5,6 @@
 
 {% block content %}
 <div class="bg-gray-50 min-h-screen">
-                <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
 
     <div class="container mx-auto px-4 py-8 max-w-6xl">
         <!-- Header -->
@@ -259,7 +258,6 @@
             </div>
         </div>
     </div>
-
 
 </div>
 
@@ -520,11 +518,6 @@
             document.getElementById('button-spinner').classList.toggle('hidden', !isLoading);
         }
 
-
-
-
-
-
         // Custom print function for receipt only
         function printReceiptOnly() {
             const receiptContent = document.getElementById('receiptContent').innerHTML;
@@ -652,9 +645,6 @@
             }
         }
 
-
-
-
         function showPaymentError(message) {
             document.getElementById('error-message').textContent = message;
             document.getElementById('payment-error').classList.remove('hidden');
@@ -725,7 +715,6 @@
             return token ? token.value : '';
         }
     })();
-
 
 </script>
 {% endblock %}

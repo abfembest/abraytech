@@ -1,7 +1,7 @@
 {% extends 'management/base.html' %}
 {% load static %}
 
-{% block title %}Programs - MIU Admin Portal{% endblock %}
+{% block title %}Programs - Abraytech Admin Portal{% endblock %}
 {% block meta_description %}Manage academic programs{% endblock %}
 
 {% block content %}
@@ -10,7 +10,6 @@
   <!-- Header -->
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
     <div>
-      <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&larr; Back</button>
       <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Programs</h1>
       <p class="text-gray-500 mt-1">Manage all academic programs across departments</p>
     </div>
@@ -145,7 +144,7 @@
                 {% endif %}
                 {% if permissions.academics.can_delete %}
                 <button type="button"
-                        onclick="confirmProgramDelete('{% url 'management:program_delete' program.pk %}', '{{ program.name|escapejs }}', {{ program.application_count }}, {{ program.intake_count }}, {{ program.student_count }})"
+                        onclick="confirmProgramDelete('{% url 'management:program_delete' program.pk %}', '{{ program.name|escapejs }}', {{ program.application_count }}, {{ program.student_count }})"
                         class="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors" title="Delete">
                   <i class="fas fa-trash-alt text-sm" aria-hidden="true"></i>
                 </button>
@@ -211,11 +210,10 @@
 {% block extra_js %}
 <script src="{% static 'js/program_form_admin.js' %}"></script>
 <script>
-function confirmProgramDelete(url, name, applicationCount, intakeCount, studentCount) {
+function confirmProgramDelete(url, name, applicationCount, studentCount) {
   var impactLines = '';
-  if (applicationCount || intakeCount || studentCount) {
+  if (applicationCount || studentCount) {
     impactLines = '<ul class="text-left text-sm mt-3 mb-1 space-y-0.5">'
-      + (intakeCount ? '<li>' + intakeCount + ' intake(s) will be deleted</li>' : '')
       + (applicationCount ? '<li>' + applicationCount + ' application(s) will be deleted</li>' : '')
       + (studentCount ? '<li>' + studentCount + ' enrolled student record(s) will be affected</li>' : '')
       + '</ul>';

@@ -79,7 +79,6 @@ from .models import (
     ContactMessage,
     Course,
     CourseApplication,
-    CourseIntake,
     DEGREE_LEVEL_CHOICES,
     Department,
     Faculty,
@@ -88,7 +87,6 @@ from .models import (
     AllRequiredPayments,
     PaymentGateway,
     Program,
-    SystemConfiguration,
     UserProfile,
     decrypt_secret,
 )
@@ -524,38 +522,12 @@ def auth_page(request):
     })
 
 
-def _resolve_intake_eligibility(program, intake):
-    """
-    Return the reason applying to `program` via `intake` is blocked right
-    now ('no_intake' / 'closed' / 'not_open_yet' / 'deadline_passed' /
-    'full'), or None if applications are open. signup.html turns the
-    reason into user-facing copy. Shared by signup_page()'s GET and POST
-    handling so a forged POST is always re-checked against current state,
-    never trusted from an earlier GET.
-    """
-    if intake is None:
-        return 'no_intake'
-    if not intake.is_active:
-        return 'closed'
-    today = timezone.now().date()
-    if intake.application_start_date and today < intake.application_start_date:
-        return 'not_open_yet'
-    if today > intake.application_deadline:
-        return 'deadline_passed'
-    if intake.is_full:
-        return 'full'
-    return None
-
-
 def signup_page(request):
     """
     Program-gated sign-up. Only reachable via an Apply/Start-Application
-    link carrying ?program=<slug>[&intake=<id>] — a bare visit with no
-    ?program bounces to the program catalog, since sign-up with no
-    application intent isn't meant to be a directly-linkable page. Renders
-    either the real sign-up form or a read-only "not eligible" message
-    depending on the resolved intake's status, re-validated on every
-    request (GET and POST alike).
+    link carrying ?program=<slug> — a bare visit with no ?program bounces
+    to the program catalog, since sign-up with no application intent isn't
+    meant to be a directly-linkable page.
     """
     if request.user.is_authenticated:
         redirect_response = _redirect_authenticated_user(request)
@@ -566,20 +538,6 @@ def signup_page(request):
     if not program_slug:
         return redirect('eduweb:all_programs')
     program = get_object_or_404(Program, slug=program_slug, is_active=True)
-
-    intake_id = request.GET.get('intake') or request.POST.get('intake')
-    if intake_id and intake_id.isdigit():
-        intake = get_object_or_404(CourseIntake, pk=intake_id, program=program)
-    else:
-        intake = program.get_current_intake()
-
-    blocked_reason = _resolve_intake_eligibility(program, intake)
-    if blocked_reason:
-        return render(request, 'signup.html', {
-            'program': program,
-            'intake': intake,
-            'blocked_reason': blocked_reason,
-        })
 
     # ── CAPTCHA setup — same convention as auth_page, own session key so a
     #    sign-in tab and a sign-up tab open at once never stomp each other's
@@ -648,8 +606,6 @@ def signup_page(request):
     # ── GET, eligible ─────────────────────────────────────────────────────────
     return render(request, 'signup.html', {
         'program':          program,
-        'intake':           intake,
-        'blocked_reason':   None,
         'signup_form':      SignUpForm(),
         'captcha_question': captcha_question,
     })
@@ -1195,17 +1151,6 @@ def campus_life(request):
 @check_for_auth
 def admission_requirement(request):
     degree_level_labels = dict(DEGREE_LEVEL_CHOICES)
-    featured_intake = (
-        CourseIntake.objects
-        .filter(
-            is_active=True,
-            program__is_active=True,
-            application_deadline__gte=timezone.now().date(),
-        )
-        .select_related('program')
-        .order_by('application_deadline')
-        .first()
-    )
     active_degree_levels = [
         degree_level_labels.get(level, level)
         for level in (
@@ -1218,24 +1163,17 @@ def admission_requirement(request):
         )
     ]
 
-    spots_percent = None
-    if featured_intake and featured_intake.available_slots:
-        spots_percent = min(
-            100,
-            round(featured_intake.accepted_count / featured_intake.available_slots * 100),
-        )
+    programs = (
+        Program.objects
+        .filter(is_active=True)
+        .select_related('department__faculty')
+        .order_by('name')
+    )
 
     return render(request, 'admission_requirement.html', {
-        'featured_intake': featured_intake,
         'active_degree_levels': active_degree_levels,
-        'spots_percent': spots_percent,
-        'scholarship_deadline': SystemConfiguration.get_value('admissions_scholarship_deadline'),
+        'programs': programs,
     })
-
-
-@check_for_auth
-def blank_page(request):
-    return render(request, 'blank_page.html')
 
 
 # =============================================================================
@@ -1666,7 +1604,7 @@ def faculty_detail(request, slug):
                     Prefetch(
                         'courses',
                         queryset=Course.objects.filter(is_active=True)
-                                        .order_by('year_of_study', 'semester'),
+                                        .order_by('name'),
                         to_attr='active_courses',
                     )
                 ).order_by('name'),
@@ -1684,7 +1622,7 @@ def faculty_detail(request, slug):
 
 @check_for_auth
 def program_detail(request, slug):
-    """Program detail: program info, courses grouped by year/semester, intakes."""
+    """Program detail: program info and its courses."""
     program = get_object_or_404(
         Program.objects.select_related('department', 'department__faculty'),
         slug=slug,
@@ -1696,12 +1634,7 @@ def program_detail(request, slug):
             program.courses
             .filter(is_active=True)
             # .select_related('lecturer')
-            .order_by('year_of_study', 'semester', 'name')
-        ),
-        'active_intakes': (
-            program.intakes
-            .filter(is_active=True)
-            .order_by('-year', 'intake_period')
+            .order_by('name')
         ),
         'department': program.department,
         'faculty':    program.department.faculty,
@@ -1891,7 +1824,6 @@ def apply(request):
             try:
                 application = form.save(commit=False)
                 application.user = request.user
-                application.resolve_intake()
                 application.status = 'draft'
                 application.save()
 
@@ -2061,22 +1993,17 @@ def accept_admission(request, application_id):
         if accepted:
             application.issue_admission_number()
 
-            # Sync academic session and entry level to the student's UserProfile
+            # Sync program/department/faculty to the student's UserProfile, and
+            # give them a populated "My Courses" list to start from.
             try:
                 profile = application.user.profile
-                if application.academic_session:
-                    profile.admission_session = application.academic_session
-                if application.entry_level:
-                    # entry_level is e.g. 100, 200 ... convert to year_of_study (1, 2 ...)
-                    profile.year_of_study = application.entry_level // 100
                 if application.program:
                     profile.program    = application.program
                     profile.department = application.program.department
                     profile.faculty    = application.program.department.faculty
-                profile.save(update_fields=[
-                    'admission_session', 'year_of_study',
-                    'program', 'department', 'faculty',
-                ])
+                profile.save(update_fields=['program', 'department', 'faculty'])
+                if application.program:
+                    application.program.auto_register_student(application.user)
             except Exception:
                 logger.exception("accept_admission — failed to sync profile fields")
 
@@ -2126,31 +2053,12 @@ def save_application_draft(request):
         if not application:
             application = CourseApplication(user=request.user)
 
-        # 1. Course & Intake
+        # 1. Program
         program_id = data.get('program')
         if program_id:
             try:
-                new_program = Program.objects.get(id=program_id, is_active=True)
-                if new_program.pk != application.program_id:
-                    application.program = new_program
-                    application.intake = None  # re-resolve for the newly chosen program
-                application.resolve_intake()
+                application.program = Program.objects.get(id=program_id, is_active=True)
             except Program.DoesNotExist:
-                pass
-
-        session_id = data.get('academic_session')
-        if session_id:
-            try:
-                from apps.eduweb.models import AcademicSession
-                application.academic_session = AcademicSession.objects.get(id=session_id)
-            except AcademicSession.DoesNotExist:
-                pass
-
-        entry_level = data.get('entry_level')
-        if entry_level:
-            try:
-                application.entry_level = int(entry_level)
-            except (ValueError, TypeError):
                 pass
 
         application.study_mode = data.get('study_mode', '')
@@ -2497,8 +2405,6 @@ def create_payment_intent(request):
                 if application.is_paid:
                     return JsonResponse({'success': False, 'error': 'Application already paid'}, status=400)
 
-                if not application.intake_id and application.resolve_intake():
-                    application.save(update_fields=['intake'])
                 fee = application.application_fee
                 amount_pence = int(fee * Decimal('100'))
 

@@ -29,53 +29,12 @@ DEGREE_LEVEL_CHOICES = [
     ('phd', 'PhD')
 ]
 
-# Canonical academic level choices (year_of_study × 100).
-# Level represents position within a program, not absolute academic rank.
-# Works for all international systems: UG (100–400/500), Masters (100–200),
-# PhD (100–400), Medicine/Law/Eng extended programs (up to 800).
-# The Program.degree_level field identifies the qualification type.
-STUDENT_LEVEL_CHOICES = [
-    (100, 'Level 100'),
-    (200, 'Level 200'),
-    (300, 'Level 300'),
-    (400, 'Level 400'),
-    (500, 'Level 500'),
-    (600, 'Level 600'),
-    (700, 'Level 700'),
-    (800, 'Level 800'),
-]
-
 STUDY_MODE_CHOICES = [
     ('Full Time', 'Full Time'),
     ('Part Time', 'Part Time'),
     ('Online', 'Online'),
     ('Blended', 'Blended'),
 ]
-
-# Maps international/alias term keys → the canonical semester keys used on
-# Course.semester. AcademicSession stores term_dates with keys from
-# AcademicSession.TERM_CHOICES (first/second/third/fall/spring/summer/
-# annual); Course.semester only uses first/second/annual. This is the only
-# place that relationship is defined — previously duplicated as a local
-# `term_normalisation_map` inside student/views.py; that copy now imports
-# this one instead of hand-rolling its own, since Program.max_credits_for_term
-# below needs the exact same mapping and a model can't import from a view
-# module. Used only for the *fallback* tier of the credit-cap lookup — the
-# most specific tier (ProgramSessionCreditCap) intentionally does NOT
-# normalise, since it's keyed by whatever raw term a session actually uses
-# (e.g. a real 'third' term gets its own cap there, not second's).
-TERM_NORMALISATION_MAP = {
-    # nigerian semester terms (already canonical — map to themselves)
-    'first':  'first',
-    'second': 'second',
-    'third':  'second',   # third semester/harmattan treated as second semester
-    'annual': 'annual',
-    # international semester equivalents
-    'fall':   'first',
-    'spring': 'second',
-    'summer': 'annual',
-    'autumn': 'first',    # autumn = fall = first semester
-}
 
 
 # ==================== HELPERS ====================
@@ -419,197 +378,6 @@ def check_and_award_badges(user):
 
 
 # ==================== MODELS (alphabetical) ====================
-class AcademicSession(models.Model):
-
-    STATUS_CHOICES = [
-        ('upcoming', 'Upcoming'),
-        ('active',   'Active'),
-        ('closed',   'Closed'),
-    ]
-
-    # ── Identity ───────────────────────────────────────────────────────────
-    name = models.CharField(
-        max_length=20,
-        unique=True,
-        help_text="Academic year label (e.g., 2024/2025)"
-    )
-
-    TERM_CHOICES = [
-        ('first',  'First Semester'),
-        ('second', 'Second Semester'),
-        ('third',  'Third Semester / Harmattan'),
-        ('annual', 'Annual'),
-        ('fall',   'Fall'),
-        ('spring', 'Spring'),
-        ('summer', 'Summer'),
-    ]
-
-    # ── Semester / Term Date Ranges ────────────────────────────────────────
-    # Store as JSON list so the session can have 2, 3, or custom terms.
-    # Format: [{"term": "first", "start": "2025-09-01", "end": "2026-01-31"}, ...]
-    term_dates = models.JSONField(
-        default=list,
-        help_text=(
-            'List of term windows. Each item: '
-            '{"term": "first|second|third|fall|spring|summer", '
-            '"start": "YYYY-MM-DD", "end": "YYYY-MM-DD"}'
-        )
-    )
-
-    # ── Status ─────────────────────────────────────────────────────────────
-    status = models.CharField(
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default='upcoming',
-        help_text="Only one session should be 'active' at a time"
-    )
-    is_current = models.BooleanField(
-        default=False,
-        help_text="Mark this as the current running session"
-    )
-
-    REGISTRATION_OVERRIDE_CHOICES = [
-        ('auto',   'Automatic (3-week window from term start)'),
-        ('open',   'Force Open'),
-        ('closed', 'Force Closed'),
-    ]
-    registration_override = models.CharField(
-        max_length=10,
-        choices=REGISTRATION_OVERRIDE_CHOICES,
-        default='auto',
-        help_text=(
-            "Overrides the automatic 3-week registration window. Use 'Force Open' "
-            "when a session is activated after its term's computed window has "
-            "already elapsed (e.g. after end-of-session progression runs late)."
-        )
-    )
-
-    # ── Timestamps ─────────────────────────────────────────────────────────
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['-name']
-        verbose_name = 'Academic Session'
-        verbose_name_plural = 'Academic Sessions'
-        indexes = [
-            models.Index(fields=['is_current']),
-            models.Index(fields=['status']),
-        ]
-
-    def __str__(self):
-        return self.name
-
-    def save(self, *args, **kwargs):
-        if self.is_current:
-            AcademicSession.objects.exclude(pk=self.pk).update(is_current=False)
-            if not self.status or self.status == 'upcoming':
-                self.status = 'active'
-        super().save(*args, **kwargs)
-
-    @classmethod
-    def get_current(cls):
-        """Fetch the active session."""
-        return cls.objects.filter(is_current=True).first()
-
-    def get_current_term(self):
-        """
-        Return the term key whose date window contains today.
-        Derived purely from term_dates — no override field needed.
-        e.g. term_dates = [
-            {"term": "first",  "start": "2025-09-01", "end": "2026-01-31"},
-            {"term": "second", "start": "2026-02-01", "end": "2026-06-30"},
-        ]
-        """
-        from datetime import date
-        today = timezone.now().date()
-        for entry in self.term_dates:
-            try:
-                start = date.fromisoformat(entry['start'])
-                end   = date.fromisoformat(entry['end'])
-                if start <= today <= end:
-                    return entry['term']
-            except (KeyError, ValueError):
-                continue
-        return None
-
-    def get_registration_window(self, term=None):
-        """
-        Return (reg_open, reg_close) for the given term (defaults to
-        get_current_term).  Registration opens on the first day of the
-        term and closes 21 days later (3-week window).
-
-        Returns (None, None) if the term is not found in term_dates.
-        """
-        from datetime import date, timedelta
-        target = term or self.get_current_term()
-        if not target:
-            return (None, None)
-        for entry in self.term_dates:
-            if entry.get('term') == target:
-                try:
-                    reg_open  = date.fromisoformat(entry['start'])
-                    reg_close = reg_open + timedelta(days=21)
-                    return (reg_open, reg_close)
-                except (KeyError, ValueError):
-                    return (None, None)
-        return (None, None)
-
-    @property
-    def is_registration_open(self):
-        """
-        True when today falls inside the 3-week registration window of
-        whichever term is currently running, unless an admin has set an
-        explicit `registration_override`.
-
-        The computed window alone has a real operational gap: a session
-        is often activated (`is_current=True`) some time after its
-        term_dates were originally configured — e.g. right after an
-        end-of-session progression run — by which point the computed
-        3-week window may have already elapsed, permanently locking out
-        registration for the whole term with no way to recover short of
-        editing term_dates. `registration_override` gives admins (and
-        `academic_session_set_current`, which auto-opens it when needed)
-        an explicit escape hatch that takes precedence over the date math.
-        """
-        if self.registration_override == 'open':
-            return True
-        if self.registration_override == 'closed':
-            return False
-
-        reg_open, reg_close = self.get_registration_window()
-        if reg_open is None:
-            return False
-        today = timezone.now().date()
-        return reg_open <= today <= reg_close
-
-    @property
-    def available_study_modes_display(self):
-        """
-        Human-readable labels for available_study_modes.
-
-        available_study_modes is a JSONField storing a list of raw choice
-        keys (e.g. "full_time"), so Django's automatic get_FOO_display()
-        doesn't apply here the way it would for a plain CharField(choices=...)
-        — that only covers single-value fields. Templates were previously
-        piping the raw key through the |title filter, which produced
-        "Full_Time" instead of "Full Time" since |title doesn't treat
-        underscores as word breaks. Use this property instead.
-        """
-        labels = dict(self.STUDY_MODE_CHOICES)
-        return [labels.get(mode, mode.replace('_', ' ').title()) for mode in (self.available_study_modes or [])]
-
-    def registration_window_for_term(self, term):
-        """
-        Convenience: human-readable window string for a specific term.
-        Useful in admin list_display or template tags.
-        e.g. "01 Sep 2025 – 22 Sep 2025"
-        """
-        reg_open, reg_close = self.get_registration_window(term=term)
-        if reg_open and reg_close:
-            return f"{reg_open.strftime('%d %b %Y')} – {reg_close.strftime('%d %b %Y')}"
-        return "—"
-
 class AllRequiredPayments(models.Model):
     WHO_TO_PAY_CHOICES = [
         ("student", "Student"),
@@ -631,24 +399,6 @@ class AllRequiredPayments(models.Model):
         blank=True,
         related_name="required_payments",
         help_text="Scope this payment to a specific course (optional)"
-    )
-    # Correct — proper FK reference
-    academic_session = models.ForeignKey(
-        'AcademicSession',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='required_payments'
-    )
-    semester = models.CharField(
-        max_length=20,
-        blank=True,
-        choices=[
-            ('first', 'First Semester'), ('second', 'Second Semester'),
-            ('third', 'Third Semester'), ('annual', 'Annual'),
-            ('fall', 'Fall'), ('spring', 'Spring'), ('summer', 'Summer'),
-        ],
-        default='annual'
     )
 
     purpose = models.CharField(
@@ -673,13 +423,6 @@ class AllRequiredPayments(models.Model):
         help_text="ISO 4217 currency code e.g. USD, GBP, EUR"
     )
 
-    level = models.IntegerField(
-        choices=STUDENT_LEVEL_CHOICES,
-        null=True,
-        blank=True,
-        help_text="Student level this fee applies to (100–800). Leave blank to apply to ALL levels."
-    )
-
     due_date = models.DateField()
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -693,12 +436,11 @@ class AllRequiredPayments(models.Model):
         verbose_name = "Required Payment"
         verbose_name_plural = "All Required Payments"
         ordering = ["-created_at"]
-        unique_together = [['program', 'academic_session', 'purpose', 'semester', 'level']]
+        unique_together = [['program', 'purpose']]
 
     def __str__(self):
-        session = self.academic_session.name if self.academic_session else 'No Session'
         program = self.program.code if self.program else 'All Programs'
-        return f"{self.purpose} - {program} ({session})"
+        return f"{self.purpose} - {program}"
 
     @property
     def faculty(self):
@@ -1420,12 +1162,6 @@ class Course(models.Model):
         ('prerequisite', 'Prerequisite'),
     ]
 
-    SEMESTER_CHOICES = [
-        ('first', 'First Semester'),
-        ('second', 'Second Semester'),
-        ('annual', 'Annual'),
-    ]
-
     # ── Hierarchy ──────────────────────────────────────────────────────────────
     program = models.ForeignKey(
         'Program',
@@ -1473,26 +1209,6 @@ class Course(models.Model):
         help_text="Weight of assignment scores in the final course grade (%)"
     )
 
-    year_of_study = models.IntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(8)],
-        help_text="Which year of the program this course is taught in (e.g., 1, 2, 3)"
-    )
-    semester = models.CharField(
-        max_length=20,
-        choices=SEMESTER_CHOICES,
-        default='first',
-        help_text="Which semester this course runs in"
-    )
-
-    # ── Prerequisites ──────────────────────────────────────────────────────────
-    prerequisites = models.ManyToManyField(
-        'self',
-        symmetrical=False,
-        blank=True,
-        related_name='prerequisite_for',
-        help_text="Courses that must be passed before registering for this one"
-    )
-
     # ── Content ────────────────────────────────────────────────────────────────
     description = models.TextField(
         blank=True,
@@ -1521,14 +1237,12 @@ class Course(models.Model):
 
     class Meta:
         unique_together = [['program', 'code']]
-        ordering = ['year_of_study', 'semester', 'name']
+        ordering = ['name']
         verbose_name = 'Course'
         verbose_name_plural = 'Courses'
         indexes = [
             models.Index(fields=['program', 'is_active']),
-            models.Index(fields=['year_of_study', 'semester']),
             models.Index(fields=['course_type']),
-            models.Index(fields=['course_type', 'year_of_study']),
         ]
 
     def __str__(self):
@@ -1545,11 +1259,6 @@ class Course(models.Model):
         super().save(*args, **kwargs)
 
     # ── Convenience Properties ─────────────────────────────────────────────────
-    @property
-    def level(self):
-        """Nigerian level system: year 1 → 100, year 2 → 200 ... year 8 → 800."""
-        return self.year_of_study * 100
-
     @property
     def department(self):
         return self.program.department
@@ -1584,17 +1293,8 @@ class CourseApplication(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='applications', null=True, blank=True)
     
-    # Course & Session & Level
+    # Program
     program = models.ForeignKey('Program', on_delete=models.CASCADE, related_name='applications')
-    academic_session = models.ForeignKey('AcademicSession', on_delete=models.SET_NULL, null=True, blank=True, related_name='applications')
-    intake = models.ForeignKey(
-        'CourseIntake', on_delete=models.SET_NULL, null=True, blank=True, related_name='applications',
-        help_text="Which intake period this application is for, if known."
-    )
-    entry_level = models.IntegerField(
-        null=True, blank=True,
-        help_text="Entry level e.g. 100, 200, 300 etc."
-    )
     study_mode = models.CharField(max_length=20, choices=STUDY_MODE_CHOICES, blank=True)
     
     # Personal Information
@@ -1755,35 +1455,15 @@ class CourseApplication(models.Model):
     def __str__(self):
         return f"{self.application_id} - {self.first_name} {self.last_name}"
 
-    def resolve_intake(self):
-        """
-        Attribute this application to a CourseIntake, and return it. Set at
-        the point `program` is assigned/changed (see eduweb.views.apply) so
-        that everything downstream — the fee charged, the deadline shown —
-        is pinned to one specific intake instead of drifting with whichever
-        intake happens to look "current" whenever it's next read. Safe to
-        call again later; it's a no-op once `intake` is already set.
-        """
-        if self.intake_id:
-            return self.intake
-        if not self.program_id:
-            return None
-        intake = self.program.get_current_intake()
-        if intake:
-            self.intake = intake
-        return intake
-
     @property
     def application_fee(self):
         """
-        The fee this application should be charged — from its resolved
-        intake, not the program (fees vary per intake period). Falls back
-        to 0 rather than raising if somehow no intake could be resolved,
+        The flat fee this application should be charged, from its program.
+        Falls back to 0 rather than raising if somehow no program is set,
         since callers computing a payment amount should treat that as "not
         chargeable yet" rather than crash.
         """
-        intake = self.intake or self.resolve_intake()
-        return intake.application_fee if intake else Decimal('0.00')
+        return self.program.application_fee if self.program_id else Decimal('0.00')
 
     @property
     def is_paid(self):
@@ -1965,91 +1645,6 @@ class CourseApplication(models.Model):
         
         super().save(*args, **kwargs)
 
-class CourseCarryOver(models.Model):
-    """
-    One row per student per course currently owed as a carry-over.
-    Re-evaluated by the end-of-session progression run each time it
-    executes — cleared automatically once a passing CourseGrade exists,
-    rather than being hooked into every grade-writing code path.
-    """
-    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='carry_overs')
-    course  = models.ForeignKey('Course', on_delete=models.CASCADE, related_name='carry_over_records')
-    first_failed_session = models.ForeignKey(
-        'AcademicSession', on_delete=models.SET_NULL, null=True, related_name='+',
-        help_text="Session in which this course was first failed."
-    )
-    first_failed_term = models.CharField(max_length=20, blank=True)
-    attempts = models.PositiveSmallIntegerField(
-        default=1, help_text="Number of times this course has been attempted and failed."
-    )
-    is_cleared = models.BooleanField(default=False)
-    cleared_session = models.ForeignKey(
-        'AcademicSession', on_delete=models.SET_NULL, null=True, blank=True, related_name='+',
-        help_text="Session in which a passing grade finally cleared this carry-over."
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        unique_together = [['student', 'course']]
-        ordering = ['-updated_at']
-        verbose_name = 'Course Carry-Over'
-        verbose_name_plural = 'Course Carry-Overs'
-        indexes = [
-            models.Index(fields=['student', 'is_cleared']),
-        ]
-
-    def __str__(self):
-        status = 'cleared' if self.is_cleared else f'open (attempt {self.attempts})'
-        return f"{self.student.username} | {self.course.code} | {status}"
-
-    @classmethod
-    def sync_cleared_for_student(cls, student):
-        """
-        Live reconciliation — clears any open carry-over the student
-        already has a released passing grade for, right now, rather than
-        waiting for the next progression batch run to notice.
-
-        Before this existed, `is_cleared` was a stored snapshot only ever
-        updated inside management.progression.apply_progression_decision —
-        so a student could already have a real, released passing grade for
-        a carry-over course and still see it as open/locked on their own
-        registration page (my_courses, register_semester_course) until an
-        admin next happened to run progression for them. The stored flag
-        and the live grade data it's supposed to reflect could silently
-        drift apart with no reconciliation between them.
-
-        Call this from every read path that checks is_cleared before using
-        it. apply_progression_decision now calls this too instead of
-        hand-rolling the same clearing condition a second time.
-
-        Returns the number of rows cleared.
-        """
-        open_recs = list(
-            cls.objects.filter(student=student, is_cleared=False).only('id', 'course_id')
-        )
-        if not open_recs:
-            return 0
-
-        passing_grade_sessions = {
-            g['course_id']: g['session_id']
-            for g in CourseGrade.objects.filter(
-                student=student,
-                course_id__in=[r.course_id for r in open_recs],
-                is_passed=True, result_status='released',
-            ).values('course_id', 'session_id')
-        }
-
-        cleared = 0
-        for rec in open_recs:
-            session_id = passing_grade_sessions.get(rec.course_id)
-            if session_id is not None:
-                cls.objects.filter(pk=rec.pk).update(
-                    is_cleared=True, cleared_session_id=session_id, updated_at=timezone.now(),
-                )
-                cleared += 1
-        return cleared
-
 class CourseCategory(models.Model):
     """Categories for LMS courses"""
     name = models.CharField(max_length=100, unique=True)
@@ -2093,8 +1688,6 @@ class CourseGrade(models.Model):
         related_name='student_grades',
         help_text="The LMS delivery this result is linked to (optional)"
     )
-    session      = models.ForeignKey('AcademicSession', on_delete=models.CASCADE, related_name='grades')
-    term         = models.CharField(max_length=20, blank=True, help_text="Term this grade belongs to")
     application  = models.ForeignKey('CourseApplication', on_delete=models.SET_NULL, null=True, blank=True, related_name='grades')
 
     score        = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
@@ -2108,17 +1701,17 @@ class CourseGrade(models.Model):
     updated_at   = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = [['student', 'course', 'session', 'term']]
-        ordering = ['session', 'course__year_of_study', 'course__semester']
+        unique_together = [['student', 'course']]
+        ordering = ['course__code']
         verbose_name = 'Course Grade'
         verbose_name_plural = 'Course Grades'
         indexes = [
-            models.Index(fields=['student', 'session']),
+            models.Index(fields=['student', 'result_status']),
             models.Index(fields=['result_status']),
         ]
 
     def __str__(self):
-        return f"{self.student.username} | {self.course.code} | {self.session} | {self.grade}"
+        return f"{self.student.username} | {self.course.code} | {self.grade}"
 
     @property
     def grade_points(self):
@@ -2161,7 +1754,7 @@ class CourseGrade(models.Model):
     def build_transcript_snapshot(cls, student):
         """
         Compute this student's full grade transcript from live CourseGrade
-        rows: per-session/semester GPA summaries plus cumulative GPA/class.
+        rows: a flat list of course grades plus cumulative GPA/class.
         Returns a plain-dict, JSON-safe structure so the exact same shape can
         either be rendered live or frozen verbatim into
         CourseApplication.transcript_snapshot once a student requests their
@@ -2177,71 +1770,28 @@ class CourseGrade(models.Model):
         grades_qs = list(
             cls.objects
             .filter(student=student, result_status='released')
-            .select_related('course', 'course__program', 'session')
-            .order_by('-session__name', 'course__semester', 'course__year_of_study')
+            .select_related('course', 'course__program')
+            .order_by('course__code')
         )
 
-        sessions_raw = {}
-        for g in grades_qs:
-            sess_key = g.session.name if g.session else 'Unassigned'
-            # Grouped by level + semester, not semester alone — a session can
-            # legitimately contain a lower-level carry-over course registered
-            # alongside the student's current-level courses, and merging them
-            # under one bare "First Semester" label would misrepresent which
-            # level each grade actually belongs to.
-            sem_key = f'Level {g.course.level} — {g.course.get_semester_display()}'
-            sessions_raw.setdefault(sess_key, {}).setdefault(sem_key, []).append(g)
-
-        session_summaries = []
-        for sess_name, semesters in sorted(sessions_raw.items(), reverse=True):
-            semester_blocks = []
-            sess_total_weighted = 0.0
-            sess_total_units    = 0
-            sess_credits_earned = 0
-
-            for sem_label, grades_list in semesters.items():
-                sem_weighted = sum(g.grade_points * g.credit_units for g in grades_list if g.grade)
-                sem_units    = sum(g.credit_units for g in grades_list if g.grade and g.grade != 'W')
-                sem_gpa      = round(sem_weighted / sem_units, 2) if sem_units > 0 else None
-                sem_credits  = sum(g.credit_units for g in grades_list if g.is_passed)
-
-                semester_blocks.append({
-                    'label':          sem_label,
-                    'gpa':            sem_gpa,
-                    'credits':        sem_credits,
-                    'total_cu':       sem_units,
-                    'total_weighted': round(sem_weighted, 0),
-                    'grades': [
-                        {
-                            'display_code':    g.course.code,
-                            'display_name':    g.course.name,
-                            'credit_units':    g.credit_units,
-                            # Cast Decimal -> float so this matches what comes
-                            # back out of JSONField after a DB round-trip
-                            # (Decimal isn't JSON-native; storing it raw would
-                            # make a *live* score a Decimal but a *locked
-                            # snapshot* score a string, subtly changing
-                            # {% if g.score %} truthiness for 0.00).
-                            'score':           float(g.score) if g.score is not None else None,
-                            'grade':           g.grade,
-                            'grade_points':    g.grade_points,
-                            'weighted_points': g.weighted_points,
-                            'is_passed':       g.is_passed,
-                        }
-                        for g in grades_list
-                    ],
-                })
-                sess_total_weighted += sem_weighted
-                sess_total_units    += sem_units
-                sess_credits_earned += sem_credits
-
-            sess_gpa = round(sess_total_weighted / sess_total_units, 2) if sess_total_units > 0 else None
-            session_summaries.append({
-                'name':      sess_name,
-                'semesters': semester_blocks,
-                'gpa':       sess_gpa,
-                'credits':   sess_credits_earned,
-            })
+        grades = [
+            {
+                'display_code':    g.course.code,
+                'display_name':    g.course.name,
+                'credit_units':    g.credit_units,
+                # Cast Decimal -> float so this matches what comes back out
+                # of JSONField after a DB round-trip (Decimal isn't
+                # JSON-native; storing it raw would make a *live* score a
+                # Decimal but a *locked snapshot* score a string, subtly
+                # changing {% if g.score %} truthiness for 0.00).
+                'score':           float(g.score) if g.score is not None else None,
+                'grade':           g.grade,
+                'grade_points':    g.grade_points,
+                'weighted_points': g.weighted_points,
+                'is_passed':       g.is_passed,
+            }
+            for g in grades_qs
+        ]
 
         gpa = cls.compute_cgpa(student)
         if gpa is None:               gpa_class = None
@@ -2252,12 +1802,12 @@ class CourseGrade(models.Model):
         else:                         gpa_class = 'Pass'
 
         return {
-            'generated_at':      timezone.now().isoformat(),
-            'session_summaries': session_summaries,
-            'gpa':               float(gpa) if gpa is not None else None,
-            'gpa_class':         gpa_class,
-            'credits_earned':    sum(g.credit_units for g in grades_qs if g.is_passed),
-            'grade_count':       len(grades_qs),
+            'generated_at':   timezone.now().isoformat(),
+            'grades':         grades,
+            'gpa':            float(gpa) if gpa is not None else None,
+            'gpa_class':      gpa_class,
+            'credits_earned': sum(g.credit_units for g in grades_qs if g.is_passed),
+            'grade_count':    len(grades_qs),
         }
 
     EXAM_COMPONENT = 'exam'
@@ -2265,28 +1815,27 @@ class CourseGrade(models.Model):
     ASSIGNMENT_COMPONENT = 'assignment'
 
     @classmethod
-    def recompute_for_student_course(cls, student, course, session, term=''):
+    def recompute_for_student_course(cls, student, course):
         """
-        Recompute and persist this student's grade for `course` in `session`,
-        blending exam/quiz/assignment scores using the course's configured
-        weights (Course.exam_weight_pct/quiz_weight_pct/assignment_weight_pct).
+        Recompute and persist this student's grade for `course`, blending
+        exam/quiz/assignment scores using the course's configured weights
+        (Course.exam_weight_pct/quiz_weight_pct/assignment_weight_pct).
 
         Assessment types with no recorded data for this student are dropped
         and the remaining weights re-normalized to sum to 100%, so e.g. an
         exam-only course grades entirely off its exam component. Safe to call
         repeatedly from any grading trigger point (lesson completion, exam
         grading, assignment grading) — always upserts a single row per
-        (student, course, session, term).
+        (student, course).
 
         Returns the CourseGrade row, or None if the student has no active/
-        completed enrollment in a delivery of this course for this session.
+        completed enrollment in a delivery of this course.
         """
         enrollment = (
             Enrollment.objects
             .filter(
                 student=student,
                 course__academic_course=course,
-                course__session=session,
                 status__in=['active', 'completed'],
             )
             .select_related('course')
@@ -2375,7 +1924,7 @@ class CourseGrade(models.Model):
         )
 
         row_exists = cls.objects.filter(
-            student=student, course=course, session=session, term=term
+            student=student, course=course
         ).exists()
 
         defaults = {
@@ -2392,7 +1941,7 @@ class CourseGrade(models.Model):
             defaults['recorded_by'] = None
 
         grade, _ = cls.objects.update_or_create(
-            student=student, course=course, session=session, term=term,
+            student=student, course=course,
             defaults=defaults,
         )
 
@@ -2402,19 +1951,10 @@ class CourseGrade(models.Model):
         return grade
 
     @classmethod
-    def publish_results(cls, session, term='', program=None, status='released', by=None):
+    def publish_results(cls, program=None, status='released', by=None):
         """
-        Bulk-set result_status for every CourseGrade matching (session, term
-        [, program]) — the admin "compile & approve results" action.
-
-        `term` is always an exact match, including `''` (blank) — the
-        results_publish admin page lists one row per distinct (session, term)
-        pair, blank term included as its own row, so "release this row" must
-        only ever touch that exact term value. It must NEVER silently expand
-        to "every term in this session": CourseGrade.term is frequently blank
-        in this dataset, and treating blank as a wildcard would release an
-        entire session's results in one click regardless of what the admin
-        actually selected on the page.
+        Bulk-set result_status for every CourseGrade matching [program] — the
+        admin "compile & approve results" action.
 
         Returns the number of rows updated. Deliberately a plain `.update()`
         (no per-row recompute) — publishing is a visibility/approval action,
@@ -2423,72 +1963,11 @@ class CourseGrade(models.Model):
         if status not in dict(cls.RESULT_STATUS_CHOICES):
             raise ValueError(f'Invalid result_status: {status!r}')
 
-        qs = cls.objects.filter(session=session, term=term)
+        qs = cls.objects.all()
         if program:
             qs = qs.filter(course__program=program)
 
         return qs.update(result_status=status)
-
-class CourseIntake(models.Model):
-    """Course intake periods"""
-    INTAKE_PERIOD_CHOICES = [
-        ('january', 'January'),
-        ('may', 'May'),
-        ('september', 'September'),
-    ]
-    
-    program = models.ForeignKey('Program', on_delete=models.CASCADE, related_name='intakes')
-    intake_period = models.CharField(max_length=20, choices=INTAKE_PERIOD_CHOICES)
-    year = models.IntegerField()
-    application_start_date = models.DateField(
-        null=True, blank=True,
-        help_text="When applications open for this intake"
-    )
-    start_date = models.DateField(help_text="Program start date for this intake")
-    application_deadline = models.DateField(help_text="Application closing date for this intake")
-    application_fee = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=0.00,
-        help_text="Fee to apply for this specific intake"
-    )
-    available_slots = models.IntegerField(default=50, validators=[MinValueValidator(1)])
-    is_active = models.BooleanField(default=True)
-    
-    class Meta:
-        ordering = ['-year', 'intake_period']
-        verbose_name = 'Course Intake'
-        verbose_name_plural = 'Course Intakes'
-        unique_together = [['program', 'intake_period', 'year']]
-    
-    @cached_property
-    def accepted_count(self):
-        """
-        Number of approved applications for this intake. cached_property,
-        not plain @property: remaining_slots and is_full each read this too,
-        and intakes_list.html calls is_full twice per row — without caching
-        that's 4 separate COUNT queries per intake (measured: 80 queries for
-        a 20-row page). A filtered .count() also can't use the view's
-        .prefetch_related('applications') — that only helps a plain
-        .all() iteration, not an aggregate — so caching on the instance is
-        the fix here, not prefetching harder. Safe within a request: nothing
-        in this codebase creates an application against an intake and then
-        re-checks these on that same already-loaded instance.
-        """
-        return self.applications.filter(status='approved').count()
-
-    @property
-    def remaining_slots(self):
-        """available slots minus accepted applicants."""
-        return max(0, self.available_slots - self.accepted_count)
-
-    @property
-    def is_full(self):
-        """true when no slots remain."""
-        return self.accepted_count >= self.available_slots
-
-    def __str__(self):
-        return f"{self.program.name} - {self.intake_period.title()} {self.year}"
 
 class CourseRegistration(models.Model):
     STATUS_CHOICES = [
@@ -2499,45 +1978,30 @@ class CourseRegistration(models.Model):
 
     student  = models.ForeignKey(User, on_delete=models.CASCADE, related_name='course_registrations')
     course   = models.ForeignKey('Course', on_delete=models.CASCADE, related_name='registrations')
-    session  = models.ForeignKey('AcademicSession', on_delete=models.CASCADE, related_name='registrations')
-    term     = models.CharField(max_length=20, help_text="e.g. first, second, fall")
     status   = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     registered_at = models.DateTimeField(auto_now_add=True)
     dropped_at    = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        unique_together = [['student', 'course', 'session', 'term']]
+        unique_together = [['student', 'course']]
         ordering = ['-registered_at']
         verbose_name = 'Course Registration'
         verbose_name_plural = 'Course Registrations'
         indexes = [
-            models.Index(fields=['student', 'session', 'term']),
-            models.Index(fields=['course', 'session']),
+            models.Index(fields=['student', 'status']),
+            models.Index(fields=['course']),
         ]
 
     def clean(self, skip_window_check=False):
-        # 1. Block registration outside window (bypass for admin/seed use)
-        if not skip_window_check and not self.session.is_registration_open:
-            raise ValidationError("Course registration is not currently open.")
-        # 2. Block re-registration of a dropped core course
+        # 1. Block re-registration of a dropped core course
         if self.course.course_type == 'core' and self.status == 'dropped':
             raise ValidationError("Core courses cannot be dropped.")
-        # 3. Block duplicate
+        # 2. Block duplicate
         qs = CourseRegistration.objects.filter(
             student=self.student, course=self.course,
-            session=self.session, term=self.term
         ).exclude(pk=self.pk)
         if qs.filter(status__in=['pending', 'approved']).exists():
-            raise ValidationError("Already registered for this course this term.")
-        # 4. Prerequisite check
-        for prereq in self.course.prerequisites.all():
-            passed = CourseGrade.objects.filter(
-                student=self.student, course=prereq, is_passed=True
-            ).exists()
-            if not passed:
-                raise ValidationError(
-                    f"Prerequisite not met: {prereq.code} must be passed first."
-                )
+            raise ValidationError("Already registered for this course.")
 
     def save(self, *args, skip_window_check=False, skip_clean=False, **kwargs):
         if not skip_clean:
@@ -2545,7 +2009,7 @@ class CourseRegistration(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.student.username} | {self.course.code} | {self.session} {self.term}"
+        return f"{self.student.username} | {self.course.code}"
 
 class Department(models.Model):
     faculty = models.ForeignKey(
@@ -2815,11 +2279,7 @@ class Exam(models.Model):
         "LMSCourse",
         on_delete=models.PROTECT,
         related_name="exams",
-        help_text=(
-            "LMS course this exam belongs to. "
-            "Academic session, department, and eligible student level "
-            "are all derived from here — no need to store them separately."
-        ),
+        help_text="LMS course this exam belongs to.",
     )
 
     # REMOVED: academic_session — derivable via course.academic_session
@@ -3899,24 +3359,6 @@ class LMSCourse(models.Model):
         related_name='lms_courses',
         help_text="The academic course unit this LMS content delivers. Null = standalone LMS course."
     )
-    session = models.ForeignKey(
-        'AcademicSession',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='lms_courses',
-        help_text="Academic session this delivery runs in. Null = self-paced standalone."
-    )
-    term = models.CharField(
-        max_length=20,
-        blank=True,
-        choices=[
-            ('first',  'First Semester'), ('second', 'Second Semester'),
-            ('third',  'Third Semester'), ('annual', 'Annual'),
-            ('fall',   'Fall'), ('spring', 'Spring'), ('summer', 'Summer'),
-        ],
-        help_text="Term within the session. Auto-derived from session.get_current_term() if blank."
-    )
     lecturer = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -3927,7 +3369,6 @@ class LMSCourse(models.Model):
     )
     
     # Course Details
-    difficulty_level = models.IntegerField(choices=STUDENT_LEVEL_CHOICES, default=100, verbose_name='Level')
     # duration_hours = models.DecimalField(max_digits=5, decimal_places=1, default=0, help_text="Estimated duration in hours")
     # language = models.CharField(max_length=50, default='English')
     
@@ -3981,8 +3422,7 @@ class LMSCourse(models.Model):
             models.Index(fields=['slug']),
             models.Index(fields=['is_published', '-created_at']),
             # models.Index(fields=['category']),
-            models.Index(fields=['session', 'term']),
-            models.Index(fields=['academic_course', 'session']),
+            models.Index(fields=['academic_course']),
         ]
     
     def __str__(self):
@@ -4000,10 +3440,6 @@ class LMSCourse(models.Model):
         # if not self.instructor_name and self.instructor:
         #     self.instructor_name = self.instructor.get_full_name() or self.instructor.username
 
-        # Auto-sync term from linked academic course if not manually set
-        if self.academic_course and not self.term:
-            self.term = self.academic_course.semester
-        
         if self.is_published and not self.published_at:
             self.published_at = timezone.now()
         
@@ -4572,27 +4008,6 @@ class Program(models.Model):
         default=120,
         help_text="Total credit units required to complete the program"
     )
-    max_credits_per_semester = models.PositiveIntegerField(
-        default=24,
-        validators=[MinValueValidator(1), MaxValueValidator(30)],
-        help_text="Default maximum credit units per term — used for any term not overridden in credit_caps_by_term below."
-    )
-    credit_caps_by_term = models.JSONField(
-        default=dict,
-        blank=True,
-        help_text=(
-            "Optional per-term overrides, e.g. {'first': 21, 'second': 18}. "
-            "A term key not present here falls back to max_credits_per_semester. "
-            "Use max_credits_for_term(term) rather than reading either field directly."
-        ),
-    )
-    min_cgpa_to_progress = models.DecimalField(
-        max_digits=3,
-        decimal_places=2,
-        default=1.00,
-        validators=[MinValueValidator(0), MaxValueValidator(5)],
-        help_text="Minimum cumulative GPA (5-point scale) required to advance to the next year of study"
-    )
     available_study_modes = models.JSONField(
         default=list,
         blank=True,
@@ -4601,7 +4016,7 @@ class Program(models.Model):
     max_students = models.IntegerField(
         null=True,
         blank=True,
-        help_text="Maximum student capacity per intake (leave blank for unlimited)"
+        help_text="Maximum student capacity for this program (leave blank for unlimited)"
     )
 
     # ── Marketing / Display Content ────────────────────────────────────────────
@@ -4649,8 +4064,12 @@ class Program(models.Model):
     )
 
     # ── Financial ──────────────────────────────────────────────────────────────
-    # application_fee lives on CourseIntake now — it varies per intake period,
-    # not per program.
+    application_fee = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text="Flat fee charged to apply to this program"
+    )
     tuition_fee = models.DecimalField(
         max_digits=12,
         decimal_places=2,
@@ -4722,7 +4141,7 @@ class Program(models.Model):
 
     def get_active_courses(self):
         """Return all active courses under this program."""
-        return self.courses.filter(is_active=True).order_by('year_of_study', 'semester', 'display_order')
+        return self.courses.filter(is_active=True).order_by('name')
 
     def get_total_credit_units(self):
         """Sum of credit units across all active courses."""
@@ -4730,156 +4149,41 @@ class Program(models.Model):
             total=models.Sum('credit_units')
         )['total'] or 0
 
-    def max_credits_for_term(self, term, session=None):
+    def auto_register_student(self, user):
         """
-        The credit-unit cap for one (term[, session]) pair — the single
-        source of truth every registration-cap check should call instead of
-        reading max_credits_per_semester/credit_caps_by_term/
-        ProgramSessionCreditCap directly. Three-tier fallback, most specific
-        first:
+        Give a newly-admitted student a populated "My Courses" list from
+        the start: register + immediately enroll them in this program's
+        core courses, but ONLY the ones that already have real, ready LMS
+        content (published, with at least one active lesson). A core
+        course with no content yet is skipped entirely rather than
+        registered in a permanent "content coming soon" limbo the student
+        can never actually resolve — once staff publish it, it shows up
+        for anyone via the ordinary flat catalog like any other course.
 
-          1. ProgramSessionCreditCap for this exact (program, session, term)
-             — pass `term` RAW here, exactly as the session itself names it
-             (e.g. a session that defines a real 'third' term must be looked
-             up as 'third', not pre-collapsed to 'second' — otherwise a cap
-             set for that specific session/term could never be found).
-          2. credit_caps_by_term[term] — a program-wide default for that
-             *canonical* term name (first/second/annual), shared across
-             every session that uses it. `term` is normalised via
-             TERM_NORMALISATION_MAP for this tier only, since that dict was
-             only ever keyed by the three canonical names.
-          3. max_credits_per_semester — the final fallback.
-
-        `session=None` skips tier 1 entirely (e.g. no specific session in
-        context yet) and falls straight to tiers 2/3.
+        The catalog stays fully open — this is just a starting point
+        matching what they applied to study, not a restriction; the
+        student can drop these (electives only — core courses can't be
+        dropped, see CourseRegistration.clean()) or add any other course
+        from the flat catalog afterward.
         """
-        if session is not None and term:
-            override = (
-                self.session_credit_caps
-                .filter(session=session, term=str(term).strip().lower())
-                .values_list('max_credit_units', flat=True)
-                .first()
+        for course in self.courses.filter(course_type='core', is_active=True):
+            lms_course = (
+                LMSCourse.objects.filter(academic_course=course).first()
+                or LMSCourse.objects.filter(academic_course__isnull=True, code__iexact=course.code).first()
             )
-            if override is not None:
-                return override
+            if not lms_course or not lms_course.is_published or not lms_course.lessons.filter(is_active=True).exists():
+                continue
 
-        if term and isinstance(self.credit_caps_by_term, dict):
-            normalised = TERM_NORMALISATION_MAP.get(str(term).strip().lower(), str(term).strip().lower())
-            fallback = self.credit_caps_by_term.get(normalised)
-            if fallback is not None:
-                return fallback
-
-        return self.max_credits_per_semester
-
-    def get_current_intake(self):
-        """
-        The CourseIntake a new application against this program should be
-        attributed to — and therefore whose application_fee it should be
-        charged. Prefers the active intake whose application window hasn't
-        closed yet (earliest deadline first, so the intake that's actually
-        closing soonest wins over one further out); falls back to the most
-        recent intake overall so payment isn't left with nothing to charge
-        just because staff forgot to keep deadlines current.
-        """
-        today = timezone.now().date()
-        open_intake = (
-            self.intakes
-            .filter(is_active=True, application_deadline__gte=today)
-            .order_by('application_deadline')
-            .first()
-        )
-        if open_intake:
-            return open_intake
-        return self.intakes.filter(is_active=True).order_by('-year', 'intake_period').first()
-
-class ProgramSessionCreditCap(models.Model):
-    """
-    The most specific tier of the credit-unit cap hierarchy — one row per
-    (program, session, term), letting an admin set a genuinely different
-    cap for the same program in different academic sessions (e.g. a
-    curriculum that allows more CU per term starting a given year), and
-    following whatever term structure that particular session actually
-    has (two terms one year, three the next — the number of rows for a
-    session is however many terms its own `term_dates` defines, not a
-    fixed enum).
-
-    Lookup order (see Program.max_credits_for_term):
-      1. This model — most specific, per (program, session, term).
-      2. Program.credit_caps_by_term[term] — a program-wide default for
-         that term name, shared across every session that uses it.
-      3. Program.max_credits_per_semester — the final fallback.
-    """
-    program = models.ForeignKey(
-        'Program', on_delete=models.CASCADE, related_name='session_credit_caps',
-    )
-    session = models.ForeignKey(
-        'AcademicSession', on_delete=models.CASCADE, related_name='program_credit_caps',
-    )
-    term = models.CharField(
-        max_length=20,
-        help_text="Term key matching one of this session's term_dates entries (e.g. 'first', 'second', 'third').",
-    )
-    max_credit_units = models.PositiveIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(30)],
-    )
-
-    updated_at = models.DateTimeField(auto_now=True)
-    updated_by = models.ForeignKey(
-        User, null=True, blank=True, on_delete=models.SET_NULL, related_name='+',
-    )
-
-    class Meta:
-        unique_together = [['program', 'session', 'term']]
-        ordering = ['session__name', 'term']
-        verbose_name = 'Program Session Credit Cap'
-        verbose_name_plural = 'Program Session Credit Caps'
-
-    def __str__(self):
-        return f"{self.program.code} — {self.session} — {self.term}: {self.max_credit_units} CU"
-
-class ProgressionDecisionLog(ImmutableMixin, models.Model):
-    """
-    Immutable audit trail — one row per student per end-of-session
-    progression run. Mirrors ExamStatusLog's ImmutableMixin pattern.
-    """
-    slug = models.SlugField(unique=True, max_length=220)
-    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='progression_logs')
-    session = models.ForeignKey('AcademicSession', on_delete=models.CASCADE, related_name='progression_logs')
-
-    previous_year_of_study = models.PositiveSmallIntegerField()
-    new_year_of_study       = models.PositiveSmallIntegerField()
-    previous_status = models.CharField(max_length=20)
-    new_status      = models.CharField(max_length=20)
-
-    cgpa = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
-    core_courses_passed = models.BooleanField(default=False)
-
-    changed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='progression_decisions_made')
-    note = models.TextField(blank=True, help_text="Carried-over courses, attempt counts, and other decision context.")
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['-created_at']
-        verbose_name = 'Progression Decision Log'
-        verbose_name_plural = 'Progression Decision Logs'
-        indexes = [
-            models.Index(fields=['student', 'session']),
-        ]
-
-    def __str__(self):
-        return (
-            f"{self.student.username} | {self.session} | "
-            f"{self.previous_status}→{self.new_status} "
-            f"({self.previous_year_of_study}L→{self.new_year_of_study}L)"
-        )
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = unique_slug(
-                ProgressionDecisionLog,
-                f"pdl-{self.student_id}-{secrets.token_hex(4)}",
+            CourseRegistration.objects.get_or_create(
+                student=user, course=course, defaults={'status': 'approved'},
             )
-        super().save(*args, **kwargs)
+            enrollment, created = Enrollment.objects.get_or_create(
+                student=user, course=lms_course,
+                defaults={'enrolled_by': user, 'status': 'active'},
+            )
+            if not created and enrollment.status == 'dropped':
+                enrollment.status = 'active'
+                enrollment.save(update_fields=['status'])
 
 class Quiz(models.Model):
     """Quizzes for lessons"""
@@ -6030,8 +5334,6 @@ class StaffPermissionsMatrix(models.Model):
         ('support_communications',  'Communications'),
         ('support_analytics',       'Analytics'),
         ('support_config',          'Support Config'),
-        ('academic_progression',    'Academic Progression'),
-        ('results_publish',         'Results Publishing'),
         ('role_permissions',        'Roles & Permissions'),
     ]
 
@@ -6052,12 +5354,6 @@ class StaffPermissionsMatrix(models.Model):
         'site_content':    {'can_view': True, 'can_edit': True},
         'security_audit':  {'can_view': True},
         'support_config':  {'can_view': True, 'can_create': True, 'can_edit': True},
-        'academic_progression': {'can_view': True, 'can_edit': True, 'can_approve': True},
-        # Kept separate from 'academic_progression' on purpose: releasing
-        # results to the whole student body is a distinct, higher-blast-
-        # radius action than running level-progression decisions, so a
-        # staff member granted one shouldn't automatically get the other.
-        'results_publish': {'can_view': True, 'can_edit': True, 'can_approve': True},
         # Deliberately its own module rather than riding on 'user_management':
         # a staff member can be granted the user list (user_management) without
         # also being able to reassign roles or edit the permission matrix itself.
@@ -6107,7 +5403,7 @@ class StaffPermissionsMatrix(models.Model):
         'dashboard', 'user_management', 'academics', 'lms_courses',
         'applications', 'exams', 'enrollments', 'finance', 'communications',
         'blog', 'library', 'site_content', 'security_audit', 'support_config',
-        'academic_progression', 'results_publish', 'role_permissions',
+        'role_permissions',
     }
 
     # Mirrors ADMIN_PORTAL_MODULES for the other three staff portals — used by
@@ -6897,30 +6193,6 @@ class UserProfile(models.Model):
     department = models.ForeignKey("Department", on_delete=models.SET_NULL, null=True, blank=True, related_name='department_students')
     program = models.ForeignKey('Program', on_delete=models.SET_NULL, null=True, blank=True, related_name='program_students')
 
-    # ── Academic Progression (StudentProgram concept — kept in UserProfile) ──────
-    year_of_study = models.PositiveSmallIntegerField(
-        default=1,
-        validators=[MinValueValidator(1), MaxValueValidator(8)],
-        help_text="Current year of study. Level = year × 100 (e.g. year 1 = 100L)."
-    )
-    PROGRESSION_STATUS_CHOICES = [
-        ('active',     'Active'),
-        ('probation',  'Probation'),
-        ('repeated',   'Repeating Level'),
-        ('graduated',  'Graduated'),
-        ('withdrawn',  'Withdrawn'),
-    ]
-    progression_status = models.CharField(
-        max_length=20, choices=PROGRESSION_STATUS_CHOICES, default='active'
-    )
-    admission_session = models.ForeignKey(
-        'AcademicSession',
-        on_delete=models.SET_NULL,
-        null=True, blank=True,
-        related_name='admitted_students',
-        help_text="Session in which the student was admitted."
-    )
-    
     # Personal Information
     bio = models.TextField(blank=True)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
@@ -7023,31 +6295,10 @@ class UserProfile(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-    @property
-    def current_level(self):
-        """100L, 200L … 800L — computed from year_of_study."""
-        return self.year_of_study * 100
+    def get_current_courses(self):
+        """Returns the flat catalog of active courses available to this student."""
+        return Course.objects.filter(is_active=True)
 
-    def get_current_courses(self, session=None, term=None):
-        """
-        Returns Course queryset for this student's program + level + current term.
-        Pass term explicitly or it is derived from session.get_current_term().
-        """
-        session = session or AcademicSession.get_current()
-        if not session or not self.program:
-            return Course.objects.none()
-        current_term = term or session.get_current_term()
-        qs = Course.objects.filter(
-            program=self.program,
-            year_of_study=self.year_of_study,
-            is_active=True,
-        )
-        if current_term and current_term not in ('annual',):
-            qs = qs.filter(
-                models.Q(semester=current_term) | models.Q(semester='annual')
-            )
-        return qs
-    
     def generate_verification_token(self):
         self.verification_token = uuid.uuid4()
         self.verification_token_created = timezone.now()

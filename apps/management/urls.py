@@ -39,25 +39,8 @@ urlpatterns = [
     path('programs/<int:pk>/edit/', views.program_edit, name='program_edit'),
     path('programs/<int:pk>/delete/', views.program_delete, name='program_delete'),
 
-    # Academic Sessions
-    path('academic-sessions/', views.academic_sessions_list, name='academic_sessions_list'),
-    path('academic-sessions/<int:pk>/set-current/', views.academic_session_set_current, name='academic_session_set_current'),
-    path('academic-sessions/<int:pk>/registration-override/', views.academic_session_registration_override, name='academic_session_registration_override'),
-
-    # Academic Progression / Carry-Over
-    path('progression/', views.academic_progression, name='academic_progression'),
-    path('progression/carry-overs/', views.carry_over_list, name='carry_over_list'),
-    path('progression/results/', views.results_publish, name='results_publish'),
-    path('progression/results/<int:session_id>/', views.results_publish_detail, name='results_publish_detail'),
-
     path('courses/', views.courses_list, name='courses_list'),
     path('exams/<slug:slug>/toggle-active/', views.admin_exam_toggle_active, name='admin_exam_toggle_active'),
-
-    # Intakes
-    path('intakes/', views.intakes_list, name='intakes_list'),
-    path('intakes/create/', views.intake_create, name='intake_create'),
-    path('intakes/<int:pk>/edit/', views.intake_edit, name='intake_edit'),
-    path('intakes/<int:pk>/delete/', views.intake_delete, name='intake_delete'),
 
     # Course categories
     path('categories/', views.course_categories_list, name='course_categories_list'),

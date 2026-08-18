@@ -12,7 +12,6 @@ from django.core.paginator import Paginator
 
 from apps.eduweb.decorators import is_finance_manager
 from apps.eduweb.models import (
-    AcademicSession,
     AllRequiredPayments,
     ApplicationPayment,
     AuditLog,
@@ -161,14 +160,13 @@ def payment_detail(request, payment_reference):
     payment = ApplicationPayment.objects.select_related(
         'application__user',
         'application__program__department__faculty',
-        'application__intake',
     ).filter(payment_reference=payment_reference).first()
     payment_type = 'application'
 
     if payment is None:
         payment = get_object_or_404(
             FeePayment.objects.select_related(
-                'user__profile', 'fee__program__department__faculty', 'fee__academic_session',
+                'user__profile', 'fee__program__department__faculty',
             ),
             payment_reference=payment_reference,
         )
@@ -231,7 +229,7 @@ def required_payments_list(request):
     today = timezone.now().date()
 
     payments = AllRequiredPayments.objects.select_related(
-        'program', 'course', 'academic_session'
+        'program', 'course'
     ).order_by('-created_at')
 
     total_value = (
@@ -249,7 +247,6 @@ def required_payments_list(request):
         'total_value': total_value,
         'all_programs': Program.objects.order_by('name'),
         'all_courses': Course.objects.select_related('program').order_by('code'),
-        'all_sessions': AcademicSession.objects.order_by('-created_at'),
         'suggestions': (
             AllRequiredPayments.objects.order_by('purpose')
             .values_list('purpose', flat=True).distinct()
@@ -274,8 +271,7 @@ def required_payment_create(request):
         except IntegrityError:
             messages.error(
                 request,
-                'A required payment with the same programme, session, purpose, '
-                'semester and level already exists.'
+                'A required payment with the same programme and purpose already exists.'
             )
         else:
             messages.success(request, f'Required payment "{form.cleaned_data["purpose"]}" created.')
@@ -303,8 +299,7 @@ def required_payment_update(request, pk):
         except IntegrityError:
             messages.error(
                 request,
-                'A required payment with the same programme, session, purpose, '
-                'semester and level already exists.'
+                'A required payment with the same programme and purpose already exists.'
             )
         else:
             messages.success(request, f'Required payment "{payment.purpose}" updated.')

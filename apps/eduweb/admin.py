@@ -6,10 +6,9 @@ from .models import (
     Announcement, Assignment, AssignmentSubmission, AuditLog,
     Badge, StudentBadge, BlogCategory, BlogPost,
     Certificate, ContactMessage,
-    Course, CourseIntake, CourseApplication, ApplicationDocument, ApplicationPayment,
+    Course, CourseApplication, ApplicationDocument, ApplicationPayment,
     CourseCategory, Discussion, DiscussionReply,
     Department, Program, AllRequiredPayments,
-    AcademicSession,
     Enrollment, Faculty, InstitutionMember, Invoice, Lesson, LessonSection, LessonProgress,
     LMSCourse, Message, Notification,
     PaymentGateway, Transaction, Quiz, QuizQuestion, QuizAnswer, QuizAttempt, QuizResponse,
@@ -647,14 +646,14 @@ from .models import CourseGrade
 
 @admin.register(CourseGrade)
 class CourseGradeAdmin(admin.ModelAdmin):
-    list_display = ('student', 'course', 'session', 'grade', 'score', 'credit_units', 'is_passed', 'recorded_at')
-    list_filter = ('session', 'grade', 'is_passed', 'course__program__department__faculty')
+    list_display = ('student', 'course', 'grade', 'score', 'credit_units', 'is_passed', 'recorded_at')
+    list_filter = ('grade', 'is_passed', 'course__program__department__faculty')
     search_fields = ('student__username', 'course__code', 'course__name')
     readonly_fields = ('recorded_at', 'updated_at')
 
     fieldsets = (
         ('Grade Record', {
-            'fields': ('student', 'course', 'lms_course', 'session', 'term', 'application')
+            'fields': ('student', 'course', 'lms_course', 'application')
         }),
         ('Grading', {
             'fields': ('score', 'grade', 'credit_units', 'is_passed', 'result_status')
@@ -817,7 +816,7 @@ class ProgramAdmin(admin.ModelAdmin):
             'fields': ('tagline', 'overview', 'description')
         }),
         ('Financial Information', {
-            'fields': ('tuition_fee',)
+            'fields': ('application_fee', 'tuition_fee')
         }),
         ('Curriculum', {
             'fields': ('entry_requirements', 'core_courses', 'specialization_tracks'),
@@ -842,41 +841,11 @@ class ProgramAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(AcademicSession)
-class AcademicSessionAdmin(admin.ModelAdmin):
-    list_display = (
-        'name', 'status', 'is_current',
-        # 'registration_start', 'registration_end',
-    )
-    list_filter = ('status', 'is_current')
-    search_fields = ('name',)
-    list_editable = ('status', 'is_current')
-    readonly_fields = ('created_at', 'updated_at')
-
-    fieldsets = (
-        ('Identity', {
-            'fields': ('name', 'status', 'is_current')
-        }),
-        ('Term Dates', {
-            'fields': ('term_dates',),
-            'description': 'JSON list of term windows: [{"term": "first", "start": "YYYY-MM-DD", "end": "YYYY-MM-DD"}, ...]'
-        }),
-        # ('Registration Window', {
-        #     'fields': ('registration_start', 'registration_end'),
-        #     'classes': ('collapse',)
-        # }),
-        ('Timestamps', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        }),
-    )
-
-
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
     list_display = (
         'name', 'code', 'program', 'course_type',
-        'credit_units', 'year_of_study', 'semester',
+        'credit_units',
         'is_active',
     )
     list_filter = (
@@ -884,8 +853,6 @@ class CourseAdmin(admin.ModelAdmin):
         'program__department',
         'program',
         'course_type',
-        'semester',
-        'year_of_study',
         'is_active',
     )
     search_fields = ('name', 'code', 'description')
@@ -903,7 +870,7 @@ class CourseAdmin(admin.ModelAdmin):
                     #    'display_order')
         }),
         ('Academic Structure', {
-            'fields': ('course_type', 'credit_units', 'year_of_study', 'semester')
+            'fields': ('course_type', 'credit_units')
         }),
         ('Content', {
             'fields': ('description', 'learning_outcomes')
@@ -922,17 +889,14 @@ class CourseAdmin(admin.ModelAdmin):
 @admin.register(AllRequiredPayments)
 class AllRequiredPaymentsAdmin(admin.ModelAdmin):
     list_display = (
-        'purpose', 'program', 'level', 'course',
-        'amount', 'currency', 'who_to_pay', 'semester', 'academic_session', 'is_active', 'due_date'
+        'purpose', 'program', 'course',
+        'amount', 'currency', 'who_to_pay', 'is_active', 'due_date'
     )
     list_filter = (
         'program__department__faculty',
         'program__department',
         'program',
-        'level',
         'who_to_pay',
-        'semester',
-        'academic_session',
         'is_active',
     )
     search_fields = ('purpose', 'program__name', 'program__department__name')
@@ -941,11 +905,10 @@ class AllRequiredPaymentsAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ('Scope', {
-            'fields': ('program', 'level', 'course'),
-            'description': 'Set "Level" to restrict this fee to a specific student level. Leave blank to apply to ALL levels in the program.'
+            'fields': ('program', 'course'),
         }),
         ('Payment Details', {
-            'fields': ('purpose', 'amount', 'currency', 'who_to_pay', 'semester', 'academic_session', 'due_date')
+            'fields': ('purpose', 'amount', 'currency', 'who_to_pay', 'due_date')
         }),
         ('Status', {
             'fields': ('is_active',)
@@ -958,30 +921,6 @@ class AllRequiredPaymentsAdmin(admin.ModelAdmin):
 
 
 # ==================== COURSE APPLICATIONS ====================
-@admin.register(CourseIntake)
-class CourseIntakeAdmin(admin.ModelAdmin):
-    list_display = (
-        'program', 'intake_period', 'year', 'start_date',
-        'application_deadline', 'application_fee', 'available_slots', 'is_active'
-    )
-    list_filter = ('intake_period', 'year', 'is_active', 'program__department__faculty')
-    search_fields = ('program__name', 'program__code')
-    list_editable = ('is_active',)
-    date_hierarchy = 'start_date'
-
-    fieldsets = (
-        ('Course & Period', {
-            'fields': ('program', 'intake_period', 'year')
-        }),
-        ('Dates', {
-            'fields': ('application_start_date', 'application_deadline', 'start_date')
-        }),
-        ('Capacity & Fee', {
-            'fields': ('available_slots', 'application_fee', 'is_active')
-        }),
-    )
-
-
 class ApplicationDocumentInline(admin.TabularInline):
     model = ApplicationDocument
     extra = 0
@@ -1032,7 +971,6 @@ class CourseApplicationAdmin(admin.ModelAdmin):
         'get_full_name',
         'email',
         'program',
-        'academic_session',
         'study_mode',
         'status',
         'admission_accepted',
@@ -1049,7 +987,6 @@ class CourseApplicationAdmin(admin.ModelAdmin):
         'department_approved',
         'program__department__faculty',
         'program',
-        'academic_session',
         'study_mode',
         'created_at',
         'payment_status'
@@ -1092,7 +1029,7 @@ class CourseApplicationAdmin(admin.ModelAdmin):
             'description': 'Track student admission acceptance and department approval'
         }),
         ('Course Selection', {
-            'fields': ('program', 'academic_session', 'study_mode')
+            'fields': ('program', 'study_mode')
         }),
         ('Personal Information', {
             'fields': (
@@ -1420,11 +1357,11 @@ class LessonProgressAdmin(admin.ModelAdmin):
 @admin.register(LMSCourse)
 class LMSCourseAdmin(admin.ModelAdmin):
     list_display = (
-        'title', 'code', 'difficulty_level',
+        'title', 'code',
         'is_published', 'is_featured', 'total_enrollments', 'average_rating'
     )
     list_filter = (
-        'difficulty_level', 'is_published',
+        'is_published',
         'is_featured', 'created_at'
     )
     search_fields = ('title', 'code', 'description')
@@ -1440,15 +1377,11 @@ class LMSCourseAdmin(admin.ModelAdmin):
             'fields': ('title', 'slug', 'code', 'academic_course')
         }),
         ('Academic Delivery', {
-            'fields': ('session', 'term', 'lecturer'),
+            'fields': ('lecturer',),
             'classes': ('collapse',)
         }),
         ('Content', {
             'fields': ('description', 'learning_objectives', 'prerequisites')
-        }),
-        ('Course Details', {
-            'fields': ('difficulty_level',),
-            'description': 'Difficulty Level is now a student level (100–800), e.g. 100 = first year, 400 = final year undergraduate.'
         }),
         ('Instructor', {
             'fields': ('instructor',)
@@ -1842,17 +1775,14 @@ class SystemConfigurationAdmin(admin.ModelAdmin):
 # ==================== USER PROFILE ====================
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'role', 'faculty', 'department', 'program', 'year_of_study', 'progression_status', 'email_verified', 'is_logged_in')
-    list_filter = ('role', 'faculty', 'department', 'email_verified', 'progression_status', 'is_logged_in', 'must_change_password')
+    list_display = ('user', 'role', 'faculty', 'department', 'program', 'email_verified', 'is_logged_in')
+    list_filter = ('role', 'faculty', 'department', 'email_verified', 'is_logged_in', 'must_change_password')
     search_fields = ('user__username', 'user__email', 'phone')
     readonly_fields = ('verification_token', 'active_session_key', 'otp_code', 'created_at', 'updated_at')
 
     fieldsets = (
         ('Identity', {
-            'fields': ('user', 'role', 'faculty', 'department', 'must_change_password')
-        }),
-        ('Academic Progression', {
-            'fields': ('year_of_study', 'progression_status', 'admission_session')
+            'fields': ('user', 'role', 'faculty', 'department', 'program', 'must_change_password')
         }),
         ('Personal Info', {
             'fields': ('bio', 'avatar', 'phone', 'date_of_birth', 'address', 'city', 'country')
@@ -2141,15 +2071,15 @@ from .models import CourseRegistration
 
 @admin.register(CourseRegistration)
 class CourseRegistrationAdmin(admin.ModelAdmin):
-    list_display  = ('student', 'course', 'session', 'term', 'status', 'registered_at', 'dropped_at')
-    list_filter   = ('status', 'session', 'term', 'course__program__department__faculty')
+    list_display  = ('student', 'course', 'status', 'registered_at', 'dropped_at')
+    list_filter   = ('status', 'course__program__department__faculty')
     search_fields = ('student__username', 'student__email', 'course__code', 'course__name')
     readonly_fields = ('registered_at', 'dropped_at')
     date_hierarchy  = 'registered_at'
 
     fieldsets = (
         ('Registration', {
-            'fields': ('student', 'course', 'session', 'term', 'status')
+            'fields': ('student', 'course', 'status')
         }),
         ('Timestamps', {
             'fields': ('registered_at', 'dropped_at'),

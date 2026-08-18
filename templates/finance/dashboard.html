@@ -437,8 +437,8 @@
     <!-- ══════════════════════════════════════════════════════
          ROW 4: ALL REQUIRED / PENDING PAYMENTS — DataTable
          Fields available on AllRequiredPayments:
-           program (FK), course (FK nullable), academic_session (FK nullable),
-           semester, purpose, who_to_pay, amount, due_date, created_at, is_active
+           program (FK), course (FK nullable), purpose, who_to_pay,
+           amount, due_date, created_at, is_active
     ══════════════════════════════════════════════════════ -->
     <section id="requiredPaymentsSection" aria-label="All required and pending payments">
         <div class="bg-white rounded-xl border border-rose-100 shadow-sm overflow-hidden">
@@ -522,11 +522,6 @@
                                         <p class="font-medium text-gray-900 truncate max-w-[120px] sm:max-w-[160px] text-sm">
                                             {{ req.get_who_to_pay_display }}
                                         </p>
-                                        {% if req.academic_session %}
-                                        <p class="text-xs text-gray-400 truncate max-w-[120px] sm:max-w-[160px]">
-                                            {{ req.academic_session }}
-                                        </p>
-                                        {% endif %}
                                     </div>
                                 </div>
                             </td>
@@ -536,11 +531,6 @@
                                 <p class="text-gray-800 font-medium text-sm truncate max-w-[140px] sm:max-w-[220px]">
                                     {{ req.purpose|truncatechars:40 }}
                                 </p>
-                                {% if req.semester %}
-                                <p class="text-xs text-gray-400 mt-0.5">
-                                    {{ req.get_semester_display }}
-                                </p>
-                                {% endif %}
                             </td>
 
                             <!-- Amount — the only monetary field on this model -->
@@ -786,9 +776,6 @@
                             <td class="px-3 sm:px-4 py-3 text-gray-600">
                                 <span class="truncate max-w-[130px] block">
                                     {{ payment.fee.fee_type|default:"—"|truncatechars:22 }}
-                                </span>
-                                <span class="text-xs text-gray-400">
-                                    {{ payment.fee.academic_session|default:"" }}
                                 </span>
                             </td>
                             <td class="px-3 sm:px-4 py-3 font-semibold text-gray-900 whitespace-nowrap">

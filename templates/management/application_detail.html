@@ -84,8 +84,6 @@
             {% csrf_token %}
             <input type="hidden" name="decision" value="approved">
             <input type="hidden" name="decision_notes" id="accept_notes_hidden">
-            <input type="hidden" name="academic_session" id="accept_session_hidden">
-            <input type="hidden" name="entry_level" id="accept_level_hidden">
             <button type="button" onclick="showAcceptPanel()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold text-md">
               <i class="fas fa-check-circle"></i> Accept
             </button>
@@ -281,33 +279,8 @@
     <h3 class="text-lg font-bold text-green-800 mb-4 flex items-center gap-2">
       <i class="fas fa-check-circle text-green-600"></i> Accept Admission
     </h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+    <div class="grid grid-cols-1 gap-4 mb-4">
       <div>
-        <label class="block text-md font-semibold text-gray-700 mb-1">Academic Session <span class="text-red-500">*</span></label>
-        <select id="accept_session" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white text-md" required>
-          <option value="" disabled selected>— Select Session —</option>
-          {% for session in academic_sessions %}
-          <option value="{{ session.id }}" {% if application.academic_session_id == session.id %}selected{% endif %}>
-            {{ session.name }} ({{ session.get_status_display }})
-          </option>
-          {% endfor %}
-        </select>
-      </div>
-      <div>
-        <label class="block text-md font-semibold text-gray-700 mb-1">Entry Level <span class="text-red-500">*</span></label>
-        <select id="accept_level" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white text-md" required>
-          <option value="" disabled selected>— Select Level —</option>
-          <option value="100" {% if application.entry_level == 100 %}selected{% endif %}>100 Level</option>
-          <option value="200" {% if application.entry_level == 200 %}selected{% endif %}>200 Level</option>
-          <option value="300" {% if application.entry_level == 300 %}selected{% endif %}>300 Level</option>
-          <option value="400" {% if application.entry_level == 400 %}selected{% endif %}>400 Level</option>
-          <option value="500" {% if application.entry_level == 500 %}selected{% endif %}>500 Level</option>
-          <option value="600" {% if application.entry_level == 600 %}selected{% endif %}>600 Level</option>
-          <option value="700" {% if application.entry_level == 700 %}selected{% endif %}>700 Level</option>
-          <option value="800" {% if application.entry_level == 800 %}selected{% endif %}>800 Level</option>
-        </select>
-      </div>
-      <div class="md:col-span-2">
         <label class="block text-md font-semibold text-gray-700 mb-1">Notes to Applicant (Optional)</label>
         <textarea id="accept_notes" rows="3" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-md" placeholder="Congratulations message or any instructions…"></textarea>
       </div>
@@ -523,16 +496,6 @@
             <dd class="text-md font-semibold text-gray-800 mt-0.5">{{ application.program.get_degree_level_display|default:"—" }}</dd>
           </div>
           <div>
-            <dt class="text-md font-medium text-gray-500">Academic Session</dt>
-            <dd class="text-md font-semibold text-gray-800 mt-0.5">{{ application.academic_session.name|default:"Not specified" }}</dd>
-          </div>
-          <div>
-            <dt class="text-md font-medium text-gray-500">Entry Level</dt>
-            <dd class="text-md font-semibold text-gray-800 mt-0.5">
-              {% if application.entry_level %}{{ application.entry_level }} Level{% else %}Not specified{% endif %}
-            </dd>
-          </div>
-          <div>
             <dt class="text-md font-medium text-gray-500">Payment Status</dt>
             <dd class="text-md font-semibold text-gray-800 mt-0.5 capitalize">{{ application.payment_status|default:"—" }}</dd>
           </div>
@@ -648,13 +611,7 @@ function showRejectPanel() {
 function hidePanel(id) { document.getElementById(id).classList.add('hidden'); }
 
 function submitAccept() {
-  const session = document.getElementById('accept_session').value;
-  const level   = document.getElementById('accept_level').value;
-  if (!session) { alert('Please select an Academic Session.'); return; }
-  if (!level)   { alert('Please select an Entry Level.'); return; }
-  document.getElementById('accept_session_hidden').value = session;
-  document.getElementById('accept_level_hidden').value   = level;
-  document.getElementById('accept_notes_hidden').value   = document.getElementById('accept_notes').value;
+  document.getElementById('accept_notes_hidden').value = document.getElementById('accept_notes').value;
   document.getElementById('acceptForm').submit();
 }
 function submitReject() {

@@ -6,7 +6,7 @@
   
   CRITICAL MODEL CORRECTIONS applied here:
   • exam.mode / exam.get_mode_display → REMOVED (mode field deleted; online-only CBT system)
-  • exam.academic_session → REMOVED from Exam; derive via exam.course.session
+  • exam.academic_session → REMOVED from Exam (AcademicSession/session concept removed entirely)
   • exam.department → REMOVED from Exam; derive via exam.course.academic_course.program.department
   • exam.exam_date / exam.start_time / exam.end_time → REMOVED; now exam.start_datetime / exam.end_datetime
   • exam.venue → REMOVED (online-only, no venue)
@@ -33,7 +33,6 @@
 <div class="w-full max-w-full space-y-6 px-4 sm:px-6 lg:px-8">
 
     {% comment %} Breadcrumb {% endcomment %}
-    <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; back</button>
     <nav class="flex items-center gap-2 text-xs text-gray-400 flex-wrap">
         <a href="{% url 'management:admin_exam_list' %}" class="hover:text-primary-600 transition-colors flex items-center gap-1">
             <i class="fas fa-file-alt"></i> Exam Management

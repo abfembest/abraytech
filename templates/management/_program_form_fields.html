@@ -114,20 +114,6 @@
                  class="w-full px-3 py-2 border {% if form.max_students.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
           {% if form.max_students.errors %}<p class="text-xs text-red-500 mt-1">{{ form.max_students.errors.0 }}</p>{% endif %}
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Min CGPA to Progress <span class="text-red-500">*</span></label>
-          <input type="number" name="{{ form.min_cgpa_to_progress.html_name }}" value="{{ form.min_cgpa_to_progress.value|default:'1.00' }}" required
-                 step="0.01" min="0" max="5"
-                 class="w-full px-3 py-2 border {% if form.min_cgpa_to_progress.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
-          {% if form.min_cgpa_to_progress.errors %}<p class="text-xs text-red-500 mt-1">{{ form.min_cgpa_to_progress.errors.0 }}</p>{% endif %}
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Default Max CU / Semester <span class="text-red-500">*</span></label>
-          <input type="number" name="{{ form.max_credits_per_semester.html_name }}" value="{{ form.max_credits_per_semester.value|default:'24' }}" required
-                 min="1" max="30"
-                 class="w-full px-3 py-2 border {% if form.max_credits_per_semester.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
-          {% if form.max_credits_per_semester.errors %}<p class="text-xs text-red-500 mt-1">{{ form.max_credits_per_semester.errors.0 }}</p>{% endif %}
-        </div>
         <div class="col-span-2">
           <label class="block text-sm font-medium text-gray-700 mb-1">Study Modes</label>
           <div class="flex flex-wrap gap-x-4 gap-y-1">
@@ -143,65 +129,7 @@
         </div>
       </div>
 
-      <div class="px-3 pb-3">
-        <div class="border border-dashed border-gray-300 rounded-lg p-2.5">
-          <p class="text-xs font-medium text-gray-700">Per-Term Credit Unit Overrides <span class="font-normal text-gray-400">(optional — leave blank to use the default above)</span></p>
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2">
-            <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">{{ form.cu_first.label }}</label>
-              <input type="number" name="{{ form.cu_first.html_name }}" value="{{ form.cu_first.value|default:'' }}"
-                     min="1" max="30" placeholder="Default"
-                     class="w-full px-3 py-1.5 border {% if form.cu_first.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
-              {% if form.cu_first.errors %}<p class="text-xs text-red-500 mt-1">{{ form.cu_first.errors.0 }}</p>{% endif %}
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">{{ form.cu_second.label }}</label>
-              <input type="number" name="{{ form.cu_second.html_name }}" value="{{ form.cu_second.value|default:'' }}"
-                     min="1" max="30" placeholder="Default"
-                     class="w-full px-3 py-1.5 border {% if form.cu_second.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
-              {% if form.cu_second.errors %}<p class="text-xs text-red-500 mt-1">{{ form.cu_second.errors.0 }}</p>{% endif %}
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">{{ form.cu_annual.label }}</label>
-              <input type="number" name="{{ form.cu_annual.html_name }}" value="{{ form.cu_annual.value|default:'' }}"
-                     min="1" max="30" placeholder="Default"
-                     class="w-full px-3 py-1.5 border {% if form.cu_annual.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
-              {% if form.cu_annual.errors %}<p class="text-xs text-red-500 mt-1">{{ form.cu_annual.errors.0 }}</p>{% endif %}
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
-
-    {% if sessions_with_terms %}
-    <!-- Section: Per-Session Credit Unit Overrides -->
-    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      <div class="px-4 py-2 bg-gray-50 border-b border-gray-100">
-        <h2 class="font-semibold text-gray-800 text-sm"><i class="fas fa-layer-group text-purple-500 mr-2" aria-hidden="true"></i>Per-Session Credit Unit Overrides</h2>
-        <p class="text-xs text-gray-500">Most specific tier — overrides the tiers above for this session's term(s).</p>
-      </div>
-      <div class="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-40 overflow-y-auto">
-        {% for entry in sessions_with_terms %}
-        <div class="border border-gray-200 rounded-lg p-2.5">
-          <p class="text-xs font-semibold text-gray-800 mb-1.5">
-            {{ entry.session.name }}
-            {% if entry.session.is_current %}<span class="ml-1 px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded-full text-[9px] font-semibold uppercase align-middle">Current</span>{% endif %}
-          </p>
-          <div class="grid grid-cols-2 gap-2">
-            {% for t in entry.terms %}
-            <div>
-              <label class="block text-[11px] font-medium text-gray-600 mb-0.5">{{ t.label }}</label>
-              <input type="number" name="session_cap_{{ entry.session.pk }}_{{ t.term }}" value="{{ t.value }}"
-                     min="1" max="30" placeholder="Default"
-                     class="w-full px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
-            </div>
-            {% endfor %}
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-    {% endif %}
 
     <!-- Section: Financial -->
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -209,6 +137,13 @@
         <h2 class="font-semibold text-gray-800 text-sm"><i class="fas fa-dollar-sign text-green-500 mr-2" aria-hidden="true"></i>Financial</h2>
       </div>
       <div class="p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Application Fee ($) <span class="text-red-500">*</span></label>
+          <input type="number" name="{{ form.application_fee.html_name }}" value="{{ form.application_fee.value|default:'0.00' }}" required
+                 step="0.01" min="0"
+                 class="w-full px-3 py-2 border {% if form.application_fee.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+          {% if form.application_fee.errors %}<p class="text-xs text-red-500 mt-1">{{ form.application_fee.errors.0 }}</p>{% endif %}
+        </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Tuition Fee / Year ($) <span class="text-red-500">*</span></label>
           <input type="number" name="{{ form.tuition_fee.html_name }}" value="{{ form.tuition_fee.value|default:'0.00' }}" required

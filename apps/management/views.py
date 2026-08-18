@@ -32,7 +32,6 @@ from django.views.decorators.http import require_POST
 
 # Models
 from apps.eduweb.models import (
-    AcademicSession,
     Announcement,
     ApplicationPayment,
     AuditLog,
@@ -44,10 +43,8 @@ from apps.eduweb.models import (
     ContactMessage,
     Course,
     CourseApplication,
-    CourseCarryOver,
     CourseCategory,
     CourseGrade,
-    CourseIntake,
     CourseRegistration,
     Department,
     Enrollment,
@@ -60,8 +57,6 @@ from apps.eduweb.models import (
     Notification,
     PaymentGateway,
     Program,
-    ProgramSessionCreditCap,
-    ProgressionDecisionLog,
     Review,
     SiteConfig,
     SiteHistoryMilestone,
@@ -83,7 +78,6 @@ from apps.eduweb.models import (
 
 # Forms
 from apps.management.forms import (
-    AcademicSessionForm,
     AdminMessageComposeForm,
     AnnouncementForm,
     AuditLogFilterForm,
@@ -95,7 +89,6 @@ from apps.management.forms import (
     CertificateForm,
     CourseCategoryForm,
     CourseForm,
-    CourseIntakeForm,
     DepartmentForm,
     EmailAccountForm,
     EmailServerForm,
@@ -103,7 +96,6 @@ from apps.management.forms import (
     FacultyForm,
     InstitutionMemberForm,
     InstitutionPartnerForm,
-    IntakeCreateFormSet,
     LMSCourseForm,
     LibraryItemForm,
     NotificationConfigForm,
@@ -133,12 +125,6 @@ from apps.eduweb.emailservices import (
     send_new_message_email,
     _resolve_sender,
     send_test_email,
-)
-
-# Academic progression
-from apps.management.progression import (
-    compute_progression_decision, apply_progression_decision,
-    apply_manual_override, already_processed_student_ids,
 )
 
 logger = logging.getLogger('melbac')
@@ -672,15 +658,10 @@ def application_detail(request, application_id):
     
     # Get pending count for sidebar
     pending_count = CourseApplication.objects.filter(status__in=['payment_complete', 'documents_uploaded']).count()
-    
-    academic_sessions = AcademicSession.objects.filter(
-        status__in=['active', 'upcoming']
-    ).order_by('-name')
 
     context = {
         'application': application,
         'pending_count': pending_count,
-        'academic_sessions': academic_sessions,
     }
     
     return render(request, 'management/application_detail.html', context)
@@ -705,20 +686,6 @@ def make_decision(request, pk):
             messages.error(request, 'Invalid decision. Choose Approved or Rejected.')
             return redirect('management:application_detail', application_id=application.application_id)
 
-        # Update academic session and entry level if provided in decision form
-        session_id = request.POST.get('academic_session')
-        entry_level = request.POST.get('entry_level')
-        if session_id:
-            try:
-                application.academic_session = AcademicSession.objects.get(id=session_id)
-            except AcademicSession.DoesNotExist:
-                pass
-        if entry_level:
-            try:
-                application.entry_level = int(entry_level)
-            except (ValueError, TypeError):
-                pass
-
         # Update application status
         if decision == 'approved':
             application.status = 'approved'
@@ -735,7 +702,7 @@ def make_decision(request, pk):
             messages.error(request, 'Something went wrong while recording this decision. Please try again.')
             return redirect('management:application_detail', application_id=application.application_id)
 
-        # On approval: sync program / dept / faculty / session / level to UserProfile
+        # On approval: sync program / dept / faculty to UserProfile
         if decision == 'approved' and application.user:
             try:
                 profile = application.user.profile
@@ -743,14 +710,7 @@ def make_decision(request, pk):
                     profile.program    = application.program
                     profile.department = application.program.department
                     profile.faculty    = application.program.department.faculty
-                if application.academic_session:
-                    profile.admission_session = application.academic_session
-                if application.entry_level:
-                    profile.year_of_study = application.entry_level // 100
-                profile.save(update_fields=[
-                    'program', 'department', 'faculty',
-                    'admission_session', 'year_of_study',
-                ])
+                profile.save(update_fields=['program', 'department', 'faculty'])
             except Exception:
                 logger.exception(
                     "make_decision — failed to sync profile for application %s",
@@ -2387,25 +2347,17 @@ def lms_courses_list(request):
     # ── Base queryset ─────────────────────────────────────────────────────────
     courses = (
         LMSCourse.objects
-        .select_related('instructor', 'academic_course__program__department', 'session')
+        .select_related('instructor', 'academic_course__program__department')
         .prefetch_related('enrollments')
         .annotate(lesson_count=Count('lessons', distinct=True))
         .order_by('-created_at')
     )
- 
+
     # ── Filters ───────────────────────────────────────────────────────────────
     program_id = request.GET.get('program', '').strip()
     if program_id.isdigit():
         courses = courses.filter(academic_course__program_id=program_id)
- 
-    session_id = request.GET.get('session', '').strip()
-    if session_id.isdigit():
-        courses = courses.filter(session_id=session_id)
- 
-    term_filter = request.GET.get('term', '').strip()
-    if term_filter:
-        courses = courses.filter(term=term_filter)
- 
+
     published_filter = request.GET.get('published', '').strip()
     if published_filter == 'published':
         courses = courses.filter(is_published=True)
@@ -2425,8 +2377,6 @@ def lms_courses_list(request):
         'create_form':  LMSCourseForm(),               # create modal
         'edit_form':    LMSCourseForm(),               # edit modal (values filled by JS)
         'programs':     Program.objects.only('id', 'name').order_by('name'),
-        'sessions':     AcademicSession.objects.only('id', 'name').order_by('-name'),
-        'term_choices': LMSCourse._meta.get_field('term').choices,
         'stats': {
             'total':     _s['total'],
             'published': _s['published'],
@@ -2446,7 +2396,7 @@ def lms_courses_list(request):
 @require_permission('lms_courses', 'can_view', redirect_to='management:lms_courses_list', skip_get=False)
 def lms_academic_course_data(request, pk):
     """
-    AJAX — returns session, term, level for a given academic Course pk.
+    AJAX — returns basic info for a given academic Course pk.
     Used by the create modal to auto-fill fields when academic_course changes.
     NOT called on edit (edit shows saved values only).
     """
@@ -2454,13 +2404,10 @@ def lms_academic_course_data(request, pk):
         course = Course.objects.select_related('program').get(pk=pk, is_active=True)
     except Course.DoesNotExist:
         return JsonResponse({'error': 'Not found'}, status=404)
- 
-    active_session = AcademicSession.objects.filter(is_current=True).first()
+
     return JsonResponse({
-        'session_id':   active_session.pk   if active_session else None,
-        'session_name': str(active_session) if active_session else '',
-        'term':         course.semester,
-        'level':        course.year_of_study * 100,
+        'code': course.code,
+        'name': course.name,
     })
  
  
@@ -2580,11 +2527,11 @@ def lms_course_detail(request, pk):
     GET (normal)          → redirect to list (no standalone detail page needed).
  
     Extra fields returned for the edit modal:
-        session_id, term_value, difficulty_level_value, instructor_id, thumbnail_url
+        instructor_id, thumbnail_url
     """
     course = get_object_or_404(
         LMSCourse.objects.select_related(
-            'instructor', 'academic_course__program__department', 'session',
+            'instructor', 'academic_course__program__department',
         ),
         pk=pk,
     )
@@ -2624,18 +2571,6 @@ def lms_course_detail(request, pk):
             'prerequisites': (
                 course.prerequisites if isinstance(course.prerequisites, list) else []
             ),
- 
-            # ── Classification
-            'difficulty_level_display': course.get_difficulty_level_display(),
-            'difficulty_level_value':   course.difficulty_level or '',
- 
-            # ── Session & term (display values for detail modal)
-            'session': course.session.name if course.session else '',
-            'term':    course.get_term_display() if course.term else '',
- 
-            # ── Session & term (raw values for edit modal selects)
-            'session_id':  course.session_id or '',
-            'term_value':  course.term or '',
  
             # ── Status
             'is_published': course.is_published,
@@ -3601,7 +3536,7 @@ def programs_list(request):
 
     # Filtering/search/pagination all happen client-side in the DataTable now
     # (instant, no page reload) — the view just hands over every row.
-    # The three counts are annotated so the delete confirmation (a SweetAlert
+    # The counts are annotated so the delete confirmation (a SweetAlert
     # on this page, not a standalone page any more) can warn about exactly
     # what will cascade-delete without an extra request per click.
     qs = (
@@ -3609,7 +3544,6 @@ def programs_list(request):
         .select_related('department__faculty')
         .annotate(
             application_count=Count('applications', distinct=True),
-            intake_count=Count('intakes', distinct=True),
             student_count=Count('program_students', distinct=True),
         )
         .order_by('name')
@@ -3624,93 +3558,10 @@ def programs_list(request):
             {'label': 'Featured', 'value': Program.objects.filter(is_featured=True).count(), 'color': 'text-yellow-600'},
             {'label': 'Departments', 'value': Department.objects.count(), 'color': 'text-blue-600'},
         ],
-        # The "New Program" modal on this page posts straight to program_create;
-        # this is just the blank form + session rows for its first paint.
+        # The "New Program" modal on this page posts straight to program_create.
         'form': ProgramForm(),
-        'sessions_with_terms': _program_sessions_credit_cap_context(None),
     }
     return render(request, 'management/programs_list.html', context)
-
-
-def _sync_program_session_credit_caps(request, program):
-    """
-    Parses POST fields named session_cap_<session_id>_<term> — one per term
-    each AcademicSession actually defines in its own term_dates, rendered by
-    _program_form_fields.html's per-session section — and upserts/clears the
-    matching ProgramSessionCreditCap rows for this program. A blank input
-    means no override for that (session, term): deletes the row if one
-    existed, rather than writing a 0/None value.
-
-    Returns a list of human-readable error strings for any row that couldn't
-    be saved (bad number, out of range) — the browser's own min="1" max="30"
-    on these inputs blocks this in normal use, so this is a defense-in-depth
-    backstop, not the primary validation path.
-    """
-    errors = []
-    for key, raw_value in request.POST.items():
-        if not key.startswith('session_cap_'):
-            continue
-        try:
-            _, _, session_id, term = key.split('_', 3)
-        except ValueError:
-            continue
-
-        raw_value = raw_value.strip()
-        if not raw_value:
-            ProgramSessionCreditCap.objects.filter(
-                program=program, session_id=session_id, term=term,
-            ).delete()
-            continue
-
-        try:
-            value = int(raw_value)
-        except ValueError:
-            errors.append(f"Credit cap for term '{term}' must be a whole number — was not saved.")
-            continue
-        if not (1 <= value <= 30):
-            errors.append(f"Credit cap for term '{term}' must be between 1 and 30 — was not saved.")
-            continue
-
-        ProgramSessionCreditCap.objects.update_or_create(
-            program=program, session_id=session_id, term=term,
-            defaults={'max_credit_units': value, 'updated_by': request.user},
-        )
-    return errors
-
-
-def _program_sessions_credit_cap_context(program):
-    """
-    One entry per AcademicSession, each carrying only the terms that
-    session's own term_dates actually defines (so the form shows however
-    many rows a session really has — 2 terms one year, 3 or 4 another —
-    not a fixed set), prefilled with any existing ProgramSessionCreditCap
-    override for this program.
-    """
-    term_labels = dict(AcademicSession.TERM_CHOICES)
-    existing_caps = {}
-    if program and program.pk:
-        existing_caps = {
-            (c.session_id, c.term): c.max_credit_units
-            for c in ProgramSessionCreditCap.objects.filter(program=program)
-        }
-
-    sessions_with_terms = []
-    for session in AcademicSession.objects.all().order_by('-name'):
-        terms = [entry.get('term') for entry in (session.term_dates or []) if entry.get('term')]
-        if not terms:
-            continue
-        sessions_with_terms.append({
-            'session': session,
-            'terms': [
-                {
-                    'term': t,
-                    'label': term_labels.get(t, t.title()),
-                    'value': existing_caps.get((session.id, t), ''),
-                }
-                for t in terms
-            ],
-        })
-    return sessions_with_terms
 
 
 @login_required
@@ -3735,11 +3586,7 @@ def program_create(request):
     form = ProgramForm(request.POST, request.FILES)
     if form.is_valid():
         try:
-            with transaction.atomic():
-                program = form.save()
-                # Session-specific caps need a real program PK, which only
-                # exists after this save.
-                cap_errors = _sync_program_session_credit_caps(request, program)
+            program = form.save()
         except IntegrityError:
             logger.exception('program_create: IntegrityError saving program')
             messages.error(
@@ -3756,13 +3603,10 @@ def program_create(request):
             )
         else:
             messages.success(request, 'Program created.')
-            for err in cap_errors:
-                messages.error(request, err)
             return redirect('management:programs_list')
 
     return render(request, 'management/_program_form_fields.html', {
         'form': form,
-        'sessions_with_terms': _program_sessions_credit_cap_context(None),
     })
 
 
@@ -3791,9 +3635,7 @@ def program_edit(request, pk):
             form = ProgramForm(request.POST, request.FILES, instance=program)
             if form.is_valid():
                 try:
-                    with transaction.atomic():
-                        form.save()
-                        cap_errors = _sync_program_session_credit_caps(request, program)
+                    form.save()
                 except IntegrityError:
                     logger.exception(
                         'program_edit: IntegrityError saving program pk=%s', pk
@@ -3805,8 +3647,6 @@ def program_edit(request, pk):
                     )
                 else:
                     messages.success(request, 'Program updated.')
-                    for err in cap_errors:
-                        messages.error(request, err)
                     return redirect('management:programs_list')
         except SuspiciousOperation:
             # Most often an oversized upload (see ProgramForm.clean_gallery_video).
@@ -3839,7 +3679,6 @@ def program_edit(request, pk):
     return render(request, 'management/_program_form_fields.html', {
         'form': form,
         'program': program,
-        'sessions_with_terms': _program_sessions_credit_cap_context(program),
     })
 
 
@@ -3851,9 +3690,8 @@ def program_detail(request, pk):
         return redirect('management:dashboard')
 
     program = get_object_or_404(Program.objects.select_related('department__faculty'), pk=pk)
-    intakes = program.intakes.all()
     applications = program.applications.all()[:10]
-    context = {'program': program, 'intakes': intakes, 'applications': applications}
+    context = {'program': program, 'applications': applications}
     return render(request, 'management/program_detail.html', context)
 
 
@@ -3889,641 +3727,6 @@ def program_delete(request, pk):
     # No dedicated confirm page any more — deletion is confirmed via the
     # SweetAlert dialog on programs_list.html, which POSTs directly here.
     return redirect('management:programs_list')
-
-
-# ===========================================================================
-# ACADEMIC SESSIONS
-# ===========================================================================
-
-@login_required
-@user_passes_test(is_admin)
-def academic_sessions_list(request):
-    if request.method == 'POST':
-        action = request.POST.get('action')
-        is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
-
-        def denied(message):
-            if is_ajax:
-                return JsonResponse({'success': False, 'errors': {'__all__': [message]}}, status=403)
-            messages.error(request, message)
-            return redirect('management:academic_sessions_list')
-
-        if action == 'create':
-            if not _has_permission(request, 'academics', 'can_create'):
-                return denied('You do not have permission to create academic sessions.')
-            form = AcademicSessionForm(request.POST)
-            if form.is_valid():
-                try:
-                    with transaction.atomic():
-                        form.save()
-                except IntegrityError:
-                    logger.exception('academic_sessions_list: IntegrityError creating session')
-                    if is_ajax:
-                        return JsonResponse({'success': False, 'errors': {'__all__': ['A session with these details already exists.']}}, status=400)
-                    messages.error(request, 'Could not save — a session with these details may already exist.')
-                    return redirect('management:academic_sessions_list')
-                except Exception:
-                    logger.exception('academic_sessions_list: unexpected error creating session')
-                    if is_ajax:
-                        return JsonResponse({'success': False, 'errors': {'__all__': ['Something went wrong. Please try again.']}}, status=500)
-                    messages.error(request, 'Something went wrong while saving this session. Please try again.')
-                    return redirect('management:academic_sessions_list')
-                if is_ajax:
-                    return JsonResponse({'success': True})
-                messages.success(request, 'Academic session created successfully.')
-                return redirect('management:academic_sessions_list')
-            if is_ajax:
-                return JsonResponse({'success': False, 'errors': form.errors.get_json_data()}, status=400)
-            messages.error(request, 'Error creating session. Check form data.')
-
-        elif action == 'edit':
-            if not _has_permission(request, 'academics', 'can_edit'):
-                return denied('You do not have permission to edit academic sessions.')
-            session_id = request.POST.get('session_id')
-            session = get_object_or_404(AcademicSession, pk=session_id)
-            form = AcademicSessionForm(request.POST, instance=session)
-            if form.is_valid():
-                try:
-                    with transaction.atomic():
-                        form.save()
-                except IntegrityError:
-                    logger.exception('academic_sessions_list: IntegrityError updating session_id=%s', session_id)
-                    if is_ajax:
-                        return JsonResponse({'success': False, 'errors': {'__all__': ['A session with these details already exists.']}}, status=400)
-                    messages.error(request, 'Could not save — a session with these details may already exist.')
-                    return redirect('management:academic_sessions_list')
-                except Exception:
-                    logger.exception('academic_sessions_list: unexpected error updating session_id=%s', session_id)
-                    if is_ajax:
-                        return JsonResponse({'success': False, 'errors': {'__all__': ['Something went wrong. Please try again.']}}, status=500)
-                    messages.error(request, 'Something went wrong while saving this session. Please try again.')
-                    return redirect('management:academic_sessions_list')
-                if is_ajax:
-                    return JsonResponse({'success': True})
-                messages.success(request, 'Academic session updated.')
-                return redirect('management:academic_sessions_list')
-            if is_ajax:
-                return JsonResponse({'success': False, 'errors': form.errors.get_json_data()}, status=400)
-            messages.error(request, 'Error updating session.')
-
-        return redirect('management:academic_sessions_list')
-
-    # GET logic
-    if not _has_permission(request, 'academics', 'can_view'):
-        messages.error(request, 'You do not have permission to view academic sessions.')
-        return redirect('management:dashboard')
-
-    sessions = AcademicSession.objects.all().order_by('-name')
-    current_session = AcademicSession.get_current()
-    form = AcademicSessionForm() # Empty form for the Modal
-    
-    return render(request, 'management/academic_sessions_list.html', {
-        'sessions': sessions,
-        'current_session': current_session,
-        'form': form,
-    })
-
-@login_required
-@user_passes_test(is_admin)
-@require_POST
-@require_permission('academics', 'can_edit')
-def academic_session_set_current(request, pk):
-    today = timezone.now().date()
-
-    with transaction.atomic():
-        session = get_object_or_404(AcademicSession.objects.select_for_update(), pk=pk)
-
-        # Set this session as current + active
-        session.is_current = True
-        session.status = 'active'
-        session.save()  # AcademicSession.save() already flips is_current=False on all others
-
-        # A session is often activated (e.g. right after an end-of-session
-        # progression run) some time after its term_dates were configured —
-        # by which point the automatic 3-week registration window for the
-        # running term may have already elapsed, which would otherwise lock
-        # every student out of registration with no way to recover short of
-        # an admin editing term_dates. Auto-open registration in that case so
-        # newly-promoted students can register the moment the session goes live.
-        auto_opened = session.registration_override == 'auto' and not session.is_registration_open
-        if auto_opened:
-            session.registration_override = 'open'
-            session.save(update_fields=['registration_override'])
-
-        # Now update statuses on the remaining sessions based on their dates
-        other_sessions = AcademicSession.objects.select_for_update().exclude(pk=pk)
-        for s in other_sessions:
-            term_dates = s.term_dates or []
-            if not term_dates:
-                # No dates configured — leave as-is or mark closed
-                if s.status == 'active':
-                    s.status = 'closed'
-                    s.save(update_fields=['status'])
-                continue
-
-            # Determine earliest start and latest end across all terms
-            try:
-                starts = [date.fromisoformat(t['start']) for t in term_dates if t.get('start')]
-                ends   = [date.fromisoformat(t['end'])   for t in term_dates if t.get('end')]
-            except (ValueError, KeyError):
-                continue
-
-            if not starts or not ends:
-                continue
-
-            session_start = min(starts)
-            session_end   = max(ends)
-
-            if today < session_start:
-                new_status = 'upcoming'
-            elif today > session_end:
-                new_status = 'closed'
-            else:
-                new_status = 'closed'  # It's in range but we just made another session current
-
-            if s.status != new_status:
-                old_status = s.status
-                s.status = new_status
-                s.save(update_fields=['status'])
-
-                # Guard, not a lock: session activation and academic
-                # progression are two independently-triggered admin
-                # actions with no enforced ordering between them — nothing
-                # stops this session closing (and the new one going live,
-                # opening registration for it immediately) before every
-                # student in the outgoing session has actually been
-                # progressed. An un-progressed student would then see and
-                # register for their OLD level's courses in what's meant
-                # to be their new session. Surfaced as a warning, not
-                # blocked outright, since real exceptions (a student under
-                # appeal, a manual override still pending) are legitimate.
-                if new_status == 'closed' and old_status != 'closed':
-                    registered_student_ids = set(
-                        CourseRegistration.objects.filter(session=s)
-                        .values_list('student_id', flat=True).distinct()
-                    )
-                    processed_student_ids = set(
-                        ProgressionDecisionLog.objects.filter(session=s)
-                        .values_list('student_id', flat=True)
-                    )
-                    unprocessed_count = len(registered_student_ids - processed_student_ids)
-                    if unprocessed_count:
-                        messages.warning(
-                            request,
-                            f'"{s.name}" just closed with {unprocessed_count} student(s) registered in it who '
-                            f'don\'t appear to have a progression decision for that session yet. Run Academic '
-                            f'Progression for "{s.name}" before students rely on {session.name} reflecting '
-                            f'their correct level.'
-                        )
-
-    if auto_opened:
-        messages.info(
-            request,
-            f'Registration for "{session.name}" was auto-opened — its computed '
-            f'3-week window had already elapsed. Use "Close Registration" below if '
-            f'you need to lock it again.'
-        )
-    messages.success(request, f'✓ {session.name} is now the current active session.')
-    return redirect('management:academic_sessions_list')
-
-
-@login_required
-@user_passes_test(is_admin)
-@require_POST
-@require_permission('academics', 'can_edit', redirect_to='management:academic_sessions_list')
-def academic_session_registration_override(request, pk):
-    """
-    Manual escape hatch for AcademicSession.is_registration_open: lets an
-    admin force registration open/closed regardless of the computed 3-week
-    window, or hand control back to that automatic computation. Needed
-    because the automatic window is date-math only — an admin has no other
-    way to recover if it elapses before a session is actually put to use.
-    """
-    session = get_object_or_404(AcademicSession, pk=pk)
-    value = request.POST.get('registration_override')
-    valid_values = dict(AcademicSession.REGISTRATION_OVERRIDE_CHOICES)
-    if value not in valid_values:
-        messages.error(request, 'Invalid registration override value.')
-        return redirect('management:academic_sessions_list')
-
-    session.registration_override = value
-    session.save(update_fields=['registration_override'])
-    messages.success(request, f'Registration for "{session.name}" set to: {valid_values[value]}.')
-    return redirect('management:academic_sessions_list')
-
-
-# ===========================================================================
-# ACADEMIC PROGRESSION / CARRY-OVER
-# ===========================================================================
-
-@login_required(login_url='eduweb:auth_page')
-@user_passes_test(is_admin)
-def academic_progression(request):
-    programs = Program.objects.filter(is_active=True).order_by('name')
-    sessions = AcademicSession.objects.all().order_by('-name')
-
-    program_id = request.GET.get('program_id') or request.POST.get('program_id')
-    session_id = request.GET.get('session_id') or request.POST.get('session_id')
-    program = get_object_or_404(Program, pk=program_id) if program_id else None
-    session = get_object_or_404(AcademicSession, pk=session_id) if session_id else None
-
-    if request.method == 'POST':
-        action = request.POST.get('action', 'confirm')
-        is_ajax = action == 'manual_override' and request.headers.get('x-requested-with') == 'XMLHttpRequest'
-        if not _has_permission(request, 'academic_progression', 'can_approve'):
-            if is_ajax:
-                return JsonResponse({'success': False, 'errors': {'__all__': [{'message': 'You do not have permission to confirm progression decisions.'}]}}, status=403)
-            messages.error(request, 'You do not have permission to confirm progression decisions.')
-            return redirect(f"{reverse('management:academic_progression')}?program_id={program_id}&session_id={session_id}")
-
-        if not program or not session:
-            messages.error(request, 'Program and session are required.')
-            return redirect('management:academic_progression')
-
-        redirect_url = f"{reverse('management:academic_progression')}?program_id={program.pk}&session_id={session.pk}"
-
-        # ── Manual, per-student override — bypasses the computed decision for
-        # appeals/one-off corrections. Not restricted to a closed session:
-        # it's a deliberate single-student action with a written reason, not
-        # the bulk automatic run the closed-session check below protects.
-        if action == 'manual_override':
-            student_id = request.POST.get('override_student_id')
-            reason = request.POST.get('override_reason', '').strip()
-            profile = get_object_or_404(
-                UserProfile.objects.select_related('user'),
-                user_id=student_id, role='student', program=program,
-            )
-
-            try:
-                new_year_of_study = int(request.POST.get('override_year_of_study', ''))
-            except (TypeError, ValueError):
-                new_year_of_study = None
-            new_status = request.POST.get('override_status', '')
-
-            errors = []
-            if new_year_of_study is None or not (1 <= new_year_of_study <= 8):
-                errors.append('Enter a valid level (1–8).')
-            if new_status not in dict(UserProfile.PROGRESSION_STATUS_CHOICES):
-                errors.append('Select a valid status.')
-            if not reason:
-                errors.append('A reason is required for a manual override.')
-            if errors:
-                if is_ajax:
-                    return JsonResponse({'success': False, 'errors': {'__all__': [{'message': e} for e in errors]}}, status=400)
-                for e in errors:
-                    messages.error(request, e)
-                return redirect(redirect_url)
-
-            apply_manual_override(profile, program, session, new_year_of_study, new_status, reason, request.user)
-            if is_ajax:
-                return JsonResponse({'success': True})
-            messages.success(request, f"Manually updated {profile.user.get_full_name() or profile.user.username}.")
-            return redirect(redirect_url)
-
-        # ── Bulk automatic run — only ever against a closed session, so the
-        # decision reflects a session's final grades, not ones still in flux.
-        if session.status != 'closed':
-            messages.error(request, 'Automatic progression can only be run against a closed session.')
-            return redirect(redirect_url)
-
-        # Guard, not a lock: "session is closed" and "every grade in it has
-        # actually been released" are two independent flags with nothing
-        # enforcing they agree — running progression while some grades are
-        # still pending/withheld silently treats those courses as "not
-        # passed" (an unreleased pass doesn't count), which can wrongly
-        # repeat/fail a student whose real result — once released — would
-        # have cleared them. Warned here rather than blocked, since a
-        # deliberately withheld grade (a discipline hold, e.g.) may be
-        # exactly why an admin is choosing to run progression anyway.
-        unreleased_count = CourseGrade.objects.filter(
-            session=session, course__program=program, result_status__in=['pending', 'withheld'],
-        ).count()
-        if unreleased_count:
-            messages.warning(
-                request,
-                f'{unreleased_count} result(s) for this program/session are still pending or withheld '
-                f'release — those courses will count as "not passed" for anyone affected until you '
-                f'release them and re-run progression.'
-            )
-
-        student_ids_raw = request.POST.get('student_ids', '')
-        try:
-            student_ids = [int(pid) for pid in student_ids_raw.split(',') if pid.strip()]
-        except ValueError:
-            messages.error(request, 'Invalid student selection.')
-            return redirect(redirect_url)
-
-        profiles = list(UserProfile.objects.filter(
-            role='student', program=program, user_id__in=student_ids,
-            progression_status__in=['active', 'repeated', 'probation'],
-        ).select_related('user'))
-
-        # Idempotency guard: skip anyone already processed for this session,
-        # so a resubmitted POST (double-click, back-button) can't advance the
-        # same student twice.
-        processed_ids = already_processed_student_ids(session, [p.user_id for p in profiles])
-
-        applied = 0
-        with transaction.atomic():
-            for profile in profiles:
-                if profile.user_id in processed_ids:
-                    continue
-                decision = compute_progression_decision(profile, program, session)
-                apply_progression_decision(decision, request.user)
-                applied += 1
-
-        skipped = len(profiles) - applied
-        msg = f'Progression processed for {applied} student(s).'
-        if skipped:
-            msg += f' Skipped {skipped} already processed for this session.'
-        messages.success(request, msg)
-        return redirect('management:academic_progression')
-
-    # GET — render picker, and a preview if both program + session are selected
-    if not _has_permission(request, 'academic_progression', 'can_view'):
-        messages.error(request, 'You do not have permission to view academic progression.')
-        return redirect('management:dashboard')
-
-    preview_rows = []
-    analytics = None
-    if program and session:
-        profiles = list(UserProfile.objects.filter(
-            role='student', program=program,
-            progression_status__in=['active', 'repeated', 'probation'],
-        ).select_related('user').order_by('year_of_study', 'user__first_name'))
-        processed_ids = already_processed_student_ids(session, [p.user_id for p in profiles])
-        for profile in profiles:
-            decision = compute_progression_decision(profile, program, session)
-            decision['already_processed'] = profile.user_id in processed_ids
-            preview_rows.append(decision)
-
-        total = len(preview_rows)
-        qualified = sum(1 for r in preview_rows if r['promote'])
-        not_qualified = total - qualified
-
-        status_counts = {}
-        for r in preview_rows:
-            status_counts[r['new_status']] = status_counts.get(r['new_status'], 0) + 1
-        status_order = ['active', 'graduated', 'repeated', 'probation', 'withdrawn']
-        status_labels = [dict(UserProfile.PROGRESSION_STATUS_CHOICES).get(s, s.title()) for s in status_order if status_counts.get(s)]
-        status_data = [status_counts[s] for s in status_order if status_counts.get(s)]
-
-        # Surfaced on the preview too, not just at confirm time — an admin
-        # should see this before they even select students, not discover it
-        # only after submitting. See the matching comment on the POST branch.
-        unreleased_grades_count = CourseGrade.objects.filter(
-            session=session, course__program=program, result_status__in=['pending', 'withheld'],
-        ).count()
-
-        analytics = {
-            'total': total,
-            'qualified': qualified,
-            'not_qualified': not_qualified,
-            'pass_rate': round(qualified / total * 100, 1) if total else 0,
-            'fail_rate': round(not_qualified / total * 100, 1) if total else 0,
-            'core_fail_count': sum(1 for r in preview_rows if not r['core_passed']),
-            'cgpa_fail_count': sum(1 for r in preview_rows if not r['cgpa_ok']),
-            'status_labels': status_labels,
-            'status_data': status_data,
-            'unreleased_grades_count': unreleased_grades_count,
-        }
-
-    return render(request, 'management/academic_progression.html', {
-        'programs': programs,
-        'sessions': sessions,
-        'selected_program': program,
-        'selected_session': session,
-        'preview_rows': preview_rows,
-        'progression_statuses': UserProfile.PROGRESSION_STATUS_CHOICES,
-        'analytics': analytics,
-        'analytics_json': json.dumps(analytics) if analytics else None,
-    })
-
-
-@login_required(login_url='eduweb:auth_page')
-@user_passes_test(is_admin)
-def carry_over_list(request):
-    if request.method == 'POST':
-        if not _has_permission(request, 'academic_progression', 'can_edit'):
-            messages.error(request, 'You do not have permission to modify carry-over records.')
-            return redirect('management:carry_over_list')
-
-        record_id = request.POST.get('record_id')
-        record = get_object_or_404(CourseCarryOver, pk=record_id)
-        try:
-            record.is_cleared = True
-            record.save(update_fields=['is_cleared', 'updated_at'])
-        except Exception:
-            logger.exception('carry_over_list: unexpected error saving record_id=%s', record_id)
-            messages.error(request, 'Something went wrong while saving this record. Please try again.')
-            return redirect('management:carry_over_list')
-        messages.success(request, f'Marked {record.course.code} cleared for {record.student.username}.')
-        return redirect('management:carry_over_list')
-
-    if not _has_permission(request, 'academic_progression', 'can_view'):
-        messages.error(request, 'You do not have permission to view carry-over records.')
-        return redirect('management:dashboard')
-
-    program_id = request.GET.get('program_id', '').strip()
-    status_filter = request.GET.get('status', 'open')
-
-    # Reconcile before listing — a student's is_cleared flag only updates
-    # when this reconciliation runs (see CourseCarryOver.sync_cleared_for_
-    # student), so an admin filtering to "Open" shouldn't see a record
-    # that's actually already covered by a released passing grade just
-    # because no progression run has processed that student yet.
-    open_student_ids = CourseCarryOver.objects.filter(
-        is_cleared=False,
-    ).values_list('student_id', flat=True).distinct()
-    for student_id in open_student_ids:
-        # student=<id> works the same as student=<User instance> in every
-        # filter inside sync_cleared_for_student — no need for an extra
-        # User.objects.get() per row just to satisfy a type expectation.
-        CourseCarryOver.sync_cleared_for_student(student_id)
-
-    records = CourseCarryOver.objects.select_related('student', 'course', 'course__program', 'first_failed_session')
-    if program_id:
-        records = records.filter(course__program_id=program_id)
-    if status_filter == 'open':
-        records = records.filter(is_cleared=False)
-    elif status_filter == 'cleared':
-        records = records.filter(is_cleared=True)
-
-    return render(request, 'management/carry_over_list.html', {
-        'records': records,
-        'programs': Program.objects.filter(is_active=True).order_by('name'),
-        'program_id': program_id,
-        'status_filter': status_filter,
-    })
-
-
-@login_required(login_url='eduweb:auth_page')
-@user_passes_test(is_admin)
-def results_publish(request):
-    """
-    Registrar's "compile & approve results" console. CourseGrade.result_status
-    (pending/released/withheld) gates every student-facing consumer of grade
-    data — Grades & Performance, Academic Records, transcripts, CGPA, and
-    academic progression (see CourseGrade.compute_cgpa/build_transcript_snapshot
-    and management.progression) — so nothing a lecturer/system has scored
-    reaches a student until an admin explicitly releases it here.
-
-    GET  → one row per (session, term[, program]) group with
-           pending/released/withheld counts, and bulk release/withhold/reset
-           actions. POST handles those bulk actions; per-student overrides
-           (e.g. withholding one student pending a discipline case) live on
-           results_publish_detail.
-    """
-    if request.method == 'POST':
-        if not _has_permission(request, 'results_publish', 'can_approve'):
-            messages.error(request, 'You do not have permission to publish results.')
-            return redirect('management:results_publish')
-
-        session = get_object_or_404(AcademicSession, pk=request.POST.get('session_id'))
-        term = request.POST.get('term', '').strip()
-        program_id = request.POST.get('program_id', '').strip()
-        program = get_object_or_404(Program, pk=program_id) if program_id else None
-
-        action_to_status = {'release': 'released', 'withhold': 'withheld', 'reset': 'pending'}
-        status = action_to_status.get(request.POST.get('action'))
-        if not status:
-            messages.error(request, 'Invalid action.')
-            return redirect('management:results_publish')
-
-        try:
-            with transaction.atomic():
-                count = CourseGrade.publish_results(session, term=term, program=program, status=status)
-                scope = f'{session}' + (f' — {term.title()} term' if term else ' — no term recorded') + (f' ({program.name})' if program else '')
-                AuditLog.objects.create(
-                    user=request.user,
-                    action='update',
-                    model_name='CourseGrade',
-                    object_id=f'session={session.pk}|term={term or "(blank)"}|program={program.pk if program else "*"}',
-                    description=f'Bulk-set result_status={status!r} on {count} CourseGrade row(s) for {scope}.',
-                )
-        except Exception:
-            logger.exception('results_publish: unexpected error publishing results for session pk=%s', session.pk)
-            messages.error(request, 'Something went wrong while saving these results. Please try again.')
-            return redirect('management:results_publish')
-
-        messages.success(request, f'{count} result(s) marked "{status}" for {scope}.')
-        return redirect('management:results_publish')
-
-    if not _has_permission(request, 'results_publish', 'can_view'):
-        messages.error(request, 'You do not have permission to view results publication.')
-        return redirect('management:dashboard')
-
-    program_id = request.GET.get('program_id', '').strip()
-    selected_program = get_object_or_404(Program, pk=program_id) if program_id else None
-
-    groups_qs = CourseGrade.objects.all()
-    if selected_program:
-        groups_qs = groups_qs.filter(course__program=selected_program)
-
-    groups = list(
-        groups_qs
-        .values('session_id', 'session__name', 'term')
-        .annotate(
-            total=Count('id'),
-            released=Count('id', filter=Q(result_status='released')),
-            pending=Count('id', filter=Q(result_status='pending')),
-            withheld=Count('id', filter=Q(result_status='withheld')),
-        )
-        .order_by('-session__name', 'term')
-    )
-    # Precomputed here rather than a template `default` filter — that filter
-    # needs a quote-delimited argument, and this string is embedded inside an
-    # HTML attribute that's itself inside a JS string literal in the
-    # template, so nesting a third quoting layer there is just fragile.
-    for group in groups:
-        # 'no term recorded', never 'all terms' — this row is one exact
-        # (session, blank-term) bucket, not a wildcard over every term in
-        # the session. See CourseGrade.publish_results's docstring.
-        group['term_label'] = group['term'].title() if group['term'] else 'no term recorded'
-
-    return render(request, 'management/results_publish.html', {
-        'groups': groups,
-        'programs': Program.objects.filter(is_active=True).order_by('name'),
-        'selected_program': selected_program,
-        'program_id': program_id,
-    })
-
-
-@login_required(login_url='eduweb:auth_page')
-@user_passes_test(is_admin)
-def results_publish_detail(request, session_id):
-    """
-    Per-student drill-down for one (session, term[, program]) group — lets an
-    admin override an individual student's result_status (e.g. withholding
-    one result pending a discipline case) without touching the bulk status
-    of everyone else in that group.
-    """
-    session = get_object_or_404(AcademicSession, pk=session_id)
-
-    if request.method == 'POST':
-        term = request.POST.get('term', '').strip()
-        program_id = request.POST.get('program_id', '').strip()
-    else:
-        term = request.GET.get('term', '').strip()
-        program_id = request.GET.get('program_id', '').strip()
-    program = get_object_or_404(Program, pk=program_id) if program_id else None
-
-    grades_qs = CourseGrade.objects.filter(session=session)
-    if term:
-        grades_qs = grades_qs.filter(term=term)
-    if program:
-        grades_qs = grades_qs.filter(course__program=program)
-    grades_qs = grades_qs.select_related('student', 'course', 'course__program').order_by(
-        'student__username', 'course__code'
-    )
-
-    redirect_url = f"{reverse('management:results_publish_detail', args=[session.pk])}?term={term}&program_id={program_id}"
-
-    if request.method == 'POST':
-        if not _has_permission(request, 'results_publish', 'can_approve'):
-            messages.error(request, 'You do not have permission to publish results.')
-            return redirect(redirect_url)
-
-        valid_statuses = dict(CourseGrade.RESULT_STATUS_CHOICES)
-        changed = 0
-        try:
-            with transaction.atomic():
-                for grade in grades_qs:
-                    posted = request.POST.get(f'status_{grade.pk}')
-                    if posted in valid_statuses and posted != grade.result_status:
-                        CourseGrade.objects.filter(pk=grade.pk).update(result_status=posted)
-                        changed += 1
-                if changed:
-                    AuditLog.objects.create(
-                        user=request.user,
-                        action='update',
-                        model_name='CourseGrade',
-                        object_id=f'session={session.pk}|term={term or "*"}',
-                        description=f'Individually overrode result_status on {changed} CourseGrade row(s) in {session}.',
-                    )
-        except Exception:
-            logger.exception('results_publish_detail: unexpected error saving overrides for session pk=%s', session.pk)
-            messages.error(request, 'Something went wrong while saving these changes. Please try again.')
-            return redirect(redirect_url)
-
-        if changed:
-            messages.success(request, f'Updated {changed} individual result(s).')
-        else:
-            messages.info(request, 'No changes made.')
-        return redirect(redirect_url)
-
-    if not _has_permission(request, 'results_publish', 'can_view'):
-        messages.error(request, 'You do not have permission to view results publication.')
-        return redirect('management:dashboard')
-
-    return render(request, 'management/results_publish_detail.html', {
-        'session': session,
-        'term': term,
-        'program': program,
-        'programs': Program.objects.filter(is_active=True).order_by('name'),
-        'grades': list(grades_qs),
-        'result_status_choices': CourseGrade.RESULT_STATUS_CHOICES,
-    })
 
 
 @login_required(login_url='eduweb:auth_page')
@@ -4616,13 +3819,12 @@ def courses_list(request):
             dependents = (
                 course.registrations.count()
                 + course.student_grades.count()
-                + course.carry_over_records.count()
             )
             if dependents:
                 messages.error(
                     request,
                     f'Cannot delete "{course.code}" — it has {dependents} linked '
-                    f'registration/grade/carry-over record(s). Archive it instead.'
+                    f'registration/grade record(s). Archive it instead.'
                 )
                 return redirect('management:courses_list')
 
@@ -4645,7 +3847,7 @@ def courses_list(request):
     courses = (
         Course.objects
         .select_related('program__department__faculty')
-        .order_by('year_of_study', 'semester', 'code')
+        .order_by('code')
     )
     form = CourseForm()
  
@@ -4654,240 +3856,6 @@ def courses_list(request):
         'departments': Department.objects.all().order_by('name'),
         'form':        form,
     })
-
-
-# ===========================================================================
-# COURSE INTAKES
-# ===========================================================================
-
-@login_required
-@user_passes_test(is_admin)
-def intakes_list(request):
-    if not _has_permission(request, 'academics', 'can_view'):
-        messages.error(request, 'You do not have permission to view course intakes.')
-        return redirect('management:dashboard')
-
-    qs = CourseIntake.objects.select_related('program__department__faculty').prefetch_related('applications')
-
-    program_id = request.GET.get('program', '')
-    if program_id:
-        qs = qs.filter(program_id=program_id)
-
-    year = request.GET.get('year', '')
-    if year:
-        qs = qs.filter(year=year)
-
-    period = request.GET.get('period', '')
-    if period:
-        qs = qs.filter(intake_period=period)
-
-    status = request.GET.get('status', '')
-    if status == 'active':
-        qs = qs.filter(is_active=True)
-    elif status == 'inactive':
-        qs = qs.filter(is_active=False)
-    
-    # Order before pagination
-    qs = qs.order_by('-year', 'intake_period')
-
-    paginator = Paginator(qs, 20)
-    page_obj = paginator.get_page(request.GET.get('page'))
-
-    years = CourseIntake.objects.values_list('year', flat=True).distinct().order_by('-year')
-
-    current_year = timezone.now().year
-    year_options = sorted(set(range(current_year - 3, current_year + 11)) | set(years))
-
-    context = {
-        'intakes': page_obj,
-        'programs': Program.objects.filter(is_active=True).order_by('name'),
-        'years': years,
-        'year_options': year_options,
-        'today': timezone.now().date(),
-        'intake_formset': IntakeCreateFormSet(queryset=CourseIntake.objects.none(), prefix='intake'),
-    }
-    return render(request, 'management/intakes_list.html', context)
-
-
-@login_required
-@user_passes_test(is_admin)
-def intake_create(request):
-    """
-    Bulk-create endpoint backing the "Add Another Intake" formset — one POST
-    can contain several intake rows (program/period/year/etc each suffixed
-    `intake-0-`, `intake-1-`, ...). Rows the admin never touched (extra blank
-    rows left over from clicking "Add" and not filling them in) are silently
-    skipped rather than saved as empty/invalid records.
-    """
-    if request.method == 'POST':
-        # The create modal submits via fetch() so validation errors can be
-        # shown inline (per row, per field) without losing whatever the
-        # admin already typed into the other rows — a full-page redirect+
-        # messages round trip would wipe the in-progress form. Plain-POST
-        # fallback (JS blocked/failed) keeps the old redirect+messages
-        # behaviour so the endpoint still works without JS.
-        is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
-
-        if not _has_permission(request, 'academics', 'can_create'):
-            msg = 'You do not have permission to create intakes.'
-            if is_ajax:
-                return JsonResponse({'success': False, 'non_form_errors': [msg]}, status=403)
-            messages.error(request, msg)
-            return redirect('management:intakes_list')
-
-        formset = IntakeCreateFormSet(request.POST, queryset=CourseIntake.objects.none(), prefix='intake')
-        if formset.is_valid():
-            created = 0
-            try:
-                with transaction.atomic():
-                    for form in formset:
-                        if not form.has_changed():
-                            continue
-                        form.save()
-                        created += 1
-            except IntegrityError:
-                logger.exception('intake_create: IntegrityError saving intakes')
-                msg = 'Could not save — one of these intakes may already exist.'
-                if is_ajax:
-                    return JsonResponse({'success': False, 'non_form_errors': [msg]}, status=400)
-                messages.error(request, msg)
-                return redirect('management:intakes_list')
-            except Exception:
-                logger.exception('intake_create: unexpected error saving intakes')
-                msg = 'Something went wrong while saving. Please try again.'
-                if is_ajax:
-                    return JsonResponse({'success': False, 'non_form_errors': [msg]}, status=500)
-                messages.error(request, msg)
-                return redirect('management:intakes_list')
-            if created:
-                messages.success(request, f'{created} intake{"s" if created != 1 else ""} created.')
-                if is_ajax:
-                    return JsonResponse({'success': True})
-            else:
-                msg = 'No intake data was submitted.'
-                if is_ajax:
-                    return JsonResponse({'success': False, 'non_form_errors': [msg]})
-                messages.error(request, msg)
-        else:
-            if is_ajax:
-                row_errors = {}
-                for i, form in enumerate(formset):
-                    if form.errors:
-                        row_errors[str(i)] = {
-                            field: [str(e) for e in errs] for field, errs in form.errors.items()
-                        }
-                return JsonResponse({
-                    'success': False,
-                    'row_errors': row_errors,
-                    'non_form_errors': formset.non_form_errors(),
-                })
-            for i, form in enumerate(formset, start=1):
-                for field, errors in form.errors.items():
-                    label = form.fields[field].label if field in form.fields else field
-                    for error in errors:
-                        messages.error(request, f'Intake #{i} — {label}: {error}')
-            for error in formset.non_form_errors():
-                messages.error(request, error)
-    return redirect('management:intakes_list')
-
-
-@login_required
-@user_passes_test(is_admin)
-def intake_edit(request, pk):
-    """AJAX GET returns JSON for the modal; POST saves changes."""
-    intake = get_object_or_404(CourseIntake, pk=pk)
-    if request.method == 'POST':
-        # Same rationale as intake_create: fetch()-submitted so an invalid
-        # save can highlight the offending field inline and keep the modal's
-        # data intact, instead of a redirect wiping it. Non-AJAX fallback
-        # keeps the old redirect+messages behaviour.
-        is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
-
-        if not _has_permission(request, 'academics', 'can_edit'):
-            msg = 'You do not have permission to edit intakes.'
-            if is_ajax:
-                return JsonResponse({'success': False, 'errors': {'__all__': [msg]}}, status=403)
-            messages.error(request, msg)
-            return redirect('management:intakes_list')
-
-        form = CourseIntakeForm(request.POST, instance=intake)
-        if form.is_valid():
-            try:
-                with transaction.atomic():
-                    form.save()
-            except IntegrityError:
-                logger.exception('intake_edit: IntegrityError saving intake pk=%s', pk)
-                msg = 'Could not save — please check the details and try again.'
-                if is_ajax:
-                    return JsonResponse({'success': False, 'errors': {'__all__': [msg]}}, status=400)
-                messages.error(request, msg)
-                return redirect('management:intakes_list')
-            except Exception:
-                logger.exception('intake_edit: unexpected error saving intake pk=%s', pk)
-                msg = 'Something went wrong while saving. Please try again.'
-                if is_ajax:
-                    return JsonResponse({'success': False, 'errors': {'__all__': [msg]}}, status=500)
-                messages.error(request, msg)
-                return redirect('management:intakes_list')
-            messages.success(request, 'Intake updated.')
-            if is_ajax:
-                return JsonResponse({'success': True})
-        else:
-            if is_ajax:
-                return JsonResponse({
-                    'success': False,
-                    'errors': {field: [str(e) for e in errs] for field, errs in form.errors.items()},
-                })
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f'{field}: {error}')
-        return redirect('management:intakes_list')
-
-    # GET — return JSON so the modal can pre-fill fields
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        if not _has_permission(request, 'academics', 'can_view'):
-            return JsonResponse({'error': 'Permission denied.'}, status=403)
-        return JsonResponse({
-            'id': intake.pk,
-            'program': intake.program_id,
-            'intake_period': intake.intake_period,
-            'year': intake.year,
-            'application_start_date': str(intake.application_start_date) if intake.application_start_date else '',
-            'application_deadline': str(intake.application_deadline),
-            'start_date': str(intake.start_date),
-            'application_fee': str(intake.application_fee),
-            'available_slots': intake.available_slots,
-            'is_active': intake.is_active,
-        })
-    return redirect('management:intakes_list')
-
-
-@login_required
-@user_passes_test(is_admin)
-def intake_delete(request, pk):
-    """POST-only delete; all confirmations happen client-side."""
-    intake = get_object_or_404(CourseIntake, pk=pk)
-    if request.method == 'POST':
-        if not _has_permission(request, 'academics', 'can_delete'):
-            messages.error(request, 'You do not have permission to delete intakes.')
-            return redirect('management:intakes_list')
-
-        app_count = intake.applications.count()
-        if app_count:
-            messages.error(
-                request,
-                f'Cannot delete "{intake}" — {app_count} application(s) reference it.'
-            )
-            return redirect('management:intakes_list')
-
-        intake_name = str(intake)
-        try:
-            intake.delete()
-            messages.success(request, f'Intake "{intake_name}" deleted.')
-        except Exception:
-            logger.exception('intake_delete: unexpected error deleting intake pk=%s', pk)
-            messages.error(request, 'Something went wrong while deleting this intake. Please try again.')
-    return redirect('management:intakes_list')
 
 
 # ===========================================================================
@@ -6234,9 +5202,9 @@ def financial_analytics(request):
         'application', 'application__program'
     ).order_by('-created_at')
 
-    # FeePayment → fee (AllRequiredPayments) → program, academic_session
+    # FeePayment → fee (AllRequiredPayments) → program
     fee_qs = FeePayment.objects.select_related(
-        'user', 'fee', 'fee__program', 'fee__academic_session'
+        'user', 'fee', 'fee__program'
     ).order_by('-created_at')
 
     txn_qs = Transaction.objects.select_related(
@@ -7461,7 +6429,6 @@ def admin_exam_list(request):
     STATUS_CHOICES = Exam.STATUS_CHOICES
     status_filter = request.GET.get('status', '')
     search = request.GET.get('q', '')
-    session_id = request.GET.get('session', '')
 
     qs = Exam.objects.select_related('course', 'course__academic_course', 'instructor').order_by('-start_datetime')
 
@@ -7473,15 +6440,12 @@ def admin_exam_list(request):
             Q(reference_code__icontains=search) |
             Q(course__title__icontains=search)
         )
-    if session_id:
-        qs = qs.filter(course__session_id=session_id)
 
     status_counts = {
         s: Exam.objects.filter(status=s).count()
         for s, _ in STATUS_CHOICES
     }
 
-    sessions = AcademicSession.objects.order_by('-name')
     paginator = Paginator(qs, 20)
     page_obj = paginator.get_page(request.GET.get('page', 1))
 
@@ -7490,8 +6454,6 @@ def admin_exam_list(request):
         'STATUS_CHOICES': STATUS_CHOICES,
         'status_filter': status_filter,
         'search': search,
-        'session_id': session_id,
-        'sessions': sessions,
         'status_counts': status_counts,
     })
 

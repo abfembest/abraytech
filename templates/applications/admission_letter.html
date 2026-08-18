@@ -151,9 +151,6 @@
       <h2 style="font-family:'Poppins',sans-serif;font-size:14px;font-weight:700;color:#111827;margin:0 0 3px;letter-spacing:.08em;text-transform:uppercase;">
         LETTER OF ADMISSION
       </h2>
-      <p style="font-size:10.5px;color:#6b7280;margin:0;">
-        Academic Intake: {{ application.intake.get_intake_period_display }} {{ application.intake.year }}
-      </p>
     </div>
 
     <!-- DATE & REFERENCE -->
@@ -216,14 +213,6 @@
           <tr>
             <td style="padding:2.5px 0;color:#6b7280;">Degree Level</td>
             <td style="padding:2.5px 0;font-weight:600;color:#111827;">{{ application.program.get_degree_level_display }}</td>
-          </tr>
-          <tr>
-            <td style="padding:2.5px 0;color:#6b7280;">Intake</td>
-            <td style="padding:2.5px 0;font-weight:600;color:#111827;">{{ application.intake.get_intake_period_display }} {{ application.intake.year }}</td>
-          </tr>
-          <tr>
-            <td style="padding:2.5px 0;color:#6b7280;">Commencement</td>
-            <td style="padding:2.5px 0;font-weight:600;color:#111827;">{{ application.intake.start_date|date:"F d, Y" }}</td>
           </tr>
           {% if application.scholarship %}
           <tr>

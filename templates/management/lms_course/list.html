@@ -1,6 +1,6 @@
 {% extends 'management/base.html' %}
 {% load static %}
-{% block title %}LMS Courses — MIU Portal{% endblock %}
+{% block title %}LMS Courses — Abraytech Portal{% endblock %}
 
 {% block content %}
 <div class="max-w-full mx-auto space-y-5">
@@ -8,9 +8,8 @@
   {# ── Header ── #}
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
     <div>
-      <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
       <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 font-heading">LMS Courses</h1>
-      <p class="text-gray-500 text-sm mt-0.5">Manage LMS delivery — sessions, instructors &amp; content</p>
+      <p class="text-gray-500 text-sm mt-0.5">Manage LMS delivery — instructors &amp; content</p>
     </div>
     {% if permissions.lms_courses.can_create %}
     <button onclick="openCreateModal()"
@@ -60,20 +59,6 @@
         </select>
       </div>
       <div>
-        <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">Session</label>
-        <select name="session" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500">
-          <option value="">All Sessions</option>
-          {% for s in sessions %}<option value="{{ s.id }}"{% if request.GET.session == s.id|stringformat:"s" %} selected{% endif %}>{{ s.name }}</option>{% endfor %}
-        </select>
-      </div>
-      <div>
-        <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">Term</label>
-        <select name="term" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500">
-          <option value="">All Terms</option>
-          {% for v,l in term_choices %}<option value="{{ v }}"{% if request.GET.term == v %} selected{% endif %}>{{ l }}</option>{% endfor %}
-        </select>
-      </div>
-      <div>
         <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">Status</label>
         <select name="published" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500">
           <option value="">All Status</option>
@@ -110,7 +95,6 @@
             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide whitespace-nowrap">LMS Course</th>
             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide whitespace-nowrap">Academic Course</th>
             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide whitespace-nowrap">Program</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide whitespace-nowrap">Session / Term</th>
             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide whitespace-nowrap">Instructor</th>
             <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide whitespace-nowrap">Enrolments</th>
             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide whitespace-nowrap">Status</th>
@@ -145,15 +129,6 @@
                 {% if course.academic_course.program %}
                 <p class="text-xs text-gray-700 font-medium max-w-[160px] truncate">{{ course.academic_course.program.name }}</p>
                 <p class="text-xs text-gray-400 max-w-[160px] truncate">{{ course.academic_course.program.department.name|truncatechars:22 }}</p>
-                {% else %}<span class="text-gray-400 text-xs">—</span>{% endif %}
-              </div>
-            </td>
-
-            <td class="px-4 py-3" data-label="Session / Term">
-              <div>
-                {% if course.session %}
-                <p class="text-xs font-medium text-gray-700">{{ course.session.name }}</p>
-                <p class="text-xs text-gray-400 capitalize">{{ course.get_term_display|default:course.term|default:"—" }}</p>
                 {% else %}<span class="text-gray-400 text-xs">—</span>{% endif %}
               </div>
             </td>
@@ -266,9 +241,6 @@
                 <i class="fas fa-link"></i> Linked — code &amp; title auto-filled
               </div>
             </div>
-            <p class="text-xs text-blue-600 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
-              <i class="fas fa-magic mr-1"></i> Selecting an academic course will auto-fill Session and Term below.
-            </p>
           </div>
 
           {# §2 Identity #}
@@ -287,10 +259,6 @@
                 <label class="block text-xs font-semibold text-gray-600 mb-1.5">Course Code</label>
                 {{ create_form.code }}
               </div>
-              <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Level</label>
-                {{ create_form.difficulty_level }}
-              </div>
               <div class="sm:col-span-2">
                 <label class="block text-xs font-semibold text-gray-600 mb-1.5">Short Description <span class="text-red-500">*</span></label>
                 {{ create_form.short_description }}
@@ -303,32 +271,10 @@
             </div>
           </div>
 
-          {# §3 Session & Term — native selects (short fixed lists, auto-filled by AJAX) #}
+          {# §3 Instructor — datalist search #}
           <div class="px-5 py-5 space-y-3">
             <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
               <span class="w-5 h-5 bg-primary-600 text-white rounded text-xs flex items-center justify-center font-bold">3</span>
-              Session &amp; Term
-              <span id="create-session-term-auto-badge"
-                    class="hidden ml-1 inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-600 border border-blue-200 rounded-full px-2 py-0.5">
-                <i class="fas fa-magic text-[10px]"></i> Auto-filled
-              </span>
-            </h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Academic Session</label>
-                {{ create_form.session }}
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Term</label>
-                {{ create_form.term }}
-              </div>
-            </div>
-          </div>
-
-          {# §4 Instructor — datalist search #}
-          <div class="px-5 py-5 space-y-3">
-            <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
-              <span class="w-5 h-5 bg-primary-600 text-white rounded text-xs flex items-center justify-center font-bold">4</span>
               Instructor
             </h3>
             <div>
@@ -344,10 +290,10 @@
             </div>
           </div>
 
-          {# §5 Content & Learning #}
+          {# §4 Content & Learning #}
           <div class="px-5 py-5 space-y-3">
             <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
-              <span class="w-5 h-5 bg-primary-600 text-white rounded text-xs flex items-center justify-center font-bold">5</span>
+              <span class="w-5 h-5 bg-primary-600 text-white rounded text-xs flex items-center justify-center font-bold">4</span>
               Content &amp; Learning
             </h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -372,10 +318,10 @@
             </div>
           </div>
 
-          {# §6 SEO #}
+          {# §5 SEO #}
           <details class="px-5 py-4 group">
             <summary class="text-sm font-semibold text-gray-600 cursor-pointer list-none flex items-center gap-2 select-none">
-              <span class="w-5 h-5 bg-gray-300 text-white rounded text-xs flex items-center justify-center font-bold">6</span>
+              <span class="w-5 h-5 bg-gray-300 text-white rounded text-xs flex items-center justify-center font-bold">5</span>
               SEO &amp; Meta <span class="text-xs text-gray-400 font-normal">(optional)</span>
               <i class="fas fa-chevron-down text-xs text-gray-400 ml-auto group-open:rotate-180 transition-transform"></i>
             </summary>
@@ -418,7 +364,6 @@
     </div>
   </div>
 </div>
-
 
 {# ══════════════════════════ EDIT MODAL ══════════════════════════ #}
 <div id="editModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-modal="true" role="dialog">
@@ -488,10 +433,6 @@
                 <label class="block text-xs font-semibold text-gray-600 mb-1.5">Course Code</label>
                 {{ edit_form.code }}
               </div>
-              <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Level</label>
-                {{ edit_form.difficulty_level }}
-              </div>
               <div class="sm:col-span-2">
                 <label class="block text-xs font-semibold text-gray-600 mb-1.5">Short Description <span class="text-red-500">*</span></label>
                 {{ edit_form.short_description }}
@@ -503,28 +444,10 @@
             </div>
           </div>
 
-          {# §3 Session & Term — native selects #}
+          {# §3 Instructor — datalist search #}
           <div class="px-5 py-5 space-y-3">
             <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
               <span class="w-5 h-5 bg-primary-600 text-white rounded text-xs flex items-center justify-center font-bold">3</span>
-              Session &amp; Term
-            </h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Academic Session</label>
-                {{ edit_form.session }}
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Term</label>
-                {{ edit_form.term }}
-              </div>
-            </div>
-          </div>
-
-          {# §4 Instructor — datalist search #}
-          <div class="px-5 py-5 space-y-3">
-            <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
-              <span class="w-5 h-5 bg-primary-600 text-white rounded text-xs flex items-center justify-center font-bold">4</span>
               Instructor
             </h3>
             <div>
@@ -543,7 +466,7 @@
           {# §5 Content & Learning #}
           <div class="px-5 py-5 space-y-3">
             <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
-              <span class="w-5 h-5 bg-primary-600 text-white rounded text-xs flex items-center justify-center font-bold">5</span>
+              <span class="w-5 h-5 bg-primary-600 text-white rounded text-xs flex items-center justify-center font-bold">4</span>
               Content &amp; Learning
             </h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -576,7 +499,7 @@
           {# §6 SEO #}
           <details class="px-5 py-4 group">
             <summary class="text-sm font-semibold text-gray-600 cursor-pointer list-none flex items-center gap-2 select-none">
-              <span class="w-5 h-5 bg-gray-400 text-white rounded text-xs flex items-center justify-center font-bold">6</span>
+              <span class="w-5 h-5 bg-gray-400 text-white rounded text-xs flex items-center justify-center font-bold">5</span>
               SEO <span class="text-xs text-gray-400 font-normal">(optional)</span>
               <i class="fas fa-chevron-down text-xs text-gray-400 ml-auto group-open:rotate-180 transition-transform"></i>
             </summary>
@@ -618,7 +541,6 @@
   </div>
 </div>
 
-
 {# ══════════════════════════ DETAIL MODAL ══════════════════════════ #}
 <div id="detailModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-modal="true" role="dialog">
   <div class="flex min-h-full items-stretch sm:items-center justify-center p-0 sm:p-3">
@@ -651,9 +573,6 @@
           </div>
           <div class="flex flex-wrap gap-2" id="detailStatusBadges"></div>
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100"><p class="text-xs text-gray-500 uppercase font-semibold mb-0.5">Level</p><p class="font-semibold text-gray-800 text-sm" id="detailLevel">—</p></div>
-            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100"><p class="text-xs text-gray-500 uppercase font-semibold mb-0.5">Session</p><p class="font-semibold text-gray-800 text-sm" id="detailSession">—</p></div>
-            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100"><p class="text-xs text-gray-500 uppercase font-semibold mb-0.5">Term</p><p class="font-semibold text-gray-800 text-sm capitalize" id="detailTerm">—</p></div>
             <div class="bg-gray-50 rounded-xl p-3 border border-gray-100"><p class="text-xs text-gray-500 uppercase font-semibold mb-0.5">Enrolments</p><p class="font-bold text-primary-700 text-lg" id="detailEnrollments">0</p></div>
             <div class="bg-gray-50 rounded-xl p-3 border border-gray-100"><p class="text-xs text-gray-500 uppercase font-semibold mb-0.5">Lessons</p><p class="font-bold text-gray-800 text-lg" id="detailLessons">0</p></div>
             <div class="bg-gray-50 rounded-xl p-3 border border-gray-100"><p class="text-xs text-gray-500 uppercase font-semibold mb-0.5">Created</p><p class="font-semibold text-gray-800 text-xs" id="detailCreated">—</p></div>
@@ -678,7 +597,6 @@
     </div>
   </div>
 </div>
-
 
 {# ══════════════════════════ DELETE MODAL ══════════════════════════ #}
 <div id="deleteModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-modal="true" role="dialog">
@@ -734,7 +652,6 @@
 </div>
 
 {% endblock %}
-
 
 {% block extra_js %}
 <script>
@@ -825,7 +742,6 @@ document.addEventListener('DOMContentLoaded', function () {
   wireAjaxFormSubmit('editForm', 'editFormErr');
 });
 
-
 // ─────────────────────────────────────────────────────────────────
 // SELECT HELPERS
 // academic_course / instructor are now real <select> elements whose
@@ -852,7 +768,6 @@ function setSelectValue(selectId, pkValue) {
   el.dispatchEvent(new Event('change', { bubbles: true }));
 }
 
-
 // ─────────────────────────────────────────────────────────────────
 // REAL-TIME TABLE SEARCH
 // ─────────────────────────────────────────────────────────────────
@@ -874,7 +789,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
-
 // ─────────────────────────────────────────────────────────────────
 // CREATE MODAL
 // ─────────────────────────────────────────────────────────────────
@@ -894,16 +808,12 @@ function wireCreateDatalist() {
 
 function onCreateAcPick(pk) {
   const badge   = document.getElementById('create-academic-linked-badge');
-  const stBadge = document.getElementById('create-session-term-auto-badge');
   const scope   = document.getElementById('createModal');
   const titleI  = scope.querySelector('[name="title"]');
   const codeI   = scope.querySelector('[name="code"]');
-  const sessEl  = scope.querySelector('[name="session"]');
-  const termEl  = scope.querySelector('[name="term"]');
 
   if (!pk) {
     badge?.classList.add('hidden');
-    stBadge?.classList.add('hidden');
     if (titleI) { titleI.value = ''; titleI.readOnly = false; titleI.classList.remove('bg-gray-50','cursor-not-allowed'); }
     if (codeI)  { codeI.value  = ''; codeI.readOnly  = false; codeI.classList.remove('bg-gray-50','cursor-not-allowed'); }
     return;
@@ -911,10 +821,9 @@ function onCreateAcPick(pk) {
 
   badge?.classList.remove('hidden');
 
-  // Parse label "CODE — Name" from the selected <option>'s text
   const selectEl = document.getElementById('create-ac-select');
   const txt = selectEl ? (selectEl.options[selectEl.selectedIndex]?.textContent || '').trim() : '';
-  const sep = txt.indexOf(' \u2014 ');
+  const sep = txt.indexOf(' — ');
   function lockField(el, val) {
     if (!el) return;
     el.value = val; el.readOnly = true;
@@ -922,19 +831,6 @@ function onCreateAcPick(pk) {
   }
   lockField(titleI, sep > -1 ? txt.slice(sep + 3) : txt);
   lockField(codeI,  sep > -1 ? txt.slice(0, sep)  : '');
-
-  // AJAX: fetch active session + term for this academic course
-  fetch(`/management/lms-courses/academic-course-data/${pk}/`, {
-    headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': CSRF_TOKEN }
-  })
-  .then(r => r.ok ? r.json() : null)
-  .then(d => {
-    if (!d) return;
-    if (d.session_id && sessEl) sessEl.value = d.session_id;
-    if (d.term && termEl)       termEl.value = d.term;
-    stBadge?.classList.remove('hidden');
-  })
-  .catch(() => {});
 }
 
 // Guard so we don't wire twice if modal is re-opened
@@ -942,7 +838,6 @@ function wireCreateAutofill() {
   // Already handled inside wireCreateDatalist / onCreateAcPick above.
   // This function is kept as a no-op hook in case extra logic is needed.
 }
-
 
 // ─────────────────────────────────────────────────────────────────
 // EDIT MODAL
@@ -978,11 +873,6 @@ function openEditModal(pk) {
       Array.isArray(d.learning_objectives) ? d.learning_objectives.join('\n') : '');
     _setVal('editForm', 'prerequisites_text',
       Array.isArray(d.prerequisites) ? d.prerequisites.join('\n') : '');
-
-    // Native selects (session, term, difficulty_level — short fixed lists)
-    _setVal('editForm', 'session',          d.session_id             || '');
-    _setVal('editForm', 'term',             d.term_value             || '');
-    _setVal('editForm', 'difficulty_level', d.difficulty_level_value || '');
 
     // Academic course select
     setSelectValue('edit-ac-select', d.academic_course || '');
@@ -1028,7 +918,6 @@ function openEditModal(pk) {
   });
 }
 
-
 // ─────────────────────────────────────────────────────────────────
 // DETAIL MODAL
 // ─────────────────────────────────────────────────────────────────
@@ -1055,9 +944,6 @@ function openDetailModal(pk) {
       banner.classList.remove('hidden');
     } else { banner.classList.add('hidden'); }
 
-    _setText('detailLevel',       d.difficulty_level_display || '—');
-    _setText('detailSession',     d.session     || '—');
-    _setText('detailTerm',        d.term        || '—');
     _setText('detailEnrollments', d.enrollments ?? 0);
     _setText('detailLessons',     d.lessons     ?? 0);
     _setText('detailCreated',     d.created_at  || '—');
@@ -1092,7 +978,6 @@ function openDetailModal(pk) {
     loading.innerHTML = `<div class="text-center py-4"><i class="fas fa-exclamation-circle text-red-400 text-2xl mb-2"></i><p class="text-sm text-red-500">Failed to load. Please try again.</p></div>`;
   });
 }
-
 
 // ─────────────────────────────────────────────────────────────────
 // DELETE MODAL

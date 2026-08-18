@@ -289,16 +289,6 @@
                 <dd class="text-xs text-gray-400">{{ payment.application.program.code }} · {{ payment.application.program.get_degree_level_display }}</dd>
               </div>
               <div>
-                {# ✅ CourseApplication.intake → CourseIntake (has intake_period, year) #}
-                <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Intake</dt>
-                <dd class="mt-1 text-sm text-gray-900 capitalize">
-                  {{ payment.application.intake.intake_period }} {{ payment.application.intake.year }}
-                </dd>
-                <dd class="text-xs text-gray-400">
-                  Starts: {{ payment.application.intake.start_date|date:"F j, Y" }}
-                </dd>
-              </div>
-              <div>
                 {# ✅ study_mode has choices on Program model, used in CourseApplication #}
                 <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Study Mode</dt>
                 <dd class="mt-1 text-sm text-gray-900">{{ payment.application.get_study_mode_display }}</dd>
@@ -353,14 +343,6 @@
                 {% if payment.fee.program %}
                 <dd class="text-xs text-gray-400">{{ payment.fee.program.code }}</dd>
                 {% endif %}
-              </div>
-              <div>
-                <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Academic Session</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ payment.fee.academic_session.name|default:"—" }}</dd>
-              </div>
-              <div>
-                <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Semester</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ payment.fee.get_semester_display|default:"—" }}</dd>
               </div>
               <div>
                 <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">Payable By</dt>

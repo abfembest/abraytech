@@ -6,350 +6,27 @@
 {% block content %}
 <div class="max-w-screen-12xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
 
-                <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
-
-
     {# ── Page Header ─────────────────────────────────────────────────── #}
-    <header class="mb-4 sm:mb-6">
-        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">My Courses</h1>
-        <p class="text-xs sm:text-sm text-gray-500 mt-1">Select your semester courses, then finalize to gain access.</p>
+    <header class="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">My Courses</h1>
+            <p class="text-xs sm:text-sm text-gray-500 mt-1">Everything you're currently taking.</p>
+        </div>
+        <a href="{% url 'students:course_catalog' %}"
+           class="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 hover:bg-primary-700
+                  text-white rounded-lg font-semibold text-sm transition-colors self-start sm:self-auto">
+            <i class="fas fa-plus"></i> Add More Courses
+        </a>
     </header>
 
-    {# ── Semester Registration Panel ─────────────────────────────────── #}
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-
-        {# Panel Header #}
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-5 py-4"
-             style="background:linear-gradient(135deg,#6f42c1 0%,#840384 100%);">
-            <div>
-                <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-                    <i class="fas fa-calendar-check"></i> Semester Course Registration
-                </h2>
-                <p class="text-xs text-purple-200 mt-0.5 flex flex-wrap items-center gap-x-2">
-                    {% if profile %}<span class="font-semibold text-white">{{ profile.current_level }}L</span><span class="opacity-50">&bull;</span>{% endif %}
-                    {% if profile.program %}<span>{{ profile.program.name }}</span><span class="opacity-50">&bull;</span>{% endif %}
-                    {% if department %}<span>{{ department.name }}</span>{% endif %}
-                </p>
-            </div>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold shadow flex-shrink-0
-                         {% if registration_open %}bg-green-500 text-white{% else %}bg-white/20 text-white{% endif %}">
-                <i class="fas {% if registration_open %}fa-lock-open{% else %}fa-lock{% endif %} text-xs"></i>
-                Registration {% if registration_open %}Open{% else %}Closed{% endif %}
-            </span>
-        </div>
-
-        {# Session / Term Info #}
-        <div class="px-5 py-3 bg-gray-50 border-b border-gray-200">
-            <div class="flex flex-wrap items-center gap-4 text-sm text-gray-700">
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Academic Session</span>
-                    <span class="font-semibold text-gray-800">
-                        {{ selected_session.name }}{% if selected_session.is_current %} <span class="text-purple-600">(Current)</span>{% endif %}
-                    </span>
-                </div>
-                <span class="text-gray-300">|</span>
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Semester</span>
-                    <span class="font-semibold text-gray-800">{{ term_label|default:"—" }}</span>
-                </div>
-            </div>
-
-            {# Status banners — only one will show #}
-            {% if selected_session.status == 'closed' %}
-            <div class="mt-2 flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 font-medium">
-                <i class="fas fa-lock-alt"></i> This session has ended. Viewing records only — no changes can be made.
-            </div>
-            {% elif not selected_term_is_active and selected_term %}
-            <div class="mt-2 flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
-                <i class="fas fa-calendar-times"></i>
-                The <strong>{{ selected_term|title }} Semester</strong> is not currently active. You can view records but cannot add or drop courses.
-            </div>
-            {% elif selected_session and not selected_session.is_registration_open %}
-            <div class="mt-2 flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
-                <i class="fas fa-clock"></i>
-                Registration window is closed for this session.
-                {% if selected_session.registration_start and selected_session.registration_end %}
-                Opens {{ selected_session.registration_start|date:"M d" }} – {{ selected_session.registration_end|date:"M d, Y" }}.
-                {% endif %}
-            </div>
-            {% endif %}
-        </div>
-
-        {# Guard states #}
-        {% if not profile or not profile.program %}
-        <div class="px-5 py-10 text-center text-gray-400">
-            <i class="fas fa-exclamation-circle text-3xl mb-3 block"></i>
-            <p class="text-sm">No program assigned to your profile. Please contact the registrar.</p>
-        </div>
-
-        {% elif not selected_term %}
-        <div class="px-5 py-10 text-center text-gray-400">
-            <i class="fas fa-calendar-times text-3xl mb-3 block"></i>
-            <p class="text-sm">Please select a semester above to load your courses.</p>
-        </div>
-
-        {% elif not semester_courses %}
-        <div class="px-5 py-10 text-center text-gray-400">
-            <i class="fas fa-book-open text-3xl mb-3 block"></i>
-            <p class="text-sm">No courses configured for your program, year, and selected semester.</p>
-        </div>
-
-        {% else %}
-
-        {# Credit tracker strip #}
-        <div class="flex flex-wrap items-center gap-4 px-5 py-3 bg-gray-50 border-b border-gray-100 text-xs text-gray-500">
-            <span><strong class="text-gray-700">{{ semester_courses|length }}</strong> course{{ semester_courses|length|pluralize }} available</span>
-            <span><strong class="text-gray-700">{{ registered_course_ids|length }}</strong> selected</span>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-semibold
-                         {% if registered_credit_total > max_credits_per_semester %}bg-red-100 text-red-700
-                         {% elif can_finalize %}bg-green-100 text-green-700
-                         {% else %}bg-purple-100 text-purple-700{% endif %}">
-                <i class="fas fa-tachometer-alt text-xs"></i>
-                {{ registered_credit_total }} / {{ max_credits_per_semester }} CU
-            </span>
-            {% if registration_submitted %}
-            <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-700 border border-green-200 rounded-full font-medium">
-                <i class="fas fa-check-circle text-xs"></i> Registration submitted
-            </span>
-            {% endif %}
-        </div>
-
-        {# Course table #}
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-                <thead>
-                    <tr class="text-xs text-gray-500 uppercase tracking-wide border-b border-gray-100 bg-gray-50">
-                        <th class="text-left px-5 py-3 font-semibold">Code</th>
-                        <th class="text-left px-3 py-3 font-semibold">Course Title</th>
-                        <th class="text-center px-3 py-3 font-semibold">Credits</th>
-                        <th class="text-center px-3 py-3 font-semibold hidden sm:table-cell">Type</th>
-                        <th class="text-center px-3 py-3 font-semibold hidden md:table-cell">Semester</th>
-                        <th class="text-center px-3 py-3 font-semibold">Status</th>
-                        <th class="text-center px-5 py-3 font-semibold">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-50">
-                    {% for course in semester_courses %}
-                    
-                    {% ifchanged course.is_carry_over %}
-                        {% if course.is_carry_over %}
-                        <tr class="bg-orange-50 border-t-2 border-orange-200">
-                            <td colspan="7" class="px-5 py-2.5 text-xs font-bold text-orange-700 uppercase tracking-wide">
-                                <i class="fas fa-history mr-1" aria-hidden="true"></i> Outstanding / Carry-Over Courses
-                                {% if not regular_courses_complete %}
-                                <span class="font-normal normal-case text-orange-600">— locked until every course above is registered</span>
-                                {% else %}
-                                <span class="font-normal normal-case text-orange-600">— register alongside your courses above if space remains</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endif %}
-                    {% endifchanged %}
-                    <tr class="hover:bg-gray-50 transition-colors {% if course.is_registered %}bg-green-50/40{% elif course.is_carry_over %}bg-orange-50/40{% endif %}">
-
-                        <td class="px-5 py-3 font-mono font-semibold text-gray-700 text-xs whitespace-nowrap">{{ course.code }}</td>
-
-                        <td class="px-3 py-3 text-gray-800 font-medium">
-                            <span class="line-clamp-2">{{ course.name }}</span>
-                            {% if course.is_carry_over %}
-                            <span class="inline-flex items-center gap-1 mt-0.5 text-xs text-orange-600 font-semibold">
-                                <i class="fas fa-history text-xs"></i> Carry-over — failed {{ course.carry_over_attempts }}x previously
-                            </span>
-                            {% endif %}
-                            {% if course.prerequisites.exists %}
-                            <span class="inline-flex items-center gap-1 mt-0.5 text-xs text-amber-600">
-                                <i class="fas fa-code-branch text-xs"></i> Prereq
-                            </span>
-                            {% endif %}
-                        </td>
-
-                        <td class="px-3 py-3 text-center">
-                            <span class="inline-block px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs font-medium">{{ course.credit_units }} CU</span>
-                        </td>
-
-                        <td class="px-3 py-3 text-center hidden sm:table-cell">
-                            {% if course.course_type == 'core' %}
-                            <span class="inline-block px-2.5 py-0.5 bg-red-50 text-red-700 border border-red-200 rounded-full text-xs font-semibold">Core</span>
-                            {% elif course.course_type == 'elective' %}
-                            <span class="inline-block px-2.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-xs font-semibold">Elective</span>
-                            {% else %}
-                            <span class="inline-block px-2.5 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold">{{ course.get_course_type_display }}</span>
-                            {% endif %}
-                        </td>
-
-                        <td class="px-3 py-3 text-center text-xs text-gray-500 capitalize hidden md:table-cell">{{ course.get_semester_display }}</td>
-
-                        <td class="px-3 py-3 text-center">
-                            {% if course.is_registered %}
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
-                                <i class="fas fa-check text-xs"></i> Selected
-                            </span>
-                            {% else %}
-                            <span class="inline-block px-2.5 py-1 bg-gray-100 text-gray-400 rounded-full text-xs">Not Selected</span>
-                            {% endif %}
-                        </td>
-
-                        {# Action cell #}
-                        <td class="px-5 py-3 text-center">
-                            {% if course.is_registered %}
-                                {% if course.registration_status == 'approved' %}
-                                <span class="inline-flex items-center gap-1 text-xs text-green-600 font-medium">
-                                    <i class="fas fa-check-double text-xs"></i> Enrolled ✓
-                                </span>
-
-                                {% elif course.registration_status == 'pending' and registration_open %}
-                                <button type="button"
-                                        data-retry-url="{% url 'students:retry_lms_enrollment' course.slug %}"
-                                        data-session-id="{{ selected_session.pk }}"
-                                        data-term="{{ selected_term }}"
-                                        data-course-name="{{ course.name }}"
-                                        class="retry-enroll-btn inline-flex items-center gap-1.5 px-3 py-1.5
-                                               border border-amber-400 text-amber-700 bg-amber-50
-                                               rounded-lg hover:bg-amber-100 text-xs font-medium transition-colors">
-                                    <i class="fas fa-sync-alt text-xs"></i> Register
-                                </button>
-
-                                {% elif not course.is_core and registration_open %}
-                                <form method="post" action="{% url 'students:drop_semester_course' course.slug %}">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="session_id" value="{{ selected_session.pk }}">
-                                    <input type="hidden" name="term_override" value="{{ selected_term }}">
-                                    <button type="submit"
-                                            class="inline-flex items-center gap-1.5 px-3 py-1.5
-                                                   border border-red-300 text-red-600 rounded-lg
-                                                   hover:bg-red-50 text-xs font-medium">
-                                        <i class="fas fa-minus-circle text-xs"></i> Remove
-                                    </button>
-                                </form>
-
-                                {% else %}
-                                <span class="inline-flex items-center gap-1 text-xs text-gray-400">
-                                    <i class="fas fa-lock text-xs"></i>
-                                    {% if course.is_core %}Required{% else %}Registered{% endif %}
-                                </span>
-                                {% endif %}
-
-                            {% elif course.locked_pending_regular %}
-                            <span class="inline-flex items-center gap-1 text-xs text-gray-400" title="Register all of this semester's own courses first.">
-                                <i class="fas fa-lock text-xs"></i> Locked
-                            </span>
-
-                            {% elif registration_open %}
-                            <form method="post" action="{% url 'students:register_semester_course' course.slug %}">
-                                {% csrf_token %}
-                                <input type="hidden" name="session_id" value="{{ selected_session.pk }}">
-                                <input type="hidden" name="term_override" value="{{ selected_term }}">
-                                <button type="submit"
-                                        {% if registered_credit_total >= max_credits_per_semester %}disabled title="Maximum {{ max_credits_per_semester }} CU reached."{% endif %}
-                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium
-                                               {% if registered_credit_total >= max_credits_per_semester %}border border-gray-200 text-gray-400 rounded-lg cursor-not-allowed bg-gray-50
-                                               {% else %}border border-purple-300 text-purple-600 rounded-lg hover:bg-purple-50{% endif %}">
-                                    <i class="fas fa-plus-circle text-xs"></i> Add
-                                </button>
-                            </form>
-
-                            {% else %}
-                            <span class="text-xs text-gray-300">Closed</span>
-                            {% endif %}
-                        </td>
-
-                    </tr>
-                    {% endfor %}
-                </tbody>
-
-                <tfoot>
-                    <tr class="bg-gray-50 border-t border-gray-200 text-xs font-semibold text-gray-600">
-                        <td class="px-5 py-3" colspan="2">Registered Total</td>
-                        <td class="px-3 py-3 text-center">
-                            <span class="inline-block px-2 py-0.5 bg-purple-100 text-purple-700 rounded font-bold">
-                                {{ registered_credit_total }} CU
-                            </span>
-                        </td>
-                        <td colspan="4" class="px-3 py-3 text-gray-400 font-normal">
-                            {{ registered_course_ids|length }} of {{ semester_courses|length }} course{{ semester_courses|length|pluralize }} selected
-                            &nbsp;·&nbsp; max {{ max_credits_per_semester }} CU
-                        </td>
-                    </tr>
-
-                    {% if registration_finalized %}
-                    <tr class="bg-green-50 border-t border-green-100">
-                        <td colspan="7" class="px-5 py-4">
-                            <div class="flex items-center gap-3 text-sm text-green-700 font-medium">
-                                <i class="fas fa-check-circle text-green-500 text-lg"></i>
-                                Registration finalized for <strong>{{ selected_term|title }} Semester, {{ selected_session }}</strong>.
-                                You are enrolled in all selected courses. Contact the registrar to make changes.
-                            </div>
-                        </td>
-                    </tr>
-
-                    {% elif registration_open %}
-                    <tr class="bg-purple-50 border-t border-purple-100">
-                        <td colspan="7" class="px-5 py-4">
-                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                                <div class="text-xs text-purple-700">
-                                    {% if not can_finalize %}
-                                        {% if registered_credit_total == 0 %}
-                                        <i class="fas fa-info-circle mr-1"></i> Add courses above to begin your registration.
-                                        {% elif registered_credit_total > max_credits_per_semester %}
-                                        <i class="fas fa-exclamation-triangle mr-1 text-red-500"></i>
-                                        <span class="text-red-600">You have exceeded the maximum {{ max_credits_per_semester }} CU — remove some courses.</span>
-                                        {% else %}
-                                        <i class="fas fa-info-circle mr-1"></i> Make sure all core courses are selected before finalizing.
-                                        {% endif %}
-                                    {% else %}
-                                    <i class="fas fa-check-circle mr-1 text-green-600"></i>
-                                    <span class="text-green-700">Good to go! Click Finalize to complete your registration and gain course access.</span>
-                                    {% endif %}
-                                </div>
-
-                                {# Finalize button triggers custom modal instead of browser confirm() #}
-                                <button type="button"
-                                        {% if not registration_open or not can_finalize %}disabled{% endif %}
-                                        data-session-id="{{ selected_session.pk }}"
-                                        data-term="{{ selected_term }}"
-                                        data-new-count="{{ new_registration_count }}"
-                                        data-action-url="{% url 'students:register_all_semester_courses' %}"
-                                        data-label="{% if registration_submitted %}Update Registration & Enroll{% else %}Register Courses & Enroll{% endif %}"
-                                        id="finalize-btn"
-                                        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-xs shadow
-                                               focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors
-                                               {% if registration_open and can_finalize %}bg-purple-600 hover:bg-purple-700 text-white{% else %}bg-gray-300 text-gray-500 cursor-not-allowed{% endif %}">
-                                    <i class="fas fa-check-double text-xs"></i>
-                                    {% if registration_submitted %}Update Registration &amp; Enroll{% else %}Register Courses &amp; Enroll{% endif %}
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endif %}
-                </tfoot>
-            </table>
-        </div>
-        {% endif %}
-    </div>
-    {# ── End Registration Panel ── #}
-
-    {# ── Enrolled LMS Courses ──────────────────────────────────────────── #}
-    <div class="mb-4 flex items-center justify-between">
-        <h2 class="text-base sm:text-lg font-bold text-gray-900">
-            <i class="fas fa-book-open mr-2 text-primary-600"></i> My Enrolled Courses
-        </h2>
-        <div class="flex items-center gap-2">
-            {% for s, label in status_options %}
-            <a href="?session_id={{ selected_session.pk }}&term={{ selected_term }}&status={{ s }}"
-               class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors
-                      {% if status_filter == s %}bg-primary-600 text-white shadow-sm{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
-                {{ label }}
-            </a>
-            {% endfor %}
-        </div>
-    </div>
-
-    {% if enrollments %}
+    {% if rows %}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
-        {% for enrollment in enrollments %}
+        {% for row in rows %}
         <article class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200 flex flex-col">
 
-            {# Thumbnail #}
+            {% with enrollment=row.enrollment %}
+            {% if enrollment %}
+            {# ── Enrolled: full progress card ──────────────────────────── #}
             <div class="relative h-40 sm:h-44 bg-gradient-to-br from-primary-500 to-secondary-500 flex-shrink-0">
                 {% if enrollment.course.thumbnail %}
                 <img src="{{ enrollment.course.thumbnail.url }}" alt="{{ enrollment.course.title }}"
@@ -372,30 +49,16 @@
                 </div>
             </div>
 
-            {# Body #}
             <div class="p-4 sm:p-5 flex flex-col flex-1">
-                <div class="flex items-center gap-2 mb-1.5">
-                    {% if enrollment.course.code %}
-                    <span class="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs font-mono font-semibold">{{ enrollment.course.code }}</span>
-                    {% endif %}
-                    {% if enrollment.course.difficulty_level %}
-                    <span class="px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded text-xs font-semibold">{{ enrollment.course.get_difficulty_level_display }}</span>
-                    {% endif %}
-                    {% if enrollment.course.academic_course.credit_units %}
-                    <span class="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-xs font-semibold">{{ enrollment.course.academic_course.credit_units }} CU</span>
-                    {% endif %}
-                </div>
-
                 <h2 class="text-sm sm:text-[0.9375rem] font-bold text-gray-900 mb-1.5 leading-snug"
                     style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.75rem;">
                     {{ enrollment.course.title }}
                 </h2>
                 <p class="text-xs text-gray-500 mb-3 truncate">
                     <i class="fas fa-user-tie mr-1 text-gray-400"></i>
-                    {{ enrollment.course.instructor_name|default:'MIU Staff' }}
+                    {{ enrollment.course.instructor_name|default:'Abraytech Instructor' }}
                 </p>
 
-                {# Progress #}
                 <div class="mb-3">
                     <div class="flex items-center justify-between mb-1.5">
                         <span class="text-xs text-gray-500">Progress</span>
@@ -412,20 +75,6 @@
                     </p>
                 </div>
 
-                <div class="text-xs text-gray-400 mb-4 pb-3 border-b border-gray-100">
-                    <div class="flex items-center gap-1.5">
-                        <i class="fas fa-calendar text-gray-300 w-3"></i>
-                        Enrolled: {{ enrollment.enrolled_at|date:"M d, Y" }}
-                    </div>
-                    {% if enrollment.course.term %}
-                    <div class="flex items-center gap-1.5 mt-1">
-                        <i class="fas fa-layer-group text-gray-300 w-3"></i>
-                        {{ enrollment.course.get_term_display }}
-                    </div>
-                    {% endif %}
-                </div>
-
-                {# Action #}
                 <div class="flex gap-2 mt-auto">
                     <a href="{% url 'students:course_detail' enrollment.course.slug %}"
                        class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5
@@ -442,8 +91,58 @@
                         <i class="fas fa-certificate"></i>
                     </a>
                     {% endif %}
+                    {% if not row.is_core %}
+                    <form method="post" action="{% url 'students:drop_semester_course' row.course.slug %}">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="flex items-center justify-center w-10 py-2.5 flex-shrink-0
+                                       border border-gray-200 text-gray-400 hover:text-red-600 hover:border-red-300
+                                       rounded-lg text-xs transition-colors" title="Remove from My Courses">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </form>
+                    {% endif %}
                 </div>
             </div>
+
+            {% else %}
+            {# ── Registered, content not live yet ──────────────────────── #}
+            <div class="h-40 sm:h-44 bg-gray-100 flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-hourglass-half text-gray-300 text-4xl"></i>
+            </div>
+
+            <div class="p-4 sm:p-5 flex flex-col flex-1">
+                <h2 class="text-sm sm:text-[0.9375rem] font-bold text-gray-900 mb-1.5 leading-snug"
+                    style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.75rem;">
+                    {{ row.course.name }}
+                </h2>
+                <span class="inline-flex items-center gap-1.5 w-fit px-2.5 py-1 mb-4 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-xs font-medium">
+                    <i class="fas fa-clock text-xs"></i> Content coming soon
+                </span>
+
+                <div class="flex gap-2 mt-auto">
+                    <button type="button"
+                            data-retry-url="{% url 'students:retry_lms_enrollment' row.course.slug %}"
+                            class="retry-enroll-btn flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5
+                                   border border-amber-400 text-amber-700 bg-amber-50
+                                   rounded-lg hover:bg-amber-100 text-xs sm:text-sm font-medium transition-colors">
+                        <i class="fas fa-sync-alt text-xs"></i> Check Availability
+                    </button>
+                    {% if not row.is_core %}
+                    <form method="post" action="{% url 'students:drop_semester_course' row.course.slug %}">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="flex items-center justify-center w-10 py-2.5 flex-shrink-0
+                                       border border-gray-200 text-gray-400 hover:text-red-600 hover:border-red-300
+                                       rounded-lg text-xs transition-colors" title="Remove from My Courses">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            {% endwith %}
         </article>
         {% endfor %}
     </div>
@@ -454,45 +153,22 @@
             <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-5">
                 <i class="fas fa-book-open text-2xl text-gray-300"></i>
             </div>
-            <h3 class="text-base sm:text-xl font-semibold text-gray-900 mb-2">No enrolled courses yet</h3>
+            <h3 class="text-base sm:text-xl font-semibold text-gray-900 mb-2">No courses yet</h3>
             <p class="text-xs sm:text-sm text-gray-500 mb-6">
-                Select your semester courses above and click <strong>Finalize &amp; Enroll</strong> to gain access to your course materials.
+                Browse the catalog and add a course to get started.
             </p>
+            <a href="{% url 'students:course_catalog' %}"
+               class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700
+                      text-white rounded-lg font-semibold text-sm transition-colors">
+                <i class="fas fa-search"></i> Browse Courses
+            </a>
         </div>
     </div>
     {% endif %}
 
 </div>
 
-{# ── Confirm Finalize Modal ─────────────────────────────────────── #}
-<div id="confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 animate-fade-in">
-        <div class="flex items-center gap-3 mb-3">
-            <span class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-                <i class="fas fa-check-double text-purple-600"></i>
-            </span>
-            <h3 class="font-bold text-gray-900 text-base" id="confirm-modal-title">Confirm Registration</h3>
-        </div>
-        <p class="text-sm text-gray-600 mb-5" id="confirm-modal-body"></p>
-        <div class="flex gap-3 justify-end">
-            <button type="button" id="confirm-cancel"
-                    class="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors">
-                Cancel
-            </button>
-            <form id="confirm-form" method="post">
-                {% csrf_token %}
-                <input type="hidden" name="session_id" id="confirm-session-id">
-                <input type="hidden" name="term_override" id="confirm-term">
-                <button type="submit"
-                        class="px-5 py-2 rounded-lg text-sm font-semibold text-white bg-purple-600 hover:bg-purple-700 transition-colors shadow">
-                    Confirm
-                </button>
-            </form>
-        </div>
-    </div>
-</div>
-
-{# ── Retry / Info Modal ────────────────────────────────────────── #}
+{# ── Info Modal (retry-enrollment result) ────────────────────────── #}
 <div id="info-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true">
     <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
         <div class="text-center text-4xl mb-3" id="info-modal-icon"></div>
@@ -506,16 +182,10 @@
     </div>
 </div>
 
-<style>
-@keyframes fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-.animate-fade-in { animation: fade-in .18s ease-out both; }
-</style>
-
 <script>
 (function () {
     const csrf = '{{ csrf_token }}';
 
-    // ── helpers ──────────────────────────────────────────────────────────
     function showModal(id) {
         const el = document.getElementById(id);
         el.classList.remove('hidden');
@@ -527,7 +197,6 @@
         el.classList.remove('flex');
     }
 
-    // ── Info / result modal ───────────────────────────────────────────
     function showInfo(icon, msg) {
         document.getElementById('info-modal-icon').innerHTML = icon;
         document.getElementById('info-modal-msg').textContent = msg;
@@ -538,63 +207,30 @@
         if (e.target === e.currentTarget) hideModal('info-modal');
     });
 
-    // ── Confirm / finalize modal ──────────────────────────────────────
-    const finalizeBtn = document.getElementById('finalize-btn');
-    if (finalizeBtn) {
-        finalizeBtn.addEventListener('click', function () {
-            const newCount   = parseInt(this.dataset.newCount, 10) || 0;
-            const label      = this.dataset.label || 'Finalize';
-            const actionUrl  = this.dataset.actionUrl;
-            const sessionId  = this.dataset.sessionId;
-            const term       = this.dataset.term;
-
-            document.getElementById('confirm-modal-title').textContent = label;
-            document.getElementById('confirm-modal-body').textContent =
-                `Finalize registration for ${newCount} new course${newCount !== 1 ? 's' : ''} this semester? `
-                + 'This will enroll you in all newly selected courses.';
-            document.getElementById('confirm-form').action = actionUrl;
-            document.getElementById('confirm-session-id').value = sessionId;
-            document.getElementById('confirm-term').value = term;
-            showModal('confirm-modal');
-        });
-    }
-    document.getElementById('confirm-cancel').addEventListener('click', () => hideModal('confirm-modal'));
-    document.getElementById('confirm-modal').addEventListener('click', e => {
-        if (e.target === e.currentTarget) hideModal('confirm-modal');
-    });
-
-    // ── Retry enrollment buttons ──────────────────────────────────────
     document.querySelectorAll('.retry-enroll-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {
-            const url        = btn.dataset.retryUrl;
-            const sessionId  = btn.dataset.sessionId;
-            const term       = btn.dataset.term;
+            const url = btn.dataset.retryUrl;
 
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i> Checking…';
 
-            const body = new URLSearchParams({
-                csrfmiddlewaretoken: csrf,
-                session_id: sessionId,
-                term_override: term,
-            });
+            const body = new URLSearchParams({ csrfmiddlewaretoken: csrf });
 
             fetch(url, { method: 'POST', body, headers: { 'X-CSRFToken': csrf } })
                 .then(r => r.json())
                 .then(data => {
                     if (data.status === 'enrolled') {
-                        btn.outerHTML = '<span class="inline-flex items-center gap-1 text-xs text-green-600 font-medium">'
-                                      + '<i class="fas fa-check-double text-xs"></i> Enrolled ✓</span>';
                         showInfo('✅', data.message);
+                        setTimeout(() => window.location.reload(), 800);
                     } else {
                         showInfo(data.status === 'pending' ? '⏳' : '❌', data.message);
                         btn.disabled = false;
-                        btn.innerHTML = '<i class="fas fa-sync-alt text-xs"></i> Register';
+                        btn.innerHTML = '<i class="fas fa-sync-alt text-xs"></i> Check Availability';
                     }
                 })
                 .catch(() => {
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-sync-alt text-xs"></i> Register';
+                    btn.innerHTML = '<i class="fas fa-sync-alt text-xs"></i> Check Availability';
                     showInfo('❌', 'Network error. Please try again.');
                 });
         });

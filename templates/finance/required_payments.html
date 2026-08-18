@@ -327,8 +327,6 @@
                         <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Programme</th>
                         <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Who Pays</th>
                         <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Amount</th>
-                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Semester</th>
-                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Session</th>
                         <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Due Date</th>
                         <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                         <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Actions</th>
@@ -343,9 +341,6 @@
                         data-program-label="{{ payment.program.name|escapejs }} ({{ payment.program.code|escapejs }})"
                         data-course-id="{{ payment.course.pk|default:'' }}"
                         data-course-label="{% if payment.course %}{{ payment.course.code|escapejs }} — {{ payment.course.name|escapejs }}{% endif %}"
-                        data-session-id="{{ payment.academic_session.pk|default:'' }}"
-                        data-session-label="{% if payment.academic_session %}{{ payment.academic_session.name|escapejs }}{% endif %}"
-                        data-semester="{{ payment.semester }}"
                         data-who="{{ payment.who_to_pay }}"
                         data-amount="{{ payment.amount }}"
                         data-due="{{ payment.due_date|date:'Y-m-d' }}"
@@ -375,10 +370,6 @@
                         </td>
                         <td class="px-4 py-3 text-right font-semibold text-gray-900">
                             ${{ payment.amount|floatformat:2|intcomma }}
-                        </td>
-                        <td class="px-4 py-3 capitalize text-gray-600 text-xs">{{ payment.get_semester_display }}</td>
-                        <td class="px-4 py-3 text-gray-600 text-xs">
-                            {% if payment.academic_session %}{{ payment.academic_session.name }}{% else %}<span class="text-gray-400">—</span>{% endif %}
                         </td>
                         <td class="px-4 py-3">
                             <span class="text-xs {% if payment.is_active and payment.due_date < today %}text-red-600 font-semibold{% else %}text-gray-700{% endif %}">
@@ -506,36 +497,6 @@
                             data-ss-placeholder="All courses in programme">
                         <option value="">All courses in programme</option>
                         {% comment %} populated/filtered by JS via ALL_COURSES data below {% endcomment %}
-                    </select>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {% comment %}
-                  Academic Session — real <select>, optional.
-                {% endcomment %}
-                <div class="form-group">
-                    <label class="form-label" for="fieldSession">
-                        Academic Session <span class="opt">(optional)</span>
-                        <button type="button" class="ss-clear-link" tabindex="-1"
-                                onclick="clearSelect('fieldSession');">Clear</button>
-                    </label>
-                    <select id="fieldSession" name="academic_session"
-                            class="searchable-select form-datalist-input"
-                            data-ss-placeholder="No specific session">
-                        <option value="">No specific session</option>
-                        {% for s in all_sessions %}
-                        <option value="{{ s.pk }}">{{ s.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="fieldSemester">Semester</label>
-                    <select id="fieldSemester" name="semester" class="form-select">
-                        <option value="annual">Annual</option>
-                        <option value="first">First Semester</option>
-                        <option value="second">Second Semester</option>
                     </select>
                 </div>
             </div>
@@ -680,7 +641,6 @@
     var form            = document.getElementById('paymentForm');
     var programSelect   = document.getElementById('fieldProgram');
     var courseSelect    = document.getElementById('fieldCourse');
-    var sessionSelect   = document.getElementById('fieldSession');
     var toggleForm      = document.getElementById('toggleForm');
     var deleteForm      = document.getElementById('deleteForm');
 
@@ -726,11 +686,9 @@
         var submitText = document.getElementById('submitText');
 
         form.reset();
-        /* Reset programme/course/session selects and notify the enhancer */
+        /* Reset programme/course selects and notify the enhancer */
         programSelect.value = '';
-        sessionSelect.value = '';
         programSelect.dispatchEvent(new Event('change', { bubbles: true }));
-        sessionSelect.dispatchEvent(new Event('change', { bubbles: true }));
         filterCourses(null); /* rebuild full course list */
 
         if (mode === 'create') {
@@ -763,14 +721,7 @@
                 courseSelect.dispatchEvent(new Event('change', { bubbles: true }));
             }
 
-            /* Session */
-            if (row.dataset.sessionId) {
-                sessionSelect.value = row.dataset.sessionId;
-                sessionSelect.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-
             /* Simple selects */
-            document.getElementById('fieldSemester').value  = row.dataset.semester;
             document.getElementById('fieldWho').value       = row.dataset.who;
             document.getElementById('fieldAmount').value    = row.dataset.amount;
             document.getElementById('fieldDueDate').value   = row.dataset.due;
@@ -788,10 +739,8 @@
         form.reset();
         programSelect.value = '';
         courseSelect.value  = '';
-        sessionSelect.value = '';
         programSelect.dispatchEvent(new Event('change', { bubbles: true }));
         courseSelect.dispatchEvent(new Event('change', { bubbles: true }));
-        sessionSelect.dispatchEvent(new Event('change', { bubbles: true }));
     };
 
     /* Close on backdrop click */

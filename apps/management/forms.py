@@ -7,7 +7,6 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from apps.eduweb.models import (
-    AcademicSession,
     Announcement,
     Badge,
     BlogCategory,
@@ -17,7 +16,6 @@ from apps.eduweb.models import (
     Course,
     CourseApplication,
     CourseCategory,
-    CourseIntake,
     Department,
     Enrollment,
     Faculty,
@@ -328,8 +326,7 @@ class CourseForm(forms.ModelForm):
     Form for creating / editing a Course (academic subject unit).
     Aligns with the refactored Course model:
       - Belongs to a Program (not directly to Faculty/Department)
-      - Has course_type, credit_units, year_of_study, semester
-      - Has academic_session and lecturer
+      - Has course_type, credit_units
       - learning_outcomes stored as JSON (textarea helper provided)
     """
 
@@ -354,7 +351,6 @@ class CourseForm(forms.ModelForm):
         model = Course
         fields = [
             'program', 'name', 'code', 'course_type', 'credit_units',
-            'year_of_study', 'semester',
             'description', 'learning_outcomes', 'is_active',
         ]
         widgets = {
@@ -383,24 +379,6 @@ class CourseForm(forms.ModelForm):
                 'min': 1,
                 'max': 12
             }),
-            'year_of_study': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all',
-                'placeholder': 'e.g., 1',
-                'min': 1,
-                'max': 7
-            }),
-            'semester': forms.Select(attrs={
-                'class': 'w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all bg-white'
-            }),
-
-            # ── Session & Instructor ───────────────────────────────────────
-            # 'academic_session': forms.Select(attrs={
-            #     'class': 'w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all bg-white'
-            # }),
-            # 'lecturer': forms.Select(attrs={
-            #     'class': 'w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all bg-white'
-            # }),
-
             # ── Content ────────────────────────────────────────────────────
             'description': forms.Textarea(attrs={
                 'class': 'w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all',
@@ -1443,33 +1421,6 @@ class DepartmentForm(forms.ModelForm):
 
 
 class ProgramForm(forms.ModelForm):
-    # Not model fields — a friendly front for Program.credit_caps_by_term
-    # (a JSONField) so the admin gets three plain number inputs instead of
-    # hand-editing raw JSON. __init__ populates them from the instance on
-    # edit; save() writes them back into the dict. Blank = no override for
-    # that term, falls back to max_credits_per_semester.
-    cu_first = forms.IntegerField(
-        required=False, min_value=1, max_value=30, label='Max CU — First Semester',
-        widget=forms.NumberInput(attrs={
-            'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm',
-            'placeholder': 'Same as default',
-        }),
-    )
-    cu_second = forms.IntegerField(
-        required=False, min_value=1, max_value=30, label='Max CU — Second Semester',
-        widget=forms.NumberInput(attrs={
-            'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm',
-            'placeholder': 'Same as default',
-        }),
-    )
-    cu_annual = forms.IntegerField(
-        required=False, min_value=1, max_value=30, label='Max CU — Annual',
-        widget=forms.NumberInput(attrs={
-            'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm',
-            'placeholder': 'Same as default',
-        }),
-    )
-
     available_study_modes = forms.MultipleChoiceField(
         required=False, choices=Program.STUDY_MODE_CHOICES, label='Study Modes', initial=list,
         widget=forms.CheckboxSelectMultiple(attrs={'class': 'flex flex-wrap gap-x-5 gap-y-2'}),
@@ -1508,10 +1459,9 @@ class ProgramForm(forms.ModelForm):
         model = Program
         fields = [
             'department', 'name', 'code', 'degree_level',
-            'duration_years', 'credits_required', 'max_credits_per_semester', 'max_students',
+            'duration_years', 'credits_required', 'max_students',
             'tagline', 'overview', 'description',
-            'tuition_fee',
-            'min_cgpa_to_progress',
+            'application_fee', 'tuition_fee',
             'is_active', 'is_featured',
             'hero_image', 'gallery_image_1', 'gallery_image_2', 'gallery_image_3', 'gallery_video',
             'meta_description', 'meta_keywords',
@@ -1538,11 +1488,6 @@ class ProgramForm(forms.ModelForm):
                 'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm',
                 'min': '0'
             }),
-            'max_credits_per_semester': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm',
-                'min': '1',
-                'max': '30'
-            }),
             'max_students': forms.NumberInput(attrs={
                 'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm',
                 'min': '1',
@@ -1560,14 +1505,15 @@ class ProgramForm(forms.ModelForm):
                 'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm resize-none',
                 'rows': '5'
             }),
-            'tuition_fee': forms.NumberInput(attrs={
+            'application_fee': forms.NumberInput(attrs={
                 'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm',
                 'step': '0.01',
                 'min': '0'
             }),
-            'min_cgpa_to_progress': forms.NumberInput(attrs={
+            'tuition_fee': forms.NumberInput(attrs={
                 'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm',
-                'step': '0.01', 'min': '0', 'max': '5'
+                'step': '0.01',
+                'min': '0'
             }),
             'is_active': forms.CheckboxInput(attrs={
                 'class': 'w-4 h-4 rounded text-primary-600 border-gray-300 focus:ring-primary-500'
@@ -1618,11 +1564,6 @@ class ProgramForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['department'].queryset = Department.objects.select_related('faculty').order_by('faculty__name', 'name')
-        if self.instance and self.instance.pk and isinstance(self.instance.credit_caps_by_term, dict):
-            caps = self.instance.credit_caps_by_term
-            self.fields['cu_first'].initial = caps.get('first')
-            self.fields['cu_second'].initial = caps.get('second')
-            self.fields['cu_annual'].initial = caps.get('annual')
         if self.instance and self.instance.pk:
             self.fields['available_study_modes'].initial = self.instance.available_study_modes
             for model_field, text_field in self._LIST_FIELDS:
@@ -1661,14 +1602,6 @@ class ProgramForm(forms.ModelForm):
 
     def save(self, commit=True):
         program = super().save(commit=False)
-        caps = {}
-        if self.cleaned_data.get('cu_first') is not None:
-            caps['first'] = self.cleaned_data['cu_first']
-        if self.cleaned_data.get('cu_second') is not None:
-            caps['second'] = self.cleaned_data['cu_second']
-        if self.cleaned_data.get('cu_annual') is not None:
-            caps['annual'] = self.cleaned_data['cu_annual']
-        program.credit_caps_by_term = caps
         program.available_study_modes = self.cleaned_data.get('available_study_modes') or []
         for model_field, text_field in self._LIST_FIELDS:
             raw = self.cleaned_data.get(text_field, '')
@@ -1676,97 +1609,6 @@ class ProgramForm(forms.ModelForm):
         if commit:
             program.save()
         return program
-
-
-class AcademicSessionForm(forms.ModelForm):
-    class Meta:
-        model = AcademicSession
-        fields = [
-            'name', 'status', 'is_current',
-            'term_dates'
-            # 'registration_start', 'registration_end',
-        ]
-        # widgets = {
-        #     'registration_start': forms.DateInput(attrs={'type': 'date'}),
-        #     'registration_end': forms.DateInput(attrs={'type': 'date'}),
-        # }
-
-    # def clean(self):
-    #     cleaned = super().clean()
-    #     reg_start = cleaned.get('registration_start')
-    #     reg_end = cleaned.get('registration_end')
-    #     if reg_start and reg_end and reg_start >= reg_end:
-    #         raise forms.ValidationError('Registration start must be before end date.')
-    #     return cleaned
-
-
-class CourseIntakeForm(forms.ModelForm):
-    """
-    Also used unmodified as the row form inside IntakeCreateFormSet — every
-    widget/label here renders once per intake row when several are added via
-    the "Add Another Intake" button, so keep attrs generic (no per-row ids).
-    """
-    year = forms.TypedChoiceField(coerce=int, choices=[])
-
-    class Meta:
-        model = CourseIntake
-        fields = [
-            'program', 'intake_period', 'year',
-            'application_start_date', 'application_deadline', 'start_date',
-            'application_fee', 'available_slots', 'is_active',
-        ]
-        widgets = {
-            'program': forms.Select(attrs={
-                **_SC_I, 'class': _SC_I['class'] + ' searchable-select',
-                'data-ss-placeholder': 'Type to search program…',
-            }),
-            'intake_period': forms.Select(attrs=_SC_I),
-            'application_start_date': forms.DateInput(attrs={**_SC_I, 'type': 'date'}),
-            'application_deadline': forms.DateInput(attrs={**_SC_I, 'type': 'date'}),
-            'start_date': forms.DateInput(attrs={**_SC_I, 'type': 'date'}),
-            'application_fee': forms.NumberInput(attrs={**_SC_I, 'step': '0.01', 'min': '0'}),
-            'available_slots': forms.NumberInput(attrs={**_SC_I, 'min': '1'}),
-            'is_active': forms.CheckboxInput(attrs={
-                'class': 'w-4 h-4 rounded text-primary-600 border-gray-300 focus:ring-primary-500'
-            }),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['program'].queryset = Program.objects.filter(is_active=True).order_by('name')
-        self.fields['program'].label_from_instance = lambda obj: f'{obj.name} ({obj.code})'
-        self.fields['program'].empty_label = 'Type to search program…'
-
-        # Year as a picker (select), not free-typed text/number — widened
-        # a few years past what's on record so a new intake a year or two
-        # out doesn't require an "Other" fallback.
-        current_year = timezone.now().year
-        years = set(range(current_year - 3, current_year + 11))
-        if self.instance and self.instance.pk and self.instance.year:
-            years.add(self.instance.year)
-        self.fields['year'].choices = [(y, str(y)) for y in sorted(years)]
-        self.fields['year'].widget.attrs.update(_SC_I)
-        if not self.instance.pk:
-            self.fields['year'].initial = current_year
-
-    def clean(self):
-        cleaned = super().clean()
-        opens = cleaned.get('application_start_date')
-        deadline = cleaned.get('application_deadline')
-        start = cleaned.get('start_date')
-        if opens and deadline and deadline <= opens:
-            raise forms.ValidationError('Application deadline must be after applications open.')
-        if start and deadline and deadline >= start:
-            raise forms.ValidationError('Application deadline must be before the program start date.')
-        return cleaned
-
-
-IntakeCreateFormSet = forms.modelformset_factory(
-    CourseIntake,
-    form=CourseIntakeForm,
-    extra=1,
-    can_delete=False,
-)
 
 
 class AnnouncementForm(forms.ModelForm):
@@ -1823,8 +1665,7 @@ class LMSCourseForm(forms.ModelForm):
         model = LMSCourse
         fields = [
             'title', 'code', 'short_description', 'description',
-            'difficulty_level',
-            'academic_course', 'session', 'term',
+            'academic_course',
             'instructor',
             'thumbnail', 'promo_video_url',
             'is_published', 'is_featured',
@@ -1851,9 +1692,6 @@ class LMSCourseForm(forms.ModelForm):
                 'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500',
                 'rows': 5,
                 'placeholder': 'Detailed course description'
-            }),
-            'difficulty_level': forms.Select(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 bg-white'
             }),
             # 'duration_hours': forms.NumberInput(attrs={
             #     'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500',
@@ -1912,12 +1750,6 @@ class LMSCourseForm(forms.ModelForm):
             'academic_course': forms.Select(attrs={
                 'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 bg-white'
             }),
-            'session': forms.Select(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 bg-white'
-            }),
-            'term': forms.Select(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 bg-white'
-            }),
             # 'certificate_fee': forms.NumberInput(attrs={
             #     'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500',
             #     'placeholder': '0.00',
@@ -1957,12 +1789,12 @@ class LMSCourseForm(forms.ModelForm):
             AcademicCourse.objects
             .select_related('program__department__faculty')
             .only(
-                'id', 'code', 'name', 'year_of_study', 'semester',
+                'id', 'code', 'name',
                 'program__id', 'program__name',
                 'program__department__id', 'program__department__name',
                 'program__department__faculty__id', 'program__department__faculty__name',
             )
-            .order_by('program__department__faculty__name', 'program__department__name', 'program__name', 'year_of_study', 'semester', 'code')
+            .order_by('program__department__faculty__name', 'program__department__name', 'program__name', 'code')
         )
         self.fields['academic_course'].label_from_instance = lambda c: (
             f"{c.code} — {c.name}"

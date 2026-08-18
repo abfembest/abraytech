@@ -67,9 +67,6 @@
 {% block content %}
 <div class="w-full max-w-full">
 
-                <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
-
-
     <!-- ══════════════════════════════════════════════════════════════════
          PAGE HEADER
     ══════════════════════════════════════════════════════════════════════ -->
@@ -81,9 +78,7 @@
             </span>
             <div>
                 <h1 class="text-xl sm:text-2xl font-bold text-gray-900 font-heading leading-tight">Exam Timetable</h1>
-                <p class="text-xs text-gray-400 mt-0.5">
-                    {% if current_session %}Session: <strong class="text-gray-600">{{ current_session.name }}</strong>{% if current_term %} &bull; {{ current_term|title }} Semester{% endif %}{% else %}All your upcoming and active CBT exams.{% endif %}
-                </p>
+                <p class="text-xs text-gray-400 mt-0.5">All your upcoming and active CBT exams.</p>
             </div>
         </div>
         <div class="flex items-center gap-2 text-xs text-gray-500 font-medium self-start sm:self-center
@@ -186,7 +181,7 @@
                             <span class="text-[10px] text-gray-400 font-mono tracking-wide">{{ item.exam.reference_code }}</span>
                             <span class="text-gray-200 text-xs">|</span>
                             <span class="text-[10px] text-secondary-500 font-semibold truncate">
-                                {% if item.exam.course.code %}{{ item.exam.course.code }} — {% endif %}{{ item.exam.course.title }}
+                                {{ item.exam.course.title }}
                             </span>
                             <span class="text-gray-200 text-xs">|</span>
                             <span class="text-[10px] text-gray-400">{{ item.exam.get_exam_type_display }}</span>
@@ -300,8 +295,8 @@
                     <i class="fas fa-table text-primary-500 text-xs"></i>
                 </span>
                 <div>
-                    <h2 class="text-sm font-bold text-gray-800 leading-tight">Semester Exam Schedule</h2>
-                    <p class="text-[10px] text-gray-400">All scheduled exams for your enrolled courses this semester</p>
+                    <h2 class="text-sm font-bold text-gray-800 leading-tight">Exam Schedule</h2>
+                    <p class="text-[10px] text-gray-400">All scheduled exams for your enrolled courses</p>
                 </div>
             </div>
             {% if all_exams %}
@@ -318,7 +313,7 @@
             <table class="tt-table">
                 <thead>
                     <tr>
-                        <th class="text-left">Course Code</th>
+                        <th class="text-left">Course</th>
                         <th class="text-left">Exam Title</th>
                         <th class="text-left">Type</th>
                         <th class="text-left">Date</th>
@@ -332,11 +327,9 @@
                     {% for exam in all_exams %}
                     <tr>
 
-                        <!-- Course code + title -->
+                        <!-- Course title -->
                         <td class="min-w-[160px]">
-                            {% if exam.course.code %}
-                            <span class="font-bold text-primary-600">{{ exam.course.code }}</span>
-                            {% endif %}
+                            <span class="font-semibold text-gray-700">{{ exam.course.title }}</span>
                         </td>
 
                         <!-- Exam title -->
@@ -436,7 +429,7 @@
             </div>
             <p class="text-gray-600 font-semibold text-sm">No exams scheduled yet</p>
             <p class="text-gray-400 text-xs mt-1 max-w-xs mx-auto">
-                No exams have been created for your courses this semester. Check back later.
+                No exams have been created for your courses yet. Check back later.
             </p>
         </div>
         {% endif %}

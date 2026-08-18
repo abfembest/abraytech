@@ -1,56 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{% if blocked_reason %}Application Closed{% else %}Sign Up{% endif %} - {{ program.name }} - {{ site_config.school_short_name|default:"Abraytech" }}{% endblock %}
+{% block title %}Sign Up - {{ program.name }} - {{ site_config.school_short_name|default:"Abraytech" }}{% endblock %}
 
 {% block content %}
 <div class="bg-soft py-10 lg:py-12 px-4">
-
-        {% if blocked_reason %}
-
-        <!-- Wide standalone card — no form, no branding split, needs room to breathe -->
-        <div class="bg-white shadow-brand rounded-2xl overflow-hidden max-w-2xl mx-auto border border-borderblue">
-            <div class="px-4 py-8 sm:px-7 sm:py-10 text-center">
-
-                <div class="w-16 h-16 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto mb-6">
-                    <i data-lucide="alert-triangle" class="w-8 h-8 text-amber-600"></i>
-                </div>
-
-                <h3 class="text-3xl font-bold font-sora text-navy mb-4">
-                    Application Closed
-                </h3>
-
-                <p class="text-base text-gray-600 leading-relaxed max-w-lg mx-auto mb-10">
-                    {% if blocked_reason == 'no_intake' %}
-                        There are currently no enrollment windows scheduled for <strong class="text-gray-900">{{ program.name }}</strong>. Please check back soon or contact admissions.
-                    {% elif blocked_reason == 'closed' or blocked_reason == 'not_open_yet' %}
-                        Application for {{ intake.intake_period|title }} {{ intake.year }} intake for <strong class="text-gray-900">{{ program.name }}</strong> is currently closed.
-                    {% comment %} {% elif blocked_reason == 'not_open_yet' %}
-                        Applications for {{ intake.intake_period|title }} {{ intake.year }} intake for <strong class="text-gray-900">{{ program.name }}</strong> open on {{ intake.application_start_date|date:'d F Y' }}. {% endcomment %}
-                    {% elif blocked_reason == 'deadline_passed' %}
-                        The application deadline for the {{ intake.intake_period|title }} {{ intake.year }} intake of <strong class="text-gray-900">{{ program.name }}</strong> was {{ intake.application_deadline|date:'d F Y' }}. This window is now closed.
-                    {% elif blocked_reason == 'full' %}
-                        All available slots for the {{ intake.intake_period|title }} {{ intake.year }} intake of <strong class="text-gray-900">{{ program.name }}</strong> have been filled.
-                    {% endif %}
-                </p>
-
-                <div class="max-w-sm mx-auto space-y-3">
-                    <a href="{% url 'eduweb:auth_page' %}"
-                       class="w-full py-3.5 brand-gradient text-white rounded-lg font-bold text-base shadow-brand hover:opacity-95 transition-all duration-300 flex items-center justify-center gap-2">
-                        <span>Sign In Instead</span>
-                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
-                    </a>
-                    <a href="{% url 'eduweb:all_programs' %}"
-                       class="w-full py-3 text-center text-navy font-semibold hover:text-brandblue transition-all flex items-center justify-center gap-2">
-                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                        Back to All Programs
-                    </a>
-                </div>
-
-            </div>
-        </div>
-
-        {% else %}
 
         <div class="bg-white shadow-brand max-w-auth-panel w-full mx-auto rounded-2xl overflow-hidden border border-borderblue">
             <div class="grid lg:grid-cols-5 gap-0">
@@ -64,7 +18,7 @@
                         Create Your Account
                     </h3>
                     <p class="text-sm text-gray-500 text-center mb-6">
-                        Applying to <strong class="text-navy">{{ program.name }}</strong>{% if intake %} — {{ intake.get_intake_period_display }} {{ intake.year }} intake{% endif %}
+                        Applying to <strong class="text-navy">{{ program.name }}</strong>
                     </p>
 
                     <form id="signupFormElement" method="POST" action="?{{ request.META.QUERY_STRING }}" class="space-y-4">
@@ -212,11 +166,8 @@
             </div>
         </div>
 
-        {% endif %}
-
 </div>
 
-{% if not blocked_reason %}
 <script>
 function safeLucideIcons() {
     try {
@@ -313,5 +264,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-{% endif %}
 {% endblock %}

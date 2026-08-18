@@ -1,7 +1,7 @@
 {% extends 'management/base.html' %}
 {% load static %}
 
-{% block title %}Role & Permissions Assignment — MIU Portal{% endblock %}
+{% block title %}Role & Permissions Assignment — Abraytech Portal{% endblock %}
 
 {% block content %}
 <input type="hidden" id="csrfToken" value="{{ csrf_token }}">
@@ -49,7 +49,6 @@
 
   {# ── Header ── #}
   <div>
-    <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
     <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Role & Permissions Assignment</h1>
     <p class="text-gray-500 mt-1 text-xs sm:text-sm">Select a user to assign their role and configure module-level permissions</p>
   </div>
@@ -270,8 +269,6 @@
     support_tickets:'Tickets', support_knowledge_base:'Knowledge Base',
     support_communications:'Communications', support_analytics:'Analytics',
     support_config:'Support Config',
-    academic_progression:'Academic Progression',
-    results_publish:'Results Publishing',
     role_permissions:'Roles & Permissions',
   };
 

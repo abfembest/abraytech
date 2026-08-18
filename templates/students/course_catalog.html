@@ -3,30 +3,26 @@
 
 {% block title %}{{ page_title }} - {{ site_config.school_short_name }} Student Portal{% endblock %}
 
-{% block meta_description %}Browse your program's course catalog and enroll in available courses.{% endblock %}
+{% block meta_description %}Browse the course catalog and enroll in any available course.{% endblock %}
 
 {% block content %}
 <div class="max-w-screen-2xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
-
-                <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
-
 
     <!-- Page Header -->
     <header class="mb-4 sm:mb-6 lg:mb-8">
         <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">Course Catalog</h1>
         <p class="text-xs sm:text-sm lg:text-base text-gray-600 mt-1">
             Browse and enroll in available courses
-            {% if current_session %}<span class="text-gray-400">&mdash; {{ current_session }}</span>{% endif %}
         </p>
     </header>
 
     <!-- Realtime Filters — no form submit, JS filters in place -->
     <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 lg:p-5 mb-5 sm:mb-6"
              aria-label="Course filters">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div class="grid grid-cols-1 gap-3">
 
             <!-- Search by title or code -->
-            <div class="sm:col-span-2">
+            <div>
                 <label for="filter-search" class="sr-only">Search courses</label>
                 <div class="relative">
                     <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none" aria-hidden="true"></i>
@@ -44,20 +40,6 @@
                         <i class="fas fa-times text-xs"></i>
                     </button>
                 </div>
-            </div>
-
-            <!-- Term filter — values match LMSCourse.term field choices -->
-            <div>
-                <label for="filter-term" class="sr-only">Filter by term</label>
-                <select id="filter-term"
-                        class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg
-                               focus:ring-2 focus:ring-primary-500 focus:border-transparent
-                               bg-white transition-colors cursor-pointer">
-                    <option value="">All Terms</option>
-                    {% for val, label in term_choices %}
-                    <option value="{{ val }}" {% if term_filter == val %}selected{% endif %}>{{ label }}</option>
-                    {% endfor %}
-                </select>
             </div>
         </div>
 
@@ -77,8 +59,7 @@
         <article class="course-card bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden
                         hover:shadow-md transition-shadow duration-200 flex flex-col"
                  data-title="{{ course.title|lower }}"
-                 data-code="{{ course.code|lower }}{% if course.academic_course %} {{ course.academic_course.code|lower }}{% endif %}"
-                 data-term="{{ course.academic_course.semester|default:course.term }}"">
+                 data-code="{{ course.code|lower }}{% if course.academic_course %} {{ course.academic_course.code|lower }}{% endif %}">
 
             <!-- Thumbnail -->
             <div class="relative h-40 sm:h-44 bg-gradient-to-br from-primary-500 to-secondary-500 flex-shrink-0">
@@ -91,14 +72,6 @@
                 <div class="w-full h-full flex items-center justify-center">
                     <i class="fas fa-book text-white text-5xl opacity-30" aria-hidden="true"></i>
                 </div>
-                {% endif %}
-
-                <!-- LMSCourse.term badge (top-left) -->
-                {% if course.academic_course.semester %}
-                <span class="absolute top-3 left-3 px-2.5 py-0.5 rounded-full text-xs font-bold
-             bg-black/50 text-white backdrop-blur-sm shadow">
-                    {{ course.academic_course.get_semester_display }}
-                </span>
                 {% endif %}
 
                 <!-- Enrollment / registration status icon (top-right) -->
@@ -120,32 +93,8 @@
             <!-- Card Body -->
             <div class="p-4 sm:p-5 flex flex-col flex-1">
 
-                <!-- Badge row: code · credit units · level · enrollment label -->
+                <!-- Badge row: enrollment label -->
                 <div class="flex flex-wrap items-center gap-1.5 mb-1.5">
-
-                    {# LMSCourse.code if set, else fall back to academic_course.code #}
-                    {% with display_code=course.code|default:course.academic_course.code %}
-                    {% if display_code %}
-                    <span class="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs font-mono font-semibold">
-                        {{ display_code }}
-                    </span>
-                    {% endif %}
-                    {% endwith %}
-
-                    {# Credit units live on academic_course (Course model) #}
-                    {% if course.academic_course.credit_units %}
-                    <span class="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-xs font-semibold"
-                          title="Credit Units">
-                        {{ course.academic_course.credit_units }} CU
-                    </span>
-                    {% endif %}
-
-                    {# difficulty_level uses STUDENT_LEVEL_CHOICES → "Level 100", "Level 200" … #}
-                    {% if course.difficulty_level %}
-                    <span class="px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded text-xs font-semibold">
-                        {{ course.get_difficulty_level_display }}
-                    </span>
-                    {% endif %}
 
                     {% if course.id in enrolled_ids %}
                     <span class="ml-auto px-1.5 py-0.5 bg-green-50 text-green-700 rounded text-xs font-semibold">Enrolled</span>
@@ -183,17 +132,10 @@
                         {% elif course.lecturer %}
                         {{ course.lecturer.get_full_name|default:course.lecturer.username }}
                         {% else %}
-                        MIU Staff
+                        Abraytech Instructor
                         {% endif %}
                     </span>
                 </div>
-
-                {% if course.academic_course.semester %}
-                <div class="flex items-center gap-1 text-xs text-gray-400 mb-3 -mt-1">
-                    <i class="fas fa-layer-group text-gray-300 w-3" aria-hidden="true"></i>
-                    {{ course.academic_course.get_semester_display }}
-                </div>
-                {% endif %}
 
                 <!-- Stats: duration · students · rating -->
                 <div class="grid grid-cols-3 gap-1.5 mb-4">
@@ -263,7 +205,7 @@
     <nav id="pagination-nav" class="flex justify-center mb-6" aria-label="Course pagination">
         <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center">
             {% if courses.has_previous %}
-            <a href="?page={{ courses.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if term_filter %}&term={{ term_filter }}{% endif %}"
+            <a href="?page={{ courses.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}"
                class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-white border border-gray-300
                       rounded-lg text-xs sm:text-sm text-gray-700 hover:bg-gray-50 transition-colors
                       focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
@@ -277,7 +219,7 @@
                              text-xs sm:text-sm font-semibold min-w-[2.25rem] text-center"
                   aria-current="page">{{ num }}</span>
             {% elif num >= courses.number|add:"-2" and num <= courses.number|add:"2" %}
-            <a href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if term_filter %}&term={{ term_filter }}{% endif %}"
+            <a href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}"
                class="px-3 sm:px-4 py-2 bg-white border border-gray-300 rounded-lg
                           text-xs sm:text-sm text-gray-700 hover:bg-gray-50 transition-colors
                           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
@@ -285,7 +227,7 @@
             {% endif %}
             {% endfor %}
             {% if courses.has_next %}
-            <a href="?page={{ courses.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if term_filter %}&term={{ term_filter }}{% endif %}"
+            <a href="?page={{ courses.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}"
                class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-white border border-gray-300
                       rounded-lg text-xs sm:text-sm text-gray-700 hover:bg-gray-50 transition-colors
                       focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
@@ -319,7 +261,6 @@
         'use strict';
 
         var searchEl = document.getElementById('filter-search');
-        var termEl = document.getElementById('filter-term');
         var clearBtn = document.getElementById('search-clear');
         var grid = document.getElementById('course-grid');
         var noResults = document.getElementById('no-results');
@@ -334,17 +275,15 @@
 
         function run() {
             var q = searchEl.value.trim().toLowerCase();
-            var term = termEl.value;
 
             var visible = 0;
             cards.forEach(function (card) {
-                var show = (!q || card.dataset.title.includes(q) || card.dataset.code.includes(q))
-                    && (!term || card.dataset.term === term);
+                var show = (!q || card.dataset.title.includes(q) || card.dataset.code.includes(q));
                 card.style.display = show ? '' : 'none';
                 if (show) visible++;
             });
 
-            var active = q !== '' || term !== '';
+            var active = q !== '';
 
             // Empty-state panel
             noResults.classList.toggle('hidden', visible > 0);
@@ -365,7 +304,6 @@
         }
 
         searchEl.addEventListener('input', run);
-        termEl.addEventListener('change', run);
 
         clearBtn.addEventListener('click', function () {
             searchEl.value = '';
@@ -376,12 +314,11 @@
         if (clearAll) {
             clearAll.addEventListener('click', function () {
                 searchEl.value = '';
-                termEl.value = '';
                 run();
             });
         }
 
-        // Apply on load (in case server pre-filled search_query / term_filter values)
+        // Apply on load (in case server pre-filled search_query)
         run();
     }());
 </script>

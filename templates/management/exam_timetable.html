@@ -28,8 +28,6 @@
   ✅  exam.reference_code          — CharField (auto-generated)
   ✅  exam.get_exam_type_display   — display value of exam_type
   ✅  exam.course.title            — LMSCourse.title
-  ✅  exam.course.session          — LMSCourse → AcademicSession (nullable)
-  ✅  exam.course.session.name     — AcademicSession.name  e.g. "2024/2025"
   ✅  exam.course.academic_course  — LMSCourse → Course (nullable)
   ✅  exam.course.academic_course.code     — Course.code
   ✅  exam.course.academic_course.program  — Course → Program
@@ -45,7 +43,6 @@
 
   REMOVED — do NOT reference these (AttributeError / does not exist):
   ✗  exam.venue                   — DELETED from model (CBT/online only)
-  ✗  exam.academic_session        — NOT a field; derive via exam.course.session
   ✗  exam.department              — NOT a field; derive via course chain
   ✗  exam.instruction_window_minutes — CLASS CONSTANT (not instance field)
                                       Use hardcoded "10" or pass via context
@@ -455,27 +452,6 @@
                     </div>
                     {% endif %}
                     {% endif %}
-                    {% endif %}
-
-                    {% comment %}
-                      exam.course.session: LMSCourse → AcademicSession (nullable)
-                      Represents the academic session this LMS course runs in.
-                      This is how you get the academic session for an exam —
-                      NOT via a direct exam.academic_session field (which doesn't exist).
-                    {% endcomment %}
-                    {% if exam.course.session %}
-                    <div>
-                        <div class="text-base font-semibold text-gray-400 uppercase tracking-wider mb-1">Academic Session</div>
-                        <div class="text-base text-gray-700">{{ exam.course.session.name }}</div>
-                    </div>
-                    {% endif %}
-
-                    {% comment %} exam.course.term: CharField on LMSCourse {% endcomment %}
-                    {% if exam.course.term %}
-                    <div>
-                        <div class="text-base font-semibold text-gray-400 uppercase tracking-wider mb-1">Term</div>
-                        <div class="text-base text-gray-700 capitalize">{{ exam.course.term|title }}</div>
-                    </div>
                     {% endif %}
 
                     {% comment %} exam.instructor: FK → User (nullable) {% endcomment %}

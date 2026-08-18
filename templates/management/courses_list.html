@@ -1,6 +1,6 @@
 {% extends 'management/base.html' %}
 {% load static %}
-{% block title %}Course Catalog — MIU Admin{% endblock %}
+{% block title %}Course Catalog — Abraytech Admin{% endblock %}
 
 {% block extra_css %}<style>
   :root{--p:#1d4ed8;--pl:#eff6ff;--pb:#bfdbfe;--r:.75rem}
@@ -69,7 +69,6 @@
 </style>{% endblock %}
 
 {% block content %}
-<button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; back</button>
 {% if messages %}{% for m in messages %}
 <div class="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium mb-3 {% if m.tags == 'success' %}bg-emerald-50 text-emerald-800 border border-emerald-200{% else %}bg-red-50 text-red-800 border border-red-200{% endif %}">
   <i class="fas {% if m.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>{{ m }}
@@ -108,7 +107,6 @@
     <button class="chip" onclick="flt('type','general',this)"><span class="w-1.5 h-1.5 rounded-full bg-violet-400 inline-block"></span>General</button>
     <button class="chip" onclick="flt('type','prerequisite',this)"><span class="w-1.5 h-1.5 rounded-full bg-red-400 inline-block"></span>Prereq</button>
   </div>
-  <select id="yrF" onchange="go()" class="chip bg-white text-gray-600 outline-none"><option value="">All Years</option>{% for i in "12345678"|make_list %}<option value="{{ i }}">Year {{ i }}</option>{% endfor %}</select>
   <select id="stF" onchange="go()" class="chip bg-white text-gray-600 outline-none"><option value="">All Status</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
   <span class="text-xs text-gray-400 ml-auto hidden sm:inline" id="rCnt"></span>
 </div>
@@ -118,24 +116,22 @@
   <table class="table-card">
     <thead><tr>
       <th data-c="0">Code ↕</th><th data-c="1">Course Title ↕</th><th>Program / Dept</th>
-      <th data-c="3">Year ↕</th><th>Semester</th><th data-c="5">Units ↕</th>
+      <th data-c="3">Units ↕</th>
       <th>Type</th><th>Status</th><th class="text-right">Actions</th>
     </tr></thead>
     <tbody id="tb">
       {% for c in courses %}
-      <tr id="r{{ c.pk }}" data-code="{{ c.code|lower }}" data-title="{{ c.name|lower }}" data-dept="{{ c.program.department.name|lower }}" data-prg="{{ c.program.name|lower }}" data-type="{{ c.course_type }}" data-year="{{ c.year_of_study }}" data-units="{{ c.credit_units }}" data-active="{{ c.is_active|yesno:'active,inactive' }}">
+      <tr id="r{{ c.pk }}" data-code="{{ c.code|lower }}" data-title="{{ c.name|lower }}" data-dept="{{ c.program.department.name|lower }}" data-prg="{{ c.program.name|lower }}" data-type="{{ c.course_type }}" data-units="{{ c.credit_units }}" data-active="{{ c.is_active|yesno:'active,inactive' }}">
         <td data-label="Code"><span class="cb">{{ c.code }}</span></td>
         <td data-label="Title"><p class="font-semibold text-gray-800 text-sm leading-tight">{{ c.name }}</p>{% if c.description %}<p class="text-gray-400 text-xs mt-0.5 line-clamp-1">{{ c.description|truncatechars:55 }}</p>{% endif %}</td>
         <td data-label="Dept"><p class="text-xs font-medium text-gray-700">{{ c.program.name|default:"—" }}</p><p class="text-xs text-gray-400">{{ c.program.department.name|default:"General" }}</p></td>
-        <td data-label="Year"><div class="flex items-center gap-1.5"><span class="yp">{{ c.year_of_study }}</span><span class="text-gray-400 text-xs">({{ c.level }}L)</span></div></td>
-        <td data-label="Sem"><span class="text-xs bg-sky-50 text-sky-700 border border-sky-200 px-2 py-0.5 rounded font-semibold">{{ c.get_semester_display }}</span></td>
         <td data-label="Units"><span class="text-sm font-bold text-gray-700">{{ c.credit_units }} <span class="text-gray-400 font-normal text-xs">CU</span></span></td>
         <td data-label="Type">{% if c.course_type == 'core' %}<span class="tb tc">Core</span>{% elif c.course_type == 'elective' %}<span class="tb te">Elective</span>{% elif c.course_type == 'general' %}<span class="tb tg">General</span>{% else %}<span class="tb tp">Prereq</span>{% endif %}</td>
         <td data-label="Status">{% if c.is_active %}<span class="sd sa"><span class="d"></span>Active</span>{% else %}<span class="sd sx"><span class="d"></span>Inactive</span>{% endif %}</td>
         <td class="td-a text-right action-buttons" data-label="Actions">
           <div class="flex items-center justify-end gap-1">
             {% if permissions.academics.can_edit %}
-            <button class="ab ae" title="Edit" onclick="openModal('edit',{id:'{{ c.pk }}',code:'{{ c.code|escapejs }}',name:'{{ c.name|escapejs }}',program:'{{ c.program.pk }}',units:'{{ c.credit_units }}',year:'{{ c.year_of_study }}',semester:'{{ c.semester }}',course_type:'{{ c.course_type }}',description:`{{ c.description|escapejs }}`,is_active:'{{ c.is_active|yesno:"true,false" }}'})"><i class="fas fa-pencil-alt"></i></button>
+            <button class="ab ae" title="Edit" onclick="openModal('edit',{id:'{{ c.pk }}',code:'{{ c.code|escapejs }}',name:'{{ c.name|escapejs }}',program:'{{ c.program.pk }}',units:'{{ c.credit_units }}',course_type:'{{ c.course_type }}',description:`{{ c.description|escapejs }}`,is_active:'{{ c.is_active|yesno:"true,false" }}'})"><i class="fas fa-pencil-alt"></i></button>
             {% endif %}
             {% if permissions.academics.can_delete %}
             <button class="ab ad" title="Delete" onclick="openDel('{{ c.pk }}','{{ c.code|escapejs }} — {{ c.name|escapejs }}')"><i class="fas fa-trash-alt"></i></button>
@@ -144,7 +140,7 @@
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="9"><div class="es"><i class="fas fa-book-open"></i><p class="font-semibold">No courses yet</p><p class="text-sm">Click "Add New Course" to get started.</p></div></td></tr>
+      <tr><td colspan="7"><div class="es"><i class="fas fa-book-open"></i><p class="font-semibold">No courses yet</p><p class="text-sm">Click "Add New Course" to get started.</p></div></td></tr>
       {% endfor %}
     </tbody>
   </table>
@@ -175,10 +171,6 @@
             <option value="">Type to search programs…</option>
             {% for p in form.program.field.queryset %}<option value="{{ p.pk }}">{{ p.name }} — {{ p.department.name }}</option>{% endfor %}
           </select>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div><label class="fl">Year *</label><select name="year_of_study" id="mYear" class="fc">{% for i in "12345678"|make_list %}<option value="{{ i }}">Year {{ i }}</option>{% endfor %}</select></div>
-          <div><label class="fl">Semester</label><select name="semester" id="mSem" class="fc"><option value="first">First</option><option value="second">Second</option><option value="annual">Annual</option></select></div>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div><label class="fl">Type</label><select name="course_type" id="mType" class="fc"><option value="core">Core</option><option value="elective">Elective</option><option value="general">General Studies</option><option value="prerequisite">Prerequisite</option></select></div>
@@ -217,15 +209,15 @@
 
 {% block extra_js %}<script>
 const $=id=>document.getElementById(id), rows=()=>[...document.querySelectorAll('#tb tr[id^="r"]')];
-const S={f:{type:'',year:'',status:'',q:''},sort:{c:null,d:'asc'},p:1,pp:15};
+const S={f:{type:'',status:'',q:''},sort:{c:null,d:'asc'},p:1,pp:15};
 
 function stats(){const r=rows();$('asStat').textContent=r.filter(x=>x.dataset.active==='active').length;$('prStat').textContent=new Set(r.map(x=>x.dataset.prg)).size;const u=r.map(x=>+x.dataset.units);$('auStat').textContent=u.length?(u.reduce((a,b)=>a+b,0)/u.length).toFixed(1):'—';}
 
 function flt(k,v,btn){S.f[k]=v;S.p=1;document.querySelectorAll(`[onclick*="flt('${k}"]`).forEach(b=>b.classList.remove('on'));btn.classList.add('on');render();}
-function go(){S.f.year=$('yrF').value;S.f.status=$('stF').value;S.p=1;render();}
+function go(){S.f.status=$('stF').value;S.p=1;render();}
 $('srch').addEventListener('input',function(){S.f.q=this.value.toLowerCase().trim();S.p=1;render();});
 
-function match(r){const{type,year,status,q}=S.f;if(type&&r.dataset.type!==type)return false;if(year&&r.dataset.year!==year)return false;if(status&&r.dataset.active!==status)return false;if(q&&![r.dataset.code,r.dataset.title,r.dataset.dept,r.dataset.prg].join(' ').includes(q))return false;return true;}
+function match(r){const{type,status,q}=S.f;if(type&&r.dataset.type!==type)return false;if(status&&r.dataset.active!==status)return false;if(q&&![r.dataset.code,r.dataset.title,r.dataset.dept,r.dataset.prg].join(' ').includes(q))return false;return true;}
 
 document.querySelectorAll('th[data-c]').forEach(th=>th.addEventListener('click',()=>{
   const c=+th.dataset.c;S.sort.d=S.sort.c===c&&S.sort.d==='asc'?'desc':'asc';S.sort.c=c;
@@ -242,8 +234,8 @@ function buildPg(pgs){const w=$('pgB');w.innerHTML='';const mk=(lbl,pg,dis=false
 function openModal(mode,d=null){
   $('cModal').classList.add('open');
   $('mErr').classList.add('hidden');$('mErr').textContent='';
-  if(mode==='create'){$('mTitle').textContent='Add New Course';$('mSub').textContent='Fill in the course details';$('mAct').value='create';$('mId').value='';['mCode','mName','mDesc'].forEach(x=>$(x).value='');$('mPrg').value='';$('mPrg').dispatchEvent(new Event('change',{bubbles:true}));$('mUnits').value='';$('mYear').value='1';$('mSem').value='first';$('mType').value='core';$('mStat').value='True';$('mIcon').className='fas fa-save';$('mLbl').textContent='Save Course';}
-  else{$('mTitle').textContent='Edit Course';$('mSub').textContent=`${d.code} — ${d.name}`;$('mAct').value='edit';$('mId').value=d.id;$('mCode').value=d.code;$('mName').value=d.name;$('mPrg').value=d.program;$('mPrg').dispatchEvent(new Event('change',{bubbles:true}));$('mUnits').value=d.units;$('mYear').value=d.year;$('mSem').value=d.semester;$('mType').value=d.course_type;$('mStat').value=d.is_active==='true'?'True':'False';$('mDesc').value=d.description;$('mIcon').className='fas fa-check';$('mLbl').textContent='Update Course';}
+  if(mode==='create'){$('mTitle').textContent='Add New Course';$('mSub').textContent='Fill in the course details';$('mAct').value='create';$('mId').value='';['mCode','mName','mDesc'].forEach(x=>$(x).value='');$('mPrg').value='';$('mPrg').dispatchEvent(new Event('change',{bubbles:true}));$('mUnits').value='';$('mType').value='core';$('mStat').value='True';$('mIcon').className='fas fa-save';$('mLbl').textContent='Save Course';}
+  else{$('mTitle').textContent='Edit Course';$('mSub').textContent=`${d.code} — ${d.name}`;$('mAct').value='edit';$('mId').value=d.id;$('mCode').value=d.code;$('mName').value=d.name;$('mPrg').value=d.program;$('mPrg').dispatchEvent(new Event('change',{bubbles:true}));$('mUnits').value=d.units;$('mType').value=d.course_type;$('mStat').value=d.is_active==='true'?'True':'False';$('mDesc').value=d.description;$('mIcon').className='fas fa-check';$('mLbl').textContent='Update Course';}
   setTimeout(()=>$('mCode').focus(),80);
 }
 function closeModal(){$('cModal').classList.remove('open');}

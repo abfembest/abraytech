@@ -31,12 +31,6 @@
     }
     .print-only { display:none; }
 
-    /* ── Sticky session header ── */
-    .session-header-sticky {
-        position:sticky; top:0; z-index:10;
-        background:linear-gradient(135deg,#1e40af,#4a6bff);
-    }
-
     /* ── GPA ring ── */
     .gpa-ring { position:relative; width:120px; height:120px; }
     .gpa-ring svg { transform:rotate(-90deg); }
@@ -53,21 +47,11 @@
 
     /* ── Hover row ── */
     .grade-row:hover { background:#f8fafc; }
-
-    /* ── Timeline dot ── */
-    .timeline-dot {
-        width:12px; height:12px; border-radius:50%;
-        background:#4a6bff; border:2px solid #fff;
-        box-shadow:0 0 0 3px #bfdbfe;
-        flex-shrink:0; margin-top:4px;
-    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="p-4 sm:p-6 lg:p-8 space-y-8">
-
-    <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
 
     {# ══════════════════════════════════════════════════════════ #}
     {# TRANSCRIPT WATERMARK (print)                              #}
@@ -82,9 +66,6 @@
             <h1 class="text-2xl font-bold text-gray-900 font-heading">Academic Records</h1>
             <p class="text-sm text-gray-500 mt-0.5">
                 {% if program %}{{ program.name }} &mdash; {{ program.department.name }}{% else %}No programme assigned{% endif %}
-                {% if current_session %}
-                &bull; <span class="text-primary-600 font-medium">{{ current_session.name }}</span>
-                {% endif %}
             </p>
         </div>
         <div class="flex flex-wrap gap-2 no-print">
@@ -246,179 +227,78 @@
             </div>
         </div>
 
-        {% if session_summaries %}
-        <div class="divide-y divide-gray-100">
+        {% if grades %}
+        <div class="px-4 sm:px-6 py-4">
 
-            {% for session in session_summaries %}
-            <div class="session-block">
-
-                {# ── Session Header ── #}
-                <div class="session-header-sticky px-6 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <div class="flex items-center gap-3">
-                        <div class="timeline-dot"></div>
-                        <div>
-                            <h3 class="text-sm font-bold text-white">{{ session.name }}</h3>
-                            <p class="text-[11px] text-blue-200">
-                                {{ session.semesters|length }} semester{{ session.semesters|length|pluralize }}
-                                &bull; {{ session.credits }} credit{{ session.credits|pluralize }} earned
-                            </p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-6 ml-7 sm:ml-0">
-                        <div class="text-right">
-                            <p class="text-[10px] text-blue-200 uppercase tracking-wide">Session GPA</p>
-                            <p class="text-lg font-bold text-white">
-                                {% if session.gpa %}{{ session.gpa }}{% else %}&mdash;{% endif %}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                {# ── Semester blocks inside this session ── #}
-                {% for sem in session.semesters %}
-                <div class="px-4 sm:px-6 py-4">
-
-                    {# Semester sub-header #}
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-primary-400 flex-shrink-0"></span>
-                            <h4 class="text-sm font-semibold text-gray-700">{{ sem.label }}</h4>
-                        </div>
-                        <div class="flex items-center gap-4 text-xs text-gray-500">
-                            <span>{{ sem.credits }} CU earned</span>
-                            <span class="font-semibold text-primary-700">
-                                Semester GPA: {% if sem.gpa %}{{ sem.gpa }}{% else %}&mdash;{% endif %}
-                            </span>
-                        </div>
-                    </div>
-
-                    {# Grades table #}
-                    <div class="overflow-x-auto rounded-xl border border-gray-100">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                                    <th class="px-4 py-2.5 text-left">Course Code</th>
-                                    <th class="px-4 py-2.5 text-left">Course Title</th>
-                                    <th class="px-4 py-2.5 text-center">Credit Units</th>
-                                    <th class="px-4 py-2.5 text-center">Score (%)</th>
-                                    <th class="px-4 py-2.5 text-center">Grade</th>
-                                    <th class="px-4 py-2.5 text-center">Grade Points</th>
-                                    <th class="px-4 py-2.5 text-center">Weighted</th>
-                                    <th class="px-4 py-2.5 text-center">Status</th>
-                                    <th class="px-4 py-2.5 text-center">Exam</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-50">
-                                {% for g in sem.grades %}
-                                <tr class="grade-row transition-colors">
-                                    <td class="px-4 py-3 font-mono text-xs font-semibold text-gray-700">
-                                        {{ g.display_code|default:"—" }}
-                                    </td>
-                                    <td class="px-4 py-3 text-gray-800 font-medium max-w-xs">
-                                        {{ g.display_name|default:"Unknown" }}
-                                    </td>
-                                    <td class="px-4 py-3 text-center text-gray-700 font-medium">
-                                        {{ g.credit_units }}
-                                    </td>
-                                    <td class="px-4 py-3 text-center text-gray-700">
-                                        {% if g.score %}{{ g.score }}{% else %}&mdash;{% endif %}
-                                    </td>
-                                    <td class="px-4 py-3 text-center">
-                                        {% if g.grade %}
-                                        <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold grade-{{ g.grade }}">
-                                            {{ g.grade }}
-                                        </span>
-                                        {% else %}
-                                        <span class="text-gray-400 text-xs">Pending</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="px-4 py-3 text-center text-gray-700">
-                                        {% if g.grade %}{{ g.grade_points }}{% else %}&mdash;{% endif %}
-                                    </td>
-                                    <td class="px-4 py-3 text-center text-gray-700 font-medium">
-                                        {% if g.grade %}{{ g.weighted_points }}{% else %}&mdash;{% endif %}
-                                    </td>
-                                    <td class="px-4 py-3 text-center">
-                                        {% if g.is_passed %}
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-100 text-green-700">
-                                            <i class="fas fa-check text-[9px]"></i> Passed
-                                        </span>
-                                        {% elif g.grade == 'F' %}
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-700">
-                                            <i class="fas fa-times text-[9px]"></i> Failed
-                                        </span>
-                                        {% elif g.grade == 'W' %}
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-600">
-                                            Withdrawn
-                                        </span>
-                                        {% elif g.grade == 'I' %}
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-yellow-100 text-yellow-700">
-                                            Incomplete
-                                        </span>
-                                        {% else %}
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-500">
-                                            <i class="fas fa-clock text-[9px]"></i> Pending
-                                        </span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-
-                                {# Semester totals row #}
-                                <tr class="bg-blue-50 font-semibold text-sm border-t-2 border-blue-100">
-                                    <td class="px-4 py-2.5 text-blue-800 font-bold" colspan="2">
-                                        Semester Totals
-                                    </td>
-                                    <td class="px-4 py-2.5 text-center text-blue-800">
-                                        {{ sem.total_cu }} {{ sem.grades|length }} course{{ sem.grades|length|pluralize }}
-                                    </td>
-                                    <td class="px-4 py-2.5 text-center text-blue-600">&mdash;</td>
-                                    <td class="px-4 py-2.5 text-center text-blue-600">&mdash;</td>
-                                    <td class="px-4 py-2.5 text-center text-blue-600">&mdash;</td>
-                                    <td class="px-4 py-2.5 text-center text-blue-800 font-bold">
-                                        {{ sem.total_weighted }}
-                                    </td>
-                                    <td class="px-4 py-2.5 text-center">
-                                        <span class="inline-block px-3 py-0.5 rounded-full bg-blue-200 text-blue-900 text-xs font-bold">
-                                            GPA: {% if sem.gpa %}{{ sem.gpa }}{% else %}&mdash;{% endif %}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-3 text-center text-xs text-gray-400">
-                                        {{ g.exam_ref|default:"—" }}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                {% endfor %}
-
-                {# ── Session GPA summary footer ── #}
-                <div class="mx-4 sm:mx-6 mb-4 px-5 py-3 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 flex flex-wrap items-center gap-4 justify-between">
-                    <div class="flex items-center gap-3">
-                        <i class="fas fa-chart-line text-primary-500"></i>
-                        <span class="text-sm font-semibold text-gray-700">{{ session.name }} Summary</span>
-                    </div>
-                    <div class="flex flex-wrap gap-6 text-sm">
-                        <div class="text-center">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wide">Credits Earned</p>
-                            <p class="font-bold text-gray-800">{{ session.credits }}</p>
-                        </div>
-                        <div class="text-center">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wide">Session GPA</p>
-                            <p class="font-bold text-primary-700 text-lg">
-                                {% if session.gpa %}{{ session.gpa }}{% else %}&mdash;{% endif %}
-                            </p>
-                        </div>
-                        <div class="text-center">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wide">CGPA (running)</p>
-                            <p class="font-bold text-gray-800 text-lg">{% if gpa %}{{ gpa }}{% else %}&mdash;{% endif %}</p>
-                        </div>
-                    </div>
-                </div>
+            {# Grades table #}
+            <div class="overflow-x-auto rounded-xl border border-gray-100">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                            <th class="px-4 py-2.5 text-left">Course Title</th>
+                            <th class="px-4 py-2.5 text-center">Credit Units</th>
+                            <th class="px-4 py-2.5 text-center">Score (%)</th>
+                            <th class="px-4 py-2.5 text-center">Grade</th>
+                            <th class="px-4 py-2.5 text-center">Grade Points</th>
+                            <th class="px-4 py-2.5 text-center">Weighted</th>
+                            <th class="px-4 py-2.5 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        {% for g in grades %}
+                        <tr class="grade-row transition-colors">
+                            <td class="px-4 py-3 text-gray-800 font-medium max-w-xs">
+                                {{ g.display_name|default:"Unknown" }}
+                            </td>
+                            <td class="px-4 py-3 text-center text-gray-700 font-medium">
+                                {{ g.credit_units }}
+                            </td>
+                            <td class="px-4 py-3 text-center text-gray-700">
+                                {% if g.score %}{{ g.score }}{% else %}&mdash;{% endif %}
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                {% if g.grade %}
+                                <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold grade-{{ g.grade }}">
+                                    {{ g.grade }}
+                                </span>
+                                {% else %}
+                                <span class="text-gray-400 text-xs">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3 text-center text-gray-700">
+                                {% if g.grade %}{{ g.grade_points }}{% else %}&mdash;{% endif %}
+                            </td>
+                            <td class="px-4 py-3 text-center text-gray-700 font-medium">
+                                {% if g.grade %}{{ g.weighted_points }}{% else %}&mdash;{% endif %}
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                {% if g.is_passed %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-100 text-green-700">
+                                    <i class="fas fa-check text-[9px]"></i> Passed
+                                </span>
+                                {% elif g.grade == 'F' %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-700">
+                                    <i class="fas fa-times text-[9px]"></i> Failed
+                                </span>
+                                {% elif g.grade == 'W' %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-600">
+                                    Withdrawn
+                                </span>
+                                {% elif g.grade == 'I' %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-yellow-100 text-yellow-700">
+                                    Incomplete
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-500">
+                                    <i class="fas fa-clock text-[9px]"></i> Pending
+                                </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
-            {% endfor %}
-
         </div>
 
         {# ── Cumulative CGPA Footer ── #}
@@ -595,58 +475,6 @@
 
             </div>
         </div>
-    </div>
-
-    {# ══════════════════════════════════════════════════════════ #}
-    {# PROGRESSION HISTORY — level/status changes over time       #}
-    {# ══════════════════════════════════════════════════════════ #}
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-100">
-            <h2 class="text-base font-semibold text-gray-900 font-heading">
-                <i class="fas fa-layer-group text-primary-500 mr-2"></i>Progression History
-            </h2>
-            <p class="text-xs text-gray-400 mt-0.5">Level and academic-standing changes at the end of each session</p>
-        </div>
-
-        {% if progression_history %}
-        <div class="divide-y divide-gray-50">
-            {% for log in progression_history %}
-            <div class="px-6 py-4 flex items-start gap-3">
-                <div class="timeline-dot"></div>
-                <div class="flex-1 min-w-0">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <span class="text-sm font-semibold text-gray-800">{{ log.session.name|default:"—" }}</span>
-                        <span class="text-xs text-gray-400">{{ log.created_at|date:"M j, Y" }}</span>
-                    </div>
-                    <p class="text-sm text-gray-600 mt-1">
-                        <span class="font-medium">{{ log.previous_year_of_study|default:0|floatformat:0 }}00L</span>
-                        <i class="fas fa-arrow-right text-[10px] text-gray-400 mx-1"></i>
-                        <span class="font-medium">{{ log.new_year_of_study|default:0|floatformat:0 }}00L</span>
-                        &bull;
-                        <span class="capitalize">{{ log.previous_status }}</span>
-                        <i class="fas fa-arrow-right text-[10px] text-gray-400 mx-1"></i>
-                        <span class="capitalize font-semibold
-                            {% if log.new_status == 'active' %}text-green-600
-                            {% elif log.new_status == 'graduated' %}text-primary-600
-                            {% elif log.new_status == 'probation' %}text-amber-600
-                            {% elif log.new_status == 'withdrawn' %}text-red-600
-                            {% else %}text-gray-600{% endif %}">{{ log.new_status }}</span>
-                        {% if log.cgpa %}&bull; CGPA at the time: <span class="font-semibold text-gray-700">{{ log.cgpa }}</span>{% endif %}
-                    </p>
-                    {% if log.note %}
-                    <p class="text-xs text-gray-400 mt-1">{{ log.note }}</p>
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="py-10 text-center">
-            <i class="fas fa-layer-group text-gray-200 text-3xl mb-2"></i>
-            <p class="text-sm text-gray-500">No progression decisions recorded yet</p>
-            <p class="text-xs text-gray-400 mt-1">This fills in once your academic office runs end-of-session progression.</p>
-        </div>
-        {% endif %}
     </div>
 
     {# ══════════════════════════════════════════════════════════ #}

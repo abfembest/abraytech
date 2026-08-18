@@ -1,12 +1,11 @@
 {% extends 'management/base.html' %}
 {% load static %}
 
-{% block title %}Message from {{ contact_message.name }} - MIU Admin Portal{% endblock %}
+{% block title %}Message from {{ contact_message.name }} - Abraytech Admin Portal{% endblock %}
 
 {% block content %}
 <div class="max-w-full mx-auto">
 
-  <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
   <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6" aria-label="Breadcrumb">
     <a href="{% url 'management:contact_messages_list' %}" class="hover:text-primary-600">Contact Messages</a>
     <i class="fas fa-chevron-right text-xs" aria-hidden="true"></i>

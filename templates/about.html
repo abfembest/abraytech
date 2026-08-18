@@ -261,10 +261,16 @@
           {% else %}<i data-lucide="clock" class="w-4 h-4 sm:w-5 sm:h-5 text-brandblue"></i>{% endif %}
         </div>
 
-        <!-- Card — left half on odd rows, right half on even rows (lg+) -->
-        <div class="flex-1 min-w-0 lg:w-1/2 {% cycle 'lg:pr-12 lg:text-right' 'lg:ml-auto lg:pl-12' as cardside %}">
+        <!-- Card — left half on odd rows, right half on even rows (lg+).
+             Positioning uses flex `order`, not margin-auto: the card and its
+             spacer are both lg:w-1/2 (summing to exactly 100% of the row),
+             so there's never leftover space for ml-auto to push into — that
+             silently no-ops and every card renders in DOM order (always
+             left) regardless of the cycle. `order` reliably swaps sides. -->
+        {% cycle 'left' 'right' as cardside silent %}
+        <div class="flex-1 min-w-0 lg:w-1/2 {% if cardside == 'left' %}lg:order-1 lg:pr-12 lg:text-right{% else %}lg:order-2 lg:pl-12{% endif %}">
           <span class="inline-flex items-center gap-1.5 text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full mb-3
-            {% if cardside == 'lg:pr-12 lg:text-right' %}lg:flex-row-reverse{% endif %}
+            {% if cardside == 'left' %}lg:flex-row-reverse{% endif %}
             {% if forloop.first %}brand-gradient text-white
             {% elif forloop.last %}brand-gradient text-white
             {% else %}bg-ice text-brandblue{% endif %}"
@@ -273,7 +279,7 @@
             {{ milestone.year }}
           </span>
           <article class="bg-white rounded-2xl shadow-card hover:shadow-brand transition-all hover:-translate-y-0.5 p-6
-            {% if cardside == 'lg:pr-12 lg:text-right' %}border-l-4 lg:border-l-0 lg:border-r-4{% else %}border-l-4{% endif %}
+            {% if cardside == 'left' %}border-l-4 lg:border-l-0 lg:border-r-4{% else %}border-l-4{% endif %}
             border-brandblue">
             <h3 class="font-sora font-bold text-lg text-navy mb-2">{{ milestone.title }}</h3>
             <p class="text-slate-600 text-sm leading-relaxed">{{ milestone.description }}</p>
@@ -281,7 +287,7 @@
         </div>
 
         <!-- Spacer for the opposite half (lg+ only, keeps the card at 50% width) -->
-        <div class="hidden lg:block lg:w-1/2" aria-hidden="true"></div>
+        <div class="hidden lg:block lg:w-1/2 {% if cardside == 'left' %}lg:order-2{% else %}lg:order-1{% endif %}" aria-hidden="true"></div>
       </div>
       {% endfor %}
 

@@ -38,9 +38,6 @@
 {% block content %}
 <div class="w-full max-w-full anim-in">
 
-                <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
-
-
     <!-- ── Breadcrumb ── -->
     <nav class="text-xs text-gray-400 mb-2 flex items-center gap-1.5 flex-wrap">
         <a href="{% url 'students:exam_list' %}" class="hover:text-primary-600 transition flex items-center gap-1 font-medium">
@@ -67,7 +64,7 @@
                     {% if exam.course %}
                     <span class="text-gray-200 text-xs">|</span>
                     <span class="text-[10px] text-secondary-500 font-semibold truncate max-w-[160px]">
-                        {% if exam.course.code %}{{ exam.course.code }} — {% endif %}{{ exam.course.title }}
+                        {{ exam.course.title }}
                     </span>
                     {% endif %}
                 </div>
@@ -109,15 +106,6 @@
                             {% if exam.pass_mark %}&bull; Pass {{ exam.pass_mark }}{% endif %}
                         </span>
                     </div>
-
-                    <!-- Session chip — via course.session -->
-                    {% if exam.course.session %}
-                    <div class="stat-chip">
-                        <span class="lbl"><i class="fas fa-university mr-0.5"></i>Session</span>
-                        <span class="val">{{ exam.course.session.name }}</span>
-                        <span class="sub">{{ exam.course.get_term_display|default:"—" }}</span>
-                    </div>
-                    {% endif %}
 
                 </div>
             </div>

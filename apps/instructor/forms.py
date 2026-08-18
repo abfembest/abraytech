@@ -41,7 +41,7 @@ class CourseForm(forms.ModelForm):
         model = LMSCourse
         fields = [
             'title', 'code', 'short_description',
-            'description', 'difficulty_level',
+            'description',
             'thumbnail', 'promo_video_url',
             'academic_course',
             # 'has_certificate', 'certificate_template',
@@ -67,9 +67,6 @@ class CourseForm(forms.ModelForm):
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors',
                 'rows': 6,
                 'placeholder': 'Detailed course description'
-            }),
-            'difficulty_level': forms.Select(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors'
             }),
             # 'duration_hours': forms.NumberInput(attrs={
             #     'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors',

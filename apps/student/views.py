@@ -25,87 +25,35 @@ from apps.eduweb.models import (
     StudentBadge, LessonSection,
     Message, Notification, Review, StudyGroupMessage,
     FeePayment, CourseGrade, CourseApplication, Exam, StudentExamResponse,
-    Course, AcademicSession, CourseRegistration, CourseCarryOver,
-    ProgressionDecisionLog, TERM_NORMALISATION_MAP,
+    Course, CourseRegistration,
 )
 
 from .forms import AssignmentSubmissionForm, ReplyCreateForm, ThreadCreateForm, StudyGroupMessageForm
 
 logger = logging.getLogger(__name__)
 
-# The only place this mapping is defined is eduweb.models.TERM_NORMALISATION_MAP
-# (a model needs it too, for Program.max_credits_for_term's fallback tier, and
-# a model can't import from a view module) — this name is kept as a local
-# alias purely so every existing call site below didn't need touching.
-term_normalisation_map = TERM_NORMALISATION_MAP
 
-
-def _registrable_course_ids(profile, session=None):
+def _registrable_course_ids(profile):
     """
-    Course IDs a student is allowed to be registering for right now:
-    everything at their *current* year_of_study, plus any course still
-    open as a carry-over from a level they've already moved past.
-
-    Single source of truth for "does this registration belong to the
-    student's active registration cycle" — used both to decide which
-    courses `my_courses` offers and to scope the credit-unit cap check
-    in `register_semester_course`/`register_all_semester_courses`. Before
-    this existed, the cap check summed *every* pending/approved
-    CourseRegistration row for the session/term with no level filter, so
-    a stale registration left over from a level the student already
-    passed (e.g. from before they were promoted) silently consumed their
-    credit cap forever and blocked all new registrations with no
-    indication of why.
-
-    `session`, when given, is excluded from the "already passed" filter
-    below — see that filter's comment for why.
+    Course IDs a student is allowed to register for right now: every active
+    course they haven't already passed. The catalog is flat — any accepted
+    student can register for any course, regardless of program/level — so
+    the only exclusion is a course they've already completed.
     """
-    if not profile or not profile.program:
+    if not profile:
         return Course.objects.none().values_list('id', flat=True)
-
-    # Reconcile before reading — a released passing grade may already exist
-    # for an open carry-over (e.g. a mid-session recompute) that no
-    # progression run has processed yet; without this, is_cleared can sit
-    # stale until the next admin-triggered progression batch.
-    CourseCarryOver.sync_cleared_for_student(profile.user)
-
-    open_carry_over_course_ids = CourseCarryOver.objects.filter(
-        student=profile.user, is_cleared=False
-    ).values_list('course_id', flat=True)
 
     # result_status='released' — an unpublished pass isn't confirmed to the
     # student yet, so it must not silently drop the course from their
     # registrable list while they're still waiting on the official result.
-    #
-    # Excludes the *current* session (when given): CourseGrade.recompute_
-    # for_student_course runs continuously off quiz/assignment/exam scores
-    # as they come in, so a course can legitimately already read as
-    # is_passed=True mid-session, before that session has closed — and if
-    # an admin has released results early, or in this session's seed data,
-    # that grade can carry result_status='released' too. A pass from the
-    # *same* session/term being registered for must not make an active,
-    # currently-registered course invisible to registrable_course_ids —
-    # that would silently drop it from the credit-cap total (undercounting
-    # what's actually registered) even though the registration is real and
-    # current, not stale. Only a pass from a genuinely *prior* session means
-    # the course is done and should stop being offered/counted.
-    passed_qs = CourseGrade.objects.filter(
+    passed_course_ids = CourseGrade.objects.filter(
         student=profile.user, is_passed=True, result_status='released',
-    )
-    if session is not None:
-        passed_qs = passed_qs.exclude(session=session)
-    passed_course_ids = passed_qs.values_list('course_id', flat=True)
+    ).values_list('course_id', flat=True)
 
-    # A passed course is only excluded from the current-level listing, never
-    # from the carry-over branch — CourseCarryOver.is_cleared is the
-    # authoritative "still needs retaking" signal, so a course flagged as an
-    # open carry-over stays registrable even in the (should-be-impossible)
-    # case where a stale CourseGrade also marks it passed.
     return Course.objects.filter(
-        (Q(year_of_study=profile.year_of_study) & ~Q(pk__in=passed_course_ids))
-        | Q(pk__in=open_carry_over_course_ids),
-        program=profile.program,
         is_active=True,
+    ).exclude(
+        pk__in=passed_course_ids,
     ).values_list('id', flat=True)
 
 
@@ -211,9 +159,7 @@ def dashboard(request):
     user = request.user
 
     # ── Academic identity (needed by multiple sections below) ────────────────
-    profile         = getattr(user, 'profile', None)
-    current_session = AcademicSession.get_current()
-    current_term    = current_session.get_current_term() if current_session else None
+    profile = getattr(user, 'profile', None)
 
     department = None
     faculty    = None
@@ -221,60 +167,12 @@ def dashboard(request):
         department = getattr(profile.program, 'department', None)
         faculty    = getattr(department, 'faculty', None) if department else None
 
-    # ── Semester-registered courses (Course model, not LMS Enrollments) ──────
-    # Mirror the logic from my_courses so the dashboard is always consistent.
-    semester_courses        = []
-    registered_course_ids   = set()
+    # ── Registered courses (Course model, not LMS Enrollments) ───────────────
     registered_credit_total = 0
-    registration_submitted  = False
-    registration_finalized  = False
-
-    if profile and profile.program and current_session and current_term:
-        normalised_term = term_normalisation_map.get(current_term, current_term)
-
-        # All courses offered for this student's program / year / term
-        semester_courses = list(
-            Course.objects
-            .filter(
-                program=profile.program,
-                year_of_study=profile.year_of_study,
-                is_active=True,
-            )
-            .filter(Q(semester=normalised_term) | Q(semester='annual'))
-            .prefetch_related('prerequisites')
-            .order_by('course_type', 'name')
-        )
-
-        existing_regs = CourseRegistration.objects.filter(
-            student=user,
-            session=current_session,
-            term__in=[current_term, normalised_term],
-            status__in=['pending', 'approved'],
-        ).select_related('course')
-
-        registered_course_ids  = {r.course_id for r in existing_regs}
-        registration_submitted = existing_regs.exists()
-        registration_finalized = (
-            registration_submitted
-            and not existing_regs.filter(status='pending').exists()
-        )
-
-        for course in semester_courses:
-            course.is_registered = course.id in registered_course_ids
-            course.is_core       = course.course_type == 'core'
-
-        # Scoped by term (not just session — a session has multiple terms)
-        # and to the student's current-level/carry-over courses, matching
-        # my_courses exactly so the two pages can never disagree.
+    if profile:
         registered_credit_total = (
             CourseRegistration.objects
-            .filter(
-                student=user,
-                session=current_session,
-                term__in=[current_term, normalised_term],
-                status__in=['pending', 'approved'],
-                course_id__in=_registrable_course_ids(profile, session=current_session),
-            )
+            .filter(student=user, status__in=['pending', 'approved'])
             .aggregate(total=Sum('course__credit_units'))['total'] or 0
         )
 
@@ -345,7 +243,7 @@ def dashboard(request):
         admission_history = (
             CourseApplication.objects
             .filter(Q(user=user) | Q(email=user.email))
-            .select_related('program', 'program__department__faculty', 'academic_session')
+            .select_related('program', 'program__department__faculty')
             .order_by('-created_at')[:5]
         )
 
@@ -420,16 +318,9 @@ def dashboard(request):
     recent_grades = (
         CourseGrade.objects
         .filter(student=user, result_status='released')
-        .select_related('course', 'session')
+        .select_related('course')
         .order_by('-recorded_at')[:5]
     )
-
-    # ── Progression snapshot (cumulative GPA + open carry-overs) ──────────────
-    # Uses the same canonical CourseGrade.compute_cgpa as Academic Records and
-    # the progression decision logic, so the CGPA shown here never disagrees.
-    cgpa = CourseGrade.compute_cgpa(user)
-    CourseCarryOver.sync_cleared_for_student(user)
-    open_carry_overs = CourseCarryOver.objects.filter(student=user, is_cleared=False).select_related('course')
 
     context = {
         'page_title':               'My Dashboard',
@@ -449,18 +340,11 @@ def dashboard(request):
         'profile':                  profile,
         'department':               department,
         'faculty':                  faculty,
-        # Semester-registered courses (Course model)
-        'semester_courses':         semester_courses,
-        'registered_course_ids':    registered_course_ids,
+        # Registered courses (Course model)
         'registered_credit_total':  registered_credit_total,
-        'registration_submitted':   registration_submitted,
-        'registration_finalized':   registration_finalized,
         # Exams & grades
         'upcoming_exams':           upcoming_exams,
         'recent_grades':            recent_grades,
-        # Progression
-        'cgpa':                     cgpa,
-        'open_carry_overs':         open_carry_overs,
     }
 
     return render(request, 'students/dashboard.html', context)
@@ -469,267 +353,59 @@ def dashboard(request):
 @student_required
 def my_courses(request):
     """
-    Semester registration panel + enrolled LMS courses.
-    - Student picks session & term manually (defaults to current).
-    - All courses for their program/year/term load automatically.
-    - Credit counter enforces program max from backend.
-    - Finalize & Enroll only enabled when core credits are all selected
-      and total does not exceed the program's per-term cap (see
-      Program.max_credits_for_term).
-    - LMS course cards only appear after successful enrollment.
+    "My Courses" — everything the student is already taking: courses
+    auto-registered for them from their chosen program on admission, plus
+    anything they've added since from the catalog. Browsing/registering for
+    *more* courses happens on the catalog and course-detail pages, not here.
     """
     user = request.user
     profile = getattr(user, 'profile', None)
 
-    # ── Session / Term selector ────────────────────────────────────────────
-    # Always use the current session — students cannot switch sessions here.
-    current_session  = AcademicSession.get_current()
-    selected_session = current_session
-    all_sessions     = [current_session] if current_session else []
-
-    # Term is derived automatically from session.term_dates — never from GET params.
-    selected_term = ''
-
-    if not selected_term and selected_session:
-        selected_term = selected_session.get_current_term() or ''
-        # if no term is currently active by date, fall back to the first term
-        # defined in term_dates so courses still load
-        if not selected_term and selected_session.term_dates:
-            selected_term = selected_session.term_dates[0].get('term', '')
-        # last resort: use first semester
-        if not selected_term:
-            selected_term = 'first'
-
-    # Check if the selected term is currently active within this session's term_dates
-    def _term_is_active(session, term):
-        """Returns True if today falls within the term window in session.term_dates."""
-        if not session or not term or not session.term_dates:
-            return False
-        from datetime import date as _date
-        today = timezone.now().date()
-        normalised = term_normalisation_map.get(term, term)
-        for entry in session.term_dates:
-            if entry.get('term') in (term, normalised):
-                try:
-                    start = _date.fromisoformat(entry['start'])
-                    end   = _date.fromisoformat(entry['end'])
-                    if start <= today <= end:
-                        return True
-                except (KeyError, ValueError):
-                    pass
-        return False
-
-    selected_term_is_active = _term_is_active(selected_session, selected_term)
-
-    registration_open = (
-        selected_session is not None
-        and selected_session.status != 'closed'
-        and selected_session.is_registration_open
-    )
-
-    # ── Semester courses ───────────────────────────────────────────────────
-    semester_courses          = []
-    registered_course_ids     = set()
-    registered_courses        = []
-    registration_submitted    = False
-    registration_finalized    = False
-    registered_credit_total   = 0
-    core_credit_total         = 0
-    semester_courses_debug    = {}
-    regular_courses_complete  = True
-
-    # Pull max from Program model — never hardcoded. Per (session, term):
-    # Program.max_credits_for_term checks a session-specific override first
-    # (ProgramSessionCreditCap), then a program-wide per-term default
-    # (credit_caps_by_term), then max_credits_per_semester. Pass the RAW
-    # selected_term here, not a pre-normalised one — the session-specific
-    # tier is keyed by whatever term name this session actually uses.
-    max_credits_per_semester = (
-        profile.program.max_credits_for_term(selected_term, session=selected_session)
-        if profile and profile.program
-        else 24
-    )
-
-    if profile and profile.program and selected_session and selected_term:
-        normalised_term = term_normalisation_map.get(selected_term, selected_term)
-
-        # Courses already passed shouldn't be offered again for re-registration.
-        # result_status='released' — matches _registrable_course_ids: an
-        # unpublished pass isn't confirmed yet, so don't hide the course.
-        # Excludes the *current* selected_session — see _registrable_course_ids'
-        # matching comment: a mid-session recompute can already read as
-        # is_passed=True (and, if released early, result_status='released')
-        # before the session closes, and that must not make an actively
-        # registered course disappear from its own term's own listing.
-        passed_course_ids = set(
-            CourseGrade.objects.filter(
-                student=user, is_passed=True, result_status='released'
-            ).exclude(session=selected_session).values_list('course_id', flat=True)
+    registrations = list(
+        CourseRegistration.objects.filter(
+            student=user, status__in=['pending', 'approved'],
         )
-
-        CourseCarryOver.sync_cleared_for_student(user)
-        carry_over_attempts = {
-            co.course_id: co.attempts
-            for co in CourseCarryOver.objects.filter(student=user, is_cleared=False)
-        }
-        open_carry_over_course_ids = set(carry_over_attempts.keys())
-
-        # One unified query — current-level courses (excluding anything
-        # already passed) UNION any open carry-over course regardless of
-        # level. Building this as two separate queries reconciled by
-        # exclusion (the original approach) let a carry-over that happens
-        # to share the student's *current* level — i.e. she's repeating it
-        # — slip through unflagged: it landed in the "regular" query, got
-        # is_carry_over=False, and was then excluded from the dedicated
-        # carry-over query for already being present. That silently hid its
-        # badge/lock and made regular_course_ids (below) require the course
-        # to be registered before itself — a permanent deadlock.
-        semester_courses = list(
-            Course.objects
-            .filter(
-                (Q(year_of_study=profile.year_of_study) & ~Q(pk__in=passed_course_ids))
-                | Q(pk__in=open_carry_over_course_ids),
-                program=profile.program,
-                is_active=True,
-            )
-            .filter(Q(semester=normalised_term) | Q(semester='annual'))
-            .exclude(pk__in=passed_course_ids)
-            .prefetch_related('prerequisites')
-            .order_by('course_type', 'name')
-        )
-
-        existing_regs = CourseRegistration.objects.filter(
-            student=user,
-            session=selected_session,
-            term__in=[selected_term, normalised_term],
-            status__in=['pending', 'approved'],
-        ).select_related('course')
-
-        registered_course_ids  = {r.course_id for r in existing_regs}
-        registered_courses     = list(existing_regs)
-        registration_submitted = existing_regs.exists()
-        # True when ALL existing registrations for this term are approved (finalized)
-        registration_finalized = (
-            registration_submitted
-            and not existing_regs.filter(status='pending').exists()
-        )
-
-        # Build a map of course_id → registration status for the template
-        reg_status_map = {r.course_id: r.status for r in existing_regs}
-
-        for course in semester_courses:
-            course.is_registered = course.id in registered_course_ids
-            course.is_core       = course.course_type == 'core'
-            # Membership in open_carry_over_course_ids is the sole signal —
-            # not "did this come from the level-match query or the
-            # carry-over query" — so a same-level repeat is still correctly
-            # flagged.
-            course.is_carry_over = course.id in open_carry_over_course_ids
-            course.carry_over_attempts = carry_over_attempts.get(course.id, 1)
-            course.registration_status = reg_status_map.get(course.id, '')  # 'pending' | 'approved' | ''
-            if course.course_type == 'core':
-                core_credit_total += course.credit_units
-
-        # Carry-over courses are locked until every *regular* course this
-        # term (core, elective, or any other type) is already registered —
-        # a student has to handle their current curriculum before touching
-        # what they still owe from a previous level. "Regular" excludes
-        # anything just flagged is_carry_over above, so a same-level
-        # carry-over never counts as its own prerequisite.
-        regular_course_ids = {c.id for c in semester_courses if not c.is_carry_over}
-        regular_courses_complete = regular_course_ids.issubset(registered_course_ids)
-
-        for course in semester_courses:
-            if course.is_carry_over:
-                course.locked_pending_regular = not regular_courses_complete and not course.is_registered
-
-        # Carry-over rows sorted after regular ones — a stable sort keeps
-        # the existing course_type/name ordering within each group — so the
-        # template's {% ifchanged course.is_carry_over %} divider still
-        # fires exactly once, at the real transition.
-        semester_courses.sort(key=lambda c: c.is_carry_over)
-
-        registered_credit_total = sum(
-            c.credit_units for c in semester_courses if c.is_registered
-        )
-
-        semester_courses_debug = {
-            'program': str(profile.program),
-            'year_of_study': profile.year_of_study,
-            'term': selected_term,
-            'normalised_term': normalised_term,
-            'max_cu': max_credits_per_semester,
-            'core_cu': core_credit_total,
-            'count': len(semester_courses),
-        }
-    else:
-        semester_courses_debug = {
-            'profile_exists': bool(profile),
-            'program': str(getattr(profile, 'program', None)) if profile else None,
-            'session': str(selected_session),
-            'term': selected_term,
-        }
-
-    # Finalize allowed only when all core courses are selected and max not exceeded
-    can_finalize = (
-        registered_credit_total >= core_credit_total
-        and registered_credit_total <= max_credits_per_semester
-        and registered_credit_total > 0
+        .select_related('course', 'course__program')
+        .order_by('-registered_at')
     )
-
-    # count only pending (newly selected, not yet approved) courses for the confirm modal
-    new_registration_count = sum(
-        1 for c in semester_courses
-        if c.is_registered and getattr(c, 'registration_status', '') == 'pending'
-    )
-
-    # ── LMS Enrollments — only show courses for selected session ──────────
-    status_filter = request.GET.get('status', 'active')
-    if status_filter not in ['active', 'completed']:
-        status_filter = 'active'
 
     try:
-        # Only show enrollments for sessions where the student has approved registrations
-        approved_session_ids = CourseRegistration.objects.filter(
-            student=user, status='approved'
-        ).values_list('session_id', flat=True).distinct()
-
-        enrollment_qs = Enrollment.objects.filter(student=user)
-        if selected_session:
-            # Normalise term for matching (fall→first, spring→second, etc.)
-            _norm_term = term_normalisation_map.get(selected_term, selected_term) if selected_term else None
-            session_term_filter = Q(course__session=selected_session) & Q(course__session__in=approved_session_ids)
-            enrollment_qs = enrollment_qs.filter(session_term_filter)
-
-        if status_filter == 'all':
-            enrollment_qs = enrollment_qs.filter(status__in=['active', 'completed'])
-        else:
-            enrollment_qs = enrollment_qs.filter(status=status_filter)
-
-        enrollments = (
-            enrollment_qs
-            .select_related('course', 'course__instructor')
-            .prefetch_related(
-                Prefetch(
-                    'course__lessons',
-                    queryset=Lesson.objects.filter(is_active=True),
-                    to_attr='active_lessons',
+        enrollment_by_academic_course_id = {
+            e.course.academic_course_id: e
+            for e in (
+                Enrollment.objects.filter(student=user, status__in=['active', 'completed'])
+                .select_related('course', 'course__instructor', 'course__academic_course')
+                .prefetch_related(
+                    Prefetch(
+                        'course__lessons',
+                        queryset=Lesson.objects.filter(is_active=True),
+                        to_attr='active_lessons',
+                    )
+                )
+                .annotate(
+                    completed_lessons_count=Count(
+                        'lesson_progress',
+                        filter=Q(lesson_progress__is_completed=True),
+                        distinct=True,
+                    )
                 )
             )
-            .annotate(
-                completed_lessons_count=Count(
-                    'lesson_progress',
-                    filter=Q(lesson_progress__is_completed=True),
-                    distinct=True,
-                )
-            )
-            .order_by('-enrolled_at')
-        )
-
+            if e.course.academic_course_id
+        }
     except Exception:
         logger.exception('Failed to load enrolled courses for user=%s', user.pk)
-        messages.error(request, 'Error loading your enrolled courses. Please try again.')
-        enrollments = []
+        messages.error(request, 'Error loading your courses. Please try again.')
+        enrollment_by_academic_course_id = {}
+
+    rows = [
+        {
+            'course': reg.course,
+            'is_core': reg.course.course_type == 'core',
+            'status': reg.status,
+            'enrollment': enrollment_by_academic_course_id.get(reg.course_id),
+        }
+        for reg in registrations
+    ]
 
     # ── Academic identity ──────────────────────────────────────────────────
     department = faculty = None
@@ -737,79 +413,69 @@ def my_courses(request):
         department = getattr(profile.program, 'department', None)
         faculty    = getattr(department, 'faculty', None) if department else None
 
-    # Build term label from session's own term_dates JSON entries
-    term_label = ''
-    if selected_session and selected_term:
-        term_label_map = dict(AcademicSession.TERM_CHOICES)
-        term_label = term_label_map.get(selected_term, selected_term.title())
-
-    has_carry_over_courses = any(getattr(c, 'is_carry_over', False) for c in semester_courses)
-
     context = {
-        'page_title':               'My Courses',
-        'all_sessions':             all_sessions,
-        'new_registration_count':   new_registration_count,
-        'status_options':           [('active', 'Active'), ('completed', 'Completed')],
-        'selected_session':         selected_session,
-        'selected_term':            selected_term,
-        'term_label':               term_label,
-        'registration_open':        registration_open,
-        'selected_term_is_active':  selected_term_is_active,
-        'semester_courses':         semester_courses,
-        'has_carry_over_courses':   has_carry_over_courses,
-        'regular_courses_complete': regular_courses_complete,
-        'registered_course_ids':    registered_course_ids,
-        'registered_courses':       registered_courses,
-        'registered_credit_total':  registered_credit_total,
-        'max_credits_per_semester': max_credits_per_semester,
-        'core_credit_total':        core_credit_total,
-        'can_finalize':             can_finalize,
-        'registration_submitted':   registration_submitted,
-        'registration_finalized':   registration_finalized,
-        'enrollments':              enrollments,
-        'status_filter':            status_filter,
-        'profile':                  profile,
-        'department':               department,
-        'faculty':                  faculty,
-        }
+        'page_title':  'My Courses',
+        'rows':        rows,
+        'profile':     profile,
+        'department':  department,
+        'faculty':     faculty,
+    }
 
     return render(request, 'students/my_courses.html', context)
+
+def _enroll_in_lms_course_for(user, course):
+    """
+    Given an academic Course a student is registered for, find its matching
+    LMSCourse delivery (by academic_course FK, falling back to a matching
+    code on a standalone LMS course) and enroll the student if one exists
+    and has published content. Returns the Enrollment if one was
+    created/activated, else None (course content is not ready yet).
+    """
+    lms_course = None
+    if course.pk:
+        lms_course = LMSCourse.objects.filter(academic_course=course).first()
+    if not lms_course and course.code:
+        lms_course = LMSCourse.objects.filter(
+            academic_course__isnull=True, code__iexact=course.code,
+        ).first()
+    if not lms_course:
+        return None
+    if not lms_course.lessons.filter(is_active=True).exists():
+        return None
+
+    enrollment, created = Enrollment.objects.get_or_create(
+        student=user,
+        course=lms_course,
+        defaults={'enrolled_by': user, 'status': 'active'},
+    )
+    if not created and enrollment.status == 'dropped':
+        enrollment.status = 'active'
+        enrollment.save(update_fields=['status'])
+    return enrollment
+
 
 @login_required
 @student_required
 def register_semester_course(request, course_slug):
     """
-    Add course with dynamic max credit check from Program model.
+    Register for a course from the flat catalog -- any accepted student can
+    register for any active course. Auto-enrolls in the linked LMS delivery
+    immediately if one exists with published content.
     """
     if request.method != 'POST':
         return redirect('students:my_courses')
 
     profile = getattr(request.user, 'profile', None)
-    session_id = request.POST.get('session_id')
-    term_override = request.POST.get('term_override', '').strip()
-    try:
-        current_session = AcademicSession.objects.get(pk=session_id) if session_id else AcademicSession.get_current()
-    except AcademicSession.DoesNotExist:
-        current_session = AcademicSession.get_current()
-    current_term = term_override or (current_session.get_current_term() if current_session else None)
-
-    if not current_session or not current_term or not profile or not profile.program:
-        messages.error(request, 'Missing session or program information.')
-        return redirect('students:my_courses')
-
-    if current_session.status == 'closed':
-        messages.error(request, f'The session "{current_session}" has ended. No changes are allowed.')
-        return redirect('students:my_courses')
-
-    if not current_session.is_registration_open:
-        reg_open, reg_close = current_session.get_registration_window()
-        window_str = current_session.registration_window_for_term(current_session.get_current_term())
-        messages.error(request, f'Course registration for "{current_session}" is currently closed. Registration opens: {window_str}.')
+    if not profile:
+        messages.error(request, 'No student profile found.')
         return redirect('students:my_courses')
 
     overdue_fees = _overdue_required_fees(request.user)
     if overdue_fees:
-        owed = ', '.join(f"{item['payment'].purpose} ({item['payment'].currency} {item['payment'].amount})" for item in overdue_fees)
+        owed = ', '.join(
+            f"{item['payment'].purpose} ({item['payment'].currency} {item['payment'].amount})"
+            for item in overdue_fees
+        )
         messages.error(
             request,
             f'You have overdue required payment(s): {owed}. '
@@ -817,145 +483,21 @@ def register_semester_course(request, course_slug):
         )
         return redirect('students:my_payments')
 
-    registrable_course_ids = _registrable_course_ids(profile, session=current_session)
-
     course = get_object_or_404(
-        Course.objects.filter(pk__in=registrable_course_ids),
+        Course.objects.filter(pk__in=_registrable_course_ids(profile)),
         slug=course_slug,
-        program=profile.program,
         is_active=True,
     )
 
-    normalised_term = current_term.lower().replace(' semester', '').strip() if current_term else current_term
-
-    # Dynamic max from the Program model — session-specific override first,
-    # then program-wide per-term default, then the flat fallback. RAW
-    # current_term is passed (not normalised_term) since the session-level
-    # tier is keyed by whatever term name this session actually uses.
-    MAX_CREDITS_PER_SEMESTER = profile.program.max_credits_for_term(current_term, session=current_session)
-
-    # Shared by both checks below: a course already passed can never be
-    # re-registered (see _registrable_course_ids), and a course that's
-    # itself an open carry-over must never count as one of the "regular"
-    # courses a carry-over has to wait behind — otherwise a carry-over that
-    # happens to share the student's current level (she's repeating it)
-    # would be required to wait for itself, a permanent deadlock.
-    # Excludes current_session — see _registrable_course_ids' matching
-    # comment: a mid-session recompute can already read as is_passed=True
-    # before the session closes, and that must not make an actively
-    # registered course invisible to this session's own cap/lock checks.
-    passed_course_ids = set(
-        CourseGrade.objects.filter(
-            student=request.user, is_passed=True, result_status='released',
-        ).exclude(session=current_session).values_list('course_id', flat=True)
-    )
-    CourseCarryOver.sync_cleared_for_student(request.user)
-    open_carry_over_course_ids = set(
-        CourseCarryOver.objects.filter(
-            student=request.user, is_cleared=False,
-        ).values_list('course_id', flat=True)
-    )
-
-    # Carry-over courses are locked until every regular course this term —
-    # core, elective, or any other type — is already registered. A student
-    # has to handle their current curriculum before touching what they
-    # still owe from a previous level; see my_courses's identical
-    # regular_courses_complete computation, which this mirrors so the "Add"
-    # button and this server-side check can never disagree.
-    if course.id in open_carry_over_course_ids:
-        regular_course_ids = set(
-            Course.objects.filter(
-                program=profile.program, year_of_study=profile.year_of_study, is_active=True,
-            )
-            .filter(Q(semester=normalised_term) | Q(semester='annual'))
-            .exclude(pk__in=passed_course_ids)
-            .exclude(pk__in=open_carry_over_course_ids)
-            .values_list('id', flat=True)
-        )
-        registered_regular_ids = set(
-            CourseRegistration.objects.filter(
-                student=request.user, session=current_session,
-                term__in=[current_term, normalised_term], status__in=['pending', 'approved'],
-                course_id__in=regular_course_ids,
-            ).values_list('course_id', flat=True)
-        )
-        missing_count = len(regular_course_ids - registered_regular_ids)
-        if missing_count:
-            messages.error(
-                request,
-                f'Register your {missing_count} remaining course(s) for this semester before adding '
-                f'carry-over course "{course.name}".'
-            )
-            return redirect('students:my_courses')
-
-    # Scoped to registrable_course_ids so a stale registration left over
-    # from a level the student has already passed (e.g. from before they
-    # were promoted) can never silently consume their credit cap and
-    # block new registrations at their current level.
-    current_total = CourseRegistration.objects.filter(
-        student=request.user,
-        session=current_session,
-        term__in=[current_term, normalised_term],
-        status__in=['pending', 'approved'],
-        course_id__in=registrable_course_ids,
-    ).exclude(course=course).aggregate(
-        total=Sum('course__credit_units')
-    )['total'] or 0
-
-    if current_total + course.credit_units > MAX_CREDITS_PER_SEMESTER:
-        messages.error(
-            request,
-            f'Cannot add "{course.name}" — it would exceed the maximum '
-            f'of {MAX_CREDITS_PER_SEMESTER} credit units for this semester '
-            f'(you currently have {current_total} CU).'
-        )
-        return redirect('students:my_courses')
-
-    # Mandatory current-semester core courses get first claim on the credit
-    # cap — a carry-over or elective can only take the space that's left
-    # over once every not-yet-registered core course for this term is
-    # accounted for, so a student can't box themselves out of a required
-    # course by greedily adding carry-overs/electives first.
-    if course.course_type != 'core':
-        registered_course_ids = CourseRegistration.objects.filter(
-            student=request.user,
-            session=current_session,
-            term__in=[current_term, normalised_term],
-            status__in=['pending', 'approved'],
-        ).values('course_id')
-        outstanding_core_cu = (
-            Course.objects.filter(
-                program=profile.program,
-                year_of_study=profile.year_of_study,
-                course_type='core',
-                is_active=True,
-            )
-            .filter(Q(semester=normalised_term) | Q(semester='annual'))
-            .exclude(pk__in=registered_course_ids)
-            .exclude(pk__in=passed_course_ids)
-            .aggregate(total=Sum('credit_units'))['total'] or 0
-        )
-        if current_total + course.credit_units + outstanding_core_cu > MAX_CREDITS_PER_SEMESTER:
-            messages.error(
-                request,
-                f'Cannot add "{course.name}" yet — {outstanding_core_cu} CU is still reserved for '
-                f'your required core course(s) this semester. Register those first, or drop a '
-                f'non-core course to free up room.'
-            )
-            return redirect('students:my_courses')
-
     # transaction.atomic() + IntegrityError guard closes the double-submit
-    # race window (double-click, two tabs) — CourseRegistration's
-    # unique_together=('student','course','session','term') means a
-    # concurrent duplicate INSERT now degrades to a friendly message
-    # instead of an unhandled 500.
+    # race window (double-click, two tabs) -- CourseRegistration's
+    # unique_together=('student','course') means a concurrent duplicate
+    # INSERT now degrades to a friendly message instead of an unhandled 500.
     try:
         with transaction.atomic():
             reg, created = CourseRegistration.objects.get_or_create(
                 student=request.user,
                 course=course,
-                session=current_session,
-                term=current_term,
                 defaults={'status': 'pending'},
             )
     except ValidationError as e:
@@ -963,65 +505,51 @@ def register_semester_course(request, course_slug):
         return redirect('students:my_courses')
     except IntegrityError:
         logger.warning(
-            'Concurrent duplicate registration attempt: user=%s course=%s session=%s term=%s',
-            request.user.pk, course.pk, current_session.pk, current_term,
+            'Concurrent duplicate registration attempt: user=%s course=%s',
+            request.user.pk, course.pk,
         )
         messages.info(request, f'You are already registered for "{course.name}".')
         return redirect('students:my_courses')
 
-    if created:
-        messages.success(request, f'✅ "{course.name}" ({course.credit_units} CU) added.')
-        _notify(
-            user=request.user,
-            notification_type='enrollment',
-            title='Course Added',
-            message=f'You added {course.code} — {course.name} to your {current_term} semester registration.',
-            link='/student/courses/',
-        )
-    elif reg.status == 'dropped':
-        reg.status = 'pending'
-        reg.dropped_at = None
-        reg.save(update_fields=['status', 'dropped_at'])
-        messages.success(request, f'✅ "{course.name}" re-added.')
-    else:
-        messages.info(request, f'You are already registered for "{course.name}".')
+    if not created:
+        if reg.status == 'dropped':
+            reg.status = 'pending'
+            reg.dropped_at = None
+            reg.save(update_fields=['status', 'dropped_at'])
+        else:
+            messages.info(request, f'You are already registered for "{course.name}".')
+            return redirect('students:my_courses')
 
-    from django.urls import reverse
-    return redirect(f"{reverse('students:my_courses')}?session_id={current_session.pk}&term={current_term}")
+    enrollment = _enroll_in_lms_course_for(request.user, course)
+    if enrollment:
+        reg.status = 'approved'
+        reg.save(update_fields=['status'])
+        messages.success(request, f'"{course.name}" registered -- you are enrolled and can start now.')
+    else:
+        messages.success(
+            request,
+            f'"{course.name}" ({course.credit_units} CU) registered -- '
+            f'course content is not published yet, you will be enrolled once it is.'
+        )
+
+    _notify(
+        user=request.user,
+        notification_type='enrollment',
+        title='Course Registered',
+        message=f'You registered for {course.code} -- {course.name}.',
+        link='/student/courses/',
+    )
+
+    return redirect('students:my_courses')
 
 @login_required
 @student_required
 def drop_semester_course(request, course_slug):
     """
-    Remove a non-core Course from the student's semester registration.
+    Remove a non-core Course from the student's registration.
     Core courses cannot be dropped.
     """
     if request.method != 'POST':
-        return redirect('students:my_courses')
-
-    profile = getattr(request.user, 'profile', None)
-    session_id    = request.POST.get('session_id', '').strip()
-    term_override = request.POST.get('term_override', '').strip()
-
-    try:
-        current_session = AcademicSession.objects.get(pk=session_id) if session_id else AcademicSession.get_current()
-    except AcademicSession.DoesNotExist:
-        current_session = AcademicSession.get_current()
-
-    current_term = term_override or (current_session.get_current_term() if current_session else None)
-
-    if not current_session or not current_term:
-        messages.error(request, 'No active academic session found.')
-        return redirect('students:my_courses')
-
-    if current_session.status == 'closed':
-        messages.error(request, f'The session "{current_session}" has ended. No changes are allowed.')
-        return redirect('students:my_courses')
-
-    if not current_session.is_registration_open:
-        reg_open, reg_close = current_session.get_registration_window()
-        window_str = current_session.registration_window_for_term(current_session.get_current_term())
-        messages.error(request, f'Course registration for "{current_session}" is currently closed. Registration opens: {window_str}.')
         return redirect('students:my_courses')
 
     course = get_object_or_404(Course, slug=course_slug)
@@ -1033,8 +561,6 @@ def drop_semester_course(request, course_slug):
     reg = CourseRegistration.objects.filter(
         student=request.user,
         course=course,
-        session=current_session,
-        term=current_term,
         status__in=['pending', 'approved'],
     ).first()
 
@@ -1044,242 +570,31 @@ def drop_semester_course(request, course_slug):
         reg.dropped_at = timezone.now()
         reg.save(update_fields=['status', 'dropped_at'], skip_clean=True)
 
-        # An approved registration may already have an active LMS Enrollment
-        # (created by register_all_semester_courses/retry_lms_enrollment) —
-        # drop it too, otherwise the student keeps lesson/quiz/exam access
-        # for a course they no longer have an academic registration for.
+        # An approved registration may already have an active LMS Enrollment --
+        # drop it too, otherwise the student keeps lesson/quiz/exam access for
+        # a course they no longer have a registration for.
         if was_approved and course.code:
             lms_course = LMSCourse.objects.filter(
                 Q(academic_course=course) | Q(academic_course__isnull=True, code__iexact=course.code)
-            ).filter(Q(session=current_session) | Q(session__isnull=True)).first()
+            ).first()
             if lms_course:
                 Enrollment.objects.filter(
                     student=request.user, course=lms_course, status='active',
                 ).update(status='dropped')
 
-        messages.success(request, f'"{course.name}" removed from your semester registration.')
+        messages.success(request, f'"{course.name}" removed from your registration.')
     else:
         messages.warning(request, 'Registration record not found.')
 
-    from django.urls import reverse
-    return redirect(f"{reverse('students:my_courses')}?session_id={current_session.pk}&term={current_term}")
-
-@login_required
-@student_required
-def register_all_semester_courses(request):
-    """
-    Finalize semester registration AND auto-enroll student into
-    the linked LMSCourse for every registered academic Course.
-    """
-    if request.method != 'POST':
-        return redirect('students:my_courses')
-
-    profile = getattr(request.user, 'profile', None)
-
-    session_id    = request.POST.get('session_id', '').strip()
-    term_override = request.POST.get('term_override', '').strip()
-
-    try:
-        current_session = AcademicSession.objects.get(pk=session_id) if session_id else AcademicSession.get_current()
-    except AcademicSession.DoesNotExist:
-        current_session = AcademicSession.get_current()
-
-    current_term = term_override or (current_session.get_current_term() if current_session else None)
-
-    if not current_session or not current_term:
-        messages.error(request, 'No active academic session found.')
-        return redirect('students:my_courses')
-
-    if current_session.status == 'closed':
-        messages.error(request, f'The session "{current_session}" has ended. No changes are allowed.')
-        return redirect('students:my_courses')
-
-    if not current_session.is_registration_open:
-        reg_open, reg_close = current_session.get_registration_window()
-        window_str = current_session.registration_window_for_term(current_session.get_current_term())
-        messages.error(request, f'Course registration for "{current_session}" is currently closed. Registration opens: {window_str}.')
-        return redirect('students:my_courses')
-
-    if not profile or not profile.program:
-        messages.error(request, 'No program assigned to your profile.')
-        return redirect('students:my_courses')
-
-    normalised_term = term_normalisation_map.get(current_term, current_term)
-
-    # RAW current_term (not normalised_term) — the session-specific tier of
-    # max_credits_for_term is keyed by whatever term name this session
-    # actually uses; normalised_term is still used below for matching
-    # against Course.semester's canonical first/second/annual values.
-    MAX_CU = profile.program.max_credits_for_term(current_term, session=current_session)
-
-    # Get all pending/approved registrations for this session/term, scoped to
-    # courses at the student's current level (or an open carry-over) — the
-    # same scoping used in register_semester_course, so a stale registration
-    # from a level the student already passed can't inflate the CU total or
-    # get enrolled/approved by mistake.
-    registered_regs = CourseRegistration.objects.filter(
-        student=request.user,
-        session=current_session,
-        term__in=[current_term, normalised_term],
-        status__in=['pending', 'approved'],
-        course_id__in=_registrable_course_ids(profile, session=current_session),
-    ).select_related('course')
-
-    # Validate: check credit total doesn't exceed max
-    total_cu = sum(r.course.credit_units for r in registered_regs)
-    if total_cu > MAX_CU:
-        messages.error(
-            request,
-            f'Your selected courses total {total_cu} CU which exceeds the '
-            f'maximum of {MAX_CU} CU for this semester. Please remove some courses first.'
-        )
-        from django.urls import reverse
-        return redirect(f"{reverse('students:my_courses')}?session_id={current_session.pk}&term={current_term}")
-
-    # Validate: ensure all core courses for this term are selected
-    core_courses = Course.objects.filter(
-        program=profile.program,
-        year_of_study=profile.year_of_study,
-        course_type='core',
-        is_active=True,
-    ).filter(Q(semester=normalised_term) | Q(semester='annual'))
-
-    registered_course_ids = {r.course_id for r in registered_regs}
-    missing_core = [c.name for c in core_courses if c.id not in registered_course_ids]
-
-    if missing_core:
-        messages.error(
-            request,
-            f'You must include all core courses before finalizing. '
-            f'Missing: {", ".join(missing_core)}.'
-        )
-        from django.urls import reverse
-        return redirect(f"{reverse('students:my_courses')}?session_id={current_session.pk}&term={current_term}")
-
-    if total_cu == 0:
-        messages.error(request, 'You have not selected any courses yet.')
-        from django.urls import reverse
-        return redirect(f"{reverse('students:my_courses')}?session_id={current_session.pk}&term={current_term}")
-
-    # ── Step 1: Build LMS course lookup (FK match first, code fallback) ──────
-    registered_academic_course_ids = [reg.course_id for reg in registered_regs]
-    registered_course_codes = [
-        reg.course.code.strip().upper()
-        for reg in registered_regs
-        if reg.course.code
-    ]
-
-    by_fk = LMSCourse.objects.filter(
-        academic_course_id__in=registered_academic_course_ids,
-    ).filter(Q(session=current_session) | Q(session__isnull=True))
-
-    by_code = LMSCourse.objects.filter(
-        academic_course__isnull=True,
-        code__in=registered_course_codes,
-    ).filter(
-        Q(session=current_session) | Q(session__isnull=True)
-    ) if registered_course_codes else LMSCourse.objects.none()
-
-    from itertools import chain
-    seen_lms_ids = set()
-    lms_courses_to_enroll = []
-    for lms in chain(by_fk, by_code):
-        if lms.pk not in seen_lms_ids:
-            seen_lms_ids.add(lms.pk)
-            lms_courses_to_enroll.append(lms)
-
-    # Build a map: academic_course_id → lms_course (for later lookup per reg)
-    lms_by_academic_id = {}
-    for lms in lms_courses_to_enroll:
-        if lms.academic_course_id:
-            lms_by_academic_id[lms.academic_course_id] = lms
-        elif lms.code:
-            # code-based fallback: map by code
-            lms_by_academic_id[('code', lms.code.strip().upper())] = lms
-
-    # ── Step 2: Per-registration — enroll only if LMS course exists AND has content ──
-    enrolled_count = 0
-    pending_count = 0
-
-    for reg in registered_regs:
-        # Find the matching LMS course for this specific registration
-        lms_course = lms_by_academic_id.get(reg.course_id)
-        if not lms_course and reg.course.code:
-            lms_course = lms_by_academic_id.get(('code', reg.course.code.strip().upper()))
-
-        has_lms   = lms_course is not None
-        has_content = has_lms and lms_course.lessons.filter(is_active=True).exists()
-
-        if has_lms and has_content:
-            # ✅ LMS course exists and has content → enroll and approve
-            enrollment, created = Enrollment.objects.get_or_create(
-                student=request.user,
-                course=lms_course,
-                defaults={
-                    'enrolled_by': request.user,
-                    'status': 'active',
-                },
-            )
-            if created or (not created and enrollment.status == 'dropped'):
-                if not created:
-                    enrollment.status = 'active'
-                    enrollment.save(update_fields=['status'])
-                enrolled_count += 1
-
-            # Only approve if we actually enrolled
-            if reg.status == 'pending':
-                reg.status = 'approved'
-                reg.save(update_fields=['status'])
-        else:
-            # ⏳ LMS course missing or has no content → keep as pending
-            pending_count += 1
-            # Leave reg.status = 'pending' — do NOT approve
-
-    total_registered = registered_regs.count()
-
-    if pending_count > 0 and enrolled_count > 0:
-        messages.warning(
-            request,
-            f'⚠️ Partially finalized — {enrolled_count} course(s) enrolled. '
-            f'{pending_count} course(s) are pending because their LMS content is not ready yet. '
-            f'They will appear as "Register" buttons and you can retry enrollment later.'
-        )
-    elif pending_count > 0 and enrolled_count == 0:
-        messages.warning(
-            request,
-            f'⚠️ Registration saved ({total_registered} course(s)) but no LMS courses are ready for enrollment yet. '
-            f'Your registrations are saved as pending. Use the "Register" button per course to retry once content is available.'
-        )
-    else:
-        messages.success(
-            request,
-            f'✅ Registration finalized — {total_registered} course(s) registered '
-            f'and {enrolled_count} LMS course(s) enrolled for '
-            f'{current_term.title()} Semester, {current_session}.'
-        )
-
-    _notify(
-        user=request.user,
-        notification_type='enrollment',
-        title='Semester Registration Confirmed',
-        message=(
-            f'Your {current_term.title()} Semester registration for {current_session} '
-            f'is complete. {total_registered} courses registered, {enrolled_count} enrolled, '
-            f'{pending_count} pending LMS readiness.'
-        ),
-        link='/student/courses/',
-    )
-
-    from django.urls import reverse
-    return redirect(f"{reverse('students:my_courses')}?session_id={current_session.pk}&term={current_term}")
+    return redirect('students:my_courses')
 
 @login_required
 @student_required
 def retry_lms_enrollment(request, course_slug):
     """
-    Retry LMS enrollment for a single pending CourseRegistration.
-    Called when student clicks the "Register" button on a pending course row.
-    Returns JSON so the template can update the button without a page reload.
+    Retry LMS enrollment for a pending CourseRegistration whose linked LMS
+    content was not published yet at registration time. Returns JSON so the
+    template can update the button without a page reload.
     """
     if request.method != 'POST':
         return JsonResponse({'status': 'error', 'message': 'POST required.'}, status=405)
@@ -1289,7 +604,7 @@ def retry_lms_enrollment(request, course_slug):
     except Http404:
         raise
     except Exception:
-        # This is an AJAX/JSON endpoint — an unhandled exception must never
+        # This is an AJAX/JSON endpoint -- an unhandled exception must never
         # surface as an HTML 500 page, which the calling JS can't parse.
         logger.exception(
             'retry_lms_enrollment failed for user=%s course_slug=%s',
@@ -1302,27 +617,11 @@ def retry_lms_enrollment(request, course_slug):
 
 
 def _retry_lms_enrollment(request, course_slug):
-    session_id    = request.POST.get('session_id', '').strip()
-    term_override = request.POST.get('term_override', '').strip()
-
-    try:
-        current_session = AcademicSession.objects.get(pk=session_id) if session_id else AcademicSession.get_current()
-    except AcademicSession.DoesNotExist:
-        current_session = AcademicSession.get_current()
-
-    current_term = term_override or (current_session.get_current_term() if current_session else None)
-
-    course = get_object_or_404(
-        Course, slug=course_slug,
-        program=request.user.profile.program,
-        is_active=True,
-    )
+    course = get_object_or_404(Course, slug=course_slug, is_active=True)
 
     reg = CourseRegistration.objects.filter(
         student=request.user,
         course=course,
-        session=current_session,
-        term__in=[current_term, term_normalisation_map.get(current_term, current_term)],
         status='pending',
     ).first()
 
@@ -1332,38 +631,12 @@ def _retry_lms_enrollment(request, course_slug):
             'message': 'No pending registration found for this course.',
         })
 
-    # Find matching LMS course
-    lms_course = None
-    if course.code:
-        lms_course = LMSCourse.objects.filter(
-            Q(academic_course=course) |
-            Q(academic_course__isnull=True, code__iexact=course.code)
-        ).filter(
-            Q(session=current_session) | Q(session__isnull=True)
-        ).first()
-
-    if not lms_course:
+    enrollment = _enroll_in_lms_course_for(request.user, course)
+    if not enrollment:
         return JsonResponse({
             'status': 'pending',
             'message': 'Course is not yet ready for enrollment. Please check back later.',
         })
-
-    has_content = lms_course.lessons.filter(is_active=True).exists()
-    if not has_content:
-        return JsonResponse({
-            'status': 'pending',
-            'message': 'Course is not yet ready for enrollment — content has not been published.',
-        })
-
-    # ✅ LMS course exists and has content — enroll now
-    enrollment, created = Enrollment.objects.get_or_create(
-        student=request.user,
-        course=lms_course,
-        defaults={'enrolled_by': request.user, 'status': 'active'},
-    )
-    if not created and enrollment.status == 'dropped':
-        enrollment.status = 'active'
-        enrollment.save(update_fields=['status'])
 
     reg.status = 'approved'
     reg.save(update_fields=['status'])
@@ -1372,7 +645,7 @@ def _retry_lms_enrollment(request, course_slug):
         user=request.user,
         notification_type='enrollment',
         title='Course Enrollment Confirmed',
-        message=f'You have been enrolled in {course.code} — {course.name}.',
+        message=f'You have been enrolled in {course.code} -- {course.name}.',
         link='/student/courses/',
     )
 
@@ -1384,62 +657,29 @@ def _retry_lms_enrollment(request, course_slug):
 @login_required
 @student_required
 def course_catalog(request):
-    profile         = getattr(request.user, 'profile', None)
-    current_session = AcademicSession.get_current()
-    search_query    = request.GET.get('q', '').strip()
-    term_filter     = request.GET.get('term', '').strip()
+    """Flat catalog of every published LMS course — open to any accepted student."""
+    search_query = request.GET.get('q', '').strip()
 
-    if not profile or not profile.program:
-        messages.warning(
-            request,
-            'Your program has not been assigned yet — please contact your department.'
-        )
-        context = {
-            'page_title':              'Course Catalog',
-            'courses':                 Paginator([], 12).get_page(1),
-            'enrolled_ids':            set(),
-            'registered_academic_ids': set(),
-            'search_query':            search_query,
-            'term_filter':             term_filter,
-            'term_choices':            LMSCourse._meta.get_field('term').choices,
-        }
-        return render(request, 'students/course_catalog.html', context)
-
-    # Courses the student is already enrolled in must always appear here,
-    # regardless of their current level/session — otherwise a promoted
-    # student's now-completed prior-level courses (and any course from a
-    # past session) silently vanish from their own catalog the moment their
-    # year_of_study advances past what the course was offered at.
     enrolled_course_ids = set(
         Enrollment.objects
         .filter(student=request.user, status__in=['active', 'completed'])
         .values_list('course_id', flat=True)
     )
 
-    courses = LMSCourse.objects.filter(
-        Q(
-            is_published=True,
-            academic_course__program=profile.program,
-            academic_course__year_of_study=profile.year_of_study,
-            academic_course__is_active=True,
-        ) & (Q(session=current_session) | Q(session__isnull=True))
-        | Q(id__in=enrolled_course_ids)
-    )
+    courses = LMSCourse.objects.filter(is_published=True)
 
-    if term_filter:
-        courses = courses.filter(term=term_filter)
     if search_query:
         courses = courses.filter(Q(title__icontains=search_query) | Q(code__icontains=search_query))
 
-    courses = courses.select_related('academic_course', 'instructor', 'session').distinct()
+    courses = courses.select_related('academic_course', 'instructor').distinct()
 
     registered_academic_ids = set(
         CourseRegistration.objects
-        .filter(student=request.user, session=current_session, status__in=['pending', 'approved'])
+        .filter(student=request.user, status__in=['pending', 'approved'])
         .values_list('course_id', flat=True)
-    ) if current_session else set()
+    )
 
-    # Enrolled first → registered → locked
+    # Enrolled first → registered → everything else
     courses = sorted(courses, key=lambda c: (
         0 if c.id in enrolled_course_ids else
         1 if c.academic_course_id in registered_academic_ids else 2
@@ -1451,8 +691,6 @@ def course_catalog(request):
         'enrolled_ids':            enrolled_course_ids,
         'registered_academic_ids': registered_academic_ids,
         'search_query':            search_query,
-        'term_filter':             term_filter,
-        'term_choices':            LMSCourse._meta.get_field('term').choices,
     }
     return render(request, 'students/course_catalog.html', context)
 
@@ -1541,56 +779,15 @@ def course_detail(request, course_slug):
                 student=request.user
             ).first()
 
-        # ── Enrollment eligibility check ──────────────────────────────────
-        # Student can only enroll if they have an approved CourseRegistration
-        # for the academic course linked to this LMS course in its session/term.
-        can_enroll = False
-        enroll_blocked_reason = ''
-
-        if enrollment:
-            # Already enrolled — no need to check further
-            can_enroll = True
-        elif course.academic_course and course.session:
-            # Check for an approved registration for this academic course + session + term
-            _TERM_MAP = {'fall': 'first', 'spring': 'second', 'summer': 'annual', 'third': 'second'}
-            lms_term = course.term or ''
-            lms_term_norm = _TERM_MAP.get(lms_term, lms_term)
-
-            term_filter = Q(term=lms_term) | Q(term=lms_term_norm) if lms_term else Q()
-
-            approved_reg = CourseRegistration.objects.filter(
-                student=request.user,
-                course=course.academic_course,
-                session=course.session,
-                status='approved',
-            ).filter(term_filter).first()
-
-            if approved_reg:
-                # Also check session is not closed and registration window is valid
-                if course.session.status == 'closed':
-                    can_enroll = False
-                    enroll_blocked_reason = 'This course belongs to a session that has ended.'
-                else:
-                    can_enroll = True
-            else:
-                can_enroll = False
-                enroll_blocked_reason = (
-                    'You have not registered for this course in your semester registration. '
-                    'Go to My Courses, select the correct session and semester, add this course, '
-                    'then finalize your registration to gain access.'
-                )
-        else:
-            # Standalone LMS course with no academic course link — open enrollment
-            can_enroll = True
-
+        # Any published course can be enrolled in directly from this page —
+        # enroll_course() registers the linked academic course (if any) in
+        # the same action, so there's nothing to gate here.
         context = {
             'page_title': course.title,
             'course': course,
             'enrollment': enrollment,
             'sections': sections,
             'existing_review': existing_review,
-            'can_enroll': can_enroll,
-            'enroll_blocked_reason': enroll_blocked_reason,
         }
         
         return render(request, 'students/course_detail.html', context)
@@ -1612,65 +809,47 @@ def course_detail(request, course_slug):
 @student_required
 def enroll_course(request, course_slug):
     """
-    Enroll in a course.
-    All LMS courses are free — enrollment is immediate.
+    Enroll in a course directly from the catalog/course-detail page.
+    All LMS courses are free — enrollment is immediate. If this course
+    delivers an academic Course, register for it (creating the record if
+    needed) in the same action — there's no separate "register first"
+    step; clicking Enroll here is the registration.
     """
-    
+
     # Get course by slug
     course = get_object_or_404(
-        LMSCourse, 
-        slug=course_slug, 
+        LMSCourse,
+        slug=course_slug,
         is_published=True
     )
-    
+
     # Check existing enrollment
     existing = Enrollment.objects.filter(
         student=request.user,
         course=course
     ).first()
-    
+
     if existing:
         messages.info(
-            request, 
+            request,
             'You are already enrolled in this course.'
         )
         return redirect('students:course_detail', course_slug=course_slug)
 
-    # ── Registration gate: only enroll if student has an approved registration ──
-    if course.academic_course and course.session:
-        _TERM_MAP = {'fall': 'first', 'spring': 'second', 'summer': 'annual', 'third': 'second'}
-        lms_term = course.term or ''
-        lms_term_norm = _TERM_MAP.get(lms_term, lms_term)
-        term_filter = Q(term=lms_term) | Q(term=lms_term_norm) if lms_term else Q()
-
-        approved_reg = CourseRegistration.objects.filter(
-            student=request.user,
-            course=course.academic_course,
-            session=course.session,
-            status='approved',
-        ).filter(term_filter).first()
-
-        if not approved_reg:
-            messages.error(
-                request,
-                'You cannot enroll in this course directly. Please register for it through '
-                'your semester course registration (My Courses), finalize your registration, '
-                'and you will be enrolled automatically.'
-            )
-            return redirect('students:course_detail', course_slug=course_slug)
-
-        if course.session.status == 'closed':
-            messages.error(request, 'Enrollment is closed — this course belongs to a past session.')
-            return redirect('students:course_detail', course_slug=course_slug)
-
-    # Enroll directly (standalone LMS course or registration confirmed above).
-    # get_or_create + IntegrityError guard closes the race window between the
-    # `existing` check above and this write — Enrollment's
-    # unique_together=('student','course') means a double-submit (double
-    # click, two tabs) can no longer create duplicate enrollment rows or
-    # surface a misleading "error" for what was actually a successful enroll.
+    # Enroll directly, registering for the linked academic course too if
+    # there is one. get_or_create + IntegrityError guard closes the race
+    # window between the `existing` check above and this write —
+    # Enrollment's unique_together=('student','course') means a
+    # double-submit (double click, two tabs) can no longer create
+    # duplicate enrollment rows or surface a misleading "error" for what
+    # was actually a successful enroll.
     try:
         with transaction.atomic():
+            if course.academic_course:
+                CourseRegistration.objects.get_or_create(
+                    student=request.user, course=course.academic_course,
+                    defaults={'status': 'approved'},
+                )
             enrollment, created = Enrollment.objects.get_or_create(
                 student=request.user,
                 course=course,
@@ -1690,6 +869,10 @@ def enroll_course(request, course_slug):
         return redirect('students:course_detail', course_slug=course_slug)
 
     if created:
+        if course.academic_course:
+            CourseRegistration.objects.filter(
+                student=request.user, course=course.academic_course, status='pending',
+            ).update(status='approved')
         messages.success(request, f'Successfully enrolled in {course.title}!')
         _notify(
             user=request.user,
@@ -1804,19 +987,16 @@ def _record_academic_grade(user, enrollment, lms_course):
     Recompute this student's official CourseGrade when a linked LMS course
     is completed, via the shared weighted exam/quiz/assignment blend.
     """
-    from apps.eduweb.models import AcademicSession
-
     academic_course = lms_course.academic_course
-    session = AcademicSession.get_current()
-    if not session:
-        return  # No active session — grade cannot be pinned to a session yet
+    if not academic_course:
+        return
 
     try:
-        CourseGrade.recompute_for_student_course(user, academic_course, session)
+        CourseGrade.recompute_for_student_course(user, academic_course)
     except Exception:
         logger.exception(
-            'Failed to recompute CourseGrade for user=%s course=%s session=%s',
-            user.pk, academic_course.pk, session.pk,
+            'Failed to recompute CourseGrade for user=%s course=%s',
+            user.pk, academic_course.pk,
         )
 
 @login_required
@@ -2659,10 +1839,9 @@ def quiz_submit(request, attempt_id):
     # later happens to be marked complete in the same course.
     lms_course = attempt.quiz.lesson.course
     academic_course = lms_course.academic_course
-    session = lms_course.session
-    if academic_course and session:
+    if academic_course:
         try:
-            CourseGrade.recompute_for_student_course(request.user, academic_course, session)
+            CourseGrade.recompute_for_student_course(request.user, academic_course)
         except Exception:
             logger.exception(
                 'Failed to recompute CourseGrade after quiz submission for user=%s quiz=%s',
@@ -3208,12 +2387,12 @@ def grades(request):
     
     # Academic course grades (from program — recorded by lecturers).
     # result_status='released' — a compiled-but-unapproved grade must not
-    # appear here; see CourseGrade.publish_results / management:results_publish.
+    # appear here; see CourseGrade.publish_results.
     academic_grades = (
         CourseGrade.objects
         .filter(student=user, result_status='released')
-        .select_related('course', 'course__program', 'session')
-        .order_by('-session__name', 'course__year_of_study', 'course__semester')
+        .select_related('course', 'course__program')
+        .order_by('course__code')
     )
     pending_results_count = CourseGrade.objects.filter(
         student=user, result_status__in=['pending', 'withheld'],
@@ -3505,15 +2684,11 @@ def _get_outstanding_for_student(user):
         return [], []
 
     # ── 1. Standard admin-created required fees ───────────────────────────
-    student_level = profile.current_level  # e.g. 200 for year 2
-
     required_qs = AllRequiredPayments.objects.filter(
         program=profile.program,
         who_to_pay='student',
         is_active=True,
-    ).filter(
-        models.Q(level__isnull=True) | models.Q(level=student_level)
-    ).select_related('program', 'program__department', 'program__department__faculty', 'academic_session')
+    ).select_related('program', 'program__department', 'program__department__faculty')
 
     paid_fee_ids = set(
         FeePayment.objects.filter(
@@ -3612,7 +2787,6 @@ def my_payments(request):
         'paid_payments': paid_payments,
         'total_outstanding': total_outstanding,
         'display_currency': display_currency,
-        'student_level': profile.current_level,
         'student_program': profile.program,
         'student_faculty': profile.faculty,
         'student_department': profile.department,
@@ -3934,7 +3108,7 @@ def academic_records(request):
     application = (
         CourseApplication.objects
         .filter(user=user, status='approved')
-        .select_related('program', 'program__department__faculty', 'academic_session')
+        .select_related('program', 'program__department__faculty')
         .order_by('-created_at')
         .first()
     )
@@ -3947,7 +3121,7 @@ def academic_records(request):
             Course.objects
             .filter(program=program, is_active=True)
             .select_related('program')
-            .order_by('year_of_study', 'semester')
+            .order_by('name')
         )
     core_courses     = [c for c in program_courses if c.course_type == 'core']
     elective_courses = [c for c in program_courses if c.course_type == 'elective']
@@ -3964,11 +3138,11 @@ def academic_records(request):
     else:
         snapshot = CourseGrade.build_transcript_snapshot(user)
 
-    session_summaries = snapshot['session_summaries']
-    gpa               = snapshot['gpa']
-    gpa_class         = snapshot['gpa_class']
-    credits_earned    = snapshot['credits_earned']
-    grade_count       = snapshot['grade_count']
+    grades         = snapshot['grades']
+    gpa            = snapshot['gpa']
+    gpa_class      = snapshot['gpa_class']
+    credits_earned = snapshot['credits_earned']
+    grade_count    = snapshot['grade_count']
 
     # ── 4. Credits ────────────────────────────────────────────────────────────
     credits_remaining = max(0, total_credits_required - credits_earned)
@@ -3981,7 +3155,7 @@ def academic_records(request):
     lms_enrollments = (
         Enrollment.objects
         .filter(student=user)
-        .select_related('course', 'course__session')
+        .select_related('course')
         .order_by('-enrolled_at')
     )
 
@@ -3991,19 +3165,6 @@ def academic_records(request):
         .filter(student=user)
         .select_related('course', 'program')
         .order_by('-issued_date')
-    )
-
-    # ── 10. Progression history — level/status changes over time ────────────
-    # ProgressionDecisionLog is the only record of *when* a student moved
-    # from one level/status to another and what their CGPA was at that
-    # point — previously only visible to admins in the management app.
-    # Surfaced here (read-only) so a student can always see their own
-    # level history, not just their current standing.
-    progression_history = list(
-        ProgressionDecisionLog.objects
-        .filter(student=user)
-        .select_related('session')
-        .order_by('-created_at')
     )
 
     context = {
@@ -4019,12 +3180,11 @@ def academic_records(request):
         'credits_remaining':       credits_remaining,
         'graduation_pct':          graduation_pct,
         'grade_count':             grade_count,
-        'session_summaries':       session_summaries,
+        'grades':                  grades,
         'gpa':                     gpa,
         'gpa_class':               gpa_class,
         'lms_enrollments':         lms_enrollments,
         'certificates':            certificates,
-        'progression_history':     progression_history,
         'transcript_locked':       bool(application and application.transcript_requested and application.transcript_snapshot),
         'transcript_generated_at': parse_datetime(snapshot['generated_at']) if snapshot.get('generated_at') else None,
     }
@@ -4062,30 +3222,22 @@ STANDARD_EXAM_RULES = [
 @login_required
 @student_required
 def exam_list(request):
-    now             = timezone.now()
-    user            = request.user
-    current_session = AcademicSession.get_current()
-    current_term    = current_session.get_current_term() if current_session else None
- 
+    now  = timezone.now()
+    user = request.user
+
     # ── Base queryset: published exams for courses this student is enrolled in ──
     base_qs = (
         Exam.objects
         .filter(
             is_active=True,
-            course__session=current_session,
             course__enrollments__student=user,
             course__enrollments__status__in=['active', 'completed'],
         )
-        .select_related('course', 'course__session')
+        .select_related('course')
         .order_by('start_datetime')
         .distinct()
     )
- 
-    if current_term:
-        base_qs = base_qs.filter(
-            Q(course__term=current_term) | Q(course__term='')
-        )
- 
+
     # ── 1. ALL EXAMS for the semester timetable table ──────────────────────────
     #    Shows every exam that has been created (draft/submitted/approved/published/cancelled)
     #    so students can see the full semester schedule even before exams go live.
@@ -4507,10 +3659,9 @@ def submit_exam(request, slug):
 
     if is_fully_graded:
         academic_course = exam.course.academic_course
-        session = exam.course.session
-        if academic_course and session:
+        if academic_course:
             try:
-                CourseGrade.recompute_for_student_course(request.user, academic_course, session)
+                CourseGrade.recompute_for_student_course(request.user, academic_course)
             except Exception:
                 logger.exception(
                     'Failed to recompute CourseGrade after exam submission for user=%s exam=%s',

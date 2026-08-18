@@ -11,7 +11,6 @@ urlpatterns = [
     # ── Courses ──────────────────────────────────────────────────────────────
     path('courses/', views.my_courses, name='my_courses'),
     path('courses/catalog/', views.course_catalog, name='course_catalog'),
-    path('courses/semester-register-all/', views.register_all_semester_courses, name='register_all_semester_courses'),
     path('courses/<slug:course_slug>/semester-register/', views.register_semester_course, name='register_semester_course'),
     path('courses/<slug:course_slug>/semester-drop/', views.drop_semester_course, name='drop_semester_course'),
     path('courses/<slug:course_slug>/', views.course_detail, name='course_detail'),
@@ -87,7 +86,12 @@ urlpatterns = [
     # ── Payments ─────────────────────────────────────────────────────────────
     path('payments/', views.my_payments, name='my_payments'),
 
-    path('academic-records/', views.academic_records, name='academic_records'),
+    # Academic Records (transcript/GPA page) — not a fit for the self-service
+    # course-platform model; commented out rather than deleted in case it's
+    # wanted back. NOTE: {% url 'students:academic_records' %} now breaks in
+    # any template that still references it — check templates/management/base.html
+    # and templates/students/dashboard.html before re-enabling or leaving this off.
+    # path('academic-records/', views.academic_records, name='academic_records'),
 
     # ── Inbox / Messaging (NEW) ───────────────────────────────────────────────
     path('inbox/', views.inbox, name='inbox'),

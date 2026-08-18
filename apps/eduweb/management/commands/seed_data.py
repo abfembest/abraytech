@@ -1,1582 +1,1545 @@
 """
-Seeds the whole platform with realistic, cross-linked demo data: academic
-structure, staff/students, applications, LMS content, exams, grades,
-finance, the public site, the library, support desk, and more — so every
-page/modal in the app has real, related records behind it instead of an
-empty state or an orphaned row.
+Seed the database with realistic Abraytech data: a handful of tech-training
+Faculties/Departments/Programs/Courses, a few flagship LMS courses with
+lessons, and exactly one user per role (student/instructor/admin/support/
+finance) sharing one password, so the flat course-catalog flow can be
+demoed end to end without hand-building fixtures.
 
-Idempotent-ish: safe to re-run (uses get_or_create for lookup-style data),
-but user/application/enrollment volume will grow on each run unless
---flush is passed first.
-
-Usage:
-    python manage.py seed_data
-    python manage.py seed_data --flush
+Idempotent: safe to re-run — existing rows are matched by their unique
+keys (code/username/email) and updated in place rather than duplicated.
 """
-import random
-import uuid
-from datetime import date, datetime, timedelta
+
 from decimal import Decimal
 
 from django.contrib.auth.models import User
+from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
-from faker import Faker
-
 from apps.eduweb.models import (
-    AcademicSession, AllRequiredPayments, Announcement, Assignment,
-    AssignmentSubmission, AuditLog, Badge, BlogCategory, BlogPost,
-    BroadcastMessage, Certificate, ContactMessage, Course, CourseApplication,
-    CourseCarryOver, CourseCategory, CourseGrade, CourseIntake,
-    CourseRegistration, Department, Discussion, DiscussionReply, Enrollment,
-    Exam, ExamQuestion, ExamStatusLog, Faculty, FeePayment, InstitutionMember,
-    InstitutionPartner, InstitutionalSubscription, Invoice, JobListing,
-    LMSCourse, Lesson, LessonProgress, LessonSection, LibraryItem, Message,
-    Notification, PaymentGateway, Program, ProgramSessionCreditCap,
-    ProgressionDecisionLog, Quiz, QuizAnswer, QuizAttempt, QuizQuestion,
-    QuizResponse, Review, Service, Solution, Industry, Project, Product,
-    ConsultationRequest, NewsletterSubscriber, SiteConfig,
-    SiteHistoryMilestone, StaffPayroll, StaffPermissionsMatrix, StudentBadge,
-    StudentExamResponse, StudyGroup, StudyGroupMember, StudyGroupMessage,
-    Subscription, SubscriptionPlan, SupportTicket, SystemConfiguration,
-    Testimonial, TicketReply, Transaction, UserProfile, Vendor,
-    check_and_award_badges, _score_to_grade,
+    Course,
+    CourseApplication,
+    CourseRegistration,
+    Department,
+    Enrollment,
+    Faculty,
+    Lesson,
+    LMSCourse,
+    Program,
+    UserProfile,
+    BlogCategory,
+    BlogPost,
+    ConsultationRequest,
+    Industry,
+    InstitutionMember,
+    InstitutionPartner,
+    InstitutionalSubscription,
+    JobListing,
+    ListOfCountry,
+    NewsletterSubscriber,
+    Product,
+    Project,
+    Service,
+    SiteConfig,
+    SiteHistoryMilestone,
+    Solution,
+    SystemConfiguration,
+    Testimonial,
+    Vendor,
+    Announcement,
+    Assignment,
+    AssignmentSubmission,
+    AuditLog,
+    Badge,
+    Certificate,
+    CourseCategory,
+    CourseGrade,
+    Exam,
+    ExamQuestion,
+    ExamStatusLog,
+    LessonProgress,
+    LessonSection,
+    Quiz,
+    QuizAnswer,
+    QuizAttempt,
+    QuizQuestion,
+    QuizResponse,
+    StudentBadge,
+    StudentExamResponse,
+    AllRequiredPayments,
+    ApplicationPayment,
+    FeePayment,
+    Invoice,
+    PaymentGateway,
+    StaffPayroll,
+    Subscription,
+    SubscriptionPlan,
+    Transaction,
+    BroadcastMessage,
+    ContactMessage,
+    Discussion,
+    DiscussionReply,
+    Message,
+    Notification,
+    Review,
+    StudyGroup,
+    StudyGroupMember,
+    StudyGroupMessage,
+    SupportTicket,
+    TicketReply,
+    ApplicationDocument,
+    LibraryItem,
+    StaffPermissionsMatrix,
 )
-from apps.support.models import (
-    SLAPolicy, SupportDepartment, SupportTicketExtra, TicketHistory,
-    KBCategory, KBArticle, FAQCategory, FAQ, CannedResponse,
-    ChatSession as SupportChatSession, ChatMessage as SupportChatMessage,
-    AgentProfile, SupportAnnouncement, SupportAuditLog,
-)
 
-fake = Faker()
-
-NG_FIRST_M = ["Chinedu", "Emeka", "Yusuf", "Tunde", "Segun", "Obinna", "Femi",
-              "Kelechi", "Nnamdi", "Ibrahim", "Musa", "Chukwuemeka", "Adewale",
-              "Uche", "Babatunde", "Suleiman", "Ikenna", "Olumide", "Garba", "Junaid"]
-NG_FIRST_F = ["Adaeze", "Ngozi", "Oluwaseun", "Aisha", "Folake", "Kemi",
-              "Ifeoma", "Bola", "Amara", "Chiamaka", "Fatima", "Blessing",
-              "Chidinma", "Adaobi", "Grace", "Halima", "Zainab", "Nkechi",
-              "Yewande", "Rahma"]
-NG_LAST = ["Okafor", "Adeyemi", "Balogun", "Eze", "Okonkwo", "Abubakar",
-           "Nwosu", "Adewale", "Bello", "Chukwu", "Danjuma", "Ibe", "Lawal",
-           "Nwachukwu", "Ogundipe", "Okoro", "Suleiman", "Uduak", "Afolabi",
-           "Duru", "Ekwueme", "Garba", "Ike", "Jibril", "Mohammed",
-           "Nkemdirim", "Oyelaran", "Adisa", "Chukwuma", "Yakubu"]
-
-INTL_COUNTRIES = ["Ghana", "Kenya", "South Africa", "United Kingdom",
-                   "United States", "Canada", "India", "United Arab Emirates",
-                   "Cameroon", "Ivory Coast", "Rwanda", "Philippines"]
-
-NOW = timezone.now()
-
-
-def rand_name(nigerian_ratio=0.75):
-    """Return (first, last, nationality) — mostly Nigerian, some international."""
-    if random.random() < nigerian_ratio:
-        first = random.choice(NG_FIRST_M + NG_FIRST_F)
-        last = random.choice(NG_LAST)
-        nationality = "Nigerian"
-    else:
-        first = fake.first_name()
-        last = fake.last_name()
-        nationality = random.choice(INTL_COUNTRIES)
-    return first, last, nationality
-
-
-def unique_username(first, last):
-    base = f"{first}.{last}".lower().replace(" ", "")
-    username = base
-    n = 1
-    while User.objects.filter(username=username).exists():
-        n += 1
-        username = f"{base}{n}"
-    return username
-
-
-def past_dt(days_min, days_max):
-    return NOW - timedelta(days=random.randint(days_min, days_max),
-                            hours=random.randint(0, 23), minutes=random.randint(0, 59))
-
-
-def past_date(days_min, days_max):
-    return (NOW - timedelta(days=random.randint(days_min, days_max))).date()
-
-
-def backdate(model_cls, pk, **fields):
-    """Bypass auto_now_add/auto_now to give seeded rows a believable timeline."""
-    model_cls.objects.filter(pk=pk).update(**fields)
+SEED_PASSWORD = "Abraytech@2026"
 
 
 class Command(BaseCommand):
-    help = "Seed the database with realistic, cross-linked demo data across the whole platform."
+    help = "Seed realistic Abraytech demo data (faculties/programs/courses/LMS content + one user per role)."
 
-    def add_arguments(self, parser):
-        parser.add_argument("--flush", action="store_true",
-                             help="Delete previously-seeded data (keeps superusers) before seeding.")
-
+    @transaction.atomic
     def handle(self, *args, **options):
-        random.seed(2026)
-        fake.seed_instance(2026)
+        faculties = self._seed_faculties()
+        departments = self._seed_departments(faculties)
+        programs = self._seed_programs(departments)
+        courses = self._seed_courses(programs)
+        instructor, admin, support, finance, student_user, lms_courses = self._seed_users(programs, courses)
 
-        if options["flush"]:
-            self._flush()
+        self._seed_marketing_content(instructor, admin)
+        self._seed_academic_extras(instructor, admin, student_user, courses, lms_courses)
+        self._seed_financials(admin, instructor, support, finance, student_user, programs, lms_courses)
+        self._seed_community(admin, instructor, support, student_user, lms_courses)
+        self._seed_misc(student_user, courses)
 
-        with transaction.atomic():
-            self.stdout.write("Seeding academic structure...")
-            self._seed_sessions()
-            self._seed_faculties()
-            self._seed_users_staff()
-            self._seed_intakes()
+        self.stdout.write(self.style.SUCCESS("\nSeed complete."))
+        self.stdout.write(self.style.SUCCESS(f"Shared password for every seeded user: {SEED_PASSWORD}"))
 
-            self.stdout.write("Seeding students + applications...")
-            self._seed_applicants_and_students()
-
-            self.stdout.write("Seeding LMS content (lessons/quizzes/assignments)...")
-            self._seed_lms_content()
-
-            self.stdout.write("Seeding enrollments, registrations, grades, progress...")
-            self._seed_academic_records()
-
-            self.stdout.write("Seeding exams...")
-            self._seed_exams()
-
-            self.stdout.write("Seeding finance...")
-            self._seed_finance()
-
-            self.stdout.write("Seeding public site content...")
-            self._seed_site_content()
-
-            self.stdout.write("Seeding library...")
-            self._seed_library()
-
-            self.stdout.write("Seeding communications...")
-            self._seed_communications()
-
-            self.stdout.write("Seeding support desk...")
-            self._seed_support()
-
-            self.stdout.write("Seeding community (discussions/study groups)...")
-            self._seed_community()
-
-            self.stdout.write("Seeding permissions matrix + audit log...")
-            self._seed_permissions_and_audit()
-
-            self.stdout.write("Awarding badges...")
-            self._award_badges()
-
-        self.stdout.write(self.style.SUCCESS("Seed complete."))
-        self._print_summary()
-
-    # ------------------------------------------------------------------
-    # FLUSH
-    # ------------------------------------------------------------------
-    def _flush(self):
-        self.stdout.write("Flushing previously seeded data...")
-        # StudentExamResponse/Exam use on_delete=PROTECT on their User/LMSCourse
-        # FKs, so they must go before the User bulk-delete below.
-        StudentExamResponse.objects.all().delete()
-        Exam.objects.all().delete()
-        User.objects.filter(is_superuser=False).delete()
-        for model in [Faculty, Department, Program, Course, AcademicSession,
-                      CourseIntake, BlogCategory, BlogPost, Testimonial,
-                      Service, Solution, Industry, Project, Product,
-                      JobListing, LibraryItem, SiteConfig, PaymentGateway,
-                      SubscriptionPlan, Vendor, SupportDepartment, SLAPolicy,
-                      KBCategory, FAQCategory, CannedResponse,
-                      InstitutionMember, InstitutionPartner,
-                      NewsletterSubscriber, SystemConfiguration]:
-            model.objects.all().delete()
-
-    # ------------------------------------------------------------------
-    # ACADEMIC SESSIONS
-    # ------------------------------------------------------------------
-    def _seed_sessions(self):
-        self.sessions = []
-        specs = [
-            ("2023/2024", "closed", False),
-            ("2024/2025", "closed", False),
-            ("2025/2026", "active", True),
-        ]
-        for name, status, is_current in specs:
-            start_year = int(name[:4])
-            session, _ = AcademicSession.objects.get_or_create(
-                name=name,
-                defaults=dict(
-                    term_dates=[
-                        {"term": "first", "start": f"{start_year}-09-01", "end": f"{start_year}-12-20"},
-                        {"term": "second", "start": f"{start_year + 1}-01-15", "end": f"{start_year + 1}-06-15"},
-                    ],
-                    status=status,
-                    is_current=is_current,
-                    registration_override="open" if is_current else "closed",
+    # ── Marketing / front-site content ──────────────────────────────────────
+    def _seed_marketing_content(self, instructor, admin):
+        site_config, _ = SiteConfig.objects.get_or_create(
+            pk=1,
+            defaults={
+                "school_name": "Abraytech",
+                "school_short_name": "Abraytech",
+                "tagline": "Building Digital Solutions for a Smarter Future.",
+                "theme_color": "#0ea5e9",
+                "email": "hello@abraytech.com",
+                "phone_primary": "+1 (302) 555-0142",
+                "phone_ng_primary": "+234 801 234 5678",
+                "whatsapp": "2348012345678",
+                "email_admissions": "admissions@abraytech.com",
+                "email_info": "hello@abraytech.com",
+                "email_international": "global@abraytech.com",
+                "phone_admissions": "+234 801 234 5679",
+                "phone_general": "+1 (302) 555-0142",
+                "address_usa": "8 The Green, Suite 4000, Dover, DE 19901, USA",
+                "address_nigeria": "12 Admiralty Way, Lekki Phase 1, Lagos, Nigeria",
+                "facebook": "https://facebook.com/abraytech",
+                "instagram": "https://instagram.com/abraytech",
+                "youtube": "https://youtube.com/@abraytech",
+                "twitter": "https://twitter.com/abraytech",
+                "linkedin": "https://linkedin.com/company/abraytech",
+                "footer_tagline": (
+                    "Abraytech delivers software, cybersecurity, AI, data and digital "
+                    "transformation solutions that help businesses innovate, operate "
+                    "securely and grow — and we train the next generation of engineers "
+                    "to build it all."
                 ),
-            )
-            self.sessions.append(session)
-        self.current_session = self.sessions[-1]
-        self.past_sessions = self.sessions[:-1]
-
-    # ------------------------------------------------------------------
-    # FACULTIES / DEPARTMENTS / PROGRAMS / COURSES
-    # ------------------------------------------------------------------
-    # Abraytech Academy's training tracks (= Faculty), practice areas
-    # (= Department) and certificate/diploma programs — Abraytech is a
-    # technology company (software, cybersecurity, AI & data, cloud/DevOps)
-    # that also trains engineers; this is NOT a university, so degree
-    # levels stay at certificate/diploma and course topics are real tech
-    # curricula, not academic subjects.
-    STRUCTURE = {
-        "Software & Web Development": {
-            "code": "SWD", "icon": "code-2", "color": "blue",
-            "departments": {
-                "Web Development": {
-                    "code": "WEB",
-                    "programs": [
-                        ("Certificate in Front-End Web Development", "certificate", 1),
-                        ("Diploma in Full-Stack Web Development", "diploma", 2),
-                    ],
-                    "courses": ["HTML, CSS & JavaScript Fundamentals", "React.js Development",
-                                "Node.js & Express Backend", "Responsive Web Design",
-                                "Version Control with Git", "RESTful API Design",
-                                "Database Design with SQL", "Web Application Testing"],
-                },
-                "Mobile App Development": {
-                    "code": "MOB",
-                    "programs": [
-                        ("Certificate in Mobile App Development", "certificate", 1),
-                        ("Diploma in Cross-Platform App Engineering", "diploma", 2),
-                    ],
-                    "courses": ["Mobile UI/UX Design", "React Native Development",
-                                "Flutter & Dart Fundamentals", "iOS Development with Swift",
-                                "Android Development with Kotlin", "Mobile App Deployment",
-                                "Cross-Platform App Testing", "Mobile App Performance Optimization"],
-                },
-                "Backend Engineering": {
-                    "code": "BKE",
-                    "programs": [
-                        ("Certificate in Backend Engineering", "certificate", 1),
-                        ("Diploma in Software Engineering", "diploma", 2),
-                    ],
-                    "courses": ["Python Programming Fundamentals", "Object-Oriented Programming",
-                                "Database Systems & SQL", "API Development with Django/FastAPI",
-                                "Microservices Architecture", "System Design Fundamentals",
-                                "Backend Testing & QA", "Server Administration"],
-                },
-            },
-        },
-        "Cybersecurity": {
-            "code": "CYB", "icon": "shield-check", "color": "navy",
-            "departments": {
-                "Network Security": {
-                    "code": "NSC",
-                    "programs": [
-                        ("Certificate in Cybersecurity Fundamentals", "certificate", 1),
-                        ("Diploma in Network Security", "diploma", 2),
-                    ],
-                    "courses": ["Networking Fundamentals", "Firewall & VPN Configuration",
-                                "Network Security Monitoring", "Intrusion Detection Systems",
-                                "Wireless Security", "Security Protocols & Cryptography",
-                                "Incident Response", "Network Forensics"],
-                },
-                "Offensive Security": {
-                    "code": "OFS",
-                    "programs": [
-                        ("Certificate in Ethical Hacking", "certificate", 1),
-                        ("Diploma in Penetration Testing", "diploma", 2),
-                    ],
-                    "courses": ["Ethical Hacking Fundamentals", "Penetration Testing Methodology",
-                                "Web Application Security Testing", "Vulnerability Assessment",
-                                "Exploit Development Basics", "Social Engineering Awareness",
-                                "Capture The Flag (CTF) Practice", "Red Team Operations"],
-                },
-                "Governance, Risk & Compliance": {
-                    "code": "GRC",
-                    "programs": [
-                        ("Certificate in Security Governance & Risk", "certificate", 1),
-                        ("Diploma in IT Governance & Compliance", "diploma", 2),
-                    ],
-                    "courses": ["Information Security Governance", "Risk Assessment & Management",
-                                "Compliance Frameworks (ISO 27001, SOC 2)", "Security Policy Development",
-                                "Data Privacy & Protection", "Business Continuity Planning",
-                                "Security Audit Fundamentals", "Third-Party Risk Management"],
-                },
-            },
-        },
-        "AI & Data Science": {
-            "code": "AID", "icon": "brain", "color": "cyan",
-            "departments": {
-                "Data Science": {
-                    "code": "DSC",
-                    "programs": [
-                        ("Certificate in Data Science Foundations", "certificate", 1),
-                        ("Diploma in Data Science", "diploma", 2),
-                    ],
-                    "courses": ["Python for Data Science", "Statistics & Probability",
-                                "Data Wrangling & Cleaning", "Exploratory Data Analysis",
-                                "Data Visualization", "SQL for Data Analysis",
-                                "Big Data Fundamentals", "Data Science Capstone Project"],
-                },
-                "Machine Learning Engineering": {
-                    "code": "MLE",
-                    "programs": [
-                        ("Certificate in Machine Learning", "certificate", 1),
-                        ("Diploma in Machine Learning Engineering", "diploma", 2),
-                    ],
-                    "courses": ["Machine Learning Fundamentals", "Supervised Learning Algorithms",
-                                "Deep Learning with Neural Networks", "Natural Language Processing",
-                                "Computer Vision Basics", "MLOps & Model Deployment",
-                                "Feature Engineering", "Model Evaluation & Tuning"],
-                },
-                "Data Analytics": {
-                    "code": "DAN",
-                    "programs": [
-                        ("Certificate in Data Analytics", "certificate", 1),
-                        ("Diploma in Business Intelligence & Analytics", "diploma", 2),
-                    ],
-                    "courses": ["Business Intelligence Fundamentals", "Excel & Power BI for Analytics",
-                                "Data-Driven Decision Making", "Dashboard Design",
-                                "A/B Testing & Experimentation", "Predictive Analytics",
-                                "Analytics Reporting", "Data Storytelling"],
-                },
-            },
-        },
-        "Cloud & DevOps": {
-            "code": "CLD", "icon": "cloud", "color": "lime",
-            "departments": {
-                "Cloud Infrastructure": {
-                    "code": "CIN",
-                    "programs": [
-                        ("Certificate in Cloud Computing", "certificate", 1),
-                        ("Diploma in Cloud Architecture", "diploma", 2),
-                    ],
-                    "courses": ["Cloud Computing Fundamentals", "AWS Core Services",
-                                "Azure Fundamentals", "Cloud Architecture Design",
-                                "Cloud Cost Optimization", "Cloud Security Basics",
-                                "Infrastructure as Code", "Cloud Migration Strategies"],
-                },
-                "DevOps Engineering": {
-                    "code": "DVO",
-                    "programs": [
-                        ("Certificate in DevOps Fundamentals", "certificate", 1),
-                        ("Diploma in DevOps Engineering", "diploma", 2),
-                    ],
-                    "courses": ["DevOps Fundamentals", "CI/CD Pipeline Design",
-                                "Containerization with Docker", "Kubernetes Orchestration",
-                                "Configuration Management", "Automated Testing in DevOps",
-                                "Monitoring & Logging", "DevSecOps Practices"],
-                },
-                "Site Reliability Engineering": {
-                    "code": "SRE",
-                    "programs": [
-                        ("Certificate in Site Reliability Engineering", "certificate", 1),
-                        ("Diploma in Systems & Reliability Engineering", "diploma", 2),
-                    ],
-                    "courses": ["SRE Fundamentals", "Incident Management",
-                                "Service Level Objectives (SLOs)", "System Reliability Design",
-                                "Performance Monitoring & Alerting", "Capacity Planning",
-                                "Chaos Engineering Basics", "On-Call Best Practices"],
-                },
-            },
-        },
-    }
-
-    def _seed_faculties(self):
-        self.faculties = []
-        self.departments = []
-        self.programs = []
-        self.courses = []
-
-        for fac_name, fac_data in self.STRUCTURE.items():
-            faculty, _ = Faculty.objects.get_or_create(
-                code=fac_data["code"],
-                defaults=dict(
-                    name=fac_name,
-                    icon=fac_data["icon"],
-                    color_primary=fac_data["color"],
-                    color_secondary=fac_data["color"],
-                    tagline=f"Build real, job-ready skills in {fac_name}",
-                    description=fake.paragraph(nb_sentences=6),
-                    mission=fake.paragraph(nb_sentences=3),
-                    vision=fake.paragraph(nb_sentences=3),
-                    dean_name=f"{rand_name()[0]} {rand_name()[1]}",
-                    dean_role="Head of Training",
-                    student_count=random.randint(40, 220),
-                    placement_rate=random.randint(70, 98),
-                    partner_count=random.randint(5, 25),
-                    international_faculty=random.randint(5, 40),
-                    accreditation="Curriculum aligned with industry certification standards (AWS, Microsoft, CompTIA, (ISC)²)",
+                "copyright_year": "2026",
+                "meta_description": (
+                    "Abraytech is a technology company delivering software development, "
+                    "cybersecurity, AI, IT consulting and training to clients worldwide."
                 ),
-            )
-            self.faculties.append(faculty)
-
-            for dept_name, dept_data in fac_data["departments"].items():
-                department, _ = Department.objects.get_or_create(
-                    code=dept_data["code"],
-                    defaults=dict(
-                        faculty=faculty,
-                        name=dept_name,
-                        description=fake.paragraph(nb_sentences=4),
-                    ),
-                )
-                self.departments.append(department)
-
-                for prog_name, degree_level, duration_years in dept_data["programs"]:
-                    CAREER_PATHS_BY_TRACK = {
-                        "Software & Web Development": ["Frontend Developer", "Backend Developer", "Full-Stack Engineer", "Mobile App Developer"],
-                        "Cybersecurity": ["SOC Analyst", "Penetration Tester", "Security Engineer", "GRC Analyst"],
-                        "AI & Data Science": ["Data Analyst", "Data Scientist", "Machine Learning Engineer", "BI Developer"],
-                        "Cloud & DevOps": ["Cloud Engineer", "DevOps Engineer", "Site Reliability Engineer", "Cloud Solutions Architect"],
-                    }
-                    program, _ = Program.objects.get_or_create(
-                        code=f"{dept_data['code']}-{degree_level[:3].upper()}",
-                        defaults=dict(
-                            department=department,
-                            name=prog_name,
-                            degree_level=degree_level,
-                            duration_years=Decimal(duration_years),
-                            credits_required=16 if degree_level == "certificate" else 32,
-                            max_credits_per_semester=8 if degree_level == "certificate" else 16,
-                            tagline=f"Job-ready skills in {dept_name.lower()}, taught by practitioners",
-                            overview=fake.paragraph(nb_sentences=5),
-                            description=fake.paragraph(nb_sentences=8),
-                            entry_requirements=["Basic computer literacy", "A laptop capable of running a code editor",
-                                                 "No prior coding experience required for certificate tracks"],
-                            core_courses=dept_data["courses"][:4],
-                            learning_outcomes=[fake.sentence() for _ in range(4)],
-                            career_paths=CAREER_PATHS_BY_TRACK.get(fac_name, [fake.job() for _ in range(4)]),
-                            tuition_fee=Decimal(random.choice([450, 650, 900, 1200, 1500, 1900])),
-                            available_study_modes=["Full Time", "Online", "Blended"],
-                            is_active=True,
-                            is_featured=random.random() < 0.3,
-                        ),
-                    )
-                    self.programs.append(program)
-
-                    n_levels = min(duration_years, 4)
-                    course_pool = dept_data["courses"]
-                    idx = 0
-                    for level in range(1, n_levels + 1):
-                        for slot in range(2):  # 2 courses per level
-                            title = course_pool[idx % len(course_pool)]
-                            if slot == 1:
-                                title = f"{title} II"
-                            idx += 1
-                            code = f"{dept_data['code']}{level}{slot + 1}{random.randint(0,9)}"
-                            course, created = Course.objects.get_or_create(
-                                program=program, code=code,
-                                defaults=dict(
-                                    name=title,
-                                    course_type="core" if slot == 0 else "elective",
-                                    credit_units=random.choice([2, 3, 3, 4]),
-                                    year_of_study=level,
-                                    semester=random.choice(["first", "second"]),
-                                    description=fake.paragraph(nb_sentences=3),
-                                    learning_outcomes=[fake.sentence() for _ in range(3)],
-                                ),
-                            )
-                            if created:
-                                self.courses.append(course)
-
-    # ------------------------------------------------------------------
-    # STAFF USERS
-    # ------------------------------------------------------------------
-    def _make_user(self, role, faculty=None, department=None, program=None,
-                    year_of_study=1, extra_profile=None):
-        first, last, nationality = rand_name()
-        username = unique_username(first, last)
-        email = f"{username}@abraytech.com" if role != "student" else f"{username}@learners.abraytech.com"
-        user = User.objects.create_user(
-            username=username, email=email, password="Passw0rd!2026",
-            first_name=first, last_name=last,
+                "meta_keywords": "software development, cybersecurity, AI, data, IT consulting, technology training",
+                "about_mission": (
+                    "To deliver reliable, well-engineered technology services and make "
+                    "high-quality technical training accessible to everyone we work with."
+                ),
+                "about_vision": (
+                    "To be a trusted technology partner known for engineering quality, "
+                    "security-mindedness, and practical, outcome-driven work."
+                ),
+                "about_values": [
+                    "Engineering Excellence", "Security by Default",
+                    "Practical, Outcome-Driven Work", "Continuous Learning",
+                ],
+            },
         )
-        profile = user.profile
-        profile.role = role
-        profile.faculty = faculty
-        profile.department = department
-        profile.program = program
-        profile.year_of_study = year_of_study
-        profile.country = nationality if nationality != "Nigerian" else "Nigeria"
-        profile.phone = fake.phone_number()[:20]
-        profile.bio = fake.sentence(nb_words=12)
-        profile.city = fake.city()
-        profile.email_verified = True
-        profile.admission_session = self.current_session
-        if extra_profile:
-            for k, v in extra_profile.items():
-                setattr(profile, k, v)
-        profile.save()
-        return user
+        self.stdout.write("Seeded SiteConfig.")
 
-    def _seed_users_staff(self):
-        self.admins = [self._make_user("admin") for _ in range(4)]
-        self.finance_staff = [self._make_user("finance") for _ in range(3)]
-        self.support_staff = [self._make_user("support") for _ in range(5)]
+        milestones = [
+            (2019, "Founding", "Abraytech is founded in Lagos, Nigeria, delivering custom software for early clients."),
+            (2020, "First Enterprise Client", "Abraytech lands its first enterprise cybersecurity engagement."),
+            (2021, "Training Academy Launches", "Abraytech opens its technical training academy, starting with a Full-Stack Software Engineering cohort."),
+            (2023, "US Expansion", "Abraytech opens a US office to serve clients across North America."),
+            (2025, "AI & Data Practice", "Abraytech launches a dedicated AI & Data engineering practice."),
+        ]
+        for year, title, desc in milestones:
+            SiteHistoryMilestone.objects.update_or_create(
+                site=site_config, year=year, title=title,
+                defaults={"description": desc, "is_active": True},
+            )
+        self.stdout.write(f"Seeded {len(milestones)} SiteHistoryMilestone rows.")
 
-        self.instructors = []
-        for department in self.departments:
-            for _ in range(2):
-                instr = self._make_user("instructor", faculty=department.faculty, department=department)
-                self.instructors.append(instr)
+        services_data = [
+            ("Custom Software Development", "Bespoke web and mobile applications built for how your business actually works.", "code"),
+            ("Cybersecurity & Penetration Testing", "Find and fix vulnerabilities before attackers do.", "shield"),
+            ("AI & Data Engineering", "Data pipelines, analytics and machine learning that drive real decisions.", "brain-circuit"),
+            ("Cloud Migration & DevOps", "Move to the cloud and automate delivery with confidence.", "cloud"),
+            ("IT Consulting & Strategy", "Technology roadmaps and architecture reviews for growing teams.", "compass"),
+            ("Mobile App Development", "Native and cross-platform apps for iOS and Android.", "smartphone"),
+            ("Managed IT Support", "Ongoing infrastructure monitoring and support so your team can focus on the business.", "life-buoy"),
+            ("Security Audits & Compliance", "Independent audits against SOC 2, ISO 27001 and industry best practice.", "clipboard-check"),
+            ("Data Analytics & Business Intelligence", "Dashboards and reporting that turn raw data into decisions.", "bar-chart-3"),
+            ("Technical Training & Upskilling", "Job-ready software, security and data training for individuals and teams.", "graduation-cap"),
+        ]
+        services = {}
+        for title, summary, icon in services_data:
+            obj, _ = Service.objects.update_or_create(
+                title=title, defaults={"summary": summary, "icon": icon, "is_active": True},
+            )
+            services[title] = obj
+        self.stdout.write(f"Seeded {len(services_data)} Service rows.")
 
-    # ------------------------------------------------------------------
-    # INTAKES
-    # ------------------------------------------------------------------
-    def _seed_intakes(self):
-        self.intakes = []
-        for program in self.programs:
-            for period, month in [("september", 9), ("january", 1)]:
-                year = 2026 if period == "january" else 2025
-                intake, _ = CourseIntake.objects.get_or_create(
-                    program=program, intake_period=period, year=year,
-                    defaults=dict(
-                        application_start_date=date(year, month, 1) - timedelta(days=90),
-                        start_date=date(year, month, 1),
-                        application_deadline=date(year, month, 1) - timedelta(days=14),
-                        application_fee=Decimal(random.choice([50, 75, 100])),
-                        available_slots=random.randint(30, 80),
-                    ),
+        solutions_data = [
+            ("Cloud Migration Accelerator", "A fixed-scope package to move your core systems to the cloud in weeks, not months.", "Cloud Migration & DevOps"),
+            ("Managed IT Services", "Full outsourced IT operations for growing companies.", "Managed IT Support"),
+            ("Custom Software Platform", "An end-to-end platform build — from discovery to production support.", "Custom Software Development"),
+            ("AI-Powered Analytics Suite", "A packaged data + AI stack for teams who want insight without building it from scratch.", "AI & Data Engineering"),
+            ("Security Operations as a Service", "Ongoing monitoring, detection and response run by our security team.", "Cybersecurity & Penetration Testing"),
+            ("DevOps Transformation Package", "CI/CD, infrastructure as code and observability, implemented end to end.", "Cloud Migration & DevOps"),
+        ]
+        for order, (title, summary, related_service) in enumerate(solutions_data, start=1):
+            sol, _ = Solution.objects.update_or_create(
+                title=title, defaults={"summary": summary, "order": order, "is_active": True},
+            )
+            if related_service in services:
+                sol.related_services.set([services[related_service]])
+        self.stdout.write(f"Seeded {len(solutions_data)} Solution rows.")
+
+        industries_data = [
+            ("Financial Services", "Payments, banking and fintech platforms built for security and scale."),
+            ("Healthcare", "Systems that handle sensitive health data with the compliance it demands."),
+            ("E-commerce & Retail", "Storefronts, checkout and logistics integrations that hold up under real traffic."),
+            ("Education", "Learning platforms and admissions systems for schools and training providers."),
+            ("Logistics & Supply Chain", "Tracking, routing and inventory systems for physical operations."),
+            ("Government & Public Sector", "Citizen-facing digital services built to public-sector standards."),
+        ]
+        industries = {}
+        for order, (title, summary) in enumerate(industries_data, start=1):
+            obj, _ = Industry.objects.update_or_create(
+                title=title, defaults={"summary": summary, "order": order, "is_active": True},
+            )
+            industries[title] = obj
+        self.stdout.write(f"Seeded {len(industries_data)} Industry rows.")
+
+        projects_data = [
+            ("Payment Gateway Modernization", "Rebuilt a fintech startup's core payment processing for reliability at scale.", "", "Financial Services", "Custom Software Development"),
+            ("Cloud Migration for a Regional Healthcare Provider", "Migrated on-premise patient systems to a compliant cloud environment.", "", "Healthcare", "Cloud Migration & DevOps"),
+            ("Security Audit & Hardening for an E-commerce Platform", "Found and closed critical vulnerabilities ahead of a major sales season.", "", "E-commerce & Retail", "Cybersecurity & Penetration Testing"),
+            ("Custom LMS Platform for a Training Institute", "Built a bespoke learning platform to replace three disconnected tools.", "", "Education", "Custom Software Development"),
+            ("Data Pipeline & Analytics Dashboard for a Logistics Company", "Real-time visibility into fleet and warehouse operations.", "", "Logistics & Supply Chain", "AI & Data Engineering"),
+            ("Mobile Banking App for a Microfinance Bank", "Launched a mobile-first banking experience for underserved customers.", "", "Financial Services", "Mobile App Development"),
+        ]
+        for order, (title, summary, client, industry_title, service_title) in enumerate(projects_data, start=1):
+            Project.objects.update_or_create(
+                title=title,
+                defaults={
+                    "summary": summary,
+                    "client_name": client,
+                    "industry": industries.get(industry_title),
+                    "service": services.get(service_title),
+                    "challenge": f"The client needed to solve: {summary.lower()}",
+                    "solution_text": f"Abraytech's team designed and delivered a solution addressing this need end to end.",
+                    "results": "Delivered on time, with measurable improvements in reliability and performance.",
+                    "is_featured": order <= 3,
+                    "is_active": True,
+                    "order": order,
+                },
+            )
+        self.stdout.write(f"Seeded {len(projects_data)} Project rows.")
+
+        products_data = [
+            ("Abraytech DevSecOps Starter Kit", "A ready-to-use CI/CD + security scanning pipeline template.", Decimal("499.00")),
+            ("Abraytech Security Audit Toolkit", "Checklists and scripts our own auditors use for security reviews.", Decimal("299.00")),
+            ("Abraytech Cloud Cost Optimizer", "A lightweight tool that flags wasted cloud spend.", None),
+            ("Abraytech Onboarding Playbook", "Our internal engineering onboarding playbook, packaged for other teams.", Decimal("99.00")),
+            ("Abraytech API Style Guide", "The REST API design standards we use on every client project.", None),
+        ]
+        for order, (title, summary, price) in enumerate(products_data, start=1):
+            Product.objects.update_or_create(
+                title=title, defaults={"summary": summary, "price": price, "order": order, "is_active": True},
+            )
+        self.stdout.write(f"Seeded {len(products_data)} Product rows.")
+
+        jobs_data = [
+            ("Full-Stack Software Engineer", "Engineering", "Lagos, Nigeria", "full_time"),
+            ("Cybersecurity Analyst", "Security", "Remote", "full_time"),
+            ("Data Scientist", "Data & AI", "Lagos, Nigeria", "full_time"),
+            ("Cloud/DevOps Engineer", "Engineering", "Remote", "full_time"),
+            ("Technical Instructor, Software Engineering", "Training", "Lagos, Nigeria", "part_time"),
+            ("IT Support Specialist", "IT Operations", "Dover, DE, USA", "full_time"),
+            ("Software Engineering Intern", "Engineering", "Lagos, Nigeria", "internship"),
+        ]
+        for title, department, location, emp_type in jobs_data:
+            JobListing.objects.update_or_create(
+                title=title,
+                defaults={
+                    "department": department, "location": location,
+                    "employment_type": emp_type,
+                    "description": f"We're hiring a {title.lower()} to join the Abraytech {department} team.",
+                    "requirements": "Relevant experience or a completed Abraytech training track; strong communication skills.",
+                    "is_active": True,
+                },
+            )
+        self.stdout.write(f"Seeded {len(jobs_data)} JobListing rows.")
+
+        members_data = [
+            ("admin_board", "Chidinma Okafor", "Chief Executive Officer"),
+            ("admin_board", "Emeka Udo", "Chief Financial Officer"),
+            ("academic_board", "Tunde Bakare", "Head of Training & Curriculum"),
+            ("academic_board", "Ngozi Adeyemi", "Head of Cybersecurity Practice"),
+            ("advisorate_board", "Michael Reyes", "Board Advisor, Technology"),
+            ("advisorate_board", "Funmi Bello", "Board Advisor, Growth"),
+            ("staff", "Ada Nwosu", "Head of Customer Support"),
+            ("staff", "Kelechi Eze", "Lead Cloud Engineer"),
+        ]
+        for member_type, name, role in members_data:
+            InstitutionMember.objects.update_or_create(
+                name=name, defaults={"member_type": member_type, "role": role, "is_active": True},
+            )
+        InstitutionMember.objects.filter(name="Chidinma Okafor").update(is_who_we_are=True)
+        self.stdout.write(f"Seeded {len(members_data)} InstitutionMember rows.")
+
+        partners_data = [
+            ("Amazon Web Services (AWS) Partner Network", "partner", "Global"),
+            ("Google Cloud Partner Program", "partner", "Global"),
+            ("Microsoft Partner Network", "partner", "Global"),
+            ("GitHub Education Partner", "affiliation", "Global"),
+            ("Nigeria Computer Society", "affiliation", "Lagos, Nigeria"),
+            ("ISO 27001 Certified", "accreditation", "Global"),
+        ]
+        for name, category, location in partners_data:
+            InstitutionPartner.objects.update_or_create(
+                name=name, defaults={"category": category, "location": location, "is_active": True},
+            )
+        self.stdout.write(f"Seeded {len(partners_data)} InstitutionPartner rows.")
+
+        testimonials_data = [
+            ("The Full-Stack Software Engineering track took me from zero coding experience to a junior developer job in six months.", "Blessing Achebe", "Full-Stack Software Engineering Graduate"),
+            ("Abraytech rebuilt our checkout flow and cut our failed-payment rate in half.", "Daniel Osei", "CTO, a regional e-commerce platform"),
+            ("The Cybersecurity Analyst Program is genuinely hands-on — I was doing real pentesting labs by week three.", "Samuel Igwe", "Cybersecurity Analyst Program Graduate"),
+            ("Their DevOps team had us running proper CI/CD within two weeks of kickoff.", "Grace Umeh", "Engineering Manager, fintech client"),
+            ("I switched careers into data science through the Data Science & Machine Learning track — best decision I've made.", "Hauwa Bello", "Data Science & Machine Learning Graduate"),
+            ("Abraytech's security audit caught issues our internal team had missed for years.", "James Okonkwo", "Head of IT, healthcare client"),
+            ("The instructors actually work in the industry — that made all the difference.", "Chinedu Obi", "Backend Engineering with Python & Django Graduate"),
+            ("Responsive, technically excellent, and genuinely easy to work with.", "Amara Nwachukwu", "Founder, logistics startup"),
+        ]
+        for quote, author, role in testimonials_data:
+            Testimonial.objects.update_or_create(
+                author_name=author, defaults={"quote": quote, "author_role": role, "is_active": True},
+            )
+        self.stdout.write(f"Seeded {len(testimonials_data)} Testimonial rows.")
+
+        blog_categories_data = [
+            ("Software Engineering", "code", "blue"),
+            ("Cybersecurity", "shield", "red"),
+            ("AI & Data", "brain-circuit", "purple"),
+            ("Cloud & DevOps", "cloud", "cyan"),
+            ("Career Advice", "briefcase", "amber"),
+        ]
+        blog_categories = {}
+        for name, icon, color in blog_categories_data:
+            obj, _ = BlogCategory.objects.update_or_create(
+                name=name, defaults={"icon": icon, "color": color, "is_active": True},
+            )
+            blog_categories[name] = obj
+        self.stdout.write(f"Seeded {len(blog_categories_data)} BlogCategory rows.")
+
+        blog_posts_data = [
+            ("5 Signs Your Codebase Needs a Security Audit", "Software Engineering", "Small warning signs that are worth taking seriously before they become incidents."),
+            ("What a Penetration Test Actually Involves", "Cybersecurity", "A walkthrough of how our team approaches a real engagement, start to finish."),
+            ("Getting Started with Machine Learning: A Practical Path", "AI & Data", "The order we actually recommend learning ML fundamentals in."),
+            ("Why We Moved to Infrastructure as Code", "Cloud & DevOps", "What changed for our delivery speed and reliability after adopting Terraform."),
+            ("From Bootcamp to First Job: What Actually Helped", "Career Advice", "Lessons from our Full-Stack Software Engineering graduates who landed roles fast."),
+            ("Django vs. Node.js for Your Next Backend", "Software Engineering", "A practical comparison based on projects we've shipped in both."),
+            ("Building a SOC Analyst Career in 2026", "Cybersecurity", "What the role actually looks like day to day, and how to break in."),
+            ("Data Visualization Mistakes That Undermine Good Analysis", "AI & Data", "Common pitfalls we see in dashboards and how to avoid them."),
+        ]
+        for title, category_name, excerpt in blog_posts_data:
+            BlogPost.objects.update_or_create(
+                title=title,
+                defaults={
+                    "excerpt": excerpt,
+                    "content": f"{excerpt}\n\nThis is a full-length article on the topic, written by the Abraytech team.",
+                    "category": blog_categories.get(category_name),
+                    "author": instructor,
+                    "author_name": instructor.get_full_name(),
+                    "author_title": "Head of Training & Curriculum",
+                    "status": "published",
+                    "publish_date": timezone.now(),
+                },
+            )
+        self.stdout.write(f"Seeded {len(blog_posts_data)} BlogPost rows.")
+
+        consultations_data = [
+            ("Ifeoma Chukwu", "ifeoma.chukwu@examplecorp.com", "ExampleCorp", "Cloud Migration & DevOps"),
+            ("Robert Kim", "robert.kim@northbridge.io", "Northbridge Retail", "Cybersecurity & Penetration Testing"),
+            ("Aisha Mohammed", "aisha.m@fintrust.ng", "FinTrust Microfinance", "Custom Software Development"),
+            ("Peter Nwankwo", "peter@logitrack.co", "LogiTrack", "AI & Data Engineering"),
+            ("Sarah Johnson", "sarah.johnson@healthfirst.org", "HealthFirst Clinics", "Security Audits & Compliance"),
+        ]
+        for name, email, company, service_title in consultations_data:
+            ConsultationRequest.objects.update_or_create(
+                email=email,
+                defaults={
+                    "name": name, "company": company,
+                    "service_interest": services.get(service_title),
+                    "message": f"We'd like to talk about {service_title.lower()} for {company}.",
+                    "status": "new",
+                },
+            )
+        self.stdout.write(f"Seeded {len(consultations_data)} ConsultationRequest rows.")
+
+        newsletter_emails = [
+            "reader1@example.com", "reader2@example.com", "reader3@example.com",
+            "techfan@example.com", "hr@examplecorp.com", "founder@northbridge.io",
+            "cto@fintrust.ng", "student.updates@example.com",
+        ]
+        for email in newsletter_emails:
+            NewsletterSubscriber.objects.get_or_create(email=email)
+        self.stdout.write(f"Seeded {len(newsletter_emails)} NewsletterSubscriber rows.")
+
+        vendors_data = [
+            ("Flutterwave Technology Solutions", "flutterwave-payouts@example.com", "Nigeria"),
+            ("AWS Nigeria Reseller", "billing@aws-reseller.example.com", "Nigeria"),
+            ("Zoom Video Communications", "billing@zoom.example.com", "USA"),
+            ("GitHub, Inc.", "billing@github.example.com", "USA"),
+            ("Google Workspace", "billing@google.example.com", "USA"),
+        ]
+        for name, email, country in vendors_data:
+            Vendor.objects.update_or_create(
+                name=name, defaults={"email": email, "country": country, "is_active": True},
+            )
+        self.stdout.write(f"Seeded {len(vendors_data)} Vendor rows.")
+
+        institutional_subs_data = [
+            ("AWS Hosting & Infrastructure", Decimal("1200.00")),
+            ("GitHub Enterprise", Decimal("210.00")),
+            ("Zoom Business", Decimal("150.00")),
+            ("Slack Business+", Decimal("180.00")),
+            ("Google Workspace", Decimal("120.00")),
+        ]
+        today = timezone.now().date()
+        for purpose, amount in institutional_subs_data:
+            InstitutionalSubscription.objects.update_or_create(
+                purpose=purpose,
+                defaults={
+                    "amount": amount,
+                    "start_date": today.replace(day=1),
+                    "expiry_date": today.replace(day=1).replace(year=today.year + 1),
+                    "created_by": admin,
+                },
+            )
+        self.stdout.write(f"Seeded {len(institutional_subs_data)} InstitutionalSubscription rows.")
+
+        system_config_data = [
+            ("site_maintenance_mode", "false", "boolean", "Whether the site is in maintenance mode."),
+            ("max_upload_size_mb", "25", "number", "Maximum file upload size in megabytes."),
+            ("support_email", "support@abraytech.com", "text", "Primary support contact email."),
+            ("admissions_open", "true", "boolean", "Whether new applications are currently being accepted."),
+            ("default_currency", "USD", "text", "Default currency code for new payments."),
+            ("session_timeout_minutes", "30", "number", "Inactivity timeout for logged-in sessions."),
+        ]
+        for key, value, setting_type, description in system_config_data:
+            SystemConfiguration.objects.update_or_create(
+                key=key, defaults={"value": value, "setting_type": setting_type, "description": description},
+            )
+        self.stdout.write(f"Seeded {len(system_config_data)} SystemConfiguration rows.")
+
+        countries_data = [
+            ("Nigeria", "NG", "234", "Nigerian"),
+            ("United States", "US", "1", "American"),
+            ("United Kingdom", "GB", "44", "British"),
+            ("Canada", "CA", "1", "Canadian"),
+            ("Ghana", "GH", "233", "Ghanaian"),
+            ("Kenya", "KE", "254", "Kenyan"),
+            ("South Africa", "ZA", "27", "South African"),
+            ("India", "IN", "91", "Indian"),
+            ("Germany", "DE", "49", "German"),
+            ("France", "FR", "33", "French"),
+        ]
+        for country, code, phone_code, nationality in countries_data:
+            ListOfCountry.objects.update_or_create(
+                country=country,
+                defaults={"country_code": code, "country_phonecode": phone_code, "nationality": nationality},
+            )
+        self.stdout.write(f"Seeded {len(countries_data)} ListOfCountry rows.")
+
+    # ── Academic extras: categories, grades, sections/progress, assignments,
+    #    quizzes, exams, certificates, badges, announcements, audit log ────────
+    def _seed_academic_extras(self, instructor, admin, student_user, courses, lms_courses):
+        category_data = [
+            "Web Development", "Backend Engineering", "Cybersecurity",
+            "Data Science", "Cloud & DevOps", "Programming Fundamentals",
+        ]
+        categories = {}
+        for name in category_data:
+            obj, _ = CourseCategory.objects.update_or_create(name=name, defaults={"is_active": True})
+            categories[name] = obj
+        self.stdout.write(f"Seeded {len(category_data)} CourseCategory rows.")
+
+        # ── Lesson sections — 2 per flagship LMS course, existing lessons
+        #    reassigned into "Getting Started" / "Core Concepts" ────────────────
+        section_count = 0
+        for code, lms in lms_courses.items():
+            lessons = list(lms.lessons.order_by("display_order"))
+            if not lessons:
+                continue
+            intro, _ = LessonSection.objects.update_or_create(
+                course=lms, title="Getting Started",
+                defaults={"description": "Orientation and setup.", "display_order": 1, "is_active": True},
+            )
+            core, _ = LessonSection.objects.update_or_create(
+                course=lms, title="Core Concepts",
+                defaults={"description": "The main course material.", "display_order": 2, "is_active": True},
+            )
+            section_count += 2
+            mid = max(1, len(lessons) // 2)
+            for lesson in lessons[:mid]:
+                lesson.section = intro
+                lesson.save(update_fields=["section"])
+            for lesson in lessons[mid:]:
+                lesson.section = core
+                lesson.save(update_fields=["section"])
+        self.stdout.write(f"Seeded {section_count} LessonSection rows.")
+
+        # ── Lesson progress — student is further along in FSE101 (completed)
+        #    than DSM101 (still in progress). ───────────────────────────────────
+        progress_count = 0
+        for code, done_count in (("FSE101", 4), ("DSM101", 2)):
+            lms = lms_courses[code]
+            enrollment = Enrollment.objects.get(student=student_user, course=lms)
+            lessons = list(lms.lessons.order_by("display_order"))
+            for i, lesson in enumerate(lessons):
+                is_completed = i < done_count
+                LessonProgress.objects.update_or_create(
+                    enrollment=enrollment, lesson=lesson,
+                    defaults={
+                        "is_completed": is_completed,
+                        "completion_percentage": Decimal("100.00") if is_completed else Decimal("40.00"),
+                        "time_spent_minutes": 25 if is_completed else 10,
+                    },
                 )
-                self.intakes.append(intake)
+                progress_count += 1
+            if done_count == len(lessons):
+                enrollment.status = "completed"
+                enrollment.progress_percentage = Decimal("100.00")
+                enrollment.completed_lessons = done_count
+                enrollment.completed_at = timezone.now()
+                enrollment.save(update_fields=["status", "progress_percentage", "completed_lessons", "completed_at"])
+        self.stdout.write(f"Seeded {progress_count} LessonProgress rows.")
 
-    # ------------------------------------------------------------------
-    # APPLICANTS + STUDENTS
-    # ------------------------------------------------------------------
-    def _seed_applicants_and_students(self):
-        self.students = []
-        self.applications = []
-
-        # Prospect applications not yet tied to an account (draft / rejected / withdrawn)
-        for _ in range(25):
-            first, last, nationality = rand_name()
-            program = random.choice(self.programs)
-            status = random.choice(["draft", "pending_payment", "under_review", "rejected", "withdrawn"])
-            app = CourseApplication.objects.create(
-                user=None, program=program,
-                academic_session=self.current_session,
-                intake=random.choice([i for i in self.intakes if i.program == program]),
-                study_mode=random.choice(["Full Time", "Part Time", "Online"]),
-                first_name=first, last_name=last,
-                email=f"{first}.{last}{random.randint(1,999)}@example.com".lower(),
-                phone=fake.phone_number()[:20],
-                date_of_birth=past_date(365 * 30, 365 * 45),
-                gender=random.choice(["male", "female"]),
-                nationality=nationality,
-                address_line1=fake.street_address(),
-                city=fake.city(), state=fake.state(), postal_code=fake.postcode(),
-                country=nationality if nationality != "Nigerian" else "Nigeria",
-                highest_qualification=random.choice(["Secondary School Certificate", "Diploma", "Bachelor's Degree"]),
-                institution_name=fake.company() + " College",
-                graduation_year=str(random.randint(2018, 2025)),
-                gpa_or_grade=random.choice(["A", "B+", "3.5 CGPA", "Merit"]),
-                work_experience_years=random.randint(0, 6),
-                personal_statement=fake.paragraph(nb_sentences=5),
-                emergency_contact_name=f"{rand_name()[0]} {rand_name()[1]}",
-                emergency_contact_phone=fake.phone_number()[:20],
-                emergency_contact_relationship=random.choice(["Parent", "Sibling", "Spouse", "Guardian"]),
-                status=status,
-                accept_privacy_policy=True, accept_terms_conditions=True,
+        # ── Assignments + one student submission per flagship course ───────────
+        assignment_count = 0
+        submission_count = 0
+        assignments = {}
+        for code, lms in lms_courses.items():
+            lesson = lms.lessons.order_by("display_order").last()
+            if not lesson:
+                continue
+            assignment, _ = Assignment.objects.update_or_create(
+                lesson=lesson, title=f"{lms.title} — Practical Assignment",
+                defaults={
+                    "description": f"Apply what you've learned in {lms.title} to a small practical exercise.",
+                    "instructions": "Submit your work as a short write-up or link to your code.",
+                    "due_date": timezone.now() + timezone.timedelta(days=14),
+                },
             )
-            backdate(CourseApplication, app.pk, created_at=past_dt(30, 400))
-            self.applications.append(app)
+            assignments[code] = assignment
+            assignment_count += 1
 
-        # Enrolled students — approved applications with real accounts
-        n_students = 130
-        for _ in range(n_students):
-            program = random.choice(self.programs)
-            max_level = min(int(program.duration_years), 4)
-            year_of_study = random.randint(1, max_level)
-            first, last, nationality = rand_name()
-
-            student = self._make_user(
-                "student",
-                faculty=program.department.faculty,
-                department=program.department,
-                program=program,
-                year_of_study=year_of_study,
-                extra_profile=dict(
-                    first_name_override=None,
-                    progression_status="active",
-                ),
+        for code, score, status in (("FSE101", Decimal("92.00"), "graded"), ("DSM101", None, "submitted")):
+            assignment = assignments[code]
+            AssignmentSubmission.objects.update_or_create(
+                assignment=assignment, student=student_user,
+                defaults={
+                    "submission_text": "Here is my completed submission for this assignment.",
+                    "score": score,
+                    "feedback": "Solid work — nice attention to detail." if score else "",
+                    "graded_by": instructor if score else None,
+                    "status": status,
+                    "submitted_at": timezone.now(),
+                },
             )
-            student.first_name, student.last_name = first, last
-            student.save()
+            submission_count += 1
+        self.stdout.write(f"Seeded {assignment_count} Assignment and {submission_count} AssignmentSubmission rows.")
 
-            intake_choices = [i for i in self.intakes if i.program == program]
-            app = CourseApplication.objects.create(
-                user=student, program=program,
-                academic_session=random.choice(self.past_sessions) if year_of_study > 1 else self.current_session,
-                intake=random.choice(intake_choices) if intake_choices else None,
-                entry_level=1,
-                study_mode=random.choice(["Full Time", "Online", "Blended"]),
-                first_name=first, last_name=last, email=student.email,
-                phone=fake.phone_number()[:20],
-                date_of_birth=past_date(365 * 19, 365 * 35),
-                gender=random.choice(["male", "female"]),
-                nationality=nationality,
-                address_line1=fake.street_address(),
-                city=fake.city(), state=fake.state(), postal_code=fake.postcode(),
-                country=nationality if nationality != "Nigerian" else "Nigeria",
-                highest_qualification="Secondary School Certificate",
-                institution_name=fake.company() + " Secondary School",
-                graduation_year=str(random.randint(2018, 2024)),
-                gpa_or_grade=random.choice(["A", "B+", "B", "Distinction"]),
-                work_experience_years=random.randint(0, 4),
-                personal_statement=fake.paragraph(nb_sentences=5),
-                emergency_contact_name=f"{rand_name()[0]} {rand_name()[1]}",
-                emergency_contact_phone=fake.phone_number()[:20],
-                emergency_contact_relationship=random.choice(["Parent", "Sibling", "Guardian"]),
-                status="approved",
-                reviewer=random.choice(self.admins),
-                submitted_at=past_dt(200, 500),
-                reviewed_at=past_dt(190, 495),
-                admission_accepted=True,
-                admission_accepted_at=past_dt(185, 490),
-                accept_privacy_policy=True, accept_terms_conditions=True,
+        # ── Quizzes + questions + answers, with two student attempts ───────────
+        quiz_count = question_count = answer_count = 0
+        quizzes = {}
+        for code, lms in lms_courses.items():
+            lesson = lms.lessons.order_by("display_order").first()
+            if not lesson:
+                continue
+            quiz, _ = Quiz.objects.update_or_create(
+                lesson=lesson, title=f"{lms.title} — Knowledge Check",
+                defaults={"description": "A short check on the key ideas from this course.", "passing_score": Decimal("70.00")},
             )
-            backdate(CourseApplication, app.pk, created_at=past_dt(200, 500),
-                     admission_number=f"ABT/{random.randint(2022,2025)}/{app.pk:05d}")
-            self.applications.append(app)
-            self.students.append(student)
+            quizzes[code] = quiz
+            quiz_count += 1
 
-        # A handful of graduated alumni
-        self.graduates = self.students[:12]
-        for grad in self.graduates:
-            grad.profile.progression_status = "graduated"
-            grad.profile.year_of_study = min(int(grad.profile.program.duration_years), 4)
-            grad.profile.save()
-
-    # ------------------------------------------------------------------
-    # LMS CONTENT
-    # ------------------------------------------------------------------
-    def _seed_lms_content(self):
-        self.lms_courses = []
-        for course in self.courses:
-            lecturer = random.choice([
-                i for i in self.instructors if i.profile.department_id == course.program.department_id
-            ] or self.instructors)
-
-            lms = LMSCourse.objects.create(
-                title=course.name,
-                code=f"{course.code}-{course.pk}",
-                short_description=fake.sentence(nb_words=15),
-                description=fake.paragraph(nb_sentences=6),
-                learning_objectives=[fake.sentence() for _ in range(4)],
-                prerequisites=[],
-                academic_course=course,
-                session=self.current_session,
-                term=course.semester,
-                lecturer=lecturer,
-                instructor=lecturer,
-                difficulty_level=course.level,
-                is_published=True,
-                is_featured=random.random() < 0.15,
+            mcq, _ = QuizQuestion.objects.update_or_create(
+                quiz=quiz, question_text=f"Which of these is a core topic in {lms.title}?",
+                defaults={"question_type": "multiple_choice", "display_order": 1, "points": Decimal("1.00")},
             )
-            backdate(LMSCourse, lms.pk, created_at=past_dt(60, 300), published_at=past_dt(55, 295))
-            self.lms_courses.append(lms)
+            QuizAnswer.objects.filter(question=mcq).delete()
+            QuizAnswer.objects.bulk_create([
+                QuizAnswer(question=mcq, answer_text=lms.title.split(":")[0], is_correct=True, display_order=1),
+                QuizAnswer(question=mcq, answer_text="Ancient History", is_correct=False, display_order=2),
+                QuizAnswer(question=mcq, answer_text="Culinary Arts", is_correct=False, display_order=3),
+                QuizAnswer(question=mcq, answer_text="Music Theory", is_correct=False, display_order=4),
+            ])
 
-            sections = []
-            for s in range(2):
-                section = LessonSection.objects.create(
-                    course=lms, title=f"Module {s + 1}: {fake.catch_phrase()}",
-                    description=fake.sentence(), display_order=s,
+            tf, _ = QuizQuestion.objects.update_or_create(
+                quiz=quiz, question_text="Hands-on practice is part of this course.",
+                defaults={"question_type": "true_false", "display_order": 2, "points": Decimal("1.00")},
+            )
+            QuizAnswer.objects.filter(question=tf).delete()
+            QuizAnswer.objects.bulk_create([
+                QuizAnswer(question=tf, answer_text="True", is_correct=True, display_order=1),
+                QuizAnswer(question=tf, answer_text="False", is_correct=False, display_order=2),
+            ])
+            question_count += 2
+            answer_count += 6
+
+        for code in ("FSE101", "DSM101"):
+            quiz = quizzes[code]
+            attempt, _ = QuizAttempt.objects.update_or_create(
+                quiz=quiz, student=student_user,
+                defaults={
+                    "score": Decimal("2.00"), "max_score": Decimal("2.00"), "percentage": Decimal("100.00"),
+                    "is_completed": True, "passed": True, "completed_at": timezone.now(), "time_taken_minutes": 4,
+                },
+            )
+            for question in quiz.questions.all():
+                correct_answer = question.answers.filter(is_correct=True).first()
+                QuizResponse.objects.update_or_create(
+                    attempt=attempt, question=question,
+                    defaults={"selected_answer": correct_answer, "is_correct": True, "points_earned": question.points},
                 )
-                sections.append(section)
+        self.stdout.write(f"Seeded {quiz_count} Quiz, {question_count} QuizQuestion, {answer_count} QuizAnswer rows + 2 attempts.")
 
-            lessons = []
-            for section in sections:
-                for l in range(3):
-                    lesson = Lesson.objects.create(
-                        course=lms, section=section,
-                        title=fake.sentence(nb_words=5).rstrip("."),
-                        lesson_type=random.choice(["video", "text", "video", "file"]),
-                        description=fake.sentence(),
-                        content=fake.paragraph(nb_sentences=10),
-                        video_url="https://www.youtube.com/watch?v=dQw4w9WgXcQ" if random.random() < 0.6 else "",
-                        video_duration_minutes=random.randint(5, 40),
-                        is_preview=(l == 0 and section.display_order == 0),
-                        display_order=l,
-                    )
-                    lessons.append(lesson)
+        # ── Exams: FSE101's already happened (graded response), DSM101's is
+        #    upcoming (published, no response yet). ────────────────────────────
+        def _mcq_options(correct_text, distractors):
+            opts = [{"id": f"opt-{i}", "text": t, "is_correct": t == correct_text}
+                    for i, t in enumerate([correct_text, *distractors])]
+            return opts
 
-            # one quiz on the first lesson of each section
-            for section, lesson in zip(sections, [lessons[0], lessons[3]]):
-                quiz = Quiz.objects.create(
-                    lesson=lesson, title=f"{section.title} Check",
-                    description="Test your understanding of this module.",
-                    time_limit_minutes=20, passing_score=Decimal("60.00"), max_attempts=3,
-                )
-                for q in range(5):
-                    question = QuizQuestion.objects.create(
-                        quiz=quiz, question_type="multiple_choice",
-                        question_text=fake.sentence() + "?",
-                        points=Decimal("2.00"), display_order=q,
-                    )
-                    correct_idx = random.randint(0, 3)
-                    for a in range(4):
-                        QuizAnswer.objects.create(
-                            question=question,
-                            answer_text=fake.sentence(nb_words=4).rstrip("."),
-                            is_correct=(a == correct_idx), display_order=a,
-                        )
-
-            # one assignment
-            Assignment.objects.create(
-                lesson=lessons[0], title=f"{course.name} Assignment",
-                description=fake.paragraph(nb_sentences=3),
-                instructions=fake.paragraph(nb_sentences=2),
-                due_date=NOW + timedelta(days=random.randint(-30, 30)),
-                allow_late_submission=True, late_penalty_percent=10,
+        exam_defs = [
+            ("FSE101", timezone.now() - timezone.timedelta(days=10), True),
+            ("DSM101", timezone.now() + timezone.timedelta(days=10), False),
+        ]
+        exam_count = eq_count = 0
+        for code, start, already_happened in exam_defs:
+            lms = lms_courses[code]
+            start = start.replace(hour=10, minute=0, second=0, microsecond=0)
+            end = start + timezone.timedelta(minutes=90)
+            exam, _ = Exam.objects.update_or_create(
+                course=lms, title=f"{lms.title} — End of Course Exam",
+                defaults={
+                    "exam_type": Exam.END_OF_SEMESTER,
+                    "instructor": instructor,
+                    "start_datetime": start,
+                    "end_datetime": end,
+                    "total_marks": Decimal("20.00"),
+                    "pass_mark": Decimal("12.00"),
+                    "status": Exam.PUBLISHED,
+                    "submitted_by": instructor,
+                    "submitted_at": start - timezone.timedelta(days=5),
+                    "approved_by": admin,
+                    "approved_at": start - timezone.timedelta(days=4),
+                    "published_by": admin,
+                    "published_at": start - timezone.timedelta(days=3),
+                    "created_by": instructor,
+                    "instructions": "Answer all questions. You have 90 minutes.",
+                },
             )
-
-    # ------------------------------------------------------------------
-    # ENROLLMENTS / REGISTRATIONS / GRADES / PROGRESS
-    # ------------------------------------------------------------------
-    def _seed_academic_records(self):
-        lms_by_course = {lms.academic_course_id: lms for lms in self.lms_courses}
-
-        for student in self.students:
-            profile = student.profile
-            program = profile.program
-            current_level = profile.year_of_study
-            student_courses = [c for c in self.courses if c.program_id == program.id]
-
-            for course in student_courses:
-                if course.year_of_study > current_level:
-                    continue
-                is_current = course.year_of_study == current_level
-                lms = lms_by_course.get(course.id)
-                session = self.current_session if is_current else random.choice(self.past_sessions)
-
-                # -- CourseRegistration --
-                reg = CourseRegistration(
-                    student=student, course=course, session=session,
-                    term=course.semester if course.semester != "annual" else "first",
-                    status="approved",
-                )
-                reg.save(skip_window_check=True)
-                backdate(CourseRegistration, reg.pk, registered_at=past_dt(20, 500))
-
-                failed = (not is_current) and random.random() < 0.08
-
-                if not is_current:
-                    score = Decimal(random.randint(30, 45)) if failed else Decimal(random.randint(45, 98))
-                    grade_letter = _score_to_grade(float(score))
-                    grade = CourseGrade.objects.create(
-                        student=student, course=course, lms_course=lms, session=session,
-                        term=course.semester,
-                        score=score, grade=grade_letter,
-                        credit_units=course.credit_units,
-                        is_passed=not failed,
-                        result_status="released",
-                        recorded_by=random.choice(self.instructors),
-                    )
-                    backdate(CourseGrade, grade.pk, recorded_at=past_dt(20, 480))
-
-                    if failed:
-                        CourseCarryOver.objects.get_or_create(
-                            student=student, course=course,
-                            defaults=dict(
-                                first_failed_session=session,
-                                first_failed_term=course.semester,
-                                attempts=1,
-                            ),
-                        )
-
-                if lms:
-                    if is_current:
-                        enrollment = Enrollment.objects.create(
-                            student=student, course=lms, enrolled_by=student,
-                            progress_percentage=Decimal(random.randint(5, 90)),
-                            completed_lessons=random.randint(0, 5),
-                            status="active",
-                        )
-                        backdate(Enrollment, enrollment.pk, enrolled_at=past_dt(10, 150))
-                    else:
-                        enrollment = Enrollment.objects.create(
-                            student=student, course=lms, enrolled_by=student,
-                            progress_percentage=Decimal("100.00") if not failed else Decimal(random.randint(20, 60)),
-                            completed_lessons=6 if not failed else random.randint(1, 3),
-                            status="completed" if not failed else "dropped",
-                        )
-                        backdate(Enrollment, enrollment.pk,
-                                 enrolled_at=past_dt(200, 500),
-                                 completed_at=past_dt(20, 190) if not failed else None)
-
-                    for lesson in Lesson.objects.filter(course=lms):
-                        completed = (not is_current) and not failed
-                        progress = LessonProgress.objects.create(
-                            enrollment=enrollment, lesson=lesson,
-                            is_completed=completed or (is_current and random.random() < 0.4),
-                            completion_percentage=Decimal("100.00") if completed else Decimal(random.randint(0, 80)),
-                            time_spent_minutes=random.randint(5, 60),
-                        )
-                        if progress.is_completed:
-                            backdate(LessonProgress, progress.pk, completed_at=past_dt(15, 480))
-
-                    # quiz attempts
-                    for quiz in Quiz.objects.filter(lesson__course=lms):
-                        if is_current and random.random() < 0.5:
-                            continue
-                        score = random.randint(4, 10)
-                        attempt = QuizAttempt.objects.create(
-                            quiz=quiz, student=student,
-                            score=Decimal(score), max_score=Decimal("10.00"),
-                            percentage=Decimal(score * 10),
-                            is_completed=True, passed=score >= 6,
-                            time_taken_minutes=random.randint(5, 18),
-                        )
-                        backdate(QuizAttempt, attempt.pk, started_at=past_dt(20, 400))
-                        for question in quiz.questions.all():
-                            answers = list(question.answers.all())
-                            chosen = random.choice(answers) if random.random() < 0.8 else \
-                                next((a for a in answers if a.is_correct), answers[0])
-                            QuizResponse.objects.create(
-                                attempt=attempt, question=question, selected_answer=chosen,
-                                is_correct=chosen.is_correct,
-                                points_earned=question.points if chosen.is_correct else Decimal("0.00"),
-                            )
-
-                    # assignment submissions
-                    for assignment in Assignment.objects.filter(lesson__course=lms):
-                        if is_current and random.random() < 0.4:
-                            continue
-                        score = Decimal(random.randint(50, 100))
-                        sub = AssignmentSubmission.objects.create(
-                            assignment=assignment, student=student,
-                            submission_text=fake.paragraph(nb_sentences=4),
-                            score=score, feedback=fake.sentence(),
-                            graded_by=random.choice(self.instructors),
-                            status="graded",
-                        )
-                        backdate(AssignmentSubmission, sub.pk,
-                                 submitted_at=past_dt(20, 200), graded_at=past_dt(15, 195),
-                                 created_at=past_dt(25, 205))
-
-            # Reviews for a couple of completed LMS courses
-            completed_enrollments = Enrollment.objects.filter(student=student, status="completed")[:2]
-            for enrollment in completed_enrollments:
-                if not Review.objects.filter(course=enrollment.course, student=student).exists():
-                    Review.objects.create(
-                        course=enrollment.course, student=student,
-                        rating=random.randint(3, 5),
-                        review_text=fake.sentence(nb_words=15),
-                    )
-
-        # Program certificates for graduates
-        for grad in self.graduates:
-            Certificate.objects.get_or_create(
-                student=grad, program=grad.profile.program, certificate_type="program",
-                defaults=dict(
-                    completion_date=past_date(30, 200),
-                    grade=random.choice(["Distinction", "Merit", "Pass"]),
-                    payment_status="paid",
-                ),
-            )
-        # LMS course certificates for some completed enrollments
-        for enrollment in Enrollment.objects.filter(status="completed").order_by("?")[:40]:
-            Certificate.objects.get_or_create(
-                student=enrollment.student, course=enrollment.course, certificate_type="lms_course",
-                defaults=dict(
-                    completion_date=enrollment.completed_at.date() if enrollment.completed_at else past_date(10, 100),
-                    grade=random.choice(["A", "B", "C"]),
-                    payment_status=random.choice(["paid", "paid", "unpaid"]),
-                ),
-            )
-
-    # ------------------------------------------------------------------
-    # EXAMS
-    # ------------------------------------------------------------------
-    def _seed_exams(self):
-        sample_courses = random.sample(self.lms_courses, k=min(30, len(self.lms_courses)))
-        for lms in sample_courses:
-            exam = Exam.objects.create(
-                title=f"{lms.title} - End of Semester Exam",
-                description=f"Comprehensive assessment covering {lms.title}.",
-                exam_type="end_of_semester",
-                course=lms, instructor=lms.instructor,
-                start_datetime=NOW - timedelta(days=random.randint(5, 40)),
-                end_datetime=NOW - timedelta(days=random.randint(1, 4)),
-                total_marks=Decimal("100.00"), pass_mark=Decimal("50.00"),
-                show_result_immediately=True,
-                status="published",
-                submitted_by=lms.instructor, submitted_at=past_dt(45, 60),
-                approved_by=random.choice(self.admins), approved_at=past_dt(42, 55),
-                published_by=random.choice(self.admins), published_at=past_dt(40, 50),
-                created_by=lms.instructor,
-                instructions="Answer all questions. No external materials permitted.",
-            )
-            backdate(Exam, exam.pk, created_at=past_dt(50, 65))
-            ExamStatusLog.objects.create(exam=exam, from_status="draft", to_status="submitted",
-                                          changed_by=lms.instructor, note="Submitted for approval")
-            ExamStatusLog.objects.create(exam=exam, from_status="submitted", to_status="approved",
-                                          changed_by=random.choice(self.admins), note="Looks good")
-            ExamStatusLog.objects.create(exam=exam, from_status="approved", to_status="published",
-                                          changed_by=random.choice(self.admins), note="Published to students")
+            exam_count += 1
 
             questions = []
-            for q in range(10):
-                correct_idx = random.randint(0, 3)
-                options = [
-                    {"id": f"opt-{uuid.uuid4().hex[:8]}",
-                     "text": fake.sentence(nb_words=4).rstrip("."),
-                     "is_correct": a == correct_idx}
-                    for a in range(4)
-                ]
-                question = ExamQuestion.objects.create(
-                    exam=exam, question_text=fake.sentence() + "?",
-                    question_type="mcq", marks=Decimal("10.00"),
-                    options=options, accepted_answers=[],
-                    created_by=lms.instructor,
-                )
-                questions.append(question)
-
-            enrolled_students = User.objects.filter(enrollments__course=lms).distinct()
-            for student in enrolled_students:
-                if random.random() < 0.25:
-                    continue  # some students were absent
-                answers = {}
-                score = 0
-                for question in questions:
-                    correct_opt = next(o for o in question.options if o["is_correct"])
-                    if random.random() < 0.7:
-                        chosen = correct_opt
-                        score += float(question.marks)
-                    else:
-                        chosen = random.choice(question.options)
-                    answers[str(question.pk)] = chosen["id"]
-                resp = StudentExamResponse.objects.create(
-                    exam=exam, student=student,
-                    assigned_question_ids=[q.pk for q in questions],
-                    answers=answers,
-                    total_score=Decimal(str(score)),
-                    score_percentage=Decimal(str(score)),
-                    passed=score >= 50,
-                    status="graded",
-                    graded_by=lms.instructor,
-                )
-                backdate(StudentExamResponse, resp.pk,
-                         submitted_at=past_dt(5, 35), graded_at=past_dt(3, 30),
-                         created_at=past_dt(6, 36))
-
-    # ------------------------------------------------------------------
-    # FINANCE
-    # ------------------------------------------------------------------
-    def _seed_finance(self):
-        for gw_name, gw_type in [("Stripe", "stripe"), ("PayPal", "paypal")]:
-            PaymentGateway.objects.get_or_create(
-                slug=gw_name.lower(),
-                defaults=dict(name=gw_name, gateway_type=gw_type, is_active=True, is_test_mode=True),
+            q1, _ = ExamQuestion.objects.update_or_create(
+                exam=exam, question_text=f"What is the primary focus of {lms.title}?",
+                defaults={"question_type": ExamQuestion.MCQ, "marks": Decimal("5.00"),
+                          "options": _mcq_options(lms.title.split(":")[0], ["Sales & Marketing", "Facilities Management", "Event Planning"])},
             )
-        stripe_gw = PaymentGateway.objects.filter(gateway_type="stripe").first()
+            q2, _ = ExamQuestion.objects.update_or_create(
+                exam=exam, question_text="Best practices matter even under a deadline.",
+                defaults={"question_type": ExamQuestion.TRUE_FALSE, "marks": Decimal("5.00"),
+                          "options": [{"id": "t", "text": "True", "is_correct": True}, {"id": "f", "text": "False", "is_correct": False}]},
+            )
+            q3, _ = ExamQuestion.objects.update_or_create(
+                exam=exam, question_text=f"Name one core skill taught in {lms.title}.",
+                defaults={"question_type": ExamQuestion.SHORT_ANSWER, "marks": Decimal("5.00")},
+            )
+            q4, _ = ExamQuestion.objects.update_or_create(
+                exam=exam, question_text=f"Describe a real scenario where you'd apply what {lms.title} teaches.",
+                defaults={"question_type": ExamQuestion.ESSAY, "marks": Decimal("5.00")},
+            )
+            questions = [q1, q2, q3, q4]
+            eq_count += len(questions)
 
+            for i, log_status in enumerate(["submitted", "approved", "published"]):
+                ExamStatusLog.objects.get_or_create(
+                    exam=exam, to_status=log_status,
+                    defaults={
+                        "from_status": ["draft", "submitted", "approved"][i],
+                        "changed_by": admin if log_status != "submitted" else instructor,
+                        "note": f"Exam {log_status}.",
+                    },
+                )
+
+            if already_happened:
+                correct_opt = next(o["id"] for o in q1.options if o["is_correct"])
+                response, _ = StudentExamResponse.objects.update_or_create(
+                    exam=exam, student=student_user,
+                    defaults={
+                        "assigned_question_ids": [q.id for q in questions],
+                        "answers": {str(q1.id): correct_opt, str(q2.id): "t", str(q3.id): "Building real projects"},
+                        "question_scores": {
+                            str(q1.id): {"marks_awarded": 5, "max_marks": 5, "is_correct": True},
+                            str(q2.id): {"marks_awarded": 5, "max_marks": 5, "is_correct": True},
+                            str(q3.id): {"marks_awarded": 4, "max_marks": 5, "is_correct": True},
+                            str(q4.id): {"marks_awarded": 4, "max_marks": 5, "is_correct": None},
+                        },
+                        "total_score": Decimal("18.00"),
+                        "score_percentage": Decimal("90.00"),
+                        "passed": True,
+                        "status": StudentExamResponse.GRADED,
+                        "instructions_opened_at": start,
+                        "exam_started_at": start,
+                        "submitted_at": end,
+                        "graded_by": instructor,
+                        "graded_at": end + timezone.timedelta(days=1),
+                        "pending_manual_count": 0,
+                    },
+                )
+        self.stdout.write(f"Seeded {exam_count} Exam and {eq_count} ExamQuestion rows.")
+
+        # ── Certificate for the completed FSE101 enrollment ─────────────────────
+        Certificate.objects.update_or_create(
+            student=student_user, course=lms_courses["FSE101"],
+            defaults={
+                "certificate_type": "lms_course",
+                "completion_date": timezone.now().date(),
+                "grade": "A",
+                "payment_status": "paid",
+            },
+        )
+        self.stdout.write("Seeded 1 Certificate row.")
+
+        # ── Badges ────────────────────────────────────────────────────────────
+        badge_data = [
+            ("First Login", "Signed in to the platform for the first time.", "log-in"),
+            ("First Course Registered", "Registered for your first course.", "book-open"),
+            ("First Lesson Completed", "Completed your first lesson.", "check-circle"),
+            ("Quiz Master", "Scored 100% on a knowledge check.", "award"),
+            ("Course Completed", "Completed an entire course.", "trophy"),
+            ("Certificate Earned", "Earned your first certificate.", "medal"),
+        ]
+        badges = {}
+        for name, description, icon in badge_data:
+            obj, _ = Badge.objects.update_or_create(name=name, defaults={"description": description, "icon": icon, "criteria": description, "is_active": True})
+            badges[name] = obj
+        self.stdout.write(f"Seeded {len(badge_data)} Badge rows.")
+
+        earned = ["First Login", "First Course Registered", "First Lesson Completed", "Quiz Master", "Course Completed", "Certificate Earned"]
+        for name in earned:
+            StudentBadge.objects.update_or_create(
+                student=student_user, badge=badges[name], defaults={"awarded_by": instructor},
+            )
+        self.stdout.write(f"Seeded {len(earned)} StudentBadge rows.")
+
+        # ── Announcements ────────────────────────────────────────────────────
+        announcement_data = [
+            ("Welcome to the New Term!", "system", None, None, "Applications are open for the next intake — refer a friend and earn a badge."),
+            ("Platform Maintenance This Weekend", "system", None, None, "We'll be performing scheduled maintenance Saturday night. Expect brief downtime."),
+            ("New Lessons Added", "course", "FSE101", None, "We've added new lessons and exercises to this course — check them out."),
+            ("Assignment Deadline Reminder", "course", "DSM101", None, "Don't forget: your practical assignment is due in two weeks."),
+            ("New Cohort Starting Soon", "course", "CSA101", None, "A new cohort for this course starts next month — invite a colleague."),
+            ("Web Development Resources Updated", "category", None, "Web Development", "We've refreshed the recommended reading list for this track."),
+            ("Cybersecurity Lab Access", "category", None, "Cybersecurity", "New lab environments are now available for hands-on practice."),
+            ("Data Science Office Hours", "category", None, "Data Science", "Join our weekly office hours for extra help with your data science projects."),
+        ]
+        announcement_count = 0
+        for title, ann_type, course_code, category_name, content in announcement_data:
+            Announcement.objects.update_or_create(
+                title=title,
+                defaults={
+                    "content": content,
+                    "announcement_type": ann_type,
+                    "course": lms_courses.get(course_code) if course_code else None,
+                    "category": categories.get(category_name) if category_name else None,
+                    "created_by": instructor,
+                    "is_active": True,
+                },
+            )
+            announcement_count += 1
+        self.stdout.write(f"Seeded {announcement_count} Announcement rows.")
+
+        # ── Audit log ─────────────────────────────────────────────────────────
+        audit_data = [
+            (admin, "login", "User", "Admin logged in."),
+            (admin, "create", "Program", "Created a new program."),
+            (instructor, "login", "User", "Instructor logged in."),
+            (instructor, "course_access", "LMSCourse", "Instructor accessed course management."),
+            (student_user, "login", "User", "Student logged in."),
+            (student_user, "registration", "CourseRegistration", "Student registered for a course."),
+            (student_user, "assignment_submit", "AssignmentSubmission", "Student submitted an assignment."),
+            (student_user, "exam_finish", "StudentExamResponse", "Student completed an exam."),
+        ]
+        for user, action, model_name, description in audit_data:
+            AuditLog.objects.get_or_create(user=user, action=action, model_name=model_name, description=description)
+        self.stdout.write(f"Seeded {len(audit_data)} AuditLog rows.")
+
+    # ── Financial: fees, payments, invoices, transactions, payroll, subs ───────
+    def _seed_financials(self, admin, instructor, support, finance, student_user, programs, lms_courses):
+        gateways_data = [
+            ("Stripe", "stripe", "pk_test_abraytech_placeholder"),
+            ("PayPal", "paypal", "paypal_client_id_placeholder"),
+        ]
+        gateways = {}
+        for name, gtype, api_key in gateways_data:
+            obj, _ = PaymentGateway.objects.update_or_create(
+                name=name, defaults={"gateway_type": gtype, "api_key": api_key, "is_active": False, "is_test_mode": True},
+            )
+            gateways[name] = obj
+        self.stdout.write(f"Seeded {len(gateways_data)} PaymentGateway rows.")
+
+        today = timezone.now().date()
         required_payments = []
-        for program in self.programs:
-            for purpose, amount in [("Tuition Fee - Full Semester", program.tuition_fee / 2),
-                                     ("Library Fee", Decimal("25.00")),
-                                     ("Technology Fee", Decimal("40.00"))]:
-                rp, _ = AllRequiredPayments.objects.get_or_create(
-                    program=program, academic_session=self.current_session,
-                    purpose=purpose, semester="first",
-                    defaults=dict(amount=amount, who_to_pay="student",
-                                  due_date=date.today() + timedelta(days=30)),
-                )
-                required_payments.append(rp)
-
-        for student in self.students:
-            student_fees = [rp for rp in required_payments if rp.program_id == student.profile.program_id]
-            for fee in student_fees:
-                status = random.choices(["success", "pending", "failed"], weights=[80, 15, 5])[0]
-                payment = FeePayment.objects.create(
-                    fee=fee, user=student, amount=fee.amount,
-                    status=status,
-                    payment_method=random.choice(["card", "bank_transfer"]),
-                    payment_reference=f"FEE-{uuid.uuid4().hex[:12].upper()}",
-                )
-                backdate(FeePayment, payment.pk, created_at=past_dt(10, 300),
-                         paid_at=past_dt(9, 299) if status == "success" else None)
-
-            invoice = Invoice.objects.create(
-                invoice_number=f"INV-{uuid.uuid4().hex[:10].upper()}",
-                student=student, subtotal=student.profile.program.tuition_fee,
-                tax_rate=Decimal("0.00"), tax_amount=Decimal("0.00"),
-                discount_amount=Decimal("0.00"),
-                total_amount=student.profile.program.tuition_fee,
-                status=random.choice(["paid", "paid", "sent", "overdue"]),
-                due_date=date.today() + timedelta(days=random.randint(-30, 60)),
+        for code, program in programs.items():
+            fee, _ = AllRequiredPayments.objects.update_or_create(
+                program=program, purpose="Tuition Installment",
+                defaults={"who_to_pay": "student", "amount": program.tuition_fee / 2, "due_date": today + timezone.timedelta(days=30)},
             )
-            backdate(Invoice, invoice.pk, created_at=past_dt(10, 300))
-
-            if random.random() < 0.6:
-                txn = Transaction.objects.create(
-                    transaction_id=f"TXN-{uuid.uuid4().hex[:12].upper()}",
-                    user=student, transaction_type="enrollment",
-                    amount=student.profile.program.tuition_fee / 4,
-                    gateway=stripe_gw, status="completed",
-                )
-                backdate(Transaction, txn.pk, created_at=past_dt(10, 300), completed_at=past_dt(9, 299))
-
-        # subscription plans + subscriptions (institutional online-access tiers)
-        plans = []
-        for name, price, cycle in [("Basic Access", 19, "monthly"), ("Pro Learner", 49, "monthly"),
-                                    ("Annual Unlimited", 399, "yearly")]:
-            plan, _ = SubscriptionPlan.objects.get_or_create(
-                slug=name.lower().replace(" ", "-"),
-                defaults=dict(name=name, description=fake.sentence(),
-                              features=[fake.sentence() for _ in range(3)],
-                              price=Decimal(price), billing_cycle=cycle,
-                              is_popular=(name == "Pro Learner")),
+            required_payments.append(fee)
+            fee2, _ = AllRequiredPayments.objects.update_or_create(
+                program=program, purpose="Certificate Fee",
+                defaults={"who_to_pay": "student", "amount": Decimal("50.00"), "due_date": today + timezone.timedelta(days=180)},
             )
-            plans.append(plan)
-        for student in random.sample(self.students, k=min(25, len(self.students))):
-            Subscription.objects.get_or_create(
-                user=student, plan=random.choice(plans),
-                defaults=dict(end_date=date.today() + timedelta(days=180)),
-            )
+            required_payments.append(fee2)
+        self.stdout.write(f"Seeded {len(required_payments)} AllRequiredPayments rows.")
 
-        InstitutionalSubscription.objects.get_or_create(
-            purpose="Turnitin Plagiarism Detection - Annual License",
-            defaults=dict(amount=Decimal("4500.00"), start_date=date(2025, 9, 1),
-                          expiry_date=date(2026, 8, 31), created_by=random.choice(self.admins)),
+        home_fee = AllRequiredPayments.objects.get(program__code="FSE", purpose="Tuition Installment")
+        FeePayment.objects.update_or_create(
+            fee=home_fee, user=student_user,
+            defaults={"amount": home_fee.amount, "status": "success", "payment_method": "card", "card_last4": "4242", "card_brand": "Visa"},
         )
-        InstitutionalSubscription.objects.get_or_create(
-            purpose="Zoom Education Plan - Annual License",
-            defaults=dict(amount=Decimal("2200.00"), start_date=date(2025, 9, 1),
-                          expiry_date=date(2026, 8, 31), created_by=random.choice(self.admins)),
-        )
+        self.stdout.write("Seeded 1 FeePayment row.")
 
-        # payroll for staff
-        all_staff = self.admins + self.finance_staff + self.support_staff + self.instructors
-        for staff in all_staff:
-            base = Decimal(random.choice([1800, 2200, 2600, 3200, 4000]))
-            for months_ago in range(3):
-                month_date = (date.today().replace(day=1) - timedelta(days=months_ago * 30))
-                gross = base + Decimal("200.00")
-                tax = gross * Decimal("0.10")
-                net = gross - tax
-                payroll = StaffPayroll.objects.create(
-                    payroll_reference=f"PR-{uuid.uuid4().hex[:10].upper()}",
-                    staff=staff, month=month_date.month, year=month_date.year,
-                    base_salary=base, allowances=Decimal("200.00"),
-                    gross_salary=gross, tax_deduction=tax, net_salary=net,
-                    payment_status="paid", payment_method="bank_transfer",
-                    payment_date=month_date,
-                    bank_name=random.choice(["GTBank", "Access Bank", "Zenith Bank", "First Bank"]),
-                    account_number=str(random.randint(10**9, 10**10 - 1)),
-                    created_by=random.choice(self.finance_staff),
-                    approved_by=random.choice(self.admins),
-                )
-                backdate(StaffPayroll, payroll.pk, created_at=past_dt(30, 100))
-
-        for i in range(4):
-            Vendor.objects.get_or_create(
-                slug=f"vendor-{i+1}",
-                defaults=dict(name=fake.company(), email=fake.company_email(),
-                              country=random.choice(["Nigeria", "United States", "United Kingdom"])),
+        student_app = CourseApplication.objects.filter(user=student_user).first()
+        if student_app:
+            ApplicationPayment.objects.update_or_create(
+                application=student_app,
+                defaults={
+                    "amount": student_app.application_fee, "status": "success",
+                    "payment_method": "card", "card_last4": "4242", "card_brand": "Visa",
+                },
             )
+            self.stdout.write("Seeded 1 ApplicationPayment row.")
 
-    # ------------------------------------------------------------------
-    # PUBLIC SITE CONTENT
-    # ------------------------------------------------------------------
-    def _seed_site_content(self):
-        SiteConfig.objects.get_or_create(
-            pk=1,
-            defaults=dict(
-                school_name="Abraytech",
-                school_short_name="Abraytech",
-                tagline="Building Digital Solutions for a Smarter Future",
-                email="info@abraytech.com", phone_primary="+1 302 555 0142",
-                phone_ng_primary="+234 803 555 0199",
-                whatsapp="+234 803 555 0199",
-                email_admissions="academy@abraytech.com",
-                address_usa="8 The Green, Suite A, Dover, DE 19901, USA",
-                address_nigeria="Landmark Towers, Water Corporation Drive, Victoria Island, Lagos, Nigeria",
-                facebook="https://facebook.com/abraytech", instagram="https://instagram.com/abraytech",
-                linkedin="https://linkedin.com/company/abraytech",
-                twitter="https://twitter.com/abraytech",
-                about_mission="Abraytech delivers reliable, well-engineered technology services and makes high-quality technical training accessible to everyone we work with.",
-                about_vision="Abraytech is a technology company built to help organizations design, build, secure, and scale the software and systems they run on.",
-                copyright_year="2026",
+        invoice_data = [
+            ("Tuition Installment 1", Decimal("600.00"), "paid"),
+            ("Tuition Installment 2", Decimal("600.00"), "sent"),
+            ("Certificate Fee", Decimal("50.00"), "paid"),
+        ]
+        for purpose, subtotal, status in invoice_data:
+            Invoice.objects.update_or_create(
+                student=student_user, course=lms_courses["FSE101"], notes=purpose,
+                defaults={
+                    "subtotal": subtotal, "tax_rate": Decimal("0.00"), "discount_amount": Decimal("0.00"),
+                    "due_date": today + timezone.timedelta(days=30), "status": status,
+                },
+            )
+        self.stdout.write(f"Seeded {len(invoice_data)} Invoice rows.")
+
+        transaction_data = [
+            ("enrollment", Decimal("1200.00"), "completed", "FSE101"),
+            ("enrollment", Decimal("1900.00"), "completed", "DSM101"),
+            ("subscription", Decimal("29.00"), "completed", None),
+            ("refund", Decimal("50.00"), "refunded", None),
+        ]
+        for ttype, amount, status, course_code in transaction_data:
+            Transaction.objects.get_or_create(
+                user=student_user, transaction_type=ttype, amount=amount,
+                defaults={"status": status, "gateway": gateways["Stripe"], "course": lms_courses.get(course_code) if course_code else None},
+            )
+        self.stdout.write(f"Seeded {len(transaction_data)} Transaction rows.")
+
+        plans_data = [
+            ("Basic", Decimal("9.00"), "monthly", ["Access to free courses", "Community forum access"]),
+            ("Pro", Decimal("29.00"), "monthly", ["All Basic features", "Access to all paid courses", "Certificates"]),
+            ("Enterprise", Decimal("99.00"), "monthly", ["All Pro features", "Team seats", "Priority support"]),
+        ]
+        plans = {}
+        for order, (name, price, cycle, features) in enumerate(plans_data, start=1):
+            obj, _ = SubscriptionPlan.objects.update_or_create(
+                name=name, defaults={
+                    "description": f"The {name} plan for Abraytech learners.",
+                    "features": features, "price": price, "billing_cycle": cycle,
+                    "is_popular": name == "Pro", "display_order": order,
+                },
+            )
+            plans[name] = obj
+        self.stdout.write(f"Seeded {len(plans_data)} SubscriptionPlan rows.")
+
+        Subscription.objects.update_or_create(
+            user=student_user, plan=plans["Pro"],
+            defaults={"status": "active", "end_date": today + timezone.timedelta(days=335)},
+        )
+        self.stdout.write("Seeded 1 Subscription row.")
+
+        staff_members = [instructor, admin, support, finance]
+        this_month = timezone.now()
+        payroll_count = 0
+        for months_ago in (1, 0):
+            period = (this_month.replace(day=1) - timezone.timedelta(days=1)) if months_ago == 1 else this_month
+            for staff in staff_members:
+                base = Decimal("2500.00") if staff.profile.role == "admin" else Decimal("1800.00")
+                StaffPayroll.objects.update_or_create(
+                    staff=staff, month=period.month, year=period.year,
+                    defaults={
+                        "base_salary": base, "allowances": Decimal("200.00"),
+                        "tax_deduction": base * Decimal("0.10"),
+                        "payment_status": "paid" if months_ago == 1 else "pending",
+                        "payment_method": "bank_transfer",
+                        "bank_name": "GTBank", "account_number": "0123456789",
+                        "created_by": admin,
+                    },
+                )
+                payroll_count += 1
+        self.stdout.write(f"Seeded {payroll_count} StaffPayroll rows.")
+
+    # ── Community: messages, notifications, discussions, study groups,
+    #    reviews, broadcasts, contact messages, support tickets ────────────────
+    def _seed_community(self, admin, instructor, support, student_user, lms_courses):
+        message_data = [
+            (student_user, instructor, "Question about the FSE101 assignment", "Hi Tunde, quick question about the practical assignment — is a README required?"),
+            (instructor, student_user, "Re: Question about the FSE101 assignment", "Yes, please include a short README with setup instructions. Good work so far!"),
+            (student_user, support, "Trouble accessing my certificate", "Hi, I can't find the download link for my FSE101 certificate — can you help?"),
+            (support, student_user, "Re: Trouble accessing my certificate", "Hi Obi, it's under My Courses > Certificates. Let us know if that doesn't work."),
+            (admin, student_user, "Welcome to Abraytech!", "Welcome aboard — let us know if you have any questions as you get started."),
+            (student_user, admin, "Thank you!", "Thanks for the warm welcome — excited to get started."),
+        ]
+        for sender, recipient, subject, body in message_data:
+            Message.objects.get_or_create(sender=sender, recipient=recipient, subject=subject, defaults={"body": body})
+        self.stdout.write(f"Seeded {len(message_data)} Message rows.")
+
+        notification_data = [
+            ("enrollment", "Course Registered", "You registered for Web Fundamentals: HTML, CSS & JavaScript."),
+            ("enrollment", "Course Registered", "You registered for Python for Data Science."),
+            ("assignment", "Assignment Graded", "Your Web Fundamentals assignment was graded: 92/100."),
+            ("grade", "New Grade Posted", "A new grade was posted for Web Fundamentals: HTML, CSS & JavaScript."),
+            ("announcement", "New Announcement", "New Lessons Added to Web Fundamentals: HTML, CSS & JavaScript."),
+            ("message", "New Message", "You have a new message from Tunde Bakare."),
+            ("certificate", "Certificate Earned", "Congratulations! You earned a certificate for Web Fundamentals: HTML, CSS & JavaScript."),
+            ("system", "Welcome to Abraytech", "Your account is ready — start exploring the course catalog."),
+            ("account", "Email Verified", "Your email address has been verified."),
+            ("quiz", "Quiz Completed", "You scored 100% on the Web Fundamentals knowledge check."),
+        ]
+        for ntype, title, message in notification_data:
+            Notification.objects.get_or_create(user=student_user, notification_type=ntype, title=title, defaults={"message": message})
+        self.stdout.write(f"Seeded {len(notification_data)} Notification rows.")
+
+        discussion_data = [
+            ("FSE101", "Best resources for learning Flexbox?", student_user, "Does anyone have extra resources for practicing CSS Flexbox layouts?"),
+            ("BEP101", "Virtual environments vs. Poetry?", student_user, "Curious what everyone prefers for managing Python dependencies."),
+            ("CSA101", "Wireshark capture filters", instructor, "Sharing a cheat sheet of useful Wireshark capture filters for the networking lab."),
+            ("DSM101", "pandas groupby tips", student_user, "What are your favorite pandas groupby tricks for exploratory analysis?"),
+            ("CDE101", "IAM policy least privilege", instructor, "A quick note on structuring least-privilege IAM policies on AWS."),
+        ]
+        discussion_count = reply_count = 0
+        for course_code, title, author, content in discussion_data:
+            lms = lms_courses[course_code]
+            discussion, _ = Discussion.objects.update_or_create(
+                course=lms, title=title, defaults={"content": content, "author": author},
+            )
+            discussion_count += 1
+            replier = instructor if author != instructor else student_user
+            DiscussionReply.objects.get_or_create(
+                discussion=discussion, author=replier,
+                defaults={"content": "Good question — here's what's worked well for me."},
+            )
+            reply_count += 1
+        self.stdout.write(f"Seeded {discussion_count} Discussion and {reply_count} DiscussionReply rows.")
+
+        review_data = [
+            ("FSE101", 5, "Clear, practical, and genuinely helped me build real projects."),
+            ("DSM101", 4, "Great intro to the data science toolkit — would love more advanced content."),
+        ]
+        for course_code, rating, text in review_data:
+            Review.objects.update_or_create(
+                course=lms_courses[course_code], student=student_user,
+                defaults={"rating": rating, "review_text": text},
+            )
+        self.stdout.write(f"Seeded {len(review_data)} Review rows.")
+
+        groups_data = [
+            ("FSE101", "FSE101 Study Group"),
+            ("DSM101", "Data Science Study Circle"),
+            ("CSA101", "Cybersecurity Study Group"),
+        ]
+        group_count = member_count = group_message_count = 0
+        for course_code, name in groups_data:
+            group, _ = StudyGroup.objects.update_or_create(
+                name=name, defaults={"course": lms_courses[course_code], "created_by": instructor},
+            )
+            group_count += 1
+            StudyGroupMember.objects.get_or_create(study_group=group, user=instructor, defaults={"role": "moderator"})
+            StudyGroupMember.objects.get_or_create(study_group=group, user=student_user, defaults={"role": "member"})
+            member_count += 2
+            StudyGroupMessage.objects.get_or_create(
+                study_group=group, author=student_user,
+                defaults={"content": "Looking forward to studying together in this group!"},
+            )
+            group_message_count += 1
+        self.stdout.write(f"Seeded {group_count} StudyGroup, {member_count} StudyGroupMember, {group_message_count} StudyGroupMessage rows.")
+
+        broadcast_data = [
+            ("New Programs Available for Next Intake", "all_users", "sent"),
+            ("Reminder: Complete Your Profile", "role", "sent"),
+            ("Upcoming Platform Downtime", "all_users", "draft"),
+        ]
+        for subject, filter_type, status in broadcast_data:
+            BroadcastMessage.objects.update_or_create(
+                subject=subject,
+                defaults={
+                    "message": f"{subject} — details inside.", "filter_type": filter_type,
+                    "filter_values": {}, "status": status, "created_by": admin,
+                    "sent_at": timezone.now() if status == "sent" else None,
+                },
+            )
+        self.stdout.write(f"Seeded {len(broadcast_data)} BroadcastMessage rows.")
+
+        contact_data = [
+            ("Tobi Adebayo", "tobi.adebayo@example.com", "admissions", "I'd like to know more about the Full-Stack Software Engineering program."),
+            ("Linda Chukwu", "linda.chukwu@example.com", "programs", "Do you offer a part-time option for the Data Science track?"),
+            ("Femi Alabi", "femi.alabi@example.com", "financial", "Is financial aid available for the Cybersecurity Analyst Program?"),
+            ("Grace Eze", "grace.eze@example.com", "support", "I'm having trouble uploading my application documents."),
+            ("Ben Carter", "ben.carter@example.com", "other", "Interested in a corporate training partnership — who should I speak to?"),
+            ("Chioma Nnamdi", "chioma.nnamdi@example.com", "campus", "Can I schedule a visit to the Lagos office?"),
+        ]
+        for name, email, subject, message in contact_data:
+            ContactMessage.objects.get_or_create(email=email, subject=subject, defaults={"name": name, "message": message})
+        self.stdout.write(f"Seeded {len(contact_data)} ContactMessage rows.")
+
+        ticket_data = [
+            ("technical", "Video lessons won't load", "The video for Lesson 2 keeps buffering and never plays.", "high"),
+            ("account", "Can't reset my password", "The password reset email never arrives.", "normal"),
+            ("course", "Missing lesson content", "Lesson 3 in Python for Data Science appears to be empty.", "normal"),
+            ("payment", "Duplicate charge on my card", "I think I was charged twice for my tuition installment.", "urgent"),
+            ("other", "How do I download my transcript?", "Just wondering where to find my academic records.", "low"),
+        ]
+        ticket_count = reply_count2 = 0
+        for category, subject, description, priority in ticket_data:
+            ticket, _ = SupportTicket.objects.update_or_create(
+                user=student_user, subject=subject,
+                defaults={"category": category, "description": description, "priority": priority, "assigned_to": support, "status": "resolved"},
+            )
+            ticket_count += 1
+            TicketReply.objects.get_or_create(
+                ticket=ticket, author=support,
+                defaults={"message": "Thanks for reaching out — we've looked into this and resolved it. Let us know if it happens again."},
+            )
+            reply_count2 += 1
+        self.stdout.write(f"Seeded {ticket_count} SupportTicket and {reply_count2} TicketReply rows.")
+
+    # ── Misc: course grades, application documents, staff permission defaults ──
+    def _seed_misc(self, student_user, courses):
+        CourseGrade.objects.update_or_create(
+            student=student_user, course=courses["FSE101"],
+            defaults={"score": Decimal("92.00"), "grade": "A", "credit_units": 3, "is_passed": True, "result_status": "released"},
+        )
+        self.stdout.write("Seeded 1 CourseGrade row.")
+
+        student_app = CourseApplication.objects.filter(user=student_user).first()
+        if student_app:
+            doc_data = [
+                ("transcript", "transcript.pdf", b"Seed placeholder transcript document."),
+                ("id_document", "national_id.pdf", b"Seed placeholder ID document."),
+                ("cv", "resume.pdf", b"Seed placeholder resume/CV document."),
+            ]
+            doc_count = 0
+            for file_type, filename, content in doc_data:
+                if not ApplicationDocument.objects.filter(application=student_app, file_type=file_type).exists():
+                    doc = ApplicationDocument(
+                        application=student_app, file_type=file_type,
+                        original_filename=filename, file_size=len(content),
+                    )
+                    doc.file.save(filename, ContentFile(content), save=True)
+                doc_count += 1
+            self.stdout.write(f"Seeded {doc_count} ApplicationDocument rows.")
+
+        for role in ("admin", "support", "finance", "instructor"):
+            StaffPermissionsMatrix.seed_defaults_for_role(role)
+        self.stdout.write(f"Seeded StaffPermissionsMatrix defaults for admin/support/finance/instructor "
+                           f"({StaffPermissionsMatrix.objects.count()} rows total).")
+
+        library_data = [
+            ("Books", "Software Engineering", "Clean Code", "Robert C. Martin", "https://example.com/library/clean-code"),
+            ("Books", "Software Engineering", "Designing Data-Intensive Applications", "Martin Kleppmann", "https://example.com/library/ddia"),
+            ("Books", "Cybersecurity", "The Web Application Hacker's Handbook", "Dafydd Stuttard", "https://example.com/library/web-hackers-handbook"),
+            ("Books", "AI & Data", "Python for Data Analysis", "Wes McKinney", "https://example.com/library/python-data-analysis"),
+            ("Books", "Cloud & DevOps", "The Phoenix Project", "Gene Kim", "https://example.com/library/phoenix-project"),
+            ("Periodicals", "Abraytech Tech Digest", "Abraytech Tech Digest — Issue 1", "Abraytech Editorial Team", "https://example.com/library/digest-1"),
+            ("Periodicals", "Abraytech Tech Digest", "Abraytech Tech Digest — Issue 2", "Abraytech Editorial Team", "https://example.com/library/digest-2"),
+            ("References", "Style Guides", "Abraytech API Style Guide", "Abraytech Engineering", "https://example.com/library/api-style-guide"),
+            ("References", "Cheat Sheets", "Linux Command Line Cheat Sheet", "Abraytech Training Team", "https://example.com/library/linux-cheatsheet"),
+            ("Other", "Career Resources", "Technical Interview Prep Pack", "Abraytech Careers Team", "https://example.com/library/interview-prep"),
+        ]
+        for category, subcategory, title, author, url in library_data:
+            LibraryItem.objects.update_or_create(
+                title=title, defaults={"category": category, "subcategory": subcategory, "author": author, "external_url": url, "access": "members"},
+            )
+        self.stdout.write(f"Seeded {len(library_data)} LibraryItem rows.")
+
+    # ── Faculties ────────────────────────────────────────────────────────
+    def _seed_faculties(self):
+        data = [
+            dict(
+                name="Software Engineering", code="SWE",
+                tagline="Build and ship production software.",
+                description=(
+                    "Hands-on training in modern web and software engineering — "
+                    "from first line of code to deployed, production-grade applications."
+                ),
             ),
+            dict(
+                name="Cybersecurity", code="CSEC",
+                tagline="Defend the systems the world runs on.",
+                description=(
+                    "Practical security training covering networking, security operations, "
+                    "ethical hacking and governance/risk/compliance."
+                ),
+            ),
+            dict(
+                name="AI & Data", code="AID",
+                tagline="Turn data into decisions.",
+                description=(
+                    "Data science and machine learning training focused on real analysis, "
+                    "modeling and storytelling with data."
+                ),
+            ),
+            dict(
+                name="Cloud & DevOps", code="CDO",
+                tagline="Run infrastructure at scale.",
+                description=(
+                    "Cloud, containers and infrastructure-as-code training for engineers who "
+                    "want to own the systems software runs on."
+                ),
+            ),
+        ]
+        faculties = {}
+        for row in data:
+            obj, created = Faculty.objects.update_or_create(
+                code=row["code"],
+                defaults={
+                    "name": row["name"],
+                    "tagline": row["tagline"],
+                    "description": row["description"],
+                    "is_active": True,
+                },
+            )
+            faculties[row["code"]] = obj
+            self.stdout.write(f"{'Created' if created else 'Updated'} faculty: {obj.name}")
+        return faculties
+
+    # ── Departments ──────────────────────────────────────────────────────
+    def _seed_departments(self, faculties):
+        data = [
+            dict(faculty="SWE", name="Software Development", code="SWD"),
+            dict(faculty="CSEC", name="Cybersecurity Operations", code="CSO"),
+            dict(faculty="AID", name="Data Science & AI", code="DSA"),
+            dict(faculty="CDO", name="Cloud & DevOps Engineering", code="CDE"),
+        ]
+        departments = {}
+        for row in data:
+            obj, created = Department.objects.update_or_create(
+                faculty=faculties[row["faculty"]], code=row["code"],
+                defaults={"name": row["name"], "is_active": True},
+            )
+            departments[row["code"]] = obj
+            self.stdout.write(f"{'Created' if created else 'Updated'} department: {obj.name}")
+        return departments
+
+    # ── Programs ─────────────────────────────────────────────────────────
+    def _seed_programs(self, departments):
+        data = [
+            dict(
+                dept="SWD", code="FSE", name="Full-Stack Software Engineering",
+                degree_level="certificate", duration_years=Decimal("0.5"),
+                credits_required=12, application_fee=Decimal("50.00"), tuition_fee=Decimal("1200.00"),
+                available_study_modes=["Full Time", "Online"],
+                tagline="Ship real full-stack products in six months.",
+                overview="A job-ready track covering frontend, backend and deployment.",
+                description=(
+                    "Learn to design, build and ship full-stack web applications — from "
+                    "responsive frontends to REST APIs to production deployment."
+                ),
+                entry_requirements=[
+                    "Basic computer literacy", "Problem-solving aptitude",
+                    "No prior coding experience required",
+                ],
+                core_courses=[
+                    "Web Fundamentals (HTML/CSS/JS)", "JavaScript & React",
+                    "Backend APIs with Node.js", "Git, Testing & Deployment",
+                ],
+                specialization_tracks=["Frontend Engineering", "Backend Engineering", "Full-Stack Product Development"],
+                learning_outcomes=[
+                    "Build and deploy full-stack web applications",
+                    "Work confidently with modern JavaScript frameworks",
+                    "Design and consume REST APIs",
+                    "Collaborate using Git and agile workflows",
+                ],
+                career_paths=["Frontend Developer", "Backend Developer", "Full-Stack Software Engineer"],
+            ),
+            dict(
+                dept="SWD", code="BEP", name="Backend Engineering with Python & Django",
+                degree_level="diploma", duration_years=Decimal("1.0"),
+                credits_required=12, application_fee=Decimal("50.00"), tuition_fee=Decimal("1800.00"),
+                available_study_modes=["Full Time", "Part Time", "Online"],
+                tagline="Master backend systems with Python and Django.",
+                overview="A deeper backend track for engineers who want to specialize in server-side systems.",
+                description=(
+                    "Go deep on Python, relational databases and the Django framework to build "
+                    "reliable, secure backend systems and APIs."
+                ),
+                entry_requirements=["Basic programming familiarity", "Comfort with the command line"],
+                core_courses=[
+                    "Python Programming Foundations", "Django Web Framework",
+                    "Databases & SQL", "REST API Design",
+                ],
+                specialization_tracks=["API Engineering", "Systems Architecture"],
+                learning_outcomes=[
+                    "Design normalized relational database schemas",
+                    "Build production Django applications",
+                    "Design and document REST APIs",
+                ],
+                career_paths=["Backend Engineer", "Python Developer", "API Engineer"],
+            ),
+            dict(
+                dept="CSO", code="CSA", name="Cybersecurity Analyst Program",
+                degree_level="diploma", duration_years=Decimal("1.0"),
+                credits_required=12, application_fee=Decimal("60.00"), tuition_fee=Decimal("2000.00"),
+                available_study_modes=["Full Time", "Online"],
+                tagline="Become a job-ready security analyst.",
+                overview="Practical security operations training from networking basics to ethical hacking.",
+                description=(
+                    "Learn to monitor, defend and test the security of networks and systems — "
+                    "covering SIEM operations, penetration testing and compliance."
+                ),
+                entry_requirements=["Basic networking familiarity is a plus, not required"],
+                core_courses=[
+                    "Networking Fundamentals", "Security Operations & SIEM",
+                    "Ethical Hacking & Pentesting", "Governance, Risk & Compliance",
+                ],
+                specialization_tracks=["SOC Analyst", "Penetration Testing"],
+                learning_outcomes=[
+                    "Analyze network traffic and identify threats",
+                    "Operate SIEM tooling in a security operations center",
+                    "Perform basic penetration tests under an ethical framework",
+                ],
+                career_paths=["SOC Analyst", "Penetration Tester", "Security Consultant"],
+            ),
+            dict(
+                dept="DSA", code="DSM", name="Data Science & Machine Learning",
+                degree_level="diploma", duration_years=Decimal("1.0"),
+                credits_required=12, application_fee=Decimal("55.00"), tuition_fee=Decimal("1900.00"),
+                available_study_modes=["Full Time", "Online"],
+                tagline="Turn raw data into real decisions.",
+                overview="A practical data science track from Python fundamentals to machine learning.",
+                description=(
+                    "Learn to wrangle, analyze, visualize and model data using Python, pandas "
+                    "and core machine learning techniques."
+                ),
+                entry_requirements=["Comfort with basic math/statistics is helpful, not required"],
+                core_courses=[
+                    "Python for Data Science", "Statistics & Data Analysis",
+                    "Machine Learning Fundamentals", "Data Visualization & Storytelling",
+                ],
+                specialization_tracks=["Data Analytics", "Machine Learning"],
+                learning_outcomes=[
+                    "Clean and analyze real-world datasets with pandas",
+                    "Build and evaluate machine learning models",
+                    "Communicate findings through clear data visualization",
+                ],
+                career_paths=["Data Analyst", "Data Scientist", "Machine Learning Engineer"],
+            ),
+            dict(
+                dept="CDE", code="CDE", name="Cloud & DevOps Engineering",
+                degree_level="certificate", duration_years=Decimal("0.5"),
+                credits_required=12, application_fee=Decimal("50.00"), tuition_fee=Decimal("1500.00"),
+                available_study_modes=["Full Time", "Online"],
+                tagline="Own the infrastructure software runs on.",
+                overview="A hands-on cloud/DevOps track covering AWS, containers and infrastructure as code.",
+                description=(
+                    "Learn to provision, automate and monitor cloud infrastructure using AWS, "
+                    "Docker, Kubernetes and Terraform."
+                ),
+                entry_requirements=["Basic Linux/command-line familiarity is a plus"],
+                core_courses=[
+                    "Linux & Cloud Fundamentals (AWS)", "CI/CD & Containers",
+                    "Infrastructure as Code (Terraform)", "Site Reliability & Monitoring",
+                ],
+                specialization_tracks=["Cloud Infrastructure", "Site Reliability Engineering"],
+                learning_outcomes=[
+                    "Provision and manage cloud infrastructure on AWS",
+                    "Build CI/CD pipelines with containerized deployments",
+                    "Write infrastructure as code with Terraform",
+                ],
+                career_paths=["Cloud Engineer", "DevOps Engineer", "Site Reliability Engineer"],
+            ),
+        ]
+        programs = {}
+        for row in data:
+            dept = departments[row.pop("dept")]
+            code = row.pop("code")
+            obj, created = Program.objects.update_or_create(
+                department=dept, code=code,
+                defaults={**row, "is_active": True},
+            )
+            programs[code] = obj
+            self.stdout.write(f"{'Created' if created else 'Updated'} program: {obj.name}")
+        return programs
+
+    # ── Courses ──────────────────────────────────────────────────────────
+    def _seed_courses(self, programs):
+        # (program_code, course_code, name, course_type)
+        data = [
+            ("FSE", "FSE101", "Web Fundamentals: HTML, CSS & JavaScript", "core"),
+            ("FSE", "FSE102", "JavaScript & React", "core"),
+            ("FSE", "FSE103", "Backend APIs with Node.js", "core"),
+            ("FSE", "FSE104", "Git, Testing & Deployment", "elective"),
+
+            ("BEP", "BEP101", "Python Programming Foundations", "core"),
+            ("BEP", "BEP102", "Django Web Framework", "core"),
+            ("BEP", "BEP103", "Databases & SQL", "core"),
+            ("BEP", "BEP104", "REST API Design", "elective"),
+
+            ("CSA", "CSA101", "Networking Fundamentals for Security", "core"),
+            ("CSA", "CSA102", "Security Operations & SIEM", "core"),
+            ("CSA", "CSA103", "Ethical Hacking & Pentesting", "core"),
+            ("CSA", "CSA104", "Governance, Risk & Compliance", "elective"),
+
+            ("DSM", "DSM101", "Python for Data Science", "core"),
+            ("DSM", "DSM102", "Statistics & Data Analysis", "core"),
+            ("DSM", "DSM103", "Machine Learning Fundamentals", "core"),
+            ("DSM", "DSM104", "Data Visualization & Storytelling", "elective"),
+
+            ("CDE", "CDE101", "Linux & Cloud Fundamentals (AWS)", "core"),
+            ("CDE", "CDE102", "CI/CD & Containers", "core"),
+            ("CDE", "CDE103", "Infrastructure as Code (Terraform)", "core"),
+            ("CDE", "CDE104", "Site Reliability & Monitoring", "elective"),
+        ]
+        courses = {}
+        for prog_code, course_code, name, course_type in data:
+            obj, created = Course.objects.update_or_create(
+                program=programs[prog_code], code=course_code,
+                defaults={
+                    "name": name, "course_type": course_type,
+                    "credit_units": 3, "is_active": True,
+                },
+            )
+            courses[course_code] = obj
+            self.stdout.write(f"{'Created' if created else 'Updated'} course: {obj.code} — {obj.name}")
+        return courses
+
+    # ── Users (one per role) + flagship LMS courses + demo enrollment ──────
+    def _seed_users(self, programs, courses):
+        instructor = self._seed_user(
+            username="tunde.bakare", email="tunde.bakare@abraytech.com",
+            first_name="Tunde", last_name="Bakare", role="instructor",
         )
-        site = SiteConfig.objects.first()
-        for year, title in [(2016, "Abraytech Founded"), (2019, "Launched Managed Security Services"),
-                             (2021, "Opened Abraytech Academy"), (2024, "500th Academy Graduate")]:
-            SiteHistoryMilestone.objects.get_or_create(
-                site=site, year=year,
-                defaults=dict(title=title, description=fake.sentence(nb_words=18)),
+        admin = self._seed_user(
+            username="chidinma.okafor", email="chidinma.okafor@abraytech.com",
+            first_name="Chidinma", last_name="Okafor", role="admin",
+            is_staff=True, is_superuser=True,
+        )
+        support = self._seed_user(
+            username="ada.nwosu", email="ada.nwosu@abraytech.com",
+            first_name="Ada", last_name="Nwosu", role="support",
+        )
+        finance = self._seed_user(
+            username="emeka.udo", email="emeka.udo@abraytech.com",
+            first_name="Emeka", last_name="Udo", role="finance",
+        )
+        student_user = self._seed_user(
+            username="obikolade", email="obikolade@gmail.com",
+            first_name="Obi", last_name="Kolade", role="student",
+        )
+
+        # ── Flagship LMS courses, one per program, taught by the seeded instructor ──
+        lms_data = [
+            (
+                "FSE101", "Web Fundamentals: HTML, CSS & JavaScript",
+                "Learn to build responsive, accessible web pages from scratch.",
+                [
+                    ("Course Overview & Setting Up Your Dev Environment", True),
+                    ("HTML5 Semantics & Accessible Markup", False),
+                    ("CSS Layout: Flexbox & Grid", False),
+                    ("JavaScript Fundamentals: Variables, Functions & the DOM", False),
+                ],
+            ),
+            (
+                "BEP101", "Python Programming Foundations",
+                "A hands-on introduction to Python for aspiring backend engineers.",
+                [
+                    ("Welcome to Python: Installing & Your First Script", True),
+                    ("Data Types, Variables & Control Flow", False),
+                    ("Functions, Modules & Error Handling", False),
+                    ("Working with Files & the Python Standard Library", False),
+                ],
+            ),
+            (
+                "CSA101", "Networking Fundamentals for Security",
+                "The networking foundation every security analyst needs.",
+                [
+                    ("Introduction to Networking & the OSI Model", True),
+                    ("TCP/IP, DNS & Routing Essentials", False),
+                    ("Firewalls, VPNs & Network Segmentation", False),
+                    ("Packet Analysis with Wireshark", False),
+                ],
+            ),
+            (
+                "DSM101", "Python for Data Science",
+                "Get hands-on with the core Python data science toolkit.",
+                [
+                    ("Setting Up Your Data Science Toolkit (Jupyter, NumPy, pandas)", True),
+                    ("Data Wrangling with pandas", False),
+                    ("Exploratory Data Analysis & Visualization", False),
+                    ("Intro to Statistics for Data Science", False),
+                ],
+            ),
+            (
+                "CDE101", "Linux & Cloud Fundamentals (AWS)",
+                "Provision and manage your first cloud infrastructure on AWS.",
+                [
+                    ("Linux Command Line Essentials", True),
+                    ("AWS Core Services: EC2, S3 & IAM", False),
+                    ("Provisioning Your First Cloud Environment", False),
+                    ("Monitoring & Cost Management Basics", False),
+                ],
+            ),
+        ]
+
+        lms_courses = {}
+        for course_code, title, short_desc, lessons in lms_data:
+            academic_course = courses[course_code]
+            lms, created = LMSCourse.objects.update_or_create(
+                code=course_code,
+                defaults={
+                    "title": title,
+                    "short_description": short_desc,
+                    "description": short_desc,
+                    "academic_course": academic_course,
+                    "instructor": instructor,
+                    "lecturer": instructor,
+                    "is_published": True,
+                },
             )
+            lms_courses[course_code] = lms
+            self.stdout.write(f"{'Created' if created else 'Updated'} LMS course: {lms.title}")
 
-        blog_categories = []
-        for name in ["Company News", "Engineering Deep Dives", "Academy & Training", "Cybersecurity", "Client Success Stories"]:
-            cat, _ = BlogCategory.objects.get_or_create(name=name, defaults=dict(description=fake.sentence()))
-            blog_categories.append(cat)
-
-        for _ in range(25):
-            author = random.choice(self.admins + self.instructors)
-            title = fake.sentence(nb_words=8).rstrip(".")
-            post = BlogPost.objects.create(
-                title=title, subtitle=fake.sentence(nb_words=10),
-                excerpt=fake.paragraph(nb_sentences=2)[:490],
-                content="\n\n".join(fake.paragraphs(nb=6)),
-                category=random.choice(blog_categories), tags=fake.words(nb=4),
-                author=author, author_name=author.get_full_name(),
-                author_title=author.profile.role.title(),
-                read_time=random.randint(3, 12),
-                status="published", is_featured=random.random() < 0.15,
-            )
-            backdate(BlogPost, post.pk, created_at=past_dt(5, 500), publish_date=past_dt(5, 500))
-
-        for _ in range(7):
-            person = random.choice(self.students + self.instructors)
-            Testimonial.objects.create(
-                quote=fake.paragraph(nb_sentences=2),
-                author_name=person.get_full_name(),
-                author_role=("Abraytech Academy Graduate" if person in self.students else "Abraytech Instructor"),
-            )
-        for _ in range(8):
-            Testimonial.objects.create(
-                quote=fake.paragraph(nb_sentences=2),
-                author_name=fake.name(),
-                author_role=f"{random.choice(['CEO', 'CTO', 'COO', 'Head of Engineering', 'IT Director'])}, {fake.company()}",
-            )
-
-        services = []
-        for title in ["Software Development", "Cybersecurity Services", "AI & Data Solutions",
-                      "IT Consulting", "Cloud & DevOps Services", "Technology Training"]:
-            svc, _ = Service.objects.get_or_create(
-                title=title,
-                defaults=dict(summary=fake.sentence(nb_words=20), description=fake.paragraph(nb_sentences=4)),
-            )
-            services.append(svc)
-
-        industries = []
-        for title in ["Healthcare", "Financial Services", "Education", "Government & Public Sector",
-                      "Retail & E-Commerce", "Technology"]:
-            ind, _ = Industry.objects.get_or_create(
-                title=title,
-                defaults=dict(summary=fake.sentence(nb_words=20), description=fake.paragraph(nb_sentences=3)),
-            )
-            industries.append(ind)
-
-        solution_titles = ["Cloud Migration", "Managed IT Services", "Custom Software Platforms",
-                            "Enterprise Security Hardening", "Data Platform Modernization",
-                            "DevOps Transformation", "Legacy System Modernization", "AI-Powered Automation"]
-        for i, title in enumerate(solution_titles):
-            sol, _ = Solution.objects.get_or_create(
-                title=title,
-                defaults=dict(summary=fake.sentence(nb_words=18),
-                              description=fake.paragraph(nb_sentences=3), order=i),
-            )
-            sol.related_services.set(random.sample(services, k=random.randint(1, 3)))
-
-        for i in range(10):
-            Project.objects.get_or_create(
-                title=fake.catch_phrase(),
-                defaults=dict(
-                    summary=fake.sentence(nb_words=20), client_name=fake.company(),
-                    industry=random.choice(industries), service=random.choice(services),
-                    challenge=fake.paragraph(nb_sentences=2),
-                    solution_text=fake.paragraph(nb_sentences=2),
-                    results=fake.paragraph(nb_sentences=2),
-                    is_featured=random.random() < 0.2, order=i,
-                ),
-            )
-
-        product_titles = ["CodeGuard Security Scanner", "DataPulse Analytics Dashboard",
-                           "CloudSync Migration Toolkit", "DevFlow CI/CD Suite",
-                           "ThreatWatch Monitoring Platform", "InsightAI Automation Engine"]
-        for i, title in enumerate(product_titles):
-            Product.objects.get_or_create(
-                title=title,
-                defaults=dict(summary=fake.sentence(nb_words=15), description=fake.paragraph(nb_sentences=2),
-                              price=Decimal(random.choice([49, 79, 99, 149, 199])), order=i),
-            )
-
-        for title in ["Software Engineer (Backend)", "Frontend Developer", "Cybersecurity Analyst",
-                      "Data Scientist", "DevOps Engineer", "Technical Trainer / Instructor",
-                      "IT Support Specialist", "Product Marketing Manager", "Cloud Solutions Architect",
-                      "QA Engineer"]:
-            JobListing.objects.get_or_create(
-                title=title,
-                defaults=dict(
-                    department=random.choice(["Engineering", "Security", "Data & AI", "Cloud & DevOps", "Academy", "IT"]),
-                    location=random.choice(["Lagos, Nigeria", "Remote", "Dover, DE, USA"]),
-                    employment_type=random.choice(["full_time", "part_time", "contract"]),
-                    description=fake.paragraph(nb_sentences=4),
-                    requirements=fake.paragraph(nb_sentences=3),
-                    closes_at=date.today() + timedelta(days=random.randint(10, 90)),
-                ),
-            )
-
-        for _ in range(15):
-            ConsultationRequest.objects.create(
-                name=fake.name(), email=fake.email(), phone=fake.phone_number()[:30],
-                company=fake.company(), service_interest=random.choice(services),
-                preferred_date=date.today() + timedelta(days=random.randint(1, 30)),
-                message=fake.sentence(nb_words=20),
-                status=random.choice(["new", "contacted", "scheduled", "completed"]),
-            )
-
-        for _ in range(40):
-            NewsletterSubscriber.objects.get_or_create(email=fake.unique.email())
-
-        for i, (member_type, title_prefix) in enumerate(
-            [("admin_board", "CEO & Founder"), ("admin_board", "Chief Technology Officer"),
-             ("academic_board", "Head of Abraytech Academy"), ("advisorate_board", "Board Advisor")] * 3
-        ):
-            first, last, _ = rand_name()
-            InstitutionMember.objects.get_or_create(
-                name=f"{first} {last}", member_type=member_type,
-                defaults=dict(role=title_prefix,
-                              bio=fake.paragraph(nb_sentences=2), is_who_we_are=(i < 4)),
-            )
-
-        for name, category in [("ISO/IEC 27001 Information Security Certified", "accreditation"),
-                                ("AWS Advanced Consulting Partner", "partner"),
-                                ("Microsoft Solutions Partner", "partner"),
-                                ("AWS Academy Training Partner", "partner"),
-                                ("(ISC)² Official Training Provider", "affiliation"),
-                                ("Google Cloud Partner", "partner")]:
-            InstitutionPartner.objects.get_or_create(name=name, defaults=dict(category=category))
-
-        for key, value, vtype in [
-            ("site_maintenance_mode", "false", "boolean"),
-            ("max_upload_size_mb", "25", "number"),
-            ("default_currency", "USD", "text"),
-            ("registration_open", "true", "boolean"),
-        ]:
-            SystemConfiguration.objects.get_or_create(
-                key=key, defaults=dict(value=value, setting_type=vtype, is_public=(key != "max_upload_size_mb")),
-            )
-
-    # ------------------------------------------------------------------
-    # LIBRARY
-    # ------------------------------------------------------------------
-    def _seed_library(self):
-        subjects = ["Software Engineering", "Cybersecurity", "Cloud Computing", "Data Science",
-                    "Machine Learning", "DevOps", "Web Development", "Mobile Development",
-                    "IT Project Management", "Network Security"]
-        for _ in range(45):
-            title = f"{random.choice(['Introduction to', 'Advanced', 'Principles of', 'Understanding', 'Modern'])} {random.choice(subjects)}"
-            LibraryItem.objects.get_or_create(
-                title=title, author=fake.name(),
-                defaults=dict(
-                    category=random.choice(["Books", "Periodicals", "References", "Other"]),
-                    subcategory=random.choice(subjects),
-                    publisher=fake.company(),
-                    year=random.randint(2010, 2025),
-                    isbn=fake.isbn13(),
-                    language="en",
-                    description=fake.paragraph(nb_sentences=3),
-                    access=random.choice(["public", "public", "members"]),
-                    featured=random.random() < 0.15,
-                    created_by=random.choice(self.admins),
-                    view_count=random.randint(0, 800),
-                    download_count=random.randint(0, 300),
-                ),
-            )
-
-    # ------------------------------------------------------------------
-    # COMMUNICATIONS
-    # ------------------------------------------------------------------
-    def _seed_communications(self):
-        for _ in range(10):
-            Announcement.objects.create(
-                title=fake.sentence(nb_words=8),
-                content=fake.paragraph(nb_sentences=4),
-                announcement_type=random.choice(["system", "course"]),
-                priority=random.choice(["low", "normal", "normal", "high"]),
-                created_by=random.choice(self.admins),
-            )
-
-        for _ in range(5):
-            BroadcastMessage.objects.create(
-                subject=fake.sentence(nb_words=6),
-                message=fake.paragraph(nb_sentences=3),
-                filter_type="all_users",
-                status="sent",
-                created_by=random.choice(self.admins),
-                sent_at=past_dt(5, 60),
-                recipient_count=random.randint(50, 200),
-            )
-
-        notif_types = ["enrollment", "assignment", "grade", "announcement", "message", "certificate"]
-        for student in random.sample(self.students, k=min(60, len(self.students))):
-            for _ in range(random.randint(1, 4)):
-                notif = Notification.objects.create(
-                    user=student, notification_type=random.choice(notif_types),
-                    title=fake.sentence(nb_words=6),
-                    message=fake.sentence(nb_words=15),
-                    is_read=random.random() < 0.5,
-                )
-                backdate(Notification, notif.pk, created_at=past_dt(1, 90))
-
-        for _ in range(40):
-            sender = random.choice(self.students)
-            recipient = random.choice(self.instructors)
-            msg = Message.objects.create(
-                sender=sender, recipient=recipient,
-                subject=fake.sentence(nb_words=6),
-                body=fake.paragraph(nb_sentences=3),
-                is_read=random.random() < 0.6,
-            )
-            backdate(Message, msg.pk, created_at=past_dt(1, 120))
-
-        for _ in range(18):
-            cm = ContactMessage.objects.create(
-                name=fake.name(), email=fake.email(),
-                subject=random.choice(["admissions", "programs", "financial", "support", "other"]),
-                message=fake.paragraph(nb_sentences=3),
-                is_read=random.random() < 0.7,
-                responded=random.random() < 0.5,
-            )
-            backdate(ContactMessage, cm.pk, created_at=past_dt(1, 180))
-
-    # ------------------------------------------------------------------
-    # SUPPORT DESK
-    # ------------------------------------------------------------------
-    def _seed_support(self):
-        departments = []
-        for name in ["Technical Support", "Admissions Help", "Billing & Payments", "Academic Records"]:
-            dept, _ = SupportDepartment.objects.get_or_create(
-                name=name, defaults=dict(description=fake.sentence(), head=random.choice(self.support_staff)),
-            )
-            dept.members.add(*random.sample(self.support_staff, k=min(2, len(self.support_staff))))
-            departments.append(dept)
-
-        sla_policies = {}
-        for priority, first, resolve, esc in [("low", 24, 96, 48), ("normal", 8, 48, 24),
-                                                ("high", 4, 24, 8), ("urgent", 1, 8, 2)]:
-            policy, _ = SLAPolicy.objects.get_or_create(
-                priority=priority,
-                defaults=dict(name=f"{priority.title()} Priority SLA",
-                              first_response_hours=first, resolution_hours=resolve, escalation_hours=esc),
-            )
-            sla_policies[priority] = policy
-
-        for agent in self.support_staff:
-            AgentProfile.objects.get_or_create(
-                user=agent,
-                defaults=dict(department=random.choice(departments),
-                              specializations=fake.sentence(nb_words=6),
-                              bio=fake.sentence(), average_rating=Decimal(str(round(random.uniform(3.5, 5.0), 1))),
-                              total_resolved=random.randint(10, 200)),
-            )
-
-        for i in range(4):
-            CannedResponse.objects.get_or_create(
-                title=f"Standard Reply {i+1}",
-                defaults=dict(category=random.choice(["technical", "account", "course", "payment"]),
-                              body=fake.paragraph(nb_sentences=2),
-                              created_by=random.choice(self.support_staff)),
-            )
-
-        kb_categories = []
-        for name in ["Getting Started", "Payments & Billing", "Courses & Enrollment", "Account & Security"]:
-            cat, _ = KBCategory.objects.get_or_create(name=name, defaults=dict(description=fake.sentence()))
-            kb_categories.append(cat)
-        for _ in range(16):
-            KBArticle.objects.create(
-                category=random.choice(kb_categories),
-                title=fake.sentence(nb_words=7),
-                summary=fake.sentence(nb_words=15),
-                body="\n\n".join(fake.paragraphs(nb=3)),
-                status="published",
-                author=random.choice(self.support_staff),
-                view_count=random.randint(0, 500),
-            )
-
-        faq_categories = []
-        for name in ["Admissions", "Tuition & Fees", "Technical Issues", "Academics"]:
-            cat, _ = FAQCategory.objects.get_or_create(name=name)
-            faq_categories.append(cat)
-        for _ in range(20):
-            FAQ.objects.create(
-                category=random.choice(faq_categories),
-                question=fake.sentence(nb_words=10) + "?",
-                answer=fake.paragraph(nb_sentences=2),
-                created_by=random.choice(self.support_staff),
-            )
-
-        for _ in range(35):
-            requester = random.choice(self.students)
-            priority = random.choice(["low", "normal", "normal", "high", "urgent"])
-            status = random.choice(["open", "in_progress", "waiting_response", "resolved", "closed"])
-            agent = random.choice(self.support_staff)
-            ticket = SupportTicket.objects.create(
-                user=requester,
-                category=random.choice(["technical", "account", "course", "payment", "other"]),
-                subject=fake.sentence(nb_words=8),
-                description=fake.paragraph(nb_sentences=4),
-                priority=priority, status=status, assigned_to=agent,
-            )
-            backdate(SupportTicket, ticket.pk, created_at=past_dt(1, 200))
-
-            SupportTicketExtra.objects.get_or_create(
-                ticket=ticket,
-                defaults=dict(department=random.choice(departments), sla_policy=sla_policies[priority],
-                              source=random.choice(["portal", "email", "chat"]),
-                              first_response_at=past_dt(0, 5) if status != "open" else None,
-                              due_at=NOW + timedelta(hours=sla_policies[priority].resolution_hours)),
-            )
-
-            for _ in range(random.randint(0, 3)):
-                author = random.choice([requester, agent])
-                reply = TicketReply.objects.create(
-                    ticket=ticket, author=author, message=fake.paragraph(nb_sentences=2),
-                    is_internal_note=(author == agent and random.random() < 0.2),
-                )
-                backdate(TicketReply, reply.pk, created_at=past_dt(0, 190))
-
-            TicketHistory.objects.create(
-                ticket=ticket, changed_by=agent, field_name="status",
-                old_value="open", new_value=status, note="Status updated",
-            )
-
-        for i in range(3):
-            SupportAnnouncement.objects.create(
-                title=fake.sentence(nb_words=6), body=fake.paragraph(nb_sentences=2),
-                is_pinned=(i == 0), created_by=random.choice(self.support_staff),
-            )
-
-        for _ in range(10):
-            session = SupportChatSession.objects.create(
-                student=random.choice(self.students),
-                agent=random.choice(self.support_staff),
-                status=random.choice(["ended", "active"]),
-                subject=fake.sentence(nb_words=6),
-                category=random.choice(["technical", "account", "course"]),
-                rating=random.randint(3, 5),
-                wait_time_seconds=random.randint(10, 300),
-                duration_seconds=random.randint(60, 1800),
-            )
-            for _ in range(random.randint(2, 6)):
-                SupportChatMessage.objects.create(
-                    session=session,
-                    sender=random.choice([session.student, session.agent]),
-                    body=fake.sentence(nb_words=12),
+            for order, (lesson_title, is_preview) in enumerate(lessons, start=1):
+                Lesson.objects.update_or_create(
+                    course=lms, title=lesson_title,
+                    defaults={
+                        "lesson_type": "text",
+                        "content": f"Lesson content for “{lesson_title}”.",
+                        "is_preview": is_preview,
+                        "is_active": True,
+                        "display_order": order,
+                    },
                 )
 
-        for _ in range(20):
-            SupportAuditLog.objects.create(
-                actor=random.choice(self.support_staff), action=random.choice(
-                    ["ticket_assigned", "ticket_resolved", "kb_article_published", "faq_created"]),
-                target_type="SupportTicket", target_id=str(random.randint(1, 100)),
-                description=fake.sentence(),
+        # ── Demo student: approved application, accepted admission, two
+        #    registrations — one inside their own program, one in a totally
+        #    different program, proving the flat catalog. ──────────────────
+        home_program = programs["FSE"]
+        application, _ = CourseApplication.objects.update_or_create(
+            user=student_user, program=home_program,
+            defaults={
+                "first_name": student_user.first_name,
+                "last_name": student_user.last_name,
+                "email": student_user.email,
+                "phone": "+2348012345678",
+                "gender": "male",
+                "nationality": "Nigerian",
+                "address_line1": "14 Admiralty Way, Lekki Phase 1",
+                "city": "Lagos",
+                "state": "Lagos",
+                "country": "Nigeria",
+                "highest_qualification": "High School Diploma",
+                "accept_privacy_policy": True,
+                "accept_terms_conditions": True,
+                "status": "approved",
+                "payment_status": "success",
+                "department_approved": True,
+                "department_approved_at": timezone.now(),
+            },
+        )
+        if not application.admission_accepted:
+            application.accept_admission()
+        if not application.admission_number:
+            application.issue_admission_number()
+
+        profile = student_user.profile
+        profile.program = home_program
+        profile.department = home_program.department
+        profile.faculty = home_program.department.faculty
+        profile.save(update_fields=["program", "department", "faculty"])
+
+        for course_code in ("FSE101", "DSM101"):
+            course = courses[course_code]
+            reg, _ = CourseRegistration.objects.update_or_create(
+                student=student_user, course=course,
+                defaults={"status": "approved"},
             )
-
-    # ------------------------------------------------------------------
-    # COMMUNITY: DISCUSSIONS + STUDY GROUPS
-    # ------------------------------------------------------------------
-    def _seed_community(self):
-        for lms in random.sample(self.lms_courses, k=min(20, len(self.lms_courses))):
-            enrolled = list(User.objects.filter(enrollments__course=lms).distinct())
-            if not enrolled:
-                continue
-            for _ in range(random.randint(1, 3)):
-                author = random.choice(enrolled)
-                discussion = Discussion.objects.create(
-                    course=lms, title=fake.sentence(nb_words=8), content=fake.paragraph(nb_sentences=3),
-                    author=author, views_count=random.randint(5, 200),
-                )
-                for _ in range(random.randint(0, 4)):
-                    DiscussionReply.objects.create(
-                        discussion=discussion, author=random.choice(enrolled + [lms.instructor]),
-                        content=fake.sentence(nb_words=20),
-                    )
-
-            if random.random() < 0.4:
-                group = StudyGroup.objects.create(
-                    name=f"{lms.title} Study Circle", description=fake.sentence(nb_words=15),
-                    course=lms, created_by=random.choice(enrolled),
-                )
-                members = random.sample(enrolled, k=min(len(enrolled), random.randint(2, 6)))
-                for member in members:
-                    StudyGroupMember.objects.get_or_create(
-                        study_group=group, user=member,
-                        defaults=dict(role="moderator" if member == group.created_by else "member"),
-                    )
-                for _ in range(random.randint(2, 8)):
-                    StudyGroupMessage.objects.create(
-                        study_group=group, author=random.choice(members),
-                        content=fake.sentence(nb_words=15),
-                    )
-
-    # ------------------------------------------------------------------
-    # PERMISSIONS + AUDIT LOG
-    # ------------------------------------------------------------------
-    def _seed_permissions_and_audit(self):
-        role_defaults = {
-            "admin": dict(can_view=True, can_create=True, can_edit=True, can_delete=True,
-                          can_approve=True, can_export=True),
-            "instructor": dict(can_view=True, can_create=True, can_edit=True, can_delete=False,
-                               can_approve=False, can_export=True),
-            "finance": dict(can_view=True, can_create=True, can_edit=True, can_delete=False,
-                            can_approve=True, can_export=True),
-            "support": dict(can_view=True, can_create=True, can_edit=True, can_delete=False,
-                            can_approve=False, can_export=False),
-        }
-        modules_by_role = {
-            "admin": ["dashboard", "user_management", "academics", "lms_courses", "applications",
-                      "exams", "enrollments", "finance", "communications", "blog", "library",
-                      "site_content", "security_audit", "academic_progression", "results_publish",
-                      "role_permissions"],
-            "instructor": ["instructor_courses", "instructor_assessments", "instructor_analytics",
-                          "instructor_resources", "instructor_communications"],
-            "finance": ["finance_payments", "finance_subscriptions", "finance_payroll", "dashboard"],
-            "support": ["support_tickets", "support_knowledge_base", "support_communications",
-                       "support_analytics", "support_config"],
-        }
-        for role, modules in modules_by_role.items():
-            for module in modules:
-                StaffPermissionsMatrix.objects.get_or_create(
-                    role=role, module=module, defaults=role_defaults[role],
-                )
-
-        actions = ["create", "update", "delete", "login", "logout", "access", "export"]
-        all_staff = self.admins + self.finance_staff + self.support_staff + self.instructors
-        for _ in range(80):
-            log = AuditLog.objects.create(
-                user=random.choice(all_staff), action=random.choice(actions),
-                model_name=random.choice(["CourseApplication", "Invoice", "Exam", "UserProfile", "BlogPost"]),
-                object_id=str(random.randint(1, 200)),
-                description=fake.sentence(nb_words=10),
-                ip_address=fake.ipv4(),
+            lms = lms_courses[course_code]
+            Enrollment.objects.update_or_create(
+                student=student_user, course=lms,
+                defaults={"enrolled_by": student_user, "status": "active"},
             )
-            backdate(AuditLog, log.pk, timestamp=past_dt(1, 180))
+        self.stdout.write(
+            "Registered obikolade for FSE101 (own program) and DSM101 "
+            "(a different program) to demonstrate the flat catalog."
+        )
 
-        for _ in range(20):
-            log = ProgressionDecisionLog.objects.create(
-                student=random.choice(self.students), session=random.choice(self.past_sessions),
-                previous_year_of_study=random.randint(1, 3), new_year_of_study=random.randint(2, 4),
-                previous_status="active", new_status="active",
-                cgpa=Decimal(str(round(random.uniform(1.5, 4.5), 2))),
-                core_courses_passed=True, changed_by=random.choice(self.admins),
-                note="Automatic end-of-session progression.",
-            )
-            backdate(ProgressionDecisionLog, log.pk, created_at=past_dt(30, 300))
+        return instructor, admin, support, finance, student_user, lms_courses
 
-        for program in random.sample(self.programs, k=min(6, len(self.programs))):
-            ProgramSessionCreditCap.objects.get_or_create(
-                program=program, session=self.current_session, term="first",
-                defaults=dict(max_credit_units=21, updated_by=random.choice(self.admins)),
-            )
+    def _seed_user(self, *, username, email, first_name, last_name, role, is_staff=False, is_superuser=False):
+        user, created = User.objects.update_or_create(
+            username=username,
+            defaults={
+                "email": email,
+                "first_name": first_name,
+                "last_name": last_name,
+                "is_active": True,
+                "is_staff": is_staff,
+                "is_superuser": is_superuser,
+            },
+        )
+        user.set_password(SEED_PASSWORD)
+        user.save()
 
-    # ------------------------------------------------------------------
-    # BADGES
-    # ------------------------------------------------------------------
-    def _award_badges(self):
-        for student in self.students:
-            check_and_award_badges(student)
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        profile.role = role
+        profile.email_verified = True
+        profile.save(update_fields=["role", "email_verified"])
 
-    # ------------------------------------------------------------------
-    def _print_summary(self):
-        from django.apps import apps
-        self.stdout.write("\n--- Row counts ---")
-        for label, app_label in [("eduweb", "eduweb"), ("support", "support"), ("chatbot", "chatbot")]:
-            for model in apps.get_app_config(app_label).get_models():
-                count = model.objects.count()
-                if count:
-                    self.stdout.write(f"{app_label}.{model.__name__}: {count}")
+        self.stdout.write(f"{'Created' if created else 'Updated'} user: {username} ({role}) — {email}")
+        return user

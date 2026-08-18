@@ -131,15 +131,11 @@ input[type="checkbox"] { accent-color: var(--clr-primary); }
 </style>
 {% endblock %}
 
-
 {% block content %}
 {# Hidden form just for the CSRF token — JS reads it. #}
 <form style="display:none">{% csrf_token %}</form>
 
 <div id="examShell">
-
-                <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
-
 
     <!-- ═══════════════════════════════════════════════════════════
          TOP BAR
@@ -394,7 +390,6 @@ input[type="checkbox"] { accent-color: var(--clr-primary); }
 
 </div>{# /examShell #}
 {% endblock %}
-
 
 {% block chatbot %}{% endblock %}
 

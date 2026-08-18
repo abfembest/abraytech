@@ -200,7 +200,7 @@ def finance_dashboard(request):
     # ── Required / outstanding payments ────────────────────────────────────
     req_qs = AllRequiredPayments.objects.filter(
         is_active=True
-    ).select_related('program', 'course', 'academic_session')
+    ).select_related('program', 'course')
 
     required_payments_count = req_qs.count()
     required_payments_total = (

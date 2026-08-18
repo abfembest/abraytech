@@ -1256,10 +1256,9 @@ def grade_submission(request, course_slug, submission_id):
         # student happens to trigger a recompute themselves (e.g. completing
         # another lesson), which may never happen for a course they're done with.
         academic_course = course.academic_course
-        session = course.session
-        if academic_course and session:
+        if academic_course:
             try:
-                CourseGrade.recompute_for_student_course(submission.student, academic_course, session)
+                CourseGrade.recompute_for_student_course(submission.student, academic_course)
             except Exception:
                 logger.exception(
                     'Failed to recompute CourseGrade after grading assignment=%s student=%s',
@@ -2124,10 +2123,9 @@ def quiz_attempt_detail(request, course_slug, lesson_slug, quiz_slug, attempt_id
         # essay/short-answer response is reflected immediately rather than
         # waiting on some unrelated future trigger.
         academic_course = course.academic_course
-        session = course.session
-        if academic_course and session:
+        if academic_course:
             try:
-                CourseGrade.recompute_for_student_course(attempt.student, academic_course, session)
+                CourseGrade.recompute_for_student_course(attempt.student, academic_course)
             except Exception:
                 logger.exception(
                     'Failed to recompute CourseGrade after grading quiz attempt=%s student=%s',
@@ -2566,7 +2564,7 @@ def reply_delete(request, course_slug, discussion_slug, reply_id):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# AJAX: return course details (code, academic session) for a given course pk
+# AJAX: return course details (code) for a given course pk
 # Used by the Create Assessment page to auto-populate locked fields.
 # ─────────────────────────────────────────────────────────────────────────────
 @login_required(login_url='eduweb:auth_page')
@@ -2574,8 +2572,7 @@ def reply_delete(request, course_slug, discussion_slug, reply_id):
 def ajax_course_details(request):
     """
     GET /instructor/assessments/course-details/?course_id=<pk>
-    Returns JSON {code, academic_session_id, academic_session_name}
-    for the instructor's own course only.
+    Returns JSON {code, title} for the instructor's own course only.
     """
     if not _has_permission(request, 'instructor_assessments', 'can_view'):
         return JsonResponse({'error': 'Permission denied.'}, status=403)
@@ -2583,34 +2580,14 @@ def ajax_course_details(request):
     course_id = request.GET.get('course_id')
     if not course_id:
         return JsonResponse({'error': 'No course_id provided'}, status=400)
- 
+
     course = get_object_or_404(
         LMSCourse, pk=course_id, instructor=request.user
     )
- 
-    session_id   = None
-    session_name = '—'
-    # LMSCourse has an optional FK to AcademicSession via academic_course → Course → session
-    # Try to get the session through the chain that exists in your model
-    try:
-        # If LMSCourse has a direct academic_session FK:
-        if hasattr(course, 'academic_session') and course.academic_session:
-            session_id   = course.academic_session.pk
-            session_name = str(course.academic_session)
-        # Fallback: through academic_course (the Course model)
-        elif hasattr(course, 'academic_course') and course.academic_course:
-            ac = course.academic_course
-            if hasattr(ac, 'academic_session') and ac.academic_session:
-                session_id   = ac.academic_session.pk
-                session_name = str(ac.academic_session)
-    except Exception:
-        pass
- 
+
     return JsonResponse({
         'code':                  course.code or '',
         'title':                 course.title,
-        'academic_session_id':   session_id,
-        'academic_session_name': session_name,
         # Always True — ALL LMS courses (standalone or academic-linked) can create exams.
         'is_linked':             True,
         'has_academic_course':   bool(getattr(course, 'academic_course', None)),
@@ -2630,7 +2607,7 @@ def create_assessment(request):
  
     Flow:
       1. Instructor picks assessment type (quiz | assignment | exam).
-      2. Instructor picks one of their LMS courses — AJAX fills code + session.
+      2. Instructor picks one of their LMS courses — AJAX fills code.
       3. The right form panel slides in.
          • Quiz    → QuizForm  + repeating QuizQuestion+QuizAnswer blocks (JS)
          • Assignment → AssignmentForm
@@ -2763,13 +2740,6 @@ def create_assessment(request):
                 try:
                     if academic_course and hasattr(academic_course, 'department') and academic_course.department:
                         exam.department = academic_course.department
-                except Exception:
-                    pass
-
-                # Resolve academic_session through the academic course
-                try:
-                    if academic_course and getattr(academic_course, 'academic_session', None):
-                        exam.academic_session = academic_course.academic_session
                 except Exception:
                     pass
 
@@ -3547,10 +3517,9 @@ def exam_grade_response(request, slug, response_id):
 
         if pending_manual == 0:
             academic_course = exam.course.academic_course
-            session = exam.course.session
-            if academic_course and session:
+            if academic_course:
                 try:
-                    CourseGrade.recompute_for_student_course(response.student, academic_course, session)
+                    CourseGrade.recompute_for_student_course(response.student, academic_course)
                 except Exception:
                     logger.exception(
                         'Failed to recompute CourseGrade after manual exam grading for student=%s exam=%s',

@@ -168,8 +168,8 @@ class RequiredPaymentForm(forms.ModelForm):
     class Meta:
         model = AllRequiredPayments
         fields = [
-            'purpose', 'program', 'course', 'academic_session',
-            'semester', 'who_to_pay', 'amount', 'due_date', 'is_active',
+            'purpose', 'program', 'course',
+            'who_to_pay', 'amount', 'due_date', 'is_active',
         ]
 
     def clean_amount(self):

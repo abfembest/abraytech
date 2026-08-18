@@ -329,9 +329,6 @@ input[type="file"].fm-file      { font-size:.95rem; padding:.5rem; }
 {% block content %}
 <div class="max-w-full">
 
-                <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
-
-
 {% comment %} ══ COURSE SWITCHER / HEADER BAR ══ {% endcomment %}
 <div class="switcher-bar rounded-t-2xl px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-4 shadow-md">
 
@@ -456,10 +453,6 @@ input[type="file"].fm-file      { font-size:.95rem; padding:.5rem; }
 
             {% comment %} Meta info grid {% endcomment %}
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <div class="meta-card">
-                    <p class="text-base text-gray-400 font-semibold mb-1">Difficulty</p>
-                    <p class="text-base font-bold text-gray-800 capitalize lg:text-lg">{{ course.get_difficulty_level_display|default:"—" }}</p>
-                </div>
                 <div class="meta-card">
                     <p class="text-base text-gray-400 font-semibold mb-1">Duration</p>
                     <p class="text-base font-bold text-gray-800 lg:text-lg">{{ course.duration_hours|default:"—" }} hrs</p>
@@ -1770,7 +1763,6 @@ input[type="file"].fm-file      { font-size:.95rem; padding:.5rem; }
 <script src="{% static 'vendor/select2/select2.min.js' %}"></script>
 
 {% endblock %}
-
 
 {% block extra_js %}
 <script>

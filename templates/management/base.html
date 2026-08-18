@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="{% block meta_description %}MIU Portal - Manage your learning journey{% endblock %}">
+    <meta name="description" content="{% block meta_description %}Abraytech Portal - Manage your learning journey{% endblock %}">
     <meta name="keywords" content="{% block meta_keywords %}portal, dashboard, university, management{% endblock %}">
-    <meta name="author" content="MIU Administration">
+    <meta name="author" content="Abraytech Administration">
     {% block meta_tags %}{% endblock %}
 
-    <title>{% block title %}Dashboard - MIU Portal{% endblock %}</title>
+    <title>{% block title %}Dashboard - Abraytech Portal{% endblock %}</title>
 
     <!-- CRITICAL: runs sync before any CSS/JS — sets sidebar state with zero flash -->
     <script>try{if(localStorage.getItem('sidebarCollapsed')==='true'){document.documentElement.setAttribute('data-sidebar','collapsed');}}catch(e){}</script>
@@ -486,7 +486,7 @@
                 <!-- Navigation Menu - Scrollable -->
                 <nav class="flex-1 overflow-y-auto py-4 px-3" role="navigation" aria-label="Main navigation">
 
-                    {% if request.user.is_superuser or request.user.is_staff or permissions.user_management.can_view or permissions.academics.can_view or permissions.lms_courses.can_view or permissions.applications.can_view or permissions.exams.can_view or permissions.enrollments.can_view or permissions.finance.can_view or permissions.communications.can_view or permissions.blog.can_view or permissions.library.can_view or permissions.site_content.can_view or permissions.security_audit.can_view or permissions.support_config.can_view or permissions.academic_progression.can_view or permissions.role_permissions.can_view %}
+                    {% if request.user.is_superuser or request.user.is_staff or permissions.user_management.can_view or permissions.academics.can_view or permissions.lms_courses.can_view or permissions.applications.can_view or permissions.exams.can_view or permissions.enrollments.can_view or permissions.finance.can_view or permissions.communications.can_view or permissions.blog.can_view or permissions.library.can_view or permissions.site_content.can_view or permissions.security_audit.can_view or permissions.support_config.can_view or permissions.role_permissions.can_view %}
                     {% comment %}
                         Gate is "does this user have can_view on ANY module
                         that belongs to this portal" rather than a role check
@@ -572,14 +572,14 @@
 
                     {% if permissions.academics.can_view %}
                     <div class="mb-1">
-                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all {% if 'faculties' in request.path or 'management/departments' in request.path or 'programs' in request.path or 'academic-sessions' in request.path or 'intakes' in request.path or 'progression' in request.path or 'categories' in request.path and 'blog' not in request.path or request.resolver_match.url_name == 'courses_list' %}bg-white/20{% endif %}">
+                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all {% if 'faculties' in request.path or 'management/departments' in request.path or 'programs' in request.path or 'categories' in request.path and 'blog' not in request.path or request.resolver_match.url_name == 'courses_list' %}bg-white/20{% endif %}">
                             <div class="flex items-center">
                                 <i class="fas fa-university w-5 text-center" aria-hidden="true"></i>
                                 <span class="ml-3 text-[17px] font-semibold">Acads Structure</span>
                             </div>
-                            <i class="fas fa-chevron-down menu-arrow transition-transform {% if 'faculties' in request.path or 'management/departments' in request.path or 'programs' in request.path or 'academic-sessions' in request.path or 'intakes' in request.path or 'progression' in request.path or 'categories' in request.path and 'blog' not in request.path or request.resolver_match.url_name == 'courses_list' %}rotate-180{% endif %}" aria-hidden="true"></i>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform {% if 'faculties' in request.path or 'management/departments' in request.path or 'programs' in request.path or 'categories' in request.path and 'blog' not in request.path or request.resolver_match.url_name == 'courses_list' %}rotate-180{% endif %}" aria-hidden="true"></i>
                         </button>
-                        <div id="academicMenu" class="mt-1 space-y-1 {% if 'faculties' in request.path or 'management/departments' in request.path or 'programs' in request.path or 'academic-sessions' in request.path or 'intakes' in request.path or 'progression' in request.path or 'categories' in request.path and 'blog' not in request.path or request.resolver_match.url_name == 'courses_list' %}{% else %}hidden {% endif %}bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                        <div id="academicMenu" class="mt-1 space-y-1 {% if 'faculties' in request.path or 'management/departments' in request.path or 'programs' in request.path or 'categories' in request.path and 'blog' not in request.path or request.resolver_match.url_name == 'courses_list' %}{% else %}hidden {% endif %}bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
                             <p class="px-4 text-[10px] uppercase tracking-widest text-white/40 font-semibold py-1">Structure</p>
                             <a href="{% url 'management:faculties_list' %}"
                                class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'faculties' in request.path %}bg-white/20{% endif %}">
@@ -594,30 +594,10 @@
                                 <i class="fas fa-graduation-cap mr-2" aria-hidden="true"></i>Programs
                             </a>
                             <div class="border-t border-white/10 my-1"></div>
-                            <p class="px-4 text-[10px] uppercase tracking-widest text-white/40 font-semibold py-1">Sessions & Courses</p>
-                            <a href="{% url 'management:academic_sessions_list' %}"
-                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'academic-sessions' in request.path %}bg-white/20{% endif %}">
-                                <i class="fas fa-calendar-alt mr-2" aria-hidden="true"></i>Academic Sessions
-                            </a>
+                            <p class="px-4 text-[10px] uppercase tracking-widest text-white/40 font-semibold py-1">Courses</p>
                             <a href="{% url 'management:courses_list' %}"
                                class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.resolver_match.url_name == 'courses_list' %}bg-white/20{% endif %}">
                                 <i class="fas fa-book mr-2" aria-hidden="true"></i>Course Catalog
-                            </a>
-                            {% if permissions.academic_progression.can_view %}
-                            <a href="{% url 'management:academic_progression' %}"
-                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'progression' in request.path and 'progression/results' not in request.path %}bg-white/20{% endif %}">
-                                <i class="fas fa-level-up-alt mr-2" aria-hidden="true"></i>Progression &amp; Carry-Over
-                            </a>
-                            {% endif %}
-                            {% if permissions.results_publish.can_view %}
-                            <a href="{% url 'management:results_publish' %}"
-                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'progression/results' in request.path %}bg-white/20{% endif %}">
-                                <i class="fas fa-unlock-alt mr-2" aria-hidden="true"></i>Publish Results
-                            </a>
-                            {% endif %}
-                            <a href="{% url 'management:intakes_list' %}"
-                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'intakes' in request.path %}bg-white/20{% endif %}">
-                                <i class="fas fa-door-open mr-2" aria-hidden="true"></i>Open Applications
                             </a>
                             {% comment %} <a href="{% url 'management:course_categories_list' %}"
                                class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'categories' in request.path and 'blog' not in request.path %}bg-white/20{% endif %}">
@@ -982,11 +962,11 @@
                     <!-- My Courses -->
                     {% with active=request.resolver_match.url_name|default:'' %}
                     <div class="mb-1">
-                        {% if active == 'my_courses' or active == 'course_catalog' or active == 'course_detail' or active == 'register_semester_course' or active == 'drop_semester_course' or active == 'register_all_semester_courses' or active == 'enroll_course' or active == 'retry_lms_enrollment' or active == 'lesson_view' or active == 'mark_lesson_complete' or active == 'submit_review' %}
+                        {% if active == 'my_courses' or active == 'course_catalog' or active == 'course_detail' or active == 'register_semester_course' or active == 'drop_semester_course' or active == 'enroll_course' or active == 'retry_lms_enrollment' or active == 'lesson_view' or active == 'mark_lesson_complete' or active == 'submit_review' %}
                         <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all bg-white/20">
                             <div class="flex items-center">
                                 <i class="fas fa-book w-5 text-center" aria-hidden="true"></i>
-                                <span class="ml-3 text-[17px] font-semibold">Course Registration</span>
+                                <span class="ml-3 text-[17px] font-semibold">Courses</span>
                             </div>
                             <i class="fas fa-chevron-down menu-arrow transition-transform rotate-180" aria-hidden="true"></i>
                         </button>
@@ -995,7 +975,7 @@
                         <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
                             <div class="flex items-center">
                                 <i class="fas fa-book w-5 text-center" aria-hidden="true"></i>
-                                <span class="ml-3 text-[17px] font-semibold">Course Registration</span>
+                                <span class="ml-3 text-[17px] font-semibold">Courses</span>
                             </div>
                             <i class="fas fa-chevron-down menu-arrow transition-transform" aria-hidden="true"></i>
                         </button>
@@ -1003,11 +983,11 @@
                         {% endif %}
                             <a href="{% url 'students:my_courses' %}"
                                class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if active == 'my_courses' %}bg-white/20{% endif %}">
-                                <i class="fas fa-list mr-2" aria-hidden="true"></i> Register Courses
+                                <i class="fas fa-list mr-2" aria-hidden="true"></i> My Courses
                             </a>
                             <a href="{% url 'students:course_catalog' %}"
                                class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if active == 'course_catalog' %}bg-white/20{% endif %}">
-                                <i class="fas fa-search mr-2" aria-hidden="true"></i> Session / Semester Courses
+                                <i class="fas fa-search mr-2" aria-hidden="true"></i> Available Courses
                             </a>
                         </div>
                     </div>
@@ -1088,7 +1068,8 @@
                         </div>
                     </div>
 
-                    <!-- Academic Record -->
+                    {# Academic Record — commented out along with its URL route (apps/student/urls.py) #}
+                    {% comment %}
                     <a href="{% url 'students:academic_records' %}"
                        class="flex items-center py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1 {% if active == 'academic_records' %}bg-white/20{% endif %}">
                         <div class="flex items-center">
@@ -1096,6 +1077,7 @@
                             <span class="ml-3 text-[17px] font-semibold">Academic Records</span>
                         </div>
                     </a>
+                    {% endcomment %}
 
                     <!-- Community -->
                     <div class="mb-1">
@@ -1577,9 +1559,6 @@
                         <div class="flex-1">
                             <p class="font-medium text-sm truncate capitalize">{{ request.user.get_full_name|default:request.user.username }}</p>
                             <p class="text-xs text-white/70 capitalize">{{ request.user.profile.get_role_display }}</p>
-                            {% if request.user.profile.role == 'student' and matric_number %}
-                            <p class="text-xs text-white/50 font-mono tracking-wide mt-0.5">{{ matric_number }}</p>
-                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -1591,14 +1570,14 @@
             <!-- Top Header Bar -->
             <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
                 <div class="relative flex items-center justify-between px-3 sm:px-4 md:px-5 py-2.5 sm:py-3 gap-2">
-                    <!-- Center: Brand Name — hidden below lg (sidebar already carries the brand there; up
-                         through md the header is tight with hamburger/collapse + breadcrumbs + bell + avatar
-                         and centered text just clutters it) -->
+                    {# Center: Brand Name — commented out ("Abraytech University" doesn't match the brand) #}
+                    {% comment %}
                     <div class="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center pointer-events-none select-none max-w-none">
                         <span class="font-heading font-bold tracking-tight text-lg xl:text-xl bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 bg-clip-text text-transparent whitespace-nowrap truncate">
-                            MIU University
+                            Abraytech University
                         </span>
                     </div>
+                    {% endcomment %}
 
                     <!-- Left: Mobile Menu + Desktop Collapse + Breadcrumbs -->
                     <div class="flex items-center gap-2 sm:gap-3 md:gap-4 min-w-0">
@@ -1610,6 +1589,12 @@
                         <!-- Desktop Sidebar Collapse Toggle -->
                         <button id="collapseSidebar" class="hidden md:flex flex-shrink-0 text-gray-600 hover:text-gray-900 p-1.5 rounded-lg hover:bg-gray-100 focus:outline-none transition-colors" aria-label="Collapse sidebar">
                             <i class="fas fa-bars text-lg" aria-hidden="true"></i>
+                        </button>
+
+                        <!-- Back — single global back button (was previously repeated on every individual page) -->
+                        <button onclick="history.back()" class="flex-shrink-0 flex items-center gap-1.5 text-gray-600 hover:text-gray-900 px-2 py-1.5 rounded-lg hover:bg-gray-100 focus:outline-none transition-colors text-xs sm:text-sm font-medium" aria-label="Go back">
+                            <i class="fas fa-arrow-left text-sm sm:text-base" aria-hidden="true"></i>
+                            <span class="hidden sm:inline">Back</span>
                         </button>
 
                         <!-- Breadcrumbs -->
@@ -1797,119 +1782,6 @@
             <main class="flex-1 p-3 sm:p-4 md:p-6">
             <div class="w-full">
 
-                {# ── Student Academic Status Bar — students only ── #}
-                {% if request.user.is_authenticated and request.user.profile.role == 'student' %}
-                {% with profile=request.user.profile %}
-                {% if profile and profile.program %}
-                <div class="mb-4 sm:mb-5 rounded-xl border border-blue-100 bg-blue-50 px-3 sm:px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs sm:text-sm text-blue-800">
-
-                    {# Matric Number — see CourseApplication.matric_number for the format #}
-                    {% if matric_number %}
-                    <span class="inline-flex items-center gap-1.5 font-semibold bg-blue-900 text-white rounded-lg px-2.5 py-1 font-mono tracking-wide">
-                        <i class="fas fa-id-card text-blue-300 text-[11px]" aria-hidden="true"></i>
-                        {{ matric_number }}
-                    </span>
-                    {% endif %}
-
-                    <span class="inline-flex items-center gap-1.5 font-semibold bg-blue-100 text-blue-900 rounded-lg px-2.5 py-1 border border-blue-200">
-                        <i class="fas fa-layer-group text-blue-500 text-[11px]" aria-hidden="true"></i>
-                        {{ profile.current_level }}L
-                    </span>
-
-                    {# Programme #}
-                    <span class="inline-flex items-center gap-1.5 text-blue-700 truncate max-w-[180px] sm:max-w-xs" title="{{ profile.program.name }}">
-                        <i class="fas fa-graduation-cap text-blue-400 text-[11px] flex-shrink-0" aria-hidden="true"></i>
-                        <span class="truncate">{{ profile.program.name }}</span>
-                    </span>
-
-                    {# Department #}
-                    {% with dept=profile.program.department %}
-                    {% if dept %}
-                    <span class="hidden sm:inline-flex items-center gap-1.5 text-blue-600 truncate max-w-[160px]" title="{{ dept.name }}">
-                        <i class="fas fa-building text-blue-400 text-[11px] flex-shrink-0" aria-hidden="true"></i>
-                        <span class="truncate">{{ dept.name }}</span>
-                    </span>
-
-                    {# Faculty #}
-                    {% comment %} {% with fac=dept.faculty %}
-                    {% if fac %}
-                    <span class="hidden lg:inline-flex items-center gap-1.5 text-blue-500 truncate max-w-[160px]" title="{{ fac.name }}">
-                        <i class="fas fa-university text-blue-300 text-[11px] flex-shrink-0" aria-hidden="true"></i>
-                        <span class="truncate">{{ fac.name }}</span>
-                    </span>
-                    {% endif %}
-                    {% endwith %} {% endcomment %}
-                    {% endif %}
-                    {% endwith %}
-
-                    {# Divider #}
-                    <span class="hidden sm:block w-px h-4 bg-blue-200 flex-shrink-0"></span>
-
-                    {# Session + Term — derived from context processor or navigation_data #}
-                    {% if current_session %}
-                    <span class="inline-flex items-center gap-1.5 text-blue-700 font-medium flex-shrink-0">
-                        <i class="fas fa-calendar-alt text-blue-400 text-[11px]" aria-hidden="true"></i>
-                        {{ current_session.name }}
-                    </span>
-                    {% endif %}
-
-                    {% if current_term %}
-                    <span class="inline-flex items-center gap-1.5 text-blue-600 capitalize flex-shrink-0">
-                        <i class="fas fa-bookmark text-blue-400 text-[11px]" aria-hidden="true"></i>
-                        {% if current_term == 'fall' or current_term == 'spring' or current_term == 'summer' %}
-                            {{ current_term|title }} Term
-                        {% else %}
-                            {{ current_term|title }} Semester
-                        {% endif %}
-                    </span>
-                    {% endif %}
-
-                    {# Progression status #}
-                    {% if profile.progression_status %}
-                    <span class="inline-flex items-center gap-1.5 flex-shrink-0
-                        {% if profile.progression_status == 'probation' %}text-red-600 bg-red-50 border border-red-200
-                        {% elif profile.progression_status == 'good_standing' %}text-green-700 bg-green-50 border border-green-200
-                        {% elif profile.progression_status == 'suspended' %}text-orange-700 bg-orange-50 border border-orange-200
-                        {% else %}text-blue-600 bg-blue-100 border border-blue-200
-                        {% endif %}
-                        rounded-lg px-2 py-0.5 text-[11px] font-semibold capitalize">
-                        <span class="w-1.5 h-1.5 rounded-full flex-shrink-0
-                            {% if profile.progression_status == 'probation' %}bg-red-500
-                            {% elif profile.progression_status == 'good_standing' %}bg-green-500
-                            {% elif profile.progression_status == 'suspended' %}bg-orange-500
-                            {% else %}bg-blue-400{% endif %}">
-                        </span>
-                        {{ profile.get_progression_status_display|default:profile.progression_status }}
-                    </span>
-                    {% endif %}
-
-                    {# Registration window — shows exact open/close dates #}
-                    {% if registration_open %}
-                    <span class="ml-auto inline-flex items-center gap-1.5 text-green-700 bg-green-50 border border-green-200 rounded-lg px-2.5 py-1 text-[11px] font-semibold flex-shrink-0">
-                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                        Reg. Open
-                        {% if reg_open and reg_close %}
-                        &bull; {{ reg_open|date:"M j" }} – {{ reg_close|date:"M j, Y" }}
-                        {% endif %}
-                    </span>
-                    {% elif reg_open %}
-                    <span class="ml-auto inline-flex items-center gap-1.5 text-gray-500 bg-gray-100 border border-gray-200 rounded-lg px-2.5 py-1 text-[11px] font-medium flex-shrink-0">
-                        <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
-                        Reg. Closed &bull; Opens {{ reg_open|date:"M j, Y" }}
-                    </span>
-                    {% else %}
-                    <span class="ml-auto inline-flex items-center gap-1.5 text-gray-500 bg-gray-100 border border-gray-200 rounded-lg px-2.5 py-1 text-[11px] font-medium flex-shrink-0">
-                        <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
-                        Registration Closed
-                    </span>
-                    {% endif %}
-
-                </div>
-                {% endif %}
-                {% endwith %}
-                {% endif %}
-                {# ── End Student Academic Status Bar ── #}
-
                 {% block content %}{% endblock %}
             </div>
             </main>
@@ -1925,98 +1797,6 @@
         </div>
     </div>
 
-    {% if request.user.is_authenticated and request.user.profile.role == 'admin' %}
-    {% with cs=current_session %}
-
-    <!-- Session Automation Reminder Modal -->
-    <div id="sessionReminderModal" class="hidden fixed inset-0 bg-black/70 flex items-stretch sm:items-center justify-center sm:p-4 z-[99999]">
-        <div class="bg-white sm:rounded-3xl w-full sm:max-w-lg h-full sm:h-auto sm:max-h-[90vh] overflow-y-auto p-6 sm:p-10 text-center shadow-2xl">
-            <i class="fas fa-calendar-check text-7xl text-amber-500 mb-6"></i>
-            <h3 class="text-3xl font-bold mb-3">Time to update Academic Session?</h3>
-
-            {% if cs %}
-                <p class="text-gray-600 mb-2 font-semibold">
-                    Current: <span class="text-primary-600">{{ cs.name }}</span>
-                </p>
-                <p class="text-gray-500 text-sm mb-6">
-                    Term: <strong>{{ cs.get_current_term|default:"No active term" }}</strong>
-                    &nbsp;|&nbsp;
-                    Registration:
-                    {% if cs.is_registration_open %}
-                        <span class="text-green-600 font-semibold">Open</span>
-                    {% else %}
-                        <span class="text-red-500 font-semibold">Closed</span>
-                    {% endif %}
-                </p>
-            {% else %}
-                <p class="text-red-500 font-semibold mb-4">⚠ No active session is set!</p>
-            {% endif %}
-
-            <p class="text-gray-500 mb-8 text-sm">Create a new session or update the current one's term dates.</p>
-
-            <div class="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 justify-center">
-                <a href="{% url 'management:academic_sessions_list' %}"
-                class="w-full sm:w-auto px-8 py-4 bg-primary-600 text-white rounded-2xl font-semibold text-base hover:bg-primary-700 transition-colors">
-                    <i class="fas fa-plus mr-2"></i>Create New Session
-                </a>
-                {% if cs %}
-                <a href="{% url 'management:academic_sessions_list' %}"
-                class="w-full sm:w-auto px-8 py-4 bg-amber-500 text-white rounded-2xl font-semibold text-base hover:bg-amber-600 transition-colors">
-                    <i class="fas fa-edit mr-2"></i>Edit Current Session
-                </a>
-                {% endif %}
-                <button onclick="dismissSessionReminder()"
-                        class="w-full sm:w-auto px-8 py-4 border-2 border-gray-300 rounded-2xl font-semibold text-base hover:bg-gray-50 transition-colors">
-                    Remind me later
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-    (function () {
-        const DISMISS_KEY   = 'sessionReminderDismissed_{{ request.user.pk }}';
-        const DISMISS_HOURS = 24;
-
-        // ── Server-rendered booleans (resolved in Python, safe to trust) ──
-        const noSession    = {% if cs %}false{% else %}true{% endif %};
-        const noActiveTerm = {% if cs and cs.get_current_term %}false{% else %}true{% endif %};
-
-        function isDismissed() {
-            try {
-                const ts = localStorage.getItem(DISMISS_KEY);
-                if (!ts) return false;
-                return (Date.now() - parseInt(ts, 10)) < DISMISS_HOURS * 3600 * 1000;
-            } catch (e) { return false; }
-        }
-
-        function checkSessionReminder() {
-            if (isDismissed()) return;
-            // Show ONLY when genuinely broken:
-            // 1. No session is marked as current at all, OR
-            // 2. A session is current but today falls outside all its term date ranges
-            //    (meaning get_current_term() returns None — the term is undetectable)
-            if (noSession || noActiveTerm) {
-                const modal = document.getElementById('sessionReminderModal');
-                if (modal) modal.classList.remove('hidden');
-            }
-        }
-
-        window.dismissSessionReminder = function () {
-            const modal = document.getElementById('sessionReminderModal');
-            if (modal) modal.classList.add('hidden');
-            try { localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch (e) {}
-        };
-
-        window.addEventListener('load', () => {
-            setTimeout(checkSessionReminder, 4000);
-            setInterval(checkSessionReminder, 30 * 60 * 1000);
-        });
-    })();
-    </script>
-
-    {% endwith %}
-    {% endif %}
     <!-- Base JavaScript -->
     <script>
         (function () {

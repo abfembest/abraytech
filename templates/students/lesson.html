@@ -1,18 +1,15 @@
 {% extends "management/base.html" %}
 {% load static %}
 
-{% block title %}{{ page_title }} - MIU Student Portal{% endblock %}
+{% block title %}{{ page_title }} - Abraytech Student Portal{% endblock %}
 
 {% block meta_tags %}
 <meta name="description" content="{{ lesson.title }} - {{ lesson.description|truncatewords:20 }}">
-<meta name="keywords" content="lesson, {{ lesson.course.title }}, MIU, online learning">
+<meta name="keywords" content="lesson, {{ lesson.course.title }}, online learning">
 {% endblock %}
 
 {% block content %}
 <div class="max-w-12xl mx-auto">
-
-                <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
-
 
     <!-- Breadcrumb -->
     <nav class="mb-4 flex items-center text-sm text-gray-600">
@@ -238,13 +235,11 @@
         </div>
     </div>
 
-
 </div>
 
     </div>
 </div>
 {% endblock %}
-
 
 {% block extra_js %}
 <script>

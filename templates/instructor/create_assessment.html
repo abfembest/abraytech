@@ -6,8 +6,6 @@
 {% block content %}
 <div class="max-w-full px-4 sm:px-6 lg:px-8">
 
-    <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
-
     {% comment %} ── Breadcrumb ── {% endcomment %}
     <nav class="flex mb-4 sm:mb-6 overflow-x-auto" aria-label="Breadcrumb">
         <ol class="inline-flex items-center gap-1.5 text-md whitespace-nowrap flex-wrap">
@@ -104,7 +102,6 @@
             <div id="courseInfoBox" class="hidden bg-gray-50 border border-gray-200 rounded-xl p-4 text-md space-y-1.5">
                 <p class="font-semibold text-gray-800 text-md lg:text-lg" id="ciTitle"></p>
                 <p class="text-gray-500 text-md">Code: <span id="ciCode" class="font-medium text-gray-700">—</span></p>
-                <p class="text-gray-500 text-md">Session: <span id="ciSession" class="font-medium text-gray-700">—</span></p>
             </div>
         </div>
 
@@ -804,7 +801,6 @@
             .then(d => {
                 $('ciTitle').textContent   = d.title   || '—';
                 $('ciCode').textContent    = d.code    || '—';
-                $('ciSession').textContent = d.academic_session_name || '—';
                 $('courseInfoBox').classList.remove('hidden');
 
                 selectedCourseLinked = !!d.is_linked;

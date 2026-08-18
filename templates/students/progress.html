@@ -1,11 +1,10 @@
 {% extends "management/base.html" %}
 {% load static %}
 
-{% block title %}{{ page_title }} - MIU Student Portal{% endblock %}
+{% block title %}{{ page_title }} - Abraytech Student Portal{% endblock %}
 
 {% block content %}
 <div class="max-w-12xl mx-auto px-4 sm:px-6 lg:px-8">
-                <button onclick="history.back()" class="btn-secondary btn-sm mb-2">&#8592; Back</button>
 
                 
     <!-- Page Header -->
@@ -83,7 +82,7 @@
                             {% endif %}
                         </div>
                         <p class="text-gray-600 mb-2">
-                            {{ enrollment.course.instructor.get_full_name|default:"MIU Staff" }}
+                            {{ enrollment.course.instructor.get_full_name|default:"Abraytech Instructor" }}
                         </p>
                         <div class="flex flex-wrap items-center gap-4 text-xs md:text-sm text-gray-500">
                             <span>
