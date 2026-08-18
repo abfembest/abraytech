@@ -338,9 +338,9 @@
                     <tr data-id="{{ payment.pk }}"
                         data-purpose="{{ payment.purpose|escapejs }}"
                         data-program-id="{{ payment.program.pk }}"
-                        data-program-label="{{ payment.program.name|escapejs }} ({{ payment.program.code|escapejs }})"
+                        data-program-label="{{ payment.program.name|escapejs }}"
                         data-course-id="{{ payment.course.pk|default:'' }}"
-                        data-course-label="{% if payment.course %}{{ payment.course.code|escapejs }} — {{ payment.course.name|escapejs }}{% endif %}"
+                        data-course-label="{% if payment.course %}{{ payment.course.name|escapejs }}{% endif %}"
                         data-who="{{ payment.who_to_pay }}"
                         data-amount="{{ payment.amount }}"
                         data-due="{{ payment.due_date|date:'Y-m-d' }}"
@@ -352,12 +352,11 @@
                         <td class="px-4 py-3">
                             <div class="font-medium text-gray-900">{{ payment.purpose }}</div>
                             {% if payment.course %}
-                            <div class="text-xs text-gray-400 mt-0.5">{{ payment.course.code }} — {{ payment.course.name }}</div>
+                            <div class="text-xs text-gray-400 mt-0.5">{{ payment.course.name }}</div>
                             {% endif %}
                         </td>
                         <td class="px-4 py-3">
                             <span class="font-medium text-gray-800">{{ payment.program.name }}</span>
-                            <span class="text-xs text-gray-400 ml-1">({{ payment.program.code }})</span>
                         </td>
                         <td class="px-4 py-3">
                             <span class="badge

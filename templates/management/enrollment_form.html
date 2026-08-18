@@ -70,9 +70,9 @@
             data-ss-placeholder="Type a course title or code…"
             aria-describedby="{% if form.course.errors %}course-error{% endif %}"
           >
-            <option value="">Type a course title or code…</option>
+            <option value="">Type a course title…</option>
             {% for course in courses %}
-            <option value="{{ course.pk }}"{% if form.course.value|stringformat:"s" == course.pk|stringformat:"s" %} selected{% endif %}>{{ course.title }} ({{ course.code }})</option>
+            <option value="{{ course.pk }}"{% if form.course.value|stringformat:"s" == course.pk|stringformat:"s" %} selected{% endif %}>{{ course.title }}</option>
             {% endfor %}
           </select>
           {% if form.course.errors %}

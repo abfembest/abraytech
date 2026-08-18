@@ -78,7 +78,7 @@
     </form>
     <div class="relative">
       <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
-      <input id="rtSearch" type="search" placeholder="Quick search by title, code, instructor…"
+      <input id="rtSearch" type="search" placeholder="Quick search by title, instructor…"
              class="w-full pl-8 pr-4 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all">
     </div>
   </div>
@@ -109,15 +109,13 @@
             <td class="px-4 py-3" data-label="LMS Course">
               <div>
                 <p class="font-semibold text-gray-900 leading-tight line-clamp-1">{{ course.title|truncatechars:45 }}</p>
-                {% if course.code %}<p class="text-xs text-gray-400 mt-0.5 font-mono">{{ course.code }}</p>{% endif %}
               </div>
             </td>
 
             <td class="px-4 py-3" data-label="Academic Course">
               <div>
                 {% if course.academic_course %}
-                <span class="inline-block font-mono text-xs bg-primary-50 text-primary-700 border border-primary-200 rounded px-1.5 py-0.5">{{ course.academic_course.code }}</span>
-                <p class="text-xs text-gray-500 mt-0.5 max-w-[180px] truncate" title="{{ course.academic_course.name }}">{{ course.academic_course.name }}</p>
+                <p class="text-xs text-gray-700 font-medium max-w-[180px] truncate" title="{{ course.academic_course.name }}">{{ course.academic_course.name }}</p>
                 {% else %}
                 <span class="text-xs text-orange-600 bg-orange-50 border border-orange-200 rounded px-2 py-0.5">Standalone</span>
                 {% endif %}
@@ -227,10 +225,10 @@
               </label>
               <select id="create-ac-select" name="academic_course" required
                       class="searchable-select w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
-                      data-ss-placeholder="Type code or name to search…">
-                <option value="">Type code or name to search…</option>
+                      data-ss-placeholder="Type to search by name…">
+                <option value="">Type to search by name…</option>
                 {% for c in create_form.fields.academic_course.queryset %}
-                <option value="{{ c.pk }}">{{ c.code }} — {{ c.name }}</option>
+                <option value="{{ c.pk }}">{{ c.name }} ({{ c.program.name }})</option>
                 {% endfor %}
               </select>
               {% if create_form.academic_course.errors %}
@@ -405,10 +403,10 @@
               <label class="block text-xs font-semibold text-gray-600 mb-1.5">Link to Academic Course <span class="text-red-500">*</span></label>
               <select id="edit-ac-select" name="academic_course" required
                       class="searchable-select w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
-                      data-ss-placeholder="Type code or name to search…">
-                <option value="">Type code or name to search…</option>
+                      data-ss-placeholder="Type to search by name…">
+                <option value="">Type to search by name…</option>
                 {% for c in create_form.fields.academic_course.queryset %}
-                <option value="{{ c.pk }}">{{ c.code }} — {{ c.name }}</option>
+                <option value="{{ c.pk }}">{{ c.name }} ({{ c.program.name }})</option>
                 {% endfor %}
               </select>
               <div id="edit-academic-linked-badge"
@@ -552,7 +550,6 @@
           <div class="w-9 h-9 bg-indigo-100 rounded-xl flex items-center justify-center flex-shrink-0"><i class="fas fa-eye text-indigo-600"></i></div>
           <div class="min-w-0">
             <h2 class="text-base sm:text-lg font-bold text-gray-900 font-heading truncate" id="detailTitle">Course Detail</h2>
-            <p class="text-xs text-gray-500 font-mono" id="detailCode"></p>
           </div>
         </div>
         <button onclick="closeModal('detailModal')" class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 transition-all ml-2"><i class="fas fa-times"></i></button>
@@ -934,7 +931,6 @@ function openDetailModal(pk) {
   .then(r => { if (!r.ok) throw new Error(); return r.json(); })
   .then(d => {
     _setText('detailTitle', d.title || '—');
-    _setText('detailCode',  d.code  || '');
 
     const banner = document.getElementById('detailAcademicBanner');
     if (d.academic_course) {

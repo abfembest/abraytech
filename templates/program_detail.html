@@ -368,7 +368,7 @@
 
     <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-8 sm:mb-10">
       <div>
-        <p class="text-brandblue font-semibold text-xs sm:text-sm tracking-widest uppercase mb-2">Academic Structure</p>
+        <p class="text-brandblue font-semibold text-xs sm:text-sm tracking-widest uppercase mb-2">What You'll Learn</p>
         <h2 id="curriculum-heading" class="font-sora text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-navy">Curriculum</h2>
       </div>
       <span class="text-gray-400 text-xs sm:text-sm" aria-live="polite">
@@ -379,26 +379,11 @@
     <div class="rounded-2xl sm:rounded-3xl border border-borderblue overflow-hidden shadow-sm">
       <div class="divide-y divide-gray-50 bg-white">
         {% for course in courses %}
-        <div class="course-row flex items-center justify-between gap-3 sm:gap-4 px-4 sm:px-6 lg:px-7 py-3 sm:py-4 group">
-          <div class="flex items-center gap-3 sm:gap-4 min-w-0">
-            <span class="font-mono text-xs font-bold text-brandblue bg-ice px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-md sm:rounded-lg flex-shrink-0 hidden sm:block">{{ course.code }}</span>
-            <div class="min-w-0">
-              <div class="font-semibold text-gray-800 text-xs sm:text-sm truncate">{{ course.name }}</div>
-              <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
-                <span class="{% if course.course_type == 'core' %}text-brandblue bg-ice{% elif course.course_type == 'elective' %}text-green-700 bg-green-50{% else %}text-gray-500 bg-gray-100{% endif %} px-1.5 sm:px-2 py-0.5 rounded-md font-bold uppercase" style="font-size:0.6rem;letter-spacing:0.07em;">
-                  {{ course.get_course_type_display }}
-                </span>
-              </div>
-            </div>
+        <div class="course-row flex items-center gap-3 sm:gap-4 px-4 sm:px-6 lg:px-7 py-3 sm:py-4 group">
+          <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-ice flex items-center justify-center flex-shrink-0" aria-hidden="true">
+            <i data-lucide="check" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brandblue"></i>
           </div>
-          <div class="flex items-center gap-3 sm:gap-4 flex-shrink-0">
-            <div class="text-right hidden sm:block">
-              <div class="text-xs text-gray-400">Credits</div>
-              <div class="font-sora font-bold text-gray-800 text-xs sm:text-sm">{{ course.credit_units }}</div>
-            </div>
-            <!-- Mobile credits -->
-            <span class="text-xs font-bold text-gray-600 sm:hidden">{{ course.credit_units }} cr</span>
-          </div>
+          <div class="font-semibold text-gray-800 text-xs sm:text-sm truncate">{{ course.name }}</div>
         </div>
         {% endfor %}
       </div>

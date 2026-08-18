@@ -60,7 +60,6 @@
               </td>
               <td class="px-4 py-3 text-gray-700 max-w-[180px]" data-label="Course">
                 <div class="truncate">{{ cert.course.title }}</div>
-                <div class="text-xs text-gray-400 font-mono">{{ cert.course.code }}</div>
               </td>
               <td class="px-4 py-3 font-mono text-xs text-gray-400 hidden sm:table-cell whitespace-nowrap" data-label="Cert #">
                 {{ cert.certificate_id }}
@@ -89,7 +88,7 @@
                         data-student-id="{{ cert.student.pk }}"
                         data-student-name="{{ cert.student.get_full_name|default:cert.student.username }} ({{ cert.student.username }})"
                         data-course-id="{{ cert.course.pk }}"
-                        data-course-name="{{ cert.course.title }} ({{ cert.course.code }})"
+                        data-course-name="{{ cert.course.title }}"
                         data-completion="{{ cert.completion_date|date:'Y-m-d' }}"
                         data-grade="{{ cert.grade }}"
                         data-verified="{{ cert.is_verified|yesno:'true,false' }}"

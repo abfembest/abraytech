@@ -208,14 +208,11 @@
                     <div>
                         <div class="info-label">LMS Course</div>
                         <div class="info-value font-semibold">{{ exam.course.title }}</div>
-                        {% if exam.course.code %}
-                        <div class="font-mono text-xs text-gray-400 mt-0.5">{{ exam.course.code }}</div>
-                        {% endif %}
                     </div>
                     <div>
                         <div class="info-label">Academic Course Link</div>
                         {% if exam.course.academic_course %}
-                        <div class="info-value font-semibold">{{ exam.course.academic_course.code }} — {{ exam.course.academic_course.name }}</div>
+                        <div class="info-value font-semibold">{{ exam.course.academic_course.name }}</div>
                         {% if exam.course.academic_course.program %}
                         <div class="text-xs text-gray-400 mt-0.5">{{ exam.course.academic_course.program.name }}{% if exam.course.academic_course.program.department %} › {{ exam.course.academic_course.program.department.name }}{% endif %}</div>
                         {% endif %}

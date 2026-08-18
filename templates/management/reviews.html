@@ -74,7 +74,6 @@
 
               <td class="px-4 py-3 max-w-[180px]" data-label="Course">
                 <p class="font-medium text-gray-800 truncate">{{ review.course.title }}</p>
-                <p class="text-xs text-gray-400 font-mono">{{ review.course.code }}</p>
               </td>
 
               <td class="px-4 py-3 whitespace-nowrap" data-label="Rating">
@@ -114,7 +113,7 @@
                                transition-colors focus:outline-none focus:ring-2 focus:ring-primary-400"
                         data-pk="{{ review.pk }}"
                         data-course-id="{{ review.course.pk }}"
-                        data-course-label="{{ review.course.title }} ({{ review.course.code }})"
+                        data-course-label="{{ review.course.title }}"
                         data-student-id="{{ review.student.pk }}"
                         data-student-label="{{ review.student.get_full_name|default:review.student.username }} — @{{ review.student.username }}"
                         data-rating="{{ review.rating }}"

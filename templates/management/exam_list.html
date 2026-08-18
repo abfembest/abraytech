@@ -118,8 +118,8 @@
                         {% comment %} Academic Link — derived via exam.course.academic_course (NOT exam.academic_session) {% endcomment %}
                         <td class="px-5 py-4" data-label="Academic Link">
                             {% if exam.course.academic_course %}
-                            <span class="inline-flex items-center gap-1.5 text-sm px-2.5 py-1 bg-primary-50 text-primary-700 border border-primary-100 rounded-full font-semibold whitespace-nowrap">
-                                <i class="fas fa-link text-xs"></i>{{ exam.course.academic_course.code }}
+                            <span class="inline-flex items-center gap-1.5 text-sm px-2.5 py-1 bg-primary-50 text-primary-700 border border-primary-100 rounded-full font-semibold whitespace-nowrap max-w-[160px] truncate" title="{{ exam.course.academic_course.name }}">
+                                <i class="fas fa-link text-xs"></i>{{ exam.course.academic_course.name }}
                             </span>
                             {% else %}
                             <span class="text-sm text-gray-400 italic">Standalone</span>
