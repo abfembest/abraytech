@@ -3349,7 +3349,7 @@ class LMSCourse(models.Model):
     short_description = models.TextField(max_length=500)
     description = models.TextField(blank=True)
     learning_objectives = models.JSONField(default=list)
-    prerequisites = models.JSONField(default=list)
+    prerequisites = models.JSONField(default=list, blank=True)
 
     academic_course = models.ForeignKey(
         'Course',
@@ -4623,12 +4623,12 @@ class SiteConfig(models.Model):
     # =========================================================================
     school_name = models.CharField(
         max_length=200,
-        default='Melchisedec International University',
+        default='Abraytech',
         help_text="Full legal name shown in nav, footer, og tags"
     )
     school_short_name = models.CharField(
-        max_length=50, blank=True, default='MIU',
-        help_text="Abbreviation used in footer copyright, og tags e.g. 'MIU'"
+        max_length=50, blank=True, default='Abraytech',
+        help_text="Abbreviation used in footer copyright, og tags e.g. 'Abraytech'"
     )
     tagline = models.CharField(
         max_length=300, blank=True,

@@ -36,23 +36,21 @@
                 <p class="text-xs sm:text-sm text-gray-500 font-medium leading-tight">Total Courses</p>
                 <i class="fas fa-book text-blue-500 text-sm sm:text-base lg:text-xl flex-shrink-0" aria-hidden="true"></i>
             </div>
-            <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{{ enrollments.count }}</p>
+            <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{{ enrollments_count }}</p>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 lg:p-5">
             <div class="flex items-center justify-between mb-1 sm:mb-2">
                 <p class="text-xs sm:text-sm text-gray-500 font-medium leading-tight">Completed</p>
                 <i class="fas fa-check-circle text-green-500 text-sm sm:text-base lg:text-xl flex-shrink-0" aria-hidden="true"></i>
             </div>
-            <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
-                {% for enrollment in enrollments %}{% if enrollment.status == 'completed' %}1{% endif %}{% endfor %}
-            </p>
+            <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{{ completed_courses_count }}</p>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 lg:p-5">
             <div class="flex items-center justify-between mb-1 sm:mb-2">
                 <p class="text-xs sm:text-sm text-gray-500 font-medium leading-tight">Assignments</p>
                 <i class="fas fa-file-alt text-orange-500 text-sm sm:text-base lg:text-xl flex-shrink-0" aria-hidden="true"></i>
             </div>
-            <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{{ submissions.count }}</p>
+            <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{{ submissions_count }}</p>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 lg:p-5">
             <div class="flex items-center justify-between mb-1 sm:mb-2">

@@ -167,15 +167,6 @@ def dashboard(request):
         department = getattr(profile.program, 'department', None)
         faculty    = getattr(department, 'faculty', None) if department else None
 
-    # ── Registered courses (Course model, not LMS Enrollments) ───────────────
-    registered_credit_total = 0
-    if profile:
-        registered_credit_total = (
-            CourseRegistration.objects
-            .filter(student=user, status__in=['pending', 'approved'])
-            .aggregate(total=Sum('course__credit_units'))['total'] or 0
-        )
-
     try:
         # ── Active LMS enrollments (last 5 recently accessed) ─────────────────
         enrollments = (
@@ -340,8 +331,6 @@ def dashboard(request):
         'profile':                  profile,
         'department':               department,
         'faculty':                  faculty,
-        # Registered courses (Course model)
-        'registered_credit_total':  registered_credit_total,
         # Exams & grades
         'upcoming_exams':           upcoming_exams,
         'recent_grades':            recent_grades,
@@ -1018,7 +1007,7 @@ def certificate_print(request, certificate_id):
             cert.program.department.faculty.name
             if cert.program.department else ''
         )
-        cert.issuer = 'MIU Academic Office'
+        cert.issuer = 'Abraytech Academic Office'
         cert.is_program_cert = True
     else:
         cert.display_title = cert.course.title if cert.course else 'Course Certificate'
@@ -1026,7 +1015,7 @@ def certificate_print(request, certificate_id):
         cert.is_program_cert = False
         cert.issuer = (
             cert.course.instructor.get_full_name()
-            if cert.course and cert.course.instructor else 'MIU Staff'
+            if cert.course and cert.course.instructor else 'Abraytech Staff'
         )
 
     return render(request, 'students/certificate_print.html', {'cert': cert})
@@ -2411,14 +2400,19 @@ def grades(request):
     # with any of them.
     cgpa = CourseGrade.compute_cgpa(user)
 
+    completed_courses_count = sum(1 for e in enrollments if e.status == 'completed')
+
     context = {
         'page_title': 'Grades & Performance',
         'enrollments': enrollments,
+        'enrollments_count': len(enrollments),
         'submissions': submissions,
+        'submissions_count': len(submissions),
         'quiz_attempts': quiz_attempts,
         'academic_grades': academic_grades,
         'cgpa': cgpa,
         'pending_results_count': pending_results_count,
+        'completed_courses_count': completed_courses_count,
     }
 
     return render(request, 'students/grades.html', context)
@@ -2598,6 +2592,7 @@ def progress(request):
     context = {
         'page_title': 'My Progress',
         'enrollments': enrollments,
+        'enrollments_count': len(enrollments),
         'activity_data': activity_data,
         'completed_count': sum(1 for e in enrollments if e.status == 'completed'),
         'active_count': sum(1 for e in enrollments if e.status == 'active'),
@@ -2632,7 +2627,7 @@ def certificates(request):
                 cert.program.department.faculty.name
                 if cert.program.department else ''
             )
-            cert.instructor_name = 'MIU Academic Office'
+            cert.instructor_name = 'Abraytech Academic Office'
             cert.is_program_cert = True
         else:
             cert.display_title = cert.course.title if cert.course else 'Course Certificate'
@@ -2644,7 +2639,7 @@ def certificates(request):
                     or cert.course.instructor.username
                 )
             else:
-                cert.instructor_name = 'MIU Staff'
+                cert.instructor_name = 'Abraytech Staff'
         cert.is_unlocked = cert.payment_status == 'paid'
 
     context = {

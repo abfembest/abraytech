@@ -879,7 +879,7 @@ def send_decision_email(application):
             """
         
         html_content += f"""
-                        <p style="margin-top: 30px;">Best regards,<br><strong style="color: #0F2A44;">The MIU Admissions Team</strong></p>
+                        <p style="margin-top: 30px;">Best regards,<br><strong style="color: #0F2A44;">The Abraytech Admissions Team</strong></p>
                     </div>
                 </div>
             </body>
@@ -3297,7 +3297,7 @@ def send_department_approval_email(application):
                                 #0F2A44 0%, #1D4ED8 100%); 
                                 padding: 30px; text-align: center;">
                         <h1 style="color: white; margin: 0;">
-                            🎉 Welcome to MIU Student Portal!
+                            🎉 Welcome to the Abraytech Student Portal!
                         </h1>
                     </div>
                     
@@ -3347,9 +3347,9 @@ def send_department_approval_email(application):
                         </div>
                         
                         <p style="margin-top: 30px;">
-                            Welcome to MIU!<br>
+                            Welcome to Abraytech!<br>
                             <strong style="color: #0F2A44;">
-                                The MIU Team
+                                The Abraytech Team
                             </strong>
                         </p>
                     </div>
@@ -4071,7 +4071,7 @@ def contact_message_respond(request, pk):
             try:
                 connection, from_email = _resolve_sender('default')
                 send_mail(
-                    subject=f'Re: {msg.get_subject_display()} — MIU',
+                    subject=f'Re: {msg.get_subject_display()} — Abraytech',
                     message=response_text,
                     from_email=from_email,
                     recipient_list=[msg.email],

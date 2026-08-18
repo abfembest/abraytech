@@ -450,11 +450,11 @@ def generate_invoice_pdf(request, payment_reference):
         'payment': payment,
         'invoice_number': f'INV-{payment.payment_reference}',
         'invoice_date': timezone.now(),
-        'company_name': 'MIU Education',
-        'company_address': '123 Education Street',
-        'company_city': 'Learning City, LC 12345',
-        'company_email': 'billing@miuedu.com',
-        'company_phone': '+1 (555) 123-4567',
+        'company_name': 'Abraytech',
+        'company_address': '',
+        'company_city': '',
+        'company_email': 'billing@abraytech.com',
+        'company_phone': '',
     }
 
     html = render_to_string('finance/invoice.html', invoice_context)

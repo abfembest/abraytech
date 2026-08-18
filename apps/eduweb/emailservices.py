@@ -93,7 +93,7 @@ def send_test_email(account, to_email):
 
         account_label = 'Admissions' if account == 'admissions' else 'Default'
         email = EmailMultiAlternatives(
-            subject=f'MIU Test Email — {account_label} Account',
+            subject=f'Abraytech Test Email — {account_label} Account',
             body=(
                 f"This is a test email confirming the {account_label.lower()} "
                 f"account can send outbound mail.\n\nSent from: {from_email}\n"

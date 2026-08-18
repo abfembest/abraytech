@@ -98,10 +98,10 @@
         <div class="company-info">
             <div class="company-name">{{ company_name }}</div>
             <div class="company-details">
-                {{ company_address }}<br>
-                {{ company_city }}<br>
-                Email: {{ company_email }}<br>
-                Phone: {{ company_phone }}
+                {% if company_address %}{{ company_address }}<br>{% endif %}
+                {% if company_city %}{{ company_city }}<br>{% endif %}
+                {% if company_email %}Email: {{ company_email }}<br>{% endif %}
+                {% if company_phone %}Phone: {{ company_phone }}{% endif %}
             </div>
         </div>
         <div class="invoice-info">
@@ -231,8 +231,7 @@
             {{ company_email }}
         </p>
         <p style="margin-top:10px;">
-            <strong>{{ company_name }}</strong> |
-            {{ company_address }}{% if company_city %}, {{ company_city }}{% endif %}
+            <strong>{{ company_name }}</strong>{% if company_address %} | {{ company_address }}{% if company_city %}, {{ company_city }}{% endif %}{% endif %}
         </p>
     </div>
 
