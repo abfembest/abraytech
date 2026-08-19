@@ -20,12 +20,8 @@ Expected context:
 <section class="relative py-14 sm:py-20 bg-gradient-to-b from-gray-50 to-white overflow-hidden" aria-labelledby="media-carousel-heading-{{ obj.pk }}">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-8 sm:mb-12">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#6b026b]/10 text-[#6b026b] text-xs sm:text-sm font-semibold tracking-wide uppercase">
-                <i data-lucide="images" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
-                Gallery
-            </span>
-            <h2 id="media-carousel-heading-{{ obj.pk }}" class="mt-3 text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
-                A Closer Look
+            <h2 id="media-carousel-heading-{{ obj.pk }}" class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
+                {{ heading_text|default:"Acquire advanced ICT" }}
             </h2>
         </div>
 

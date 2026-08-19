@@ -1494,39 +1494,56 @@ def consultation_booking(request):
     from .models import ConsultationRequest, Service
 
     if request.method == 'POST':
-        name = request.POST.get('name', '').strip()
-        email = request.POST.get('email', '').strip()
-        phone = request.POST.get('phone', '').strip()
-        company = request.POST.get('company', '').strip()
-        service_id = request.POST.get('service_interest') or None
-        preferred_date = request.POST.get('preferred_date') or None
-        preferred_time = request.POST.get('preferred_time', '').strip()
-        message_text = request.POST.get('message', '').strip()
+        # ── CAPTCHA verification ────────────────────────────────────────────
+        session_answer = request.session.get('consultation_captcha_answer')
+        user_answer = request.POST.get('captcha', '').strip()
+        captcha_ok = False
+        try:
+            captcha_ok = int(user_answer) == int(session_answer)
+        except (ValueError, TypeError):
+            captcha_ok = False
 
-        if not name or not email:
-            messages.error(request, 'Please provide your name and email address.')
+        if not captcha_ok:
+            messages.error(request, 'Incorrect bot check answer. Please try again.')
         else:
-            service_obj = None
-            if service_id:
-                service_obj = Service.objects.filter(pk=service_id, is_active=True).first()
-            ConsultationRequest.objects.create(
-                name=name,
-                email=email,
-                phone=phone,
-                company=company,
-                service_interest=service_obj,
-                preferred_date=preferred_date,
-                preferred_time=preferred_time,
-                message=message_text,
-            )
-            messages.success(
-                request,
-                'Thanks — your consultation request has been received. Our team will reach out shortly.',
-            )
-            return redirect('eduweb:consultation_booking')
+            request.session.pop('consultation_captcha_answer', None)
+            name = request.POST.get('name', '').strip()
+            email = request.POST.get('email', '').strip()
+            phone = request.POST.get('phone', '').strip()
+            company = request.POST.get('company', '').strip()
+            service_id = request.POST.get('service_interest') or None
+            preferred_date = request.POST.get('preferred_date') or None
+            preferred_time = request.POST.get('preferred_time', '').strip()
+            message_text = request.POST.get('message', '').strip()
+
+            if not name or not email:
+                messages.error(request, 'Please provide your name and email address.')
+            else:
+                service_obj = None
+                if service_id:
+                    service_obj = Service.objects.filter(pk=service_id, is_active=True).first()
+                ConsultationRequest.objects.create(
+                    name=name,
+                    email=email,
+                    phone=phone,
+                    company=company,
+                    service_interest=service_obj,
+                    preferred_date=preferred_date,
+                    preferred_time=preferred_time,
+                    message=message_text,
+                )
+                messages.success(
+                    request,
+                    'Thanks — your consultation request has been received. Our team will reach out shortly.',
+                )
+                return redirect('eduweb:consultation_booking')
+
+    captcha_question, captcha_answer = generate_captcha()
+    request.session['consultation_captcha_answer'] = captcha_answer
 
     return render(request, 'consultation.html', {
         'services': Service.objects.filter(is_active=True),
+        'captcha_question': captcha_question,
     })
 
 
@@ -1866,7 +1883,11 @@ def apply(request):
             messages.error(request, 'Please correct the errors highlighted in the form.')
 
     else:
-        initial = {'email': request.user.email} if request.user.is_authenticated else {}
+        initial = {
+            'email':      request.user.email,
+            'first_name': request.user.first_name,
+            'last_name':  request.user.last_name,
+        } if request.user.is_authenticated else {}
         # One-time carry-over from the program-gated signup flow (see
         # eduweb.views.signup_page) — popped so it doesn't leak into a
         # later, unrelated application.

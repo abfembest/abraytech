@@ -304,6 +304,17 @@
                     </div>
                 </div>
 
+                <!-- Application for which course -->
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-medium mb-2">
+                        {{ form.program.label }} <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.program }}
+                    {% if form.program.errors %}
+                    <div class="text-red-500 text-sm mt-1">{{ form.program.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
                 <!-- Country / Phone number -->
                 <div class="grid md:grid-cols-2 gap-6 mb-6">
                     <div>
@@ -349,17 +360,6 @@
                         <div class="text-red-500 text-sm mt-1">{{ form.phone.errors.0 }}</div>
                         {% endif %}
                     </div>
-                </div>
-
-                <!-- Application for which course -->
-                <div class="mb-6">
-                    <label class="block text-gray-700 font-medium mb-2">
-                        {{ form.program.label }} <span class="text-red-500">*</span>
-                    </label>
-                    {{ form.program }}
-                    {% if form.program.errors %}
-                    <div class="text-red-500 text-sm mt-1">{{ form.program.errors.0 }}</div>
-                    {% endif %}
                 </div>
 
                 <!-- State / Address -->

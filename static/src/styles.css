@@ -1149,9 +1149,9 @@
    .hero-radial-glow {
      background: radial-gradient(circle at 80% 0%, rgba(56,189,248,0.18), transparent 45%);
    }
-   .hero-visual { width: 48%; }
+   .hero-visual { width: 56%; }
    @media (min-width: 1280px) {
-     .hero-visual { width: 54%; }
+     .hero-visual { width: 62%; }
    }
    /* Both fades use the section's own bg-soft color (not a dark scrim) so
       the two overlays — one horizontal, one vertical — mix into more of

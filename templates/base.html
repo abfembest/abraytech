@@ -136,6 +136,10 @@
                      and centered regardless of viewport width. -->
                 <nav class="hidden xl:flex items-center justify-center gap-2" aria-label="Primary">
 
+                    <a href="{% url 'eduweb:index' %}" class="nav-link px-4 py-2.5 rounded-full text-nav font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors">Home</a>
+
+                    <a href="{% url 'eduweb:about' %}" class="nav-link px-4 py-2.5 rounded-full text-nav font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors">About</a>
+
                     <!-- Services mega menu — anchored left-0 (opens rightward from
                          the first nav item) so it never gets clipped by the left
                          OR right viewport edge the way center-anchoring could. -->
@@ -163,7 +167,10 @@
                         </button>
                         <div id="solutionsPanel" class="dropdown-panel absolute left-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-brand border border-borderblue p-3" role="menu">
                             {% for solution in nav_solutions %}
-                            <a href="{% url 'eduweb:solution_detail' solution.slug %}" class="block px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">{{ solution.title }}</a>
+                            <a href="{% url 'eduweb:solution_detail' solution.slug %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">
+                                <i data-lucide="{{ solution.icon }}" class="w-4 h-4 text-brandblue shrink-0"></i>
+                                {{ solution.title }}
+                            </a>
                             {% empty %}
                             <p class="px-3 py-2 text-sm text-slate-500">Solutions coming soon</p>
                             {% endfor %}
@@ -180,7 +187,10 @@
                         </button>
                         <div id="trainingPanel" class="dropdown-panel absolute left-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-brand border border-borderblue p-3" role="menu">
                             {% for faculty in all_faculties %}
-                            <a href="{% url 'eduweb:faculty_detail' faculty.slug %}" class="block px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">{{ faculty.name }}</a>
+                            <a href="{% url 'eduweb:faculty_detail' faculty.slug %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">
+                                <i data-lucide="{{ faculty.icon }}" class="w-4 h-4 text-brandblue shrink-0"></i>
+                                {{ faculty.name }}
+                            </a>
                             {% empty %}
                             <p class="px-3 py-2 text-sm text-slate-500">Training tracks coming soon</p>
                             {% endfor %}
@@ -188,10 +198,10 @@
                         </div>
                     </div>
 
-                    <a href="{% url 'eduweb:about' %}" class="nav-link px-4 py-2.5 rounded-full text-nav font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors">About</a>
+                    <a href="{% url 'eduweb:blog' %}" class="nav-link px-4 py-2.5 rounded-full text-nav font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors">Blog</a>
 
                     <!-- Resources — catch-all for everything secondary: Industries,
-                         Store, Blog, FAQ, Team, Careers. Anchored right-0 (opens
+                         Store, FAQ, Team, Careers. Anchored right-0 (opens
                          leftward) since it's the last item, closest to the right
                          viewport edge. -->
                     <div class="relative">
@@ -201,17 +211,27 @@
                         <div id="resourcesPanel" class="dropdown-panel absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-brand border border-borderblue p-3" role="menu">
                             <span class="block px-3 pt-1 pb-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">Industries</span>
                             {% for industry in nav_industries %}
-                            <a href="{% url 'eduweb:industry_detail' industry.slug %}" class="block px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">{{ industry.title }}</a>
+                            <a href="{% url 'eduweb:industry_detail' industry.slug %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">
+                                <i data-lucide="{{ industry.icon }}" class="w-4 h-4 text-brandblue shrink-0"></i>
+                                {{ industry.title }}
+                            </a>
                             {% empty %}
                             <p class="px-3 py-2 text-sm text-slate-500">Industries coming soon</p>
                             {% endfor %}
                             <a href="{% url 'eduweb:industries_list' %}" class="block px-3 py-2 mb-1 rounded-lg text-sm font-semibold text-brandblue hover:bg-soft" role="menuitem">View all industries →</a>
                             <div class="border-t border-borderblue my-1"></div>
-                            <a href="{% url 'eduweb:store_list' %}" class="block px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">Store</a>
-                            <a href="{% url 'eduweb:blog' %}" class="block px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">Blog</a>
-                            <a href="{% url 'eduweb:faq' %}" class="block px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">FAQ</a>
-                            <a href="{% url 'eduweb:team' %}" class="block px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">Our Team</a>
-                            <a href="{% url 'eduweb:careers' %}" class="block px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">Careers</a>
+                            <a href="{% url 'eduweb:store_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">
+                                <i data-lucide="shopping-bag" class="w-4 h-4 text-brandblue shrink-0"></i> Store
+                            </a>
+                            <a href="{% url 'eduweb:faq' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">
+                                <i data-lucide="help-circle" class="w-4 h-4 text-brandblue shrink-0"></i> FAQ
+                            </a>
+                            <a href="{% url 'eduweb:team' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">
+                                <i data-lucide="users" class="w-4 h-4 text-brandblue shrink-0"></i> Our Team
+                            </a>
+                            <a href="{% url 'eduweb:careers' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">
+                                <i data-lucide="briefcase" class="w-4 h-4 text-brandblue shrink-0"></i> Careers
+                            </a>
                         </div>
                     </div>
                 </nav>
@@ -259,6 +279,8 @@
             </button>
         </div>
         <nav class="p-5 space-y-1 text-sm" aria-label="Mobile primary">
+            <a href="{% url 'eduweb:index' %}" class="block py-3 font-semibold text-navy border-b border-borderblue">Home</a>
+            <a href="{% url 'eduweb:about' %}" class="block py-3 font-semibold text-navy border-b border-borderblue">About</a>
             <details class="mobile-accordion border-b border-borderblue py-1">
                 <summary class="flex items-center justify-between py-2 font-semibold text-navy">Services <i data-lucide="chevron-down" class="chev w-3.5 h-3.5 transition-transform"></i></summary>
                 <div class="pl-3 pb-2 space-y-1 text-slate-600">
@@ -293,7 +315,7 @@
                     <a href="{% url 'eduweb:all_programs' %}" class="block py-1.5 font-semibold text-brandblue">View all training →</a>
                 </div>
             </details>
-            <a href="{% url 'eduweb:about' %}" class="block py-3 font-semibold text-navy border-b border-borderblue">About</a>
+            <a href="{% url 'eduweb:blog' %}" class="block py-3 font-semibold text-navy border-b border-borderblue">Blog</a>
             <details class="mobile-accordion border-b border-borderblue py-1">
                 <summary class="flex items-center justify-between py-2 font-semibold text-navy">Resources <i data-lucide="chevron-down" class="chev w-3.5 h-3.5 transition-transform"></i></summary>
                 <div class="pl-3 pb-2 space-y-1 text-slate-600">
@@ -305,7 +327,6 @@
                     {% endfor %}
                     <a href="{% url 'eduweb:industries_list' %}" class="block py-1.5 font-semibold text-brandblue">View all industries →</a>
                     <a href="{% url 'eduweb:store_list' %}" class="block py-1.5">Store</a>
-                    <a href="{% url 'eduweb:blog' %}" class="block py-1.5">Blog</a>
                     <a href="{% url 'eduweb:faq' %}" class="block py-1.5">FAQ</a>
                     <a href="{% url 'eduweb:team' %}" class="block py-1.5">Our Team</a>
                     <a href="{% url 'eduweb:careers' %}" class="block py-1.5">Careers</a>

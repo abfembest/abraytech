@@ -9,7 +9,7 @@
 
 {% block content %}
 
-<section class="relative overflow-hidden bg-navy py-20 lg:py-28">
+<section class="relative overflow-hidden bg-navy py-12 lg:py-16">
     <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
     <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <nav class="mb-6" aria-label="Breadcrumb">
@@ -109,6 +109,29 @@
                     <label for="consMessage" class="block text-sm font-semibold text-slate-700 mb-1.5">Tell us about your project</label>
                     <textarea id="consMessage" name="message" rows="5"
                               class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-borderblue rounded-lg text-sm focus:border-brandblue focus:ring-4 focus:ring-ice transition-all outline-none resize-none bg-white"></textarea>
+                </div>
+
+                <div class="bg-ice border border-borderblue rounded-xl p-4">
+                    <label for="consCaptcha" class="block text-sm font-semibold text-slate-700 mb-2">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="shield-check" class="w-4 h-4 text-brandblue" aria-hidden="true"></i>
+                            Bot Check <span class="text-red-500" aria-hidden="true">*</span>
+                            <span class="sr-only">(required)</span>
+                        </span>
+                    </label>
+                    <p class="text-xs sm:text-sm text-slate-500 mb-3">
+                        What is <strong class="text-navy font-bold text-base">{{ captcha_question }}</strong>?
+                    </p>
+                    <input id="consCaptcha"
+                           name="captcha"
+                           type="text"
+                           required
+                           inputmode="numeric"
+                           pattern="[0-9]*"
+                           autocomplete="off"
+                           placeholder="Enter the answer"
+                           aria-required="true"
+                           class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-borderblue rounded-lg text-sm focus:border-brandblue focus:ring-4 focus:ring-ice transition-all outline-none bg-white placeholder:text-slate-400">
                 </div>
 
                 <p class="text-xs text-slate-400 leading-relaxed">
