@@ -25,7 +25,7 @@ from .models import (
     Faculty, Program, CourseApplication,
     Message, Notification, SupportTicket, ContactMessage,
     SiteConfig, StudentExamResponse, Service,
-    Solution, Industry,
+    Industry,
 )
 
 logger = logging.getLogger(__name__)
@@ -128,17 +128,6 @@ def navigation_data(request):
         logger.exception('navigation_data: failed to fetch services')
         nav_services = []
 
-    # Solutions nav dropdown
-    try:
-        nav_solutions = list(
-            Solution.objects
-            .filter(is_active=True)
-            .order_by('order', 'title')[:8]
-        )
-    except Exception:
-        logger.exception('navigation_data: failed to fetch solutions')
-        nav_solutions = []
-
     # Industries nav dropdown
     try:
         nav_industries = list(
@@ -150,13 +139,45 @@ def navigation_data(request):
         logger.exception('navigation_data: failed to fetch industries')
         nav_industries = []
 
+    # Which top-level public nav item (if any) matches the current page —
+    # drives the "active" highlight in base.html's desktop nav, mobile
+    # drawer, and footer "Ecosystem" links. None on pages outside the
+    # public nav entirely (student/instructor/management dashboards etc.).
+    NAV_ACTIVE_MAP = {
+        'index':          'home',
+        'about':          'about',
+        'services_list':  'services',
+        'service_detail': 'services',
+        'projects_list':  'projects',
+        'project_detail': 'projects',
+        'all_programs':   'tech_skills',
+        'faculty_detail': 'tech_skills',
+        'program_detail': 'tech_skills',
+        'blog':           'blog',
+        'blog_detail':    'blog',
+        'blog_category':  'blog',
+        'industries_list': 'resources',
+        'industry_detail': 'resources',
+        'store_list':      'resources',
+        'product_detail':  'resources',
+        'faq':             'resources',
+        'team':            'resources',
+        'careers':         'resources',
+    }
+    nav_active = None
+    try:
+        if request.resolver_match:
+            nav_active = NAV_ACTIVE_MAP.get(request.resolver_match.url_name)
+    except Exception:
+        logger.exception('navigation_data: failed to resolve active nav item')
+
     return {
         'all_faculties': faculties,
         'all_courses': courses,
         'has_pending_application': has_pending_application,
         'nav_services': nav_services,
-        'nav_solutions': nav_solutions,
         'nav_industries': nav_industries,
+        'nav_active': nav_active,
     }
 
 

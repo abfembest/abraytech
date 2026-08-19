@@ -79,6 +79,7 @@ from .models import (
     ContactMessage,
     Course,
     CourseApplication,
+    CourseIntake,
     DEGREE_LEVEL_CHOICES,
     Department,
     Faculty,
@@ -522,12 +523,38 @@ def auth_page(request):
     })
 
 
+def _resolve_intake_eligibility(program, intake):
+    """
+    Return the reason applying to `program` via `intake` is blocked right
+    now ('no_intake' / 'closed' / 'not_open_yet' / 'deadline_passed' /
+    'full'), or None if applications are open. signup.html turns the
+    reason into user-facing copy. Shared by signup_page()'s GET and POST
+    handling so a forged POST is always re-checked against current state,
+    never trusted from an earlier GET.
+    """
+    if intake is None:
+        return 'no_intake'
+    if not intake.is_active:
+        return 'closed'
+    today = timezone.now().date()
+    if intake.application_start_date and today < intake.application_start_date:
+        return 'not_open_yet'
+    if today > intake.application_deadline:
+        return 'deadline_passed'
+    if intake.is_full:
+        return 'full'
+    return None
+
+
 def signup_page(request):
     """
     Program-gated sign-up. Only reachable via an Apply/Start-Application
-    link carrying ?program=<slug> — a bare visit with no ?program bounces
-    to the program catalog, since sign-up with no application intent isn't
-    meant to be a directly-linkable page.
+    link carrying ?program=<slug>[&intake=<id>] — a bare visit with no
+    ?program bounces to the program catalog, since sign-up with no
+    application intent isn't meant to be a directly-linkable page. Renders
+    either the real sign-up form or a read-only "not eligible" message
+    depending on the resolved intake's status, re-validated on every
+    request (GET and POST alike).
     """
     if request.user.is_authenticated:
         redirect_response = _redirect_authenticated_user(request)
@@ -538,6 +565,20 @@ def signup_page(request):
     if not program_slug:
         return redirect('eduweb:all_programs')
     program = get_object_or_404(Program, slug=program_slug, is_active=True)
+
+    intake_id = request.GET.get('intake') or request.POST.get('intake')
+    if intake_id and intake_id.isdigit():
+        intake = get_object_or_404(CourseIntake, pk=intake_id, program=program)
+    else:
+        intake = program.get_current_intake()
+
+    blocked_reason = _resolve_intake_eligibility(program, intake)
+    if blocked_reason:
+        return render(request, 'signup.html', {
+            'program': program,
+            'intake': intake,
+            'blocked_reason': blocked_reason,
+        })
 
     # ── CAPTCHA setup — same convention as auth_page, own session key so a
     #    sign-in tab and a sign-up tab open at once never stomp each other's
@@ -921,7 +962,7 @@ THEOLOGY_SCHOOL_HOST = 'theology.miuedu.com'
 
 @check_for_auth
 def index(request):
-    from .models import Testimonial, Service, Solution, Industry, Project
+    from .models import Testimonial, Service, Industry, Project, SocialPost
     captcha_question, captcha_answer = generate_captcha()
     request.session['contact_captcha_answer'] = captcha_answer
     current_host = request.get_host().split(':')[0].lower()
@@ -946,7 +987,7 @@ def index(request):
             .order_by('name')[:6]
         ),
         'services': Service.objects.filter(is_active=True),
-        'solutions': Solution.objects.filter(is_active=True).order_by('order', 'title')[:4],
+        'social_posts': SocialPost.objects.filter(is_active=True),
         'industries': Industry.objects.filter(is_active=True).order_by('order', 'title')[:6],
         'featured_projects': featured_projects,
         'testimonials': Testimonial.objects.filter(is_active=True).order_by('author_name'),
@@ -957,9 +998,9 @@ def index(request):
         ),
         # Real, dynamically-computed counts for the stats strip — never
         # hardcoded/fabricated numbers.
-        'stat_services_count':  Service.objects.filter(is_active=True).count(),
-        'stat_solutions_count': Solution.objects.filter(is_active=True).count(),
-        'stat_projects_count':  active_projects.count(),
+        'stat_services_count':   Service.objects.filter(is_active=True).count(),
+        'stat_industries_count': Industry.objects.filter(is_active=True).count(),
+        'stat_projects_count':   active_projects.count(),
         'stat_programs_count':  Program.objects.filter(is_active=True).count(),
         'captcha_question': captcha_question,
     })
@@ -973,10 +1014,24 @@ def about(request):
         InstitutionMember.objects.filter(member_type='admin_board', is_active=True)
         .order_by('name')
     )
+    academic_board_members = (
+        InstitutionMember.objects.filter(member_type='academic_board', is_active=True)
+        .order_by('name')
+    )
+    advisorate_board_members = (
+        InstitutionMember.objects.filter(member_type='advisorate_board', is_active=True)
+        .order_by('name')
+    )
+    staff_members = (
+        InstitutionMember.objects.filter(member_type='staff', is_active=True)
+        .order_by('name')
+    )
     who_we_are_member = (
         InstitutionMember.objects.filter(is_who_we_are=True, is_active=True).first()
         or admin_board_members.first()
     )
+    # Single unified "Our Team" grid — no more per-board grouping/labels.
+    team_members = list(admin_board_members) + list(academic_board_members) + list(advisorate_board_members) + list(staff_members)
     return render(request, 'about.html', {
         'default_core_values': [
             'Technical Excellence',
@@ -988,18 +1043,10 @@ def about(request):
         'faculties': Faculty.objects.filter(is_active=True).order_by('name'),
         'admin_board_members': admin_board_members,
         'who_we_are_member': who_we_are_member,
-        'academic_board_members': (
-            InstitutionMember.objects.filter(member_type='academic_board', is_active=True)
-            .order_by('name')
-        ),
-        'advisorate_board_members': (
-            InstitutionMember.objects.filter(member_type='advisorate_board', is_active=True)
-            .order_by('name')
-        ),
-        'staff_members': (
-            InstitutionMember.objects.filter(member_type='staff', is_active=True)
-            .order_by('name')
-        ),
+        'academic_board_members': academic_board_members,
+        'advisorate_board_members': advisorate_board_members,
+        'staff_members': staff_members,
+        'team_members': team_members,
         'history_milestones': (
             SiteHistoryMilestone.objects.filter(is_active=True)
             .order_by('year')
@@ -1274,28 +1321,6 @@ def service_detail(request, slug):
     return render(request, 'service_detail.html', {
         'service': service,
         'other_services': Service.objects.filter(is_active=True).exclude(slug=slug),
-    })
-
-
-# =============================================================================
-# SOLUTIONS
-# =============================================================================
-
-@check_for_auth
-def solutions_list(request):
-    from .models import Solution
-    return render(request, 'solutions.html', {
-        'solutions': Solution.objects.filter(is_active=True),
-    })
-
-
-@check_for_auth
-def solution_detail(request, slug):
-    from .models import Solution
-    solution = get_object_or_404(Solution, slug=slug, is_active=True)
-    return render(request, 'solution_detail.html', {
-        'solution': solution,
-        'other_solutions': Solution.objects.filter(is_active=True).exclude(slug=slug),
     })
 
 
@@ -1842,6 +1867,7 @@ def apply(request):
                 application = form.save(commit=False)
                 application.user = request.user
                 application.status = 'draft'
+                application.intake = application.program.get_current_intake() if application.program_id else None
                 application.save()
 
                 # Was backgrounded via a daemon Thread — matches the same

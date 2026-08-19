@@ -48,10 +48,6 @@ urlpatterns = [
     path('services/', views.services_list, name='services_list'),
     path('services/<slug:slug>/', views.service_detail, name='service_detail'),
 
-    # Solutions
-    path('solutions/', views.solutions_list, name='solutions_list'),
-    path('solutions/<slug:slug>/', views.solution_detail, name='solution_detail'),
-
     # Industries
     path('industries/', views.industries_list, name='industries_list'),
     path('industries/<slug:slug>/', views.industry_detail, name='industry_detail'),

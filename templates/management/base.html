@@ -572,14 +572,14 @@
 
                     {% if permissions.academics.can_view %}
                     <div class="mb-1">
-                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all {% if 'faculties' in request.path or 'management/departments' in request.path or 'programs' in request.path or 'categories' in request.path and 'blog' not in request.path or request.resolver_match.url_name == 'courses_list' %}bg-white/20{% endif %}">
+                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all {% if 'faculties' in request.path or 'management/departments' in request.path or 'programs' in request.path or 'intakes' in request.path or 'categories' in request.path and 'blog' not in request.path or request.resolver_match.url_name == 'courses_list' %}bg-white/20{% endif %}">
                             <div class="flex items-center">
                                 <i class="fas fa-university w-5 text-center" aria-hidden="true"></i>
                                 <span class="ml-3 text-[17px] font-semibold">Acads Structure</span>
                             </div>
-                            <i class="fas fa-chevron-down menu-arrow transition-transform {% if 'faculties' in request.path or 'management/departments' in request.path or 'programs' in request.path or 'categories' in request.path and 'blog' not in request.path or request.resolver_match.url_name == 'courses_list' %}rotate-180{% endif %}" aria-hidden="true"></i>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform {% if 'faculties' in request.path or 'management/departments' in request.path or 'programs' in request.path or 'intakes' in request.path or 'categories' in request.path and 'blog' not in request.path or request.resolver_match.url_name == 'courses_list' %}rotate-180{% endif %}" aria-hidden="true"></i>
                         </button>
-                        <div id="academicMenu" class="mt-1 space-y-1 {% if 'faculties' in request.path or 'management/departments' in request.path or 'programs' in request.path or 'categories' in request.path and 'blog' not in request.path or request.resolver_match.url_name == 'courses_list' %}{% else %}hidden {% endif %}bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                        <div id="academicMenu" class="mt-1 space-y-1 {% if 'faculties' in request.path or 'management/departments' in request.path or 'programs' in request.path or 'intakes' in request.path or 'categories' in request.path and 'blog' not in request.path or request.resolver_match.url_name == 'courses_list' %}{% else %}hidden {% endif %}bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
                             <p class="px-4 text-[10px] uppercase tracking-widest text-white/40 font-semibold py-1">Structure</p>
                             <a href="{% url 'management:faculties_list' %}"
                                class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'faculties' in request.path %}bg-white/20{% endif %}">
@@ -592,6 +592,10 @@
                             <a href="{% url 'management:programs_list' %}"
                                class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'programs' in request.path %}bg-white/20{% endif %}">
                                 <i class="fas fa-graduation-cap mr-2" aria-hidden="true"></i>Programs
+                            </a>
+                            <a href="{% url 'management:intakes_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'intakes' in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-calendar-check mr-2" aria-hidden="true"></i>Open Application
                             </a>
                             <div class="border-t border-white/10 my-1"></div>
                             <p class="px-4 text-[10px] uppercase tracking-widest text-white/40 font-semibold py-1">Courses</p>
@@ -909,6 +913,10 @@
                             <a href="{% url 'management:testimonials_list' %}"
                                class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'testimonials' in request.path %}bg-white/20{% endif %}">
                                 <i class="fas fa-quote-right mr-2" aria-hidden="true"></i>Testimonials
+                            </a>
+                            <a href="{% url 'management:social_posts_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'social-posts' in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-share-nodes mr-2" aria-hidden="true"></i>Social Posts
                             </a>
                             <a href="{% url 'management:institution_members_list' %}"
                                class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'members' in request.path %}bg-white/20{% endif %}">

@@ -12,6 +12,7 @@ from django.utils.text import slugify
 from django.utils.functional import cached_property
 from cryptography.fernet import Fernet, InvalidToken
 from functools import lru_cache
+import re
 import uuid
 import os
 import base64
@@ -1267,6 +1268,33 @@ class Course(models.Model):
     def faculty(self):
         return self.program.department.faculty
 
+    @property
+    def scheme_of_work(self):
+        """Parse `description` into [{'header': str|None, 'items': [str, ...]}, ...]
+        for the program detail page's curriculum accordion.
+
+        Convention: a line matching "1.1 ..." (N.N leading numbering) is a
+        sub-topic under the current section; any other non-blank line starts
+        a new section header (typically "Week N — Title", but not enforced —
+        plain paragraph-style descriptions still render, just as headerless
+        single-line sections). Lines display exactly as written.
+        """
+        sections = []
+        current = None
+        for raw_line in self.description.splitlines():
+            line = raw_line.strip()
+            if not line:
+                continue
+            if re.match(r'^\d+\.\d+\s', line):
+                if current is None:
+                    current = {'header': None, 'items': []}
+                    sections.append(current)
+                current['items'].append(line)
+            else:
+                current = {'header': line, 'items': []}
+                sections.append(current)
+        return sections
+
 class CourseApplication(models.Model):
     """Student application for courses"""
     STATUS_CHOICES = [
@@ -1295,6 +1323,10 @@ class CourseApplication(models.Model):
     
     # Program
     program = models.ForeignKey('Program', on_delete=models.CASCADE, related_name='applications')
+    intake = models.ForeignKey(
+        'CourseIntake', on_delete=models.SET_NULL, null=True, blank=True, related_name='applications',
+        help_text="Admission cycle this application counts against for slot capacity. Set automatically from the program's current open intake at submission time."
+    )
     study_mode = models.CharField(max_length=20, choices=STUDY_MODE_CHOICES, blank=True)
     
     # Personal Information
@@ -4185,6 +4217,84 @@ class Program(models.Model):
                 enrollment.status = 'active'
                 enrollment.save(update_fields=['status'])
 
+    def get_current_intake(self):
+        """
+        The CourseIntake a new application against this program should be
+        attributed to. Prefers the active intake whose application window
+        hasn't closed yet (earliest deadline first, so the intake that's
+        actually closing soonest wins over one further out); falls back to
+        the most recent intake overall if none are currently open, so
+        callers always get *something* to reference when one exists.
+        """
+        today = timezone.now().date()
+        open_intake = (
+            self.intakes
+            .filter(is_active=True, application_deadline__gte=today)
+            .order_by('application_deadline')
+            .first()
+        )
+        if open_intake:
+            return open_intake
+        return self.intakes.filter(is_active=True).order_by('-year', 'intake_period').first()
+
+
+class CourseIntake(models.Model):
+    """
+    An admission cycle for a Program (e.g. "September 2026") with its own
+    application window (start date → deadline) and capacity. This is what
+    actually opens and closes applications for a program — a Program with
+    no active CourseIntake, or one whose window has closed/is full, blocks
+    new sign-ups (see eduweb.views._resolve_intake_eligibility).
+    """
+    INTAKE_PERIOD_CHOICES = [
+        ('january', 'January'),
+        ('may', 'May'),
+        ('september', 'September'),
+    ]
+
+    program = models.ForeignKey(Program, on_delete=models.CASCADE, related_name='intakes')
+    intake_period = models.CharField(max_length=20, choices=INTAKE_PERIOD_CHOICES)
+    year = models.IntegerField()
+    application_start_date = models.DateField(
+        null=True, blank=True,
+        help_text="When applications open for this intake. Leave blank to allow applications immediately."
+    )
+    start_date = models.DateField(help_text="Program start date for this intake")
+    application_deadline = models.DateField(help_text="Application closing date for this intake")
+    application_fee = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.00,
+        help_text="Fee to apply for this specific intake (reference only — payment currently charges the program's flat application_fee)"
+    )
+    available_slots = models.IntegerField(default=50, validators=[MinValueValidator(1)])
+    is_active = models.BooleanField(default=True, help_text="Uncheck to close this intake immediately, regardless of dates")
+
+    class Meta:
+        ordering = ['-year', 'intake_period']
+        verbose_name = 'Course Intake'
+        verbose_name_plural = 'Course Intakes'
+        unique_together = [['program', 'intake_period', 'year']]
+
+    def __str__(self):
+        return f"{self.program.name} — {self.intake_period.title()} {self.year}"
+
+    @cached_property
+    def accepted_count(self):
+        """Number of approved applications for this intake. cached_property
+        so remaining_slots/is_full (each read this) don't re-run the count
+        query per access within the same request."""
+        return CourseApplication.objects.filter(intake=self, status='approved').count()
+
+    @property
+    def remaining_slots(self):
+        return max(0, self.available_slots - self.accepted_count)
+
+    @property
+    def is_full(self):
+        return self.accepted_count >= self.available_slots
+
+
 class Quiz(models.Model):
     """Quizzes for lessons"""
     lesson = models.ForeignKey('Lesson', on_delete=models.CASCADE, related_name='quizzes')
@@ -4397,42 +4507,12 @@ class Service(models.Model):
 
 # =============================================================================
 # MARKETING / FRONT-SITE EXPANSION MODELS
-# Backs the Solutions / Industries / Projects / Store / Careers /
-# Consultation / Newsletter sections of the public site. Same admin-managed,
-# empty-by-default pattern as Service/Testimonial above — every list starts
-# empty until real content is entered via Django admin. Never seeded with
-# placeholder/sample data.
+# Backs the Industries / Projects / Store / Careers / Consultation /
+# Newsletter sections of the public site. Same admin-managed, empty-by-default
+# pattern as Service/Testimonial above — every list starts empty until real
+# content is entered via Django admin. Never seeded with placeholder/sample
+# data.
 # =============================================================================
-
-class Solution(models.Model):
-    """A packaged technology solution Abraytech offers (e.g. Cloud
-    Migration, Managed IT, Custom Software Platform) — shown in the
-    Solutions nav dropdown, the Solutions grid, and its own
-    /solutions/<slug>/ page."""
-    title = models.CharField(max_length=150)
-    slug = models.SlugField(max_length=170, unique=True, blank=True)
-    summary = models.CharField(max_length=300, help_text="Short teaser shown on solution cards")
-    description = models.TextField(blank=True, help_text="Full body copy for the solution's detail page")
-    icon = models.CharField(max_length=50, default='layers', help_text="Lucide icon name (see https://lucide.dev/icons)")
-    related_services = models.ManyToManyField('Service', blank=True, related_name='solutions')
-    is_active = models.BooleanField(default=True)
-    order = models.PositiveIntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name = 'Solution'
-        verbose_name_plural = 'Solutions'
-        ordering = ['order', 'title']
-
-    def __str__(self):
-        return self.title
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.title)
-        super().save(*args, **kwargs)
-
 
 class Industry(models.Model):
     """An industry vertical Abraytech serves (e.g. Healthcare, Finance,
@@ -4460,6 +4540,30 @@ class Industry(models.Model):
         if not self.slug:
             self.slug = slugify(self.title)
         super().save(*args, **kwargs)
+
+
+class SocialPost(models.Model):
+    """A single social media post (Instagram/TikTok reel, YouTube Short,
+    image, etc.) shown in the homepage "Follow Along" carousel, right after
+    the Who We Are section. `embed_code` holds the raw iframe/blockquote
+    snippet copied from that platform's own "Embed" button — same pattern
+    as SiteConfig.promo_video_url — because Instagram/TikTok/YouTube don't
+    support embedding from a bare post URL alone. No platform field on
+    purpose: paste the embed code and it just shows, nothing to pick."""
+    embed_code = models.TextField(help_text="Full embed/iframe code copied from the platform's own \"Embed\" option — just paste and save")
+    caption = models.CharField(max_length=200, blank=True, help_text="Optional short caption shown under the embed")
+    is_active = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Social Post'
+        verbose_name_plural = 'Social Posts'
+        ordering = ['order', '-created_at']
+
+    def __str__(self):
+        return self.caption or f"Social post #{self.pk}"
 
 
 class Project(models.Model):

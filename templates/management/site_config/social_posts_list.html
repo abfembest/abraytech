@@ -1,0 +1,177 @@
+{% extends 'management/base.html' %}
+{% load static %}
+{% block title %}Social Posts — Abraytech Admin{% endblock %}
+{% block content %}
+<div class="w-full">
+
+  {# ── Breadcrumb ── #}
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+    <span class="text-gray-400">Site Content</span>
+    <i class="fas fa-chevron-right text-xs"></i>
+    <span class="text-gray-800 font-medium">Social Posts</span>
+  </nav>
+
+  {# ── Page header ── #}
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Social Posts</h1>
+      <p class="text-gray-500 mt-1 text-sm">Reels, images and posts shown in the "From Our Socials" carousel on the homepage.</p>
+    </div>
+    {% if permissions.site_content.can_create %}
+    <button type="button" id="newSocialPostBtn" class="js-open-social-post-modal inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium shadow-sm flex-shrink-0 transition-colors">
+      <i class="fas fa-plus"></i> Add Social Post
+    </button>
+    {% endif %}
+  </div>
+
+  {# ── Stats strip ── #}
+  <div class="grid grid-cols-2 gap-4 mb-8">
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="text-2xl font-bold text-primary-600">{{ social_posts|length }}</div>
+      <div class="text-xs text-gray-500 mt-0.5">Total Posts</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="text-2xl font-bold text-green-600">{{ active_count }}</div>
+      <div class="text-xs text-gray-500 mt-0.5">Visible on Site</div>
+    </div>
+  </div>
+
+  {# ── List ── #}
+  <div class="space-y-3">
+    {% for post in social_posts %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+      <div class="flex flex-col sm:flex-row sm:items-center gap-4 p-5">
+
+        <div class="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0">
+          <i class="fas fa-share-nodes text-primary-500"></i>
+        </div>
+
+        {# Content #}
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-2 mb-1">
+            <h3 class="font-semibold text-gray-800">{{ post.caption|default:"Untitled post" }}</h3>
+            <span class="text-xs text-gray-400">#{{ post.order }}</span>
+            {% if post.is_active %}
+            <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Active</span>
+            {% else %}
+            <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">Hidden</span>
+            {% endif %}
+          </div>
+          <p class="text-xs text-gray-400 font-mono line-clamp-1">{{ post.embed_code|truncatechars:100 }}</p>
+        </div>
+
+        {# Actions #}
+        <div class="flex items-center gap-2 flex-shrink-0">
+          {% if permissions.site_content.can_edit %}
+          <button type="button" onclick="socialPostModal.openForEdit('{{ post.pk }}')"
+                  class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
+            <i class="fas fa-edit"></i>
+          </button>
+          {% endif %}
+          {% if permissions.site_content.can_delete %}
+          <button type="button"
+                  onclick="confirmDelete('{% url 'management:social_post_delete' post.pk %}', '{{ post|escapejs }}')"
+                  class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+
+    {% empty %}
+    <div class="bg-white rounded-xl p-16 text-center shadow-sm border border-gray-200">
+      <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-share-nodes text-3xl text-gray-300"></i>
+      </div>
+      <p class="font-semibold text-gray-600 mb-1">No social posts yet</p>
+      <p class="text-sm text-gray-400 mb-4">Paste an embed from Instagram, TikTok or YouTube to show it on the homepage.</p>
+      {% if permissions.site_content.can_create %}
+      <button type="button" class="js-open-social-post-modal text-primary-600 hover:underline text-sm cursor-pointer bg-transparent border-none">
+        Add the first post
+      </button>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<form id="deleteForm" method="post" action="" style="display:none;">{% csrf_token %}</form>
+
+<!-- New/Edit Social Post modal -->
+<div id="socialPostCreateModal" class="fixed inset-0 z-50 hidden items-stretch sm:items-center justify-center sm:p-3" style="background: rgba(15,23,42,.55);">
+  <div class="bg-white sm:rounded-xl shadow-2xl w-full sm:max-w-2xl h-full sm:h-auto sm:max-h-[97vh] flex flex-col">
+    <div class="px-4 sm:px-5 py-2.5 border-b border-gray-100 flex items-center justify-between shrink-0">
+      <h2 class="text-base font-semibold text-gray-800 font-display" id="socialPostModalTitle">New Social Post</h2>
+      <button type="button" id="socialPostModalCloseBtn" data-modal-close class="text-gray-400 hover:text-gray-600 p-1 -m-1" aria-label="Close">
+        <i class="fas fa-times text-lg" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="px-4 sm:px-5 py-3 overflow-y-auto overflow-x-hidden flex-1 min-h-0" id="socialPostModalBody">
+      <form method="post" action="{% url 'management:social_post_create' %}" id="socialPostModalForm">
+        {% csrf_token %}
+        {% include 'management/site_config/_social_post_form_fields.html' %}
+      </form>
+    </div>
+    <div class="px-4 sm:px-5 py-2.5 border-t border-gray-100 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 shrink-0">
+      <button type="button" id="socialPostModalCancelBtn" data-modal-close
+              class="w-full sm:w-auto px-5 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-medium">
+        Cancel
+      </button>
+      <button type="submit" form="socialPostModalForm" id="socialPostModalSubmitBtn"
+              class="w-full sm:w-auto px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium shadow-sm disabled:opacity-60 disabled:cursor-not-allowed">
+        <i class="fas fa-save mr-1.5" aria-hidden="true"></i>
+        <span id="socialPostModalSubmitLabel">Create Social Post</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(url, name) {
+  Swal.fire({
+    title: 'Delete Social Post?',
+    html: `Delete <strong>${name}</strong>?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Delete',
+    cancelButtonText: 'Cancel',
+  }).then(r => {
+    if (r.isConfirmed) {
+      document.getElementById('deleteForm').action = url;
+      document.getElementById('deleteForm').submit();
+    }
+  });
+}
+
+var socialPostModal = createAjaxModal({
+  modalId: 'socialPostCreateModal',
+  bodyId: 'socialPostModalBody',
+  formId: 'socialPostModalForm',
+  titleId: 'socialPostModalTitle',
+  submitBtnId: 'socialPostModalSubmitBtn',
+  submitLabelId: 'socialPostModalSubmitLabel',
+  fieldsPartialId: 'socialPostFormFieldsPartial',
+  createUrl: '{% url "management:social_post_create" %}',
+  editUrlTemplate: '{% url "management:social_post_edit" 0 %}',
+  createTitle: 'New Social Post',
+  createLabel: 'Create Social Post',
+  editTitle: 'Edit Social Post',
+  editLabel: 'Save Changes',
+});
+
+document.querySelectorAll('.js-open-social-post-modal').forEach(function (trigger) {
+  trigger.addEventListener('click', function (e) {
+    e.preventDefault();
+    socialPostModal.openForCreate();
+  });
+});
+</script>
+{% endblock %}

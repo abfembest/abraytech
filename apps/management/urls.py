@@ -39,6 +39,12 @@ urlpatterns = [
     path('programs/<int:pk>/edit/', views.program_edit, name='program_edit'),
     path('programs/<int:pk>/delete/', views.program_delete, name='program_delete'),
 
+    # Course Intakes — the admissions open/close windows
+    path('intakes/', views.intakes_list, name='intakes_list'),
+    path('intakes/create/', views.intake_create, name='intake_create'),
+    path('intakes/<int:pk>/edit/', views.intake_edit, name='intake_edit'),
+    path('intakes/<int:pk>/delete/', views.intake_delete, name='intake_delete'),
+
     path('courses/', views.courses_list, name='courses_list'),
     path('exams/<slug:slug>/toggle-active/', views.admin_exam_toggle_active, name='admin_exam_toggle_active'),
 
@@ -193,6 +199,12 @@ urlpatterns = [
     path('site-config/testimonials/create/', views.testimonial_create, name='testimonial_create'),
     path('site-config/testimonials/<int:pk>/edit/', views.testimonial_edit, name='testimonial_edit'),
     path('site-config/testimonials/<int:pk>/delete/', views.testimonial_delete, name='testimonial_delete'),
+
+    # Social Posts (homepage "From Our Socials" carousel)
+    path('site-config/social-posts/', views.social_posts_list, name='social_posts_list'),
+    path('site-config/social-posts/create/', views.social_post_create, name='social_post_create'),
+    path('site-config/social-posts/<int:pk>/edit/', views.social_post_edit, name='social_post_edit'),
+    path('site-config/social-posts/<int:pk>/delete/', views.social_post_delete, name='social_post_delete'),
 
     # Institution Members
     path('site-config/members/', views.institution_members_list, name='institution_members_list'),

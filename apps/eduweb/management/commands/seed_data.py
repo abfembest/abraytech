@@ -43,7 +43,6 @@ from apps.eduweb.models import (
     Service,
     SiteConfig,
     SiteHistoryMilestone,
-    Solution,
     SystemConfiguration,
     Testimonial,
     Vendor,
@@ -202,22 +201,6 @@ class Command(BaseCommand):
             )
             services[title] = obj
         self.stdout.write(f"Seeded {len(services_data)} Service rows.")
-
-        solutions_data = [
-            ("Cloud Migration Accelerator", "A fixed-scope package to move your core systems to the cloud in weeks, not months.", "Cloud Migration & DevOps"),
-            ("Managed IT Services", "Full outsourced IT operations for growing companies.", "Managed IT Support"),
-            ("Custom Software Platform", "An end-to-end platform build — from discovery to production support.", "Custom Software Development"),
-            ("AI-Powered Analytics Suite", "A packaged data + AI stack for teams who want insight without building it from scratch.", "AI & Data Engineering"),
-            ("Security Operations as a Service", "Ongoing monitoring, detection and response run by our security team.", "Cybersecurity & Penetration Testing"),
-            ("DevOps Transformation Package", "CI/CD, infrastructure as code and observability, implemented end to end.", "Cloud Migration & DevOps"),
-        ]
-        for order, (title, summary, related_service) in enumerate(solutions_data, start=1):
-            sol, _ = Solution.objects.update_or_create(
-                title=title, defaults={"summary": summary, "order": order, "is_active": True},
-            )
-            if related_service in services:
-                sol.related_services.set([services[related_service]])
-        self.stdout.write(f"Seeded {len(solutions_data)} Solution rows.")
 
         industries_data = [
             ("Financial Services", "Payments, banking and fintech platforms built for security and scale."),

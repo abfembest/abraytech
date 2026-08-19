@@ -379,12 +379,59 @@
     <div class="rounded-2xl sm:rounded-3xl border border-borderblue overflow-hidden shadow-sm">
       <div class="divide-y divide-gray-50 bg-white">
         {% for course in courses %}
+        {% if course.description or course.learning_outcomes %}
+        <details class="curriculum-row course-row group">
+          <summary class="flex items-center gap-3 sm:gap-4 px-4 sm:px-6 lg:px-7 py-3 sm:py-4">
+            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-ice flex items-center justify-center flex-shrink-0" aria-hidden="true">
+              <i data-lucide="check" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brandblue"></i>
+            </div>
+            <div class="flex-1 min-w-0 font-semibold text-gray-800 text-sm sm:text-base truncate">{{ course.name }}</div>
+            <i data-lucide="chevron-down" class="chev w-4 h-4 text-gray-400 flex-shrink-0 transition-transform"></i>
+          </summary>
+          <div class="bg-soft border-t border-borderblue px-4 sm:px-6 lg:px-7 py-4 sm:py-5">
+            {% if course.description %}
+            <p class="text-xs sm:text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3">Scheme of Work</p>
+            <div class="space-y-4 {% if course.learning_outcomes %}mb-5{% endif %}">
+              {% for section in course.scheme_of_work %}
+              <div>
+                {% if section.header %}
+                <p class="font-sora font-semibold text-navy text-sm sm:text-base mb-1.5">{{ section.header }}</p>
+                {% endif %}
+                {% if section.items %}
+                <ul class="space-y-1.5 {% if section.header %}pl-3 sm:pl-4 border-l-2 border-borderblue{% endif %}" role="list">
+                  {% for item in section.items %}
+                  <li class="flex items-start gap-2.5 text-sm sm:text-base text-gray-600 leading-relaxed">
+                    <span class="w-1.5 h-1.5 mt-2 bg-brandblue rounded-full flex-shrink-0" aria-hidden="true"></span>
+                    <span>{{ item }}</span>
+                  </li>
+                  {% endfor %}
+                </ul>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+            {% if course.learning_outcomes %}
+            <p class="text-xs sm:text-sm font-semibold uppercase tracking-wider text-gray-400 mb-2">You'll Learn To</p>
+            <ul class="space-y-2" role="list">
+              {% for outcome in course.learning_outcomes %}
+              <li class="flex items-start gap-2.5 text-sm sm:text-base text-gray-600 leading-relaxed">
+                <i data-lucide="check-circle-2" class="w-4 h-4 mt-0.5 text-brandblue flex-shrink-0" aria-hidden="true"></i>
+                <span>{{ outcome }}</span>
+              </li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+          </div>
+        </details>
+        {% else %}
         <div class="course-row flex items-center gap-3 sm:gap-4 px-4 sm:px-6 lg:px-7 py-3 sm:py-4 group">
           <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-ice flex items-center justify-center flex-shrink-0" aria-hidden="true">
             <i data-lucide="check" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brandblue"></i>
           </div>
-          <div class="font-semibold text-gray-800 text-xs sm:text-sm truncate">{{ course.name }}</div>
+          <div class="flex-1 min-w-0 font-semibold text-gray-800 text-sm sm:text-base truncate">{{ course.name }}</div>
         </div>
+        {% endif %}
         {% endfor %}
       </div>
     </div>

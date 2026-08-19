@@ -1,9 +1,52 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Sign Up - {{ program.name }} - {{ site_config.school_short_name|default:"Abraytech" }}{% endblock %}
+{% block title %}{% if blocked_reason %}Application Closed{% else %}Sign Up{% endif %} - {{ program.name }} - {{ site_config.school_short_name|default:"Abraytech" }}{% endblock %}
 
 {% block content %}
+{% if blocked_reason %}
+<div class="bg-soft py-16 lg:py-20 px-4 min-h-screen flex items-center">
+    <div class="bg-white shadow-brand max-w-2xl w-full mx-auto rounded-2xl overflow-hidden border border-borderblue">
+        <div class="px-8 py-16 sm:px-14 sm:py-20 text-center">
+
+            <div class="w-16 h-16 rounded-full bg-ice border border-borderblue flex items-center justify-center mx-auto mb-6">
+                <i data-lucide="alert-triangle" class="w-8 h-8 text-brandblue"></i>
+            </div>
+
+            <h3 class="text-3xl font-bold font-sora text-navy mb-4">
+                Application Closed
+            </h3>
+
+            <p class="text-base text-slate-600 leading-relaxed max-w-lg mx-auto mb-10">
+                {% if blocked_reason == 'no_intake' %}
+                    There are currently no enrollment windows scheduled for <strong class="text-navy">{{ program.name }}</strong>. Please check back soon or contact admissions.
+                {% elif blocked_reason == 'closed' or blocked_reason == 'not_open_yet' %}
+                    Applications for the {{ intake.intake_period|title }} {{ intake.year }} intake of <strong class="text-navy">{{ program.name }}</strong> are currently closed.
+                {% elif blocked_reason == 'deadline_passed' %}
+                    The application deadline for the {{ intake.intake_period|title }} {{ intake.year }} intake of <strong class="text-navy">{{ program.name }}</strong> was {{ intake.application_deadline|date:'d F Y' }}. This window is now closed.
+                {% elif blocked_reason == 'full' %}
+                    All available slots for the {{ intake.intake_period|title }} {{ intake.year }} intake of <strong class="text-navy">{{ program.name }}</strong> have been filled.
+                {% endif %}
+            </p>
+
+            <div class="max-w-sm mx-auto space-y-3">
+                <a href="{% url 'eduweb:auth_page' %}"
+                   class="w-full py-3.5 brand-gradient text-white rounded-lg font-bold text-base shadow-brand hover:opacity-95 transition-all flex items-center justify-center gap-2">
+                    <span>Sign In Instead</span>
+                    <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                </a>
+                <a href="{% url 'eduweb:all_programs' %}"
+                   class="w-full py-3 text-center text-navy font-semibold hover:text-brandblue transition-colors flex items-center justify-center gap-2">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    Back to All Programs
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script>document.addEventListener('DOMContentLoaded', function () { if (window.lucide) lucide.createIcons(); });</script>
+{% else %}
 <div class="bg-soft py-10 lg:py-12 px-4">
 
         <div class="bg-white shadow-brand max-w-auth-panel w-full mx-auto rounded-2xl overflow-hidden border border-borderblue">
@@ -264,4 +307,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+{% endif %}
 {% endblock %}

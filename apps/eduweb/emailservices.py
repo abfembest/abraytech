@@ -206,7 +206,7 @@ def send_verification_email(request, user):
                 <div style="max-width: 600px; margin: 0 auto;
                             padding: 20px; background-color: #f4f4f4;">
                     <div style="background: linear-gradient(135deg,
-                                #840384 0%, #a855f7 100%);
+                                #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
                                 padding: 30px; text-align: center;">
                         <h1 style="color: white; margin: 0;">
                             Welcome to {site.school_short_name}!
@@ -229,7 +229,7 @@ def send_verification_email(request, user):
                                style="display: inline-block;
                                       padding: 15px 40px;
                                       background: linear-gradient(135deg,
-                                      #840384 0%, #a855f7 100%);
+                                      #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
                                       color: white;
                                       text-decoration: none;
                                       border-radius: 8px;
@@ -241,7 +241,7 @@ def send_verification_email(request, user):
                         <p style="font-size: 14px; color: #666;">
                             Or copy and paste this link into your browser:
                         </p>
-                        <p style="font-size: 14px; color: #1D4ED8;
+                        <p style="font-size: 14px; color: #0B5CFF;
                                   word-break: break-all;">
                             {verification_url}
                         </p>
@@ -251,7 +251,7 @@ def send_verification_email(request, user):
                         </p>
                         <p>
                             Best regards,<br>
-                            <strong style="color: #840384;">
+                            <strong style="color: #0B5CFF;">
                                 The {site.school_short_name} Team
                             </strong>
                         </p>
@@ -370,7 +370,7 @@ def send_verification_success_email(user):
 
                         <p>
                             Best regards,<br>
-                            <strong style="color: #840384;">
+                            <strong style="color: #0B5CFF;">
                                 The {site.school_short_name} Team
                             </strong>
                         </p>
@@ -448,7 +448,7 @@ def send_application_confirmation_email(application):
                 <div style="max-width: 600px; margin: 0 auto;
                             padding: 20px; background-color: #f4f4f4;">
                     <div style="background: linear-gradient(135deg,
-                                #0F2A44 0%, #1D4ED8 100%);
+                                #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
                                 padding: 30px; text-align: center;">
                         <h1 style="color: white; margin: 0;">
                             Application Received!
@@ -466,10 +466,10 @@ def send_application_confirmation_email(application):
                             Thank you for applying to {site.school_name}.
                             We have received your application.
                         </p>
-                        <div style="background-color: #E6F0FF;
+                        <div style="background-color: #EAF6FF;
                                     padding: 20px; border-radius: 8px;
                                     margin: 25px 0;">
-                            <h3 style="color: #0F2A44; margin-top: 0;">
+                            <h3 style="color: #071A3D; margin-top: 0;">
                                 Application Details
                             </h3>
                             <p>
@@ -500,7 +500,7 @@ def send_application_confirmation_email(application):
                         </p>
                         <p>
                             Best regards,<br>
-                            <strong style="color: #0F2A44;">
+                            <strong style="color: #071A3D;">
                                 The {site.school_short_name} Admissions Team
                             </strong>
                         </p>
@@ -706,7 +706,7 @@ def send_document_upload_confirmation(application, documents):
                             been successfully uploaded to your application.
                         </p>
 
-                        <div style="background-color: #E6F0FF;
+                        <div style="background-color: #EAF6FF;
                                     padding: 20px;
                                     border-radius: 8px;
                                     margin: 25px 0;">
@@ -716,7 +716,7 @@ def send_document_upload_confirmation(application, documents):
                             </p>
                         </div>
 
-                        <h3 style="color: #0F2A44;">
+                        <h3 style="color: #071A3D;">
                             {'Documents' if doc_count > 1 else 'Document'} Uploaded
                         </h3>
                         {docs_html}
@@ -728,7 +728,7 @@ def send_document_upload_confirmation(application, documents):
 
                         <p>
                             Best regards,<br>
-                            <strong style="color: #0F2A44;">
+                            <strong style="color: #071A3D;">
                                 The {site.school_short_name} Admissions Team
                             </strong>
                         </p>
@@ -1011,7 +1011,7 @@ Submitted at: {contact_message.created_at.strftime('%Y-%m-%d %H:%M:%S')}
                 <div style="max-width: 600px; margin: 0 auto;
                             padding: 20px; background-color: #f4f4f4;">
                     <div style="background: linear-gradient(135deg,
-                                #0F2A44 0%, #1D4ED8 100%);
+                                #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
                                 padding: 30px; text-align: center;">
                         <h1 style="color: white; margin: 0;">
                             New Contact Form Submission
@@ -1019,7 +1019,7 @@ Submitted at: {contact_message.created_at.strftime('%Y-%m-%d %H:%M:%S')}
                     </div>
                     <div style="background-color: white;
                                 padding: 30px; margin-top: 20px;">
-                        <h3 style="color: #0F2A44;">
+                        <h3 style="color: #071A3D;">
                             Contact Information
                         </h3>
                         <p>
@@ -1035,12 +1035,12 @@ Submitted at: {contact_message.created_at.strftime('%Y-%m-%d %H:%M:%S')}
                             {contact_message.get_subject_display()}
                         </p>
 
-                        <h3 style="color: #0F2A44; margin-top: 30px;">
+                        <h3 style="color: #071A3D; margin-top: 30px;">
                             Message
                         </h3>
                         <div style="background-color: #f9fafb;
                                     padding: 15px; border-radius: 5px;
-                                    border-left: 3px solid #1D4ED8;">
+                                    border-left: 3px solid #0B5CFF;">
                             <p style="margin: 0; white-space: pre-wrap;">
                                 {contact_message.message}
                             </p>
@@ -1124,7 +1124,7 @@ The {site.school_short_name} Admissions Team
                 <div style="max-width: 600px; margin: 0 auto;
                             padding: 20px; background-color: #f4f4f4;">
                     <div style="background: linear-gradient(135deg,
-                                #0F2A44 0%, #1D4ED8 100%);
+                                #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
                                 padding: 30px; text-align: center;">
                         <h1 style="color: white; margin: 0;">
                             Thank You for Contacting Us!
@@ -1140,10 +1140,10 @@ The {site.school_short_name} Admissions Team
                             We have received your message and our
                             team will review it carefully.
                         </p>
-                        <div style="background-color: #E6F0FF;
+                        <div style="background-color: #EAF6FF;
                                     padding: 20px; border-radius: 8px;
                                     margin: 25px 0;">
-                            <h3 style="color: #0F2A44; margin-top: 0;">
+                            <h3 style="color: #071A3D; margin-top: 0;">
                                 Your Message Summary
                             </h3>
                             <p>
@@ -1153,7 +1153,7 @@ The {site.school_short_name} Admissions Team
                         </div>
                         <p style="font-size: 16px;">
                             Best regards,<br>
-                            <strong style="color: #0F2A44;">
+                            <strong style="color: #071A3D;">
                                 The {site.school_short_name} Admissions Team
                             </strong>
                         </p>
@@ -1270,7 +1270,7 @@ def send_admission_acceptance_email(application):
                 <div style="max-width: 600px; margin: 0 auto;
                             padding: 20px; background-color: #f4f4f4;">
                     <div style="background: linear-gradient(135deg,
-                                #0F2A44 0%, #1D4ED8 100%);
+                                #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
                                 padding: 30px; text-align: center;">
                         <h1 style="color: white; margin: 0;">
                             🎓 Welcome to {site.school_short_name}!
@@ -1318,7 +1318,7 @@ def send_admission_acceptance_email(application):
 
                         <p style="margin-top: 30px;">
                             Welcome aboard!<br>
-                            <strong style="color: #0F2A44;">
+                            <strong style="color: #071A3D;">
                                 The {site.school_short_name} Team
                             </strong>
                         </p>
@@ -1377,7 +1377,7 @@ def send_password_reset_email(request, user):
         <html>
           <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
             <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4;">
-              <div style="background: linear-gradient(135deg, #840384 0%, #a855f7 100%);
+              <div style="background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
                           padding: 30px; text-align: center;">
                 <h1 style="color: white; margin: 0;">🔐 Password Reset</h1>
               </div>
@@ -1392,7 +1392,7 @@ def send_password_reset_email(request, user):
                 <div style="text-align: center; margin: 30px 0;">
                   <a href="{reset_url}"
                      style="display: inline-block; padding: 15px 40px;
-                            background: linear-gradient(135deg, #840384 0%, #a855f7 100%);
+                            background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
                             color: white; text-decoration: none; border-radius: 8px;
                             font-weight: bold; font-size: 16px;">
                     Reset My Password
@@ -1401,7 +1401,7 @@ def send_password_reset_email(request, user):
                 <p style="font-size: 14px; color: #666;">
                   Or copy and paste this link into your browser:
                 </p>
-                <p style="font-size: 13px; color: #1D4ED8; word-break: break-all;">
+                <p style="font-size: 13px; color: #0B5CFF; word-break: break-all;">
                   {reset_url}
                 </p>
                 <p style="font-size: 14px; color: #dc2626; margin-top: 20px;">
@@ -1413,7 +1413,7 @@ def send_password_reset_email(request, user):
                 </p>
                 <p>
                   Best regards,<br>
-                  <strong style="color: #840384;">
+                  <strong style="color: #0B5CFF;">
                     The {site.school_short_name} Team
                   </strong>
                 </p>
@@ -1481,7 +1481,7 @@ def send_application_submitted_email(application):
  
         try:
             applicant_name = ...
-            subject = 'Application Submitted Successfully - MIU'
+            subject = f'Application Submitted Successfully - {site.school_short_name}'
             html_message = f\"\"\"...(long inline HTML)...\"\"\"
             email = EmailMultiAlternatives(subject, ..., [application.email])
             email.attach_alternative(html_message, "text/html")
@@ -1513,13 +1513,13 @@ def send_application_submitted_email(application):
             <style>
                 body      {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
                 .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                .header   {{ background: linear-gradient(135deg, #840384 0%, #6B21A8 100%);
+                .header   {{ background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
                              color: white; padding: 30px; text-align: center;
                              border-radius: 10px 10px 0 0; }}
                 .content  {{ background: #f9fafb; padding: 30px;
                              border-radius: 0 0 10px 10px; }}
-                .info-box {{ background: #DBEAFE; padding: 15px;
-                             border-left: 4px solid #3B82F6;
+                .info-box {{ background: #EAF6FF; padding: 15px;
+                             border-left: 4px solid #0B5CFF;
                              margin: 20px 0; border-radius: 5px; }}
             </style>
         </head>
@@ -1675,7 +1675,7 @@ def send_admission_offer_accepted_email(application):
             <style>
                 body       {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
                 .container  {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                .header    {{ background: linear-gradient(135deg, #840384 0%, #6B21A8 100%);
+                .header    {{ background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
                               color: white; padding: 30px; text-align: center;
                               border-radius: 10px 10px 0 0; }}
                 .content   {{ background: #f9fafb; padding: 30px;
@@ -1814,13 +1814,13 @@ def send_certificate_fee_paid_email(user, certificate):
             <style>
                 body       {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
                 .container  {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                .header    {{ background: linear-gradient(135deg, #840384 0%, #a855f7 100%);
+                .header    {{ background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
                               color: white; padding: 30px; text-align: center;
                               border-radius: 10px 10px 0 0; }}
                 .content   {{ background: #f9fafb; padding: 30px;
                               border-radius: 0 0 10px 10px; }}
                 .btn       {{ display: inline-block; padding: 14px 32px;
-                              background: linear-gradient(135deg, #840384 0%, #a855f7 100%);
+                              background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
                               color: white; text-decoration: none;
                               border-radius: 8px; font-weight: bold; font-size: 15px; }}
             </style>
@@ -1917,7 +1917,7 @@ def send_graduation_confirmed_email(user, application):
             <style>
                 body       {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
                 .container  {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                .header    {{ background: linear-gradient(135deg, #840384 0%, #a855f7 100%);
+                .header    {{ background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
                               color: white; padding: 30px; text-align: center;
                               border-radius: 10px 10px 0 0; }}
                 .content   {{ background: #f9fafb; padding: 30px;
@@ -1926,7 +1926,7 @@ def send_graduation_confirmed_email(user, application):
                               border-left: 4px solid #F59E0B;
                               margin: 20px 0; border-radius: 5px; }}
                 .btn       {{ display: inline-block; padding: 14px 32px;
-                              background: linear-gradient(135deg, #840384 0%, #a855f7 100%);
+                              background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
                               color: white; text-decoration: none;
                               border-radius: 8px; font-weight: bold; font-size: 15px; }}
             </style>
@@ -2040,13 +2040,13 @@ def send_assignment_graded_email(user, submission):
             <style>
                 body       {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
                 .container  {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                .header    {{ background: linear-gradient(135deg, #840384 0%, #a855f7 100%);
+                .header    {{ background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
                               color: white; padding: 30px; text-align: center;
                               border-radius: 10px 10px 0 0; }}
                 .content   {{ background: #f9fafb; padding: 30px;
                               border-radius: 0 0 10px 10px; }}
-                .score-box {{ background: #DBEAFE; padding: 15px;
-                              border-left: 4px solid #3B82F6;
+                .score-box {{ background: #EAF6FF; padding: 15px;
+                              border-left: 4px solid #0B5CFF;
                               margin: 20px 0; border-radius: 5px; }}
             </style>
         </head>
@@ -2141,13 +2141,13 @@ def send_course_enrollment_email(user, course):
             <style>
                 body       {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
                 .container  {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                .header    {{ background: linear-gradient(135deg, #840384 0%, #a855f7 100%);
+                .header    {{ background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
                               color: white; padding: 30px; text-align: center;
                               border-radius: 10px 10px 0 0; }}
                 .content   {{ background: #f9fafb; padding: 30px;
                               border-radius: 0 0 10px 10px; }}
-                .course-box {{ background: #DBEAFE; padding: 15px;
-                              border-left: 4px solid #3B82F6;
+                .course-box {{ background: #EAF6FF; padding: 15px;
+                              border-left: 4px solid #0B5CFF;
                               margin: 20px 0; border-radius: 5px; }}
             </style>
         </head>
@@ -2248,16 +2248,16 @@ def send_new_message_email(recipient, sender, message):
             <style>
                 body       {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
                 .container  {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                .header    {{ background: linear-gradient(135deg, #0F2A44 0%, #1D4ED8 100%);
+                .header    {{ background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
                               color: white; padding: 30px; text-align: center;
                               border-radius: 10px 10px 0 0; }}
                 .content   {{ background: #f9fafb; padding: 30px;
                               border-radius: 0 0 10px 10px; }}
-                .msg-box   {{ background: #f0f4ff; padding: 15px;
-                              border-left: 4px solid #1D4ED8;
+                .msg-box   {{ background: #EAF6FF; padding: 15px;
+                              border-left: 4px solid #0B5CFF;
                               margin: 20px 0; border-radius: 5px; }}
                 .btn       {{ display: inline-block; padding: 12px 28px;
-                              background: linear-gradient(135deg, #0F2A44 0%, #1D4ED8 100%);
+                              background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
                               color: white; text-decoration: none;
                               border-radius: 8px; font-weight: bold; font-size: 14px; }}
             </style>
@@ -2462,17 +2462,17 @@ def send_transcript_generated_email(user, application):
             <style>
                 body       {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
                 .container  {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                .header    {{ background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+                .header    {{ background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
                               color: white; padding: 30px; text-align: center;
                               border-radius: 10px 10px 0 0; }}
                 .content   {{ background: #f9fafb; padding: 30px;
                               border-radius: 0 0 10px 10px; }}
                 .btn       {{ display: inline-block; padding: 12px 28px;
-                              background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+                              background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
                               color: white; text-decoration: none;
                               border-radius: 8px; font-weight: bold; font-size: 14px; margin: 20px 0; }}
-                .info-box  {{ background: #eff6ff; padding: 15px;
-                              border-left: 4px solid #3b82f6;
+                .info-box  {{ background: #EAF6FF; padding: 15px;
+                              border-left: 4px solid #0B5CFF;
                               margin: 20px 0; border-radius: 5px; }}
             </style>
         </head>
@@ -2838,7 +2838,7 @@ def send_admin_created_user_email(request, user, raw_password):
         html_body = f"""
         <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;
                     padding:0;background:#f4f4f4;">
-          <div style="background:linear-gradient(135deg,#840384 0%,#a855f7 100%);
+          <div style="background:linear-gradient(135deg,#071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
                       padding:30px;text-align:center;border-radius:10px 10px 0 0;">
             <h1 style="color:white;margin:0;font-size:24px;">
               Welcome to {school}!
@@ -2856,13 +2856,13 @@ def send_admin_created_user_email(request, user, raw_password):
             <!-- Credentials box -->
             <div style="background:#f5f5f5;border-radius:8px;
                         padding:16px 20px;margin:20px 0;
-                        border-left:4px solid #840384;">
+                        border-left:4px solid #0B5CFF;">
               <p style="margin:4px 0;font-size:15px;">
                 <strong>Username:</strong> {user.username}
               </p>
               <p style="margin:4px 0;font-size:15px;">
                 <strong>Password:</strong>
-                <code style="background:#ede9fe;padding:2px 6px;
+                <code style="background:#EAF6FF;padding:2px 6px;
                              border-radius:4px;">{raw_password}</code>
               </p>
             </div>
@@ -2880,7 +2880,7 @@ def send_admin_created_user_email(request, user, raw_password):
             <div style="text-align:center;margin:28px 0;">
               <a href="{verification_url}"
                  style="display:inline-block;padding:14px 36px;
-                        background:linear-gradient(135deg,#840384 0%,#a855f7 100%);
+                        background:linear-gradient(135deg,#071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
                         color:white;text-decoration:none;
                         border-radius:8px;font-weight:bold;font-size:15px;">
                 Verify My Email Address
@@ -2890,7 +2890,7 @@ def send_admin_created_user_email(request, user, raw_password):
             <p style="font-size:13px;color:#666;">
               Or copy and paste this link:<br>
               <a href="{verification_url}"
-                 style="color:#1D4ED8;word-break:break-all;">
+                 style="color:#0B5CFF;word-break:break-all;">
                 {verification_url}
               </a>
             </p>
@@ -2900,7 +2900,7 @@ def send_admin_created_user_email(request, user, raw_password):
             </p>
             <p>
               Best regards,<br>
-              <strong style="color:#840384;">The {school} Team</strong>
+              <strong style="color:#0B5CFF;">The {school} Team</strong>
             </p>
           </div>
         </div>
@@ -2932,8 +2932,8 @@ def send_otp_email(user, otp_code):
     html_message = f"""
     <div style="font-family: Inter, sans-serif; max-width: 480px; margin: 0 auto; 
                 background: #fff; border-radius: 12px; overflow: hidden; 
-                box-shadow: 0 4px 24px rgba(132,3,132,0.12);">
-        <div style="background: linear-gradient(135deg, #840384 0%, #a855f7 100%); 
+                box-shadow: 0 4px 24px rgba(11,92,255,0.12);">
+        <div style="background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%); 
                     padding: 32px; text-align: center;">
             <h1 style="color: #fff; margin: 0; font-size: 22px; font-weight: 700;">
                 Login Verification
@@ -2944,11 +2944,11 @@ def send_otp_email(user, otp_code):
                 Hi <strong>{user.first_name or user.username}</strong>, use the code below to complete your sign in.
                 It expires in <strong>10 minutes</strong>.
             </p>
-            <div style="background: linear-gradient(135deg, #f5f3ff, #faf5ff);
-                        border: 2px dashed #a855f7; border-radius: 12px;
+            <div style="background: linear-gradient(135deg, #EAF6FF, #D7EAFE);
+                        border: 2px dashed #168BFF; border-radius: 12px;
                         padding: 24px; display: inline-block; margin-bottom: 24px;">
                 <span style="font-size: 40px; font-weight: 800; letter-spacing: 12px; 
-                             color: #840384;">{otp_code}</span>
+                             color: #0B5CFF;">{otp_code}</span>
             </div>
             <p style="color: #6b7280; font-size: 13px;">
                 If you didn't request this, you can safely ignore this email.

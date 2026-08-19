@@ -1224,6 +1224,14 @@
      height: 100%;
    }
 
+   /* Homepage social carousel — cards hold whatever embed code staff pasted
+      in (Instagram/TikTok blockquote+script, YouTube iframe, etc). Platform
+      embed scripts are already responsive to their container; this just
+      guards against them overflowing the fixed-width card. */
+   .social-embed-wrap { width: 100%; }
+   .social-embed-wrap iframe { max-width: 100% !important; }
+   .social-embed-wrap blockquote { margin: 0 !important; max-width: 100% !important; min-width: 0 !important; }
+
 
    /* Staggered entrance-animation delay (used by loading-dot pulses) */
    .delay-150 { animation-delay: 0.15s; }
@@ -1309,6 +1317,14 @@
    details.mobile-accordion > summary { list-style: none; cursor: pointer; }
    details.mobile-accordion > summary::-webkit-details-marker { display: none; }
    details.mobile-accordion[open] .chev { transform: rotate(180deg); }
+
+   /* program_detail.html curriculum accordion — one course per row,
+      click to reveal its scheme of work (Course.description, one bullet
+      per line) and learning outcomes. Same disclosure pattern as
+      .mobile-accordion above. */
+   details.curriculum-row > summary { list-style: none; cursor: pointer; }
+   details.curriculum-row > summary::-webkit-details-marker { display: none; }
+   details.curriculum-row[open] .chev { transform: rotate(180deg); }
 
    .marquee-track {
      animation: marquee 28s linear infinite;
@@ -1494,7 +1510,7 @@
 
 /* Faculty header / accordion toggle */
 .fac-hdr {
-  background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
+  background: #071A3D;
   cursor: pointer;
 }
 .fac-hdr:focus-visible { outline: 2px solid #38BDF8; outline-offset: -2px; }

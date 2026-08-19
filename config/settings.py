@@ -223,8 +223,8 @@ EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
 EMAIL_USE_SSL = config("EMAIL_USE_SSL", default=False, cast=bool)
 EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
-DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="MIU <noreply@miu.edu>")
-CONTACT_EMAIL = config("CONTACT_EMAIL", default="admin@miuedu.com")
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="Abraytech <noreply@abraytech.com>")
+CONTACT_EMAIL = config("CONTACT_EMAIL", default="admin@abraytech.com")
 # All emails in this app are sent synchronously in the request path (a prior
 # attempt to background them via daemon threads caused emails to silently
 # never send in production — Passenger/shared-hosting can recycle the worker

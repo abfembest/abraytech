@@ -1,0 +1,226 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Open Application - Abraytech Admin Portal{% endblock %}
+{% block meta_description %}Manage admission cycles and application windows{% endblock %}
+
+{% block content %}
+<div class="max-w-full">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Open Application</h1>
+      <p class="text-gray-500 mt-1">Open and close application windows for each program's admission cycles</p>
+    </div>
+    {% if permissions.academics.can_create %}
+    <button type="button" id="newIntakeBtn"
+            class="js-open-intake-modal inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium shadow-sm">
+      <i class="fas fa-plus" aria-hidden="true"></i>New Intake
+    </button>
+    {% endif %}
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="p-5 border-b border-gray-100">
+      <h2 class="font-semibold text-gray-800">
+        All Intakes
+        <span class="text-sm font-normal text-gray-400 ml-1">({{ intakes.count }} total)</span>
+      </h2>
+    </div>
+
+    <div class="overflow-x-auto p-5 pt-0">
+      <table id="intakesDataTable" class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wide">
+          <tr>
+            <th class="py-3 px-5 text-left font-semibold">Program</th>
+            <th class="py-3 px-5 text-left font-semibold">Intake</th>
+            <th class="py-3 px-5 text-left font-semibold">Application Window</th>
+            <th class="py-3 px-5 text-left font-semibold">Slots</th>
+            <th class="py-3 px-5 text-left font-semibold">Status</th>
+            <th class="py-3 px-5 text-left font-semibold">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for intake in intakes %}
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="py-4 px-5">
+              <div class="font-medium text-gray-800">{{ intake.program.name }}</div>
+              <div class="text-xs text-gray-400 mt-0.5">{{ intake.program.department.faculty.name }}</div>
+            </td>
+            <td class="py-4 px-5">
+              <span class="font-mono text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">{{ intake.get_intake_period_display }} {{ intake.year }}</span>
+            </td>
+            <td class="py-4 px-5 text-gray-600">
+              {% if intake.application_start_date %}{{ intake.application_start_date|date:'d M Y' }}{% else %}Anytime{% endif %}
+              &rarr; {{ intake.application_deadline|date:'d M Y' }}
+            </td>
+            <td class="py-4 px-5 text-gray-700">
+              {{ intake.remaining_slots }} / {{ intake.available_slots }}
+            </td>
+            <td class="py-4 px-5">
+              {% if not intake.is_active %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>Closed
+              </span>
+              {% elif intake.application_start_date and today < intake.application_start_date %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>Not Open Yet
+              </span>
+              {% elif today > intake.application_deadline %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>Deadline Passed
+              </span>
+              {% elif intake.is_full %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>Full
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Open
+              </span>
+              {% endif %}
+            </td>
+            <td class="py-4 px-5">
+              <div class="flex items-center gap-2">
+                {% if permissions.academics.can_edit %}
+                <button type="button" onclick="intakeModal.openForEdit('{{ intake.pk }}')"
+                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Edit">
+                  <i class="fas fa-edit text-sm" aria-hidden="true"></i>
+                </button>
+                {% endif %}
+                {% if permissions.academics.can_delete %}
+                <button type="button"
+                        onclick="confirmIntakeDelete('{% url 'management:intake_delete' intake.pk %}', '{{ intake|escapejs }}', {{ intake.applications.count }})"
+                        class="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors" title="Delete">
+                  <i class="fas fa-trash-alt text-sm" aria-hidden="true"></i>
+                </button>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr class="empty-row">
+            <td></td><td></td><td></td><td></td><td></td><td></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if not intakes %}
+    <div class="text-center py-6 border-t border-gray-100">
+      {% if permissions.academics.can_create %}
+      <button type="button" class="js-open-intake-modal text-primary-600 hover:underline text-sm cursor-pointer bg-transparent border-none">
+        Add the first intake
+      </button>
+      {% endif %}
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<form id="deleteForm" method="post" action="" style="display:none;">{% csrf_token %}</form>
+
+<!-- New/Edit Intake modal -->
+<div id="intakeCreateModal" class="fixed inset-0 z-50 hidden items-stretch sm:items-center justify-center sm:p-3" style="background: rgba(15,23,42,.55);">
+  <div class="bg-white sm:rounded-xl shadow-2xl w-full sm:max-w-3xl h-full sm:h-auto sm:max-h-[97vh] flex flex-col">
+    <div class="px-4 sm:px-5 py-2.5 border-b border-gray-100 flex items-center justify-between shrink-0">
+      <h2 class="text-base font-semibold text-gray-800 font-display" id="intakeModalTitle">New Intake</h2>
+      <button type="button" id="intakeModalCloseBtn" data-modal-close class="text-gray-400 hover:text-gray-600 p-1 -m-1" aria-label="Close">
+        <i class="fas fa-times text-lg" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="px-4 sm:px-5 py-3 overflow-y-auto overflow-x-hidden flex-1 min-h-0" id="intakeModalBody">
+      <form method="post" action="{% url 'management:intake_create' %}" id="intakeModalForm">
+        {% csrf_token %}
+        {% include 'management/_intake_form_fields.html' %}
+      </form>
+    </div>
+    <div class="px-4 sm:px-5 py-2.5 border-t border-gray-100 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 shrink-0">
+      <button type="button" id="intakeModalCancelBtn" data-modal-close
+              class="w-full sm:w-auto px-5 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-medium">
+        Cancel
+      </button>
+      <button type="submit" form="intakeModalForm" id="intakeModalSubmitBtn"
+              class="w-full sm:w-auto px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium shadow-sm disabled:opacity-60 disabled:cursor-not-allowed">
+        <i class="fas fa-save mr-1.5" aria-hidden="true"></i>
+        <span id="intakeModalSubmitLabel">Create Intake</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmIntakeDelete(url, name, applicationCount) {
+  var impactLines = '';
+  if (applicationCount) {
+    impactLines = '<p class="text-sm mt-3">Cannot be deleted — ' + applicationCount + ' application(s) reference it. Close it instead by editing and unchecking "Active".</p>';
+  }
+  confirmAdminDelete({
+    url: url,
+    title: 'Delete Intake?',
+    html: 'Are you sure you want to delete <strong>' + name + '</strong>? This is permanent and cannot be undone.' + impactLines,
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  try {
+    $('#intakesDataTable').DataTable({
+      pageLength: 10,
+      order: [[1, 'desc']],
+      columns: [null, null, null, null, null, { orderable: false, searchable: false }],
+      dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4"lf>rt<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-4 pt-4 border-t"ip>',
+      language: {
+        search: '_INPUT_',
+        searchPlaceholder: 'Search by program…',
+        lengthMenu: 'Show _MENU_',
+        info: '_START_–_END_ of _TOTAL_',
+        paginate: {
+          previous: '<i class="fas fa-chevron-left"></i>',
+          next: '<i class="fas fa-chevron-right"></i>'
+        },
+        emptyTable: 'No intakes found'
+      },
+      initComplete: function () {
+        var api = this.api();
+        if (api.page.info().recordsTotal === 1) {
+          var firstRow = api.row(0).data();
+          if (firstRow && firstRow[0] === '') {
+            api.clear().draw();
+          }
+        }
+      }
+    });
+  } catch (e) {}
+});
+
+var intakeModal = createAjaxModal({
+  modalId: 'intakeCreateModal',
+  bodyId: 'intakeModalBody',
+  formId: 'intakeModalForm',
+  titleId: 'intakeModalTitle',
+  submitBtnId: 'intakeModalSubmitBtn',
+  submitLabelId: 'intakeModalSubmitLabel',
+  fieldsPartialId: 'intakeFormFieldsPartial',
+  createUrl: '{% url "management:intake_create" %}',
+  editUrlTemplate: '{% url "management:intake_edit" 0 %}',
+  createTitle: 'New Intake',
+  createLabel: 'Create Intake',
+  editTitle: 'Edit Intake',
+  editLabel: 'Save Changes',
+});
+
+document.querySelectorAll('.js-open-intake-modal').forEach(function (trigger) {
+  trigger.addEventListener('click', function (e) {
+    e.preventDefault();
+    intakeModal.openForCreate();
+  });
+});
+</script>
+{% endblock %}

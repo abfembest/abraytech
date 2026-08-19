@@ -16,6 +16,7 @@ from apps.eduweb.models import (
     Course,
     CourseApplication,
     CourseCategory,
+    CourseIntake,
     Department,
     Enrollment,
     Faculty,
@@ -29,6 +30,7 @@ from apps.eduweb.models import (
     Review,
     SiteConfig,
     SiteHistoryMilestone,
+    SocialPost,
     StaffPayroll,
     StudentBadge,
     SystemConfiguration,
@@ -1071,6 +1073,23 @@ class TestimonialForm(forms.ModelForm):
         return _validate_upload(self.cleaned_data.get('avatar'), IMAGE_EXTENSIONS)
 
 
+class SocialPostForm(forms.ModelForm):
+    """No platform field on purpose — paste the embed code from Instagram/
+    TikTok/YouTube's own "Embed" option and it just shows on the homepage
+    carousel, nothing to pick."""
+    class Meta:
+        model = SocialPost
+        fields = ['embed_code', 'caption', 'order', 'is_active']
+        widgets = {
+            'embed_code': forms.Textarea(attrs={
+                **_SC_T, 'rows': 6, 'class': _SC_T['class'] + ' font-mono text-xs',
+                'placeholder': 'Paste the full embed/iframe code from Instagram, TikTok, YouTube, etc.',
+            }),
+            'caption': forms.TextInput(attrs={**_SC_I, 'placeholder': 'Optional short caption shown under the embed'}),
+            'order': forms.NumberInput(attrs={**_SC_I, 'min': '0'}),
+        }
+
+
 class InstitutionMemberForm(forms.ModelForm):
     class Meta:
         model = InstitutionMember
@@ -1609,6 +1628,40 @@ class ProgramForm(forms.ModelForm):
         if commit:
             program.save()
         return program
+
+
+_FIELD_CLASS = 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm'
+
+
+class CourseIntakeForm(forms.ModelForm):
+    """The actual on/off switch for a program's applications — see
+    Program.get_current_intake() and eduweb.views._resolve_intake_eligibility()."""
+
+    class Meta:
+        model = CourseIntake
+        fields = [
+            'program', 'intake_period', 'year', 'is_active',
+            'application_start_date', 'application_deadline', 'start_date',
+            'available_slots', 'application_fee',
+        ]
+        widgets = {
+            'program': forms.Select(attrs={'class': _FIELD_CLASS}),
+            'intake_period': forms.Select(attrs={'class': _FIELD_CLASS}),
+            'year': forms.NumberInput(attrs={'class': _FIELD_CLASS, 'min': '2000', 'placeholder': '2026'}),
+            'application_start_date': forms.DateInput(attrs={'class': _FIELD_CLASS, 'type': 'date'}),
+            'application_deadline': forms.DateInput(attrs={'class': _FIELD_CLASS, 'type': 'date'}),
+            'start_date': forms.DateInput(attrs={'class': _FIELD_CLASS, 'type': 'date'}),
+            'available_slots': forms.NumberInput(attrs={'class': _FIELD_CLASS, 'min': '1'}),
+            'application_fee': forms.NumberInput(attrs={'class': _FIELD_CLASS, 'step': '0.01', 'min': '0'}),
+        }
+
+    def clean(self):
+        cleaned = super().clean()
+        start = cleaned.get('application_start_date')
+        deadline = cleaned.get('application_deadline')
+        if start and deadline and start > deadline:
+            raise ValidationError('Application start date must be on or before the application deadline.')
+        return cleaned
 
 
 class AnnouncementForm(forms.ModelForm):

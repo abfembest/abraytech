@@ -136,102 +136,92 @@
                      and centered regardless of viewport width. -->
                 <nav class="hidden xl:flex items-center justify-center gap-2" aria-label="Primary">
 
-                    <a href="{% url 'eduweb:index' %}" class="nav-link px-4 py-2.5 rounded-full text-nav font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors">Home</a>
+                    <a href="{% url 'eduweb:index' %}" {% if nav_active == 'home' %}aria-current="page"{% endif %} class="nav-link px-4 py-2.5 rounded-full text-nav font-semibold transition-colors {% if nav_active == 'home' %}bg-soft text-brandblue{% else %}text-slate-700 hover:bg-soft hover:text-brandblue{% endif %}">Home</a>
 
-                    <a href="{% url 'eduweb:about' %}" class="nav-link px-4 py-2.5 rounded-full text-nav font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors">About</a>
+                    <a href="{% url 'eduweb:about' %}" {% if nav_active == 'about' %}aria-current="page"{% endif %} class="nav-link px-4 py-2.5 rounded-full text-nav font-semibold transition-colors {% if nav_active == 'about' %}bg-soft text-brandblue{% else %}text-slate-700 hover:bg-soft hover:text-brandblue{% endif %}">About</a>
 
                     <!-- Services mega menu — anchored left-0 (opens rightward from
                          the first nav item) so it never gets clipped by the left
                          OR right viewport edge the way center-anchoring could. -->
                     <div class="relative">
-                        <button id="servicesBtn" class="nav-link flex items-center gap-1.5 px-4 py-2.5 rounded-full text-nav font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors" aria-haspopup="true" aria-expanded="false" aria-controls="servicesPanel">
+                        <button id="servicesBtn" class="nav-link flex items-center gap-1.5 px-4 py-2.5 rounded-full text-nav font-semibold transition-colors {% if nav_active == 'services' %}bg-soft text-brandblue{% else %}text-slate-700 hover:bg-soft hover:text-brandblue{% endif %}" aria-haspopup="true" aria-expanded="false" aria-controls="servicesPanel" {% if nav_active == 'services' %}aria-current="page"{% endif %}>
                             Services <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
                         </button>
-                        <div id="servicesPanel" class="dropdown-panel absolute left-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-brand border border-borderblue p-3" role="menu">
-                            {% for service in nav_services %}
-                            <a href="{% url 'eduweb:service_detail' service.slug %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">
-                                <i data-lucide="{{ service.icon }}" class="w-4 h-4 text-brandblue shrink-0"></i>
-                                {{ service.title }}
-                            </a>
-                            {% empty %}
-                            <p class="px-3 py-2 text-sm text-slate-500">Service listings coming soon</p>
-                            {% endfor %}
+                        <div id="servicesPanel" class="dropdown-panel absolute left-0 top-full mt-2 w-max max-w-[92vw] bg-white rounded-2xl shadow-brand border border-borderblue p-3" role="menu">
+                            <div class="grid grid-cols-2 gap-1">
+                                {% for service in nav_services %}
+                                <a href="{% url 'eduweb:service_detail' service.slug %}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">
+                                    <i data-lucide="{{ service.icon }}" class="w-4 h-4 text-brandblue shrink-0"></i>
+                                    <span class="whitespace-nowrap">{{ service.title }}</span>
+                                </a>
+                                {% empty %}
+                                <p class="col-span-2 px-3 py-2 text-sm text-slate-500">Service listings coming soon</p>
+                                {% endfor %}
+                            </div>
                             <a href="{% url 'eduweb:services_list' %}" class="block px-3 py-2 mt-1 rounded-lg text-sm font-semibold text-brandblue hover:bg-soft" role="menuitem">View all services →</a>
                         </div>
                     </div>
 
-                    <!-- Solutions -->
-                    <div class="relative">
-                        <button id="solutionsBtn" class="nav-link flex items-center gap-1.5 px-4 py-2.5 rounded-full text-nav font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors" aria-haspopup="true" aria-expanded="false" aria-controls="solutionsPanel">
-                            Solutions <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
-                        </button>
-                        <div id="solutionsPanel" class="dropdown-panel absolute left-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-brand border border-borderblue p-3" role="menu">
-                            {% for solution in nav_solutions %}
-                            <a href="{% url 'eduweb:solution_detail' solution.slug %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">
-                                <i data-lucide="{{ solution.icon }}" class="w-4 h-4 text-brandblue shrink-0"></i>
-                                {{ solution.title }}
-                            </a>
-                            {% empty %}
-                            <p class="px-3 py-2 text-sm text-slate-500">Solutions coming soon</p>
-                            {% endfor %}
-                            <a href="{% url 'eduweb:solutions_list' %}" class="block px-3 py-2 mt-1 rounded-lg text-sm font-semibold text-brandblue hover:bg-soft" role="menuitem">View all solutions →</a>
-                        </div>
-                    </div>
+                    <a href="{% url 'eduweb:projects_list' %}" {% if nav_active == 'projects' %}aria-current="page"{% endif %} class="nav-link px-4 py-2.5 rounded-full text-nav font-semibold transition-colors {% if nav_active == 'projects' %}bg-soft text-brandblue{% else %}text-slate-700 hover:bg-soft hover:text-brandblue{% endif %}">Projects</a>
 
-                    <a href="{% url 'eduweb:projects_list' %}" class="nav-link px-4 py-2.5 rounded-full text-nav font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors">Projects</a>
-
-                    <!-- Training (real Faculty/Program catalog) -->
+                    <!-- Tech Skills (real Faculty/Program catalog) -->
                     <div class="relative">
-                        <button id="trainingBtn" class="nav-link flex items-center gap-1.5 px-4 py-2.5 rounded-full text-nav font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors" aria-haspopup="true" aria-expanded="false" aria-controls="trainingPanel">
-                            Training <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+                        <button id="trainingBtn" class="nav-link flex items-center gap-1.5 px-4 py-2.5 rounded-full text-nav font-semibold transition-colors {% if nav_active == 'tech_skills' %}bg-soft text-brandblue{% else %}text-slate-700 hover:bg-soft hover:text-brandblue{% endif %}" aria-haspopup="true" aria-expanded="false" aria-controls="trainingPanel" {% if nav_active == 'tech_skills' %}aria-current="page"{% endif %}>
+                            Tech Skills <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
                         </button>
-                        <div id="trainingPanel" class="dropdown-panel absolute left-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-brand border border-borderblue p-3" role="menu">
-                            {% for faculty in all_faculties %}
-                            <a href="{% url 'eduweb:faculty_detail' faculty.slug %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">
-                                <i data-lucide="{{ faculty.icon }}" class="w-4 h-4 text-brandblue shrink-0"></i>
-                                {{ faculty.name }}
-                            </a>
-                            {% empty %}
-                            <p class="px-3 py-2 text-sm text-slate-500">Training tracks coming soon</p>
-                            {% endfor %}
+                        <div id="trainingPanel" class="dropdown-panel absolute left-0 top-full mt-2 w-max max-w-[92vw] bg-white rounded-2xl shadow-brand border border-borderblue p-3" role="menu">
+                            <div class="grid grid-cols-2 gap-1">
+                                {% for faculty in all_faculties %}
+                                <a href="{% url 'eduweb:faculty_detail' faculty.slug %}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">
+                                    <i data-lucide="{{ faculty.icon }}" class="w-4 h-4 text-brandblue shrink-0"></i>
+                                    <span class="whitespace-nowrap">{{ faculty.name }}</span>
+                                </a>
+                                {% empty %}
+                                <p class="col-span-2 px-3 py-2 text-sm text-slate-500">Training tracks coming soon</p>
+                                {% endfor %}
+                            </div>
                             <a href="{% url 'eduweb:all_programs' %}" class="block px-3 py-2 mt-1 rounded-lg text-sm font-semibold text-brandblue hover:bg-soft" role="menuitem">View all training →</a>
                         </div>
                     </div>
 
-                    <a href="{% url 'eduweb:blog' %}" class="nav-link px-4 py-2.5 rounded-full text-nav font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors">Blog</a>
+                    <a href="{% url 'eduweb:blog' %}" {% if nav_active == 'blog' %}aria-current="page"{% endif %} class="nav-link px-4 py-2.5 rounded-full text-nav font-semibold transition-colors {% if nav_active == 'blog' %}bg-soft text-brandblue{% else %}text-slate-700 hover:bg-soft hover:text-brandblue{% endif %}">Blog</a>
 
                     <!-- Resources — catch-all for everything secondary: Industries,
                          Store, FAQ, Team, Careers. Anchored right-0 (opens
                          leftward) since it's the last item, closest to the right
                          viewport edge. -->
                     <div class="relative">
-                        <button id="resourcesBtn" class="nav-link flex items-center gap-1.5 px-4 py-2.5 rounded-full text-nav font-semibold text-slate-700 hover:bg-soft hover:text-brandblue transition-colors" aria-haspopup="true" aria-expanded="false" aria-controls="resourcesPanel">
+                        <button id="resourcesBtn" class="nav-link flex items-center gap-1.5 px-4 py-2.5 rounded-full text-nav font-semibold transition-colors {% if nav_active == 'resources' %}bg-soft text-brandblue{% else %}text-slate-700 hover:bg-soft hover:text-brandblue{% endif %}" aria-haspopup="true" aria-expanded="false" aria-controls="resourcesPanel" {% if nav_active == 'resources' %}aria-current="page"{% endif %}>
                             Resources <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
                         </button>
-                        <div id="resourcesPanel" class="dropdown-panel absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-brand border border-borderblue p-3" role="menu">
+                        <div id="resourcesPanel" class="dropdown-panel absolute right-0 top-full mt-2 w-max max-w-[92vw] bg-white rounded-2xl shadow-brand border border-borderblue p-3" role="menu">
                             <span class="block px-3 pt-1 pb-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">Industries</span>
-                            {% for industry in nav_industries %}
-                            <a href="{% url 'eduweb:industry_detail' industry.slug %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">
-                                <i data-lucide="{{ industry.icon }}" class="w-4 h-4 text-brandblue shrink-0"></i>
-                                {{ industry.title }}
-                            </a>
-                            {% empty %}
-                            <p class="px-3 py-2 text-sm text-slate-500">Industries coming soon</p>
-                            {% endfor %}
+                            <div class="grid grid-cols-2 gap-1">
+                                {% for industry in nav_industries %}
+                                <a href="{% url 'eduweb:industry_detail' industry.slug %}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">
+                                    <i data-lucide="{{ industry.icon }}" class="w-4 h-4 text-brandblue shrink-0"></i>
+                                    <span class="whitespace-nowrap">{{ industry.title }}</span>
+                                </a>
+                                {% empty %}
+                                <p class="col-span-2 px-3 py-2 text-sm text-slate-500">Industries coming soon</p>
+                                {% endfor %}
+                            </div>
                             <a href="{% url 'eduweb:industries_list' %}" class="block px-3 py-2 mb-1 rounded-lg text-sm font-semibold text-brandblue hover:bg-soft" role="menuitem">View all industries →</a>
                             <div class="border-t border-borderblue my-1"></div>
-                            <a href="{% url 'eduweb:store_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">
-                                <i data-lucide="shopping-bag" class="w-4 h-4 text-brandblue shrink-0"></i> Store
-                            </a>
-                            <a href="{% url 'eduweb:faq' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">
-                                <i data-lucide="help-circle" class="w-4 h-4 text-brandblue shrink-0"></i> FAQ
-                            </a>
-                            <a href="{% url 'eduweb:team' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">
-                                <i data-lucide="users" class="w-4 h-4 text-brandblue shrink-0"></i> Our Team
-                            </a>
-                            <a href="{% url 'eduweb:careers' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">
-                                <i data-lucide="briefcase" class="w-4 h-4 text-brandblue shrink-0"></i> Careers
-                            </a>
+                            <div class="grid grid-cols-2 gap-1">
+                                <a href="{% url 'eduweb:store_list' %}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue whitespace-nowrap" role="menuitem">
+                                    <i data-lucide="shopping-bag" class="w-4 h-4 text-brandblue shrink-0"></i> Store
+                                </a>
+                                <a href="{% url 'eduweb:faq' %}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue whitespace-nowrap" role="menuitem">
+                                    <i data-lucide="help-circle" class="w-4 h-4 text-brandblue shrink-0"></i> FAQ
+                                </a>
+                                <a href="{% url 'eduweb:team' %}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue whitespace-nowrap" role="menuitem">
+                                    <i data-lucide="users" class="w-4 h-4 text-brandblue shrink-0"></i> Our Team
+                                </a>
+                                <a href="{% url 'eduweb:careers' %}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue whitespace-nowrap" role="menuitem">
+                                    <i data-lucide="briefcase" class="w-4 h-4 text-brandblue shrink-0"></i> Careers
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </nav>
@@ -279,10 +269,10 @@
             </button>
         </div>
         <nav class="p-5 space-y-1 text-sm" aria-label="Mobile primary">
-            <a href="{% url 'eduweb:index' %}" class="block py-3 font-semibold text-navy border-b border-borderblue">Home</a>
-            <a href="{% url 'eduweb:about' %}" class="block py-3 font-semibold text-navy border-b border-borderblue">About</a>
+            <a href="{% url 'eduweb:index' %}" {% if nav_active == 'home' %}aria-current="page"{% endif %} class="block py-3 font-semibold border-b border-borderblue {% if nav_active == 'home' %}text-brandblue{% else %}text-navy{% endif %}">Home</a>
+            <a href="{% url 'eduweb:about' %}" {% if nav_active == 'about' %}aria-current="page"{% endif %} class="block py-3 font-semibold border-b border-borderblue {% if nav_active == 'about' %}text-brandblue{% else %}text-navy{% endif %}">About</a>
             <details class="mobile-accordion border-b border-borderblue py-1">
-                <summary class="flex items-center justify-between py-2 font-semibold text-navy">Services <i data-lucide="chevron-down" class="chev w-3.5 h-3.5 transition-transform"></i></summary>
+                <summary class="flex items-center justify-between py-2 font-semibold {% if nav_active == 'services' %}text-brandblue{% else %}text-navy{% endif %}">Services <i data-lucide="chevron-down" class="chev w-3.5 h-3.5 transition-transform"></i></summary>
                 <div class="pl-3 pb-2 space-y-1 text-slate-600">
                     {% for service in nav_services %}
                     <a href="{% url 'eduweb:service_detail' service.slug %}" class="block py-1.5">{{ service.title }}</a>
@@ -292,20 +282,9 @@
                     <a href="{% url 'eduweb:services_list' %}" class="block py-1.5 font-semibold text-brandblue">View all services →</a>
                 </div>
             </details>
+            <a href="{% url 'eduweb:projects_list' %}" {% if nav_active == 'projects' %}aria-current="page"{% endif %} class="block py-3 font-semibold border-b border-borderblue {% if nav_active == 'projects' %}text-brandblue{% else %}text-navy{% endif %}">Projects</a>
             <details class="mobile-accordion border-b border-borderblue py-1">
-                <summary class="flex items-center justify-between py-2 font-semibold text-navy">Solutions <i data-lucide="chevron-down" class="chev w-3.5 h-3.5 transition-transform"></i></summary>
-                <div class="pl-3 pb-2 space-y-1 text-slate-600">
-                    {% for solution in nav_solutions %}
-                    <a href="{% url 'eduweb:solution_detail' solution.slug %}" class="block py-1.5">{{ solution.title }}</a>
-                    {% empty %}
-                    <p class="py-1.5 text-slate-400">Coming soon</p>
-                    {% endfor %}
-                    <a href="{% url 'eduweb:solutions_list' %}" class="block py-1.5 font-semibold text-brandblue">View all solutions →</a>
-                </div>
-            </details>
-            <a href="{% url 'eduweb:projects_list' %}" class="block py-3 font-semibold text-navy border-b border-borderblue">Projects</a>
-            <details class="mobile-accordion border-b border-borderblue py-1">
-                <summary class="flex items-center justify-between py-2 font-semibold text-navy">Training <i data-lucide="chevron-down" class="chev w-3.5 h-3.5 transition-transform"></i></summary>
+                <summary class="flex items-center justify-between py-2 font-semibold {% if nav_active == 'tech_skills' %}text-brandblue{% else %}text-navy{% endif %}">Tech Skills <i data-lucide="chevron-down" class="chev w-3.5 h-3.5 transition-transform"></i></summary>
                 <div class="pl-3 pb-2 space-y-1 text-slate-600">
                     {% for faculty in all_faculties %}
                     <a href="{% url 'eduweb:faculty_detail' faculty.slug %}" class="block py-1.5">{{ faculty.name }}</a>
@@ -315,9 +294,9 @@
                     <a href="{% url 'eduweb:all_programs' %}" class="block py-1.5 font-semibold text-brandblue">View all training →</a>
                 </div>
             </details>
-            <a href="{% url 'eduweb:blog' %}" class="block py-3 font-semibold text-navy border-b border-borderblue">Blog</a>
+            <a href="{% url 'eduweb:blog' %}" {% if nav_active == 'blog' %}aria-current="page"{% endif %} class="block py-3 font-semibold border-b border-borderblue {% if nav_active == 'blog' %}text-brandblue{% else %}text-navy{% endif %}">Blog</a>
             <details class="mobile-accordion border-b border-borderblue py-1">
-                <summary class="flex items-center justify-between py-2 font-semibold text-navy">Resources <i data-lucide="chevron-down" class="chev w-3.5 h-3.5 transition-transform"></i></summary>
+                <summary class="flex items-center justify-between py-2 font-semibold {% if nav_active == 'resources' %}text-brandblue{% else %}text-navy{% endif %}">Resources <i data-lucide="chevron-down" class="chev w-3.5 h-3.5 transition-transform"></i></summary>
                 <div class="pl-3 pb-2 space-y-1 text-slate-600">
                     <span class="block pt-1 pb-0.5 text-xs font-semibold uppercase tracking-wider text-slate-400">Industries</span>
                     {% for industry in nav_industries %}
@@ -426,9 +405,8 @@
                 <div>
                     <h4 class="text-white font-semibold text-sm">Ecosystem</h4>
                     <ul class="mt-4 space-y-2 text-sm">
-                        <li><a href="{% url 'eduweb:solutions_list' %}" class="hover:text-white transition-colors">Solutions</a></li>
                         <li><a href="{% url 'eduweb:industries_list' %}" class="hover:text-white transition-colors">Industries</a></li>
-                        <li><a href="{% url 'eduweb:all_programs' %}" class="hover:text-white transition-colors">Training</a></li>
+                        <li><a href="{% url 'eduweb:all_programs' %}" class="hover:text-white transition-colors">Tech Skills</a></li>
                         <li><a href="{% url 'eduweb:store_list' %}" class="hover:text-white transition-colors">Store</a></li>
                         <li><a href="{% url 'eduweb:consultation_booking' %}" class="hover:text-white transition-colors">Consultation</a></li>
                         <li><a href="{% url 'eduweb:projects_list' %}" class="hover:text-white transition-colors">Projects</a></li>

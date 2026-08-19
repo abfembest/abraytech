@@ -6,7 +6,7 @@ from .models import (
     Announcement, Assignment, AssignmentSubmission, AuditLog,
     Badge, StudentBadge, BlogCategory, BlogPost,
     Certificate, ContactMessage,
-    Course, CourseApplication, ApplicationDocument, ApplicationPayment,
+    Course, CourseApplication, CourseIntake, ApplicationDocument, ApplicationPayment,
     CourseCategory, Discussion, DiscussionReply,
     Department, Program, AllRequiredPayments,
     Enrollment, Faculty, InstitutionMember, Invoice, Lesson, LessonSection, LessonProgress,
@@ -15,7 +15,7 @@ from .models import (
     Review, SiteConfig, SiteHistoryMilestone, SubscriptionPlan, Subscription, SupportTicket, TicketReply,
     StaffPayroll, StudyGroup, StudyGroupMember, StudyGroupMessage,
     SystemConfiguration, UserProfile, Vendor, BroadcastMessage, ListOfCountry, Testimonial, FeePayment, Exam, ExamQuestion, ExamStatusLog, StudentExamResponse,
-    Service, Solution, Industry, Project, Product, JobListing, ConsultationRequest, NewsletterSubscriber,
+    Service, Industry, SocialPost, Project, Product, JobListing, ConsultationRequest, NewsletterSubscriber,
 )
 
 
@@ -196,17 +196,6 @@ class ServiceAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('title',)}
 
 
-# ==================== SOLUTIONS ====================
-@admin.register(Solution)
-class SolutionAdmin(admin.ModelAdmin):
-    list_display  = ('title', 'icon', 'order', 'is_active')
-    list_filter   = ('is_active',)
-    search_fields = ('title', 'summary', 'description')
-    list_editable = ('order', 'is_active')
-    prepopulated_fields = {'slug': ('title',)}
-    filter_horizontal = ('related_services',)
-
-
 # ==================== INDUSTRIES ====================
 @admin.register(Industry)
 class IndustryAdmin(admin.ModelAdmin):
@@ -215,6 +204,15 @@ class IndustryAdmin(admin.ModelAdmin):
     search_fields = ('title', 'summary', 'description')
     list_editable = ('order', 'is_active')
     prepopulated_fields = {'slug': ('title',)}
+
+
+# ==================== SOCIAL POSTS (homepage carousel) ====================
+@admin.register(SocialPost)
+class SocialPostAdmin(admin.ModelAdmin):
+    list_display  = ('__str__', 'order', 'is_active')
+    list_filter   = ('is_active',)
+    search_fields = ('caption', 'embed_code')
+    list_editable = ('order', 'is_active')
 
 
 # ==================== PROJECTS / PORTFOLIO ====================
@@ -839,6 +837,39 @@ class ProgramAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+
+@admin.register(CourseIntake)
+class CourseIntakeAdmin(admin.ModelAdmin):
+    """Controls when applications open/close for a program — the actual
+    on/off switch for admissions. See Program.get_current_intake() and
+    eduweb.views._resolve_intake_eligibility()."""
+    list_display = (
+        'program', 'intake_period', 'year', 'application_start_date',
+        'application_deadline', 'available_slots', 'remaining_slots_display',
+        'is_active',
+    )
+    list_filter = ('is_active', 'intake_period', 'year', 'program__department__faculty')
+    search_fields = ('program__name', 'program__code')
+    list_editable = ('is_active',)
+    autocomplete_fields = ('program',)
+
+    fieldsets = (
+        ('Program & Period', {
+            'fields': ('program', 'intake_period', 'year', 'is_active')
+        }),
+        ('Application Window', {
+            'fields': ('application_start_date', 'application_deadline', 'start_date'),
+            'description': 'Applications are open when today is on/after the start date (if set) and on/before the deadline.'
+        }),
+        ('Capacity & Fee', {
+            'fields': ('available_slots', 'application_fee')
+        }),
+    )
+
+    def remaining_slots_display(self, obj):
+        return f"{obj.remaining_slots} / {obj.available_slots}"
+    remaining_slots_display.short_description = 'Remaining Slots'
 
 
 @admin.register(Course)
