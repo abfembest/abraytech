@@ -32,8 +32,7 @@ urlpatterns = [
 
     path('verify-otp/', views.otp_verify, name='otp_verify'),
 
-    # Faculty Pages
-    path('faculty/<slug:slug>/', views.faculty_detail, name='faculty_detail'),
+    # Program Pages
     path('program/<slug:slug>/', views.program_detail, name='program_detail'),
 
     # Additional Pages

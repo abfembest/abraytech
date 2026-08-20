@@ -1,0 +1,79 @@
+{% load static %}
+<div id="productFormFieldsPartial">
+
+  {% if form.non_field_errors %}
+  <div class="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 mb-3">
+    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div class="px-4 py-2 bg-gray-50 border-b border-gray-100">
+      <h2 class="font-semibold text-gray-800 text-sm"><i class="fas fa-box text-primary-500 mr-2" aria-hidden="true"></i>Product</h2>
+    </div>
+    <div class="p-3 space-y-3">
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Title <span class="text-red-500">*</span></label>
+        {{ form.title }}
+        {% if form.title.errors %}<p class="text-xs text-red-500 mt-1">{{ form.title.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Summary <span class="text-red-500">*</span></label>
+        {{ form.summary }}
+        {% if form.summary.errors %}<p class="text-xs text-red-500 mt-1">{{ form.summary.errors.0 }}</p>{% endif %}
+        <p class="text-xs text-gray-400 mt-1">Short line shown on the Store and homepage cards.</p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Description <span class="text-gray-400 font-normal">(optional)</span></label>
+        {{ form.description }}
+        {% if form.description.errors %}<p class="text-xs text-red-500 mt-1">{{ form.description.errors.0 }}</p>{% endif %}
+        <p class="text-xs text-gray-400 mt-1">Shown on the product's own detail page.</p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Image <span class="text-gray-400 font-normal">(optional)</span></label>
+        {% if product and product.image %}
+        <div class="mb-2">
+          <img src="{{ product.image.url }}" alt="{{ product.title }}" class="h-20 w-20 object-cover rounded-lg border border-gray-200">
+        </div>
+        {% endif %}
+        {{ form.image }}
+        {% if form.image.errors %}<p class="text-xs text-red-500 mt-1">{{ form.image.errors.0 }}</p>{% endif %}
+      </div>
+
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mt-3">
+    <div class="px-4 py-2 bg-gray-50 border-b border-gray-100">
+      <h2 class="font-semibold text-gray-800 text-sm"><i class="fas fa-tag text-primary-500 mr-2" aria-hidden="true"></i>Pricing &amp; Display</h2>
+    </div>
+    <div class="p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Price <span class="text-gray-400 font-normal">(optional)</span></label>
+        {{ form.price }}
+        {% if form.price.errors %}<p class="text-xs text-red-500 mt-1">{{ form.price.errors.0 }}</p>{% endif %}
+        <p class="text-xs text-gray-400 mt-1">Blank shows "Contact for pricing"</p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+        {{ form.currency }}
+        {% if form.currency.errors %}<p class="text-xs text-red-500 mt-1">{{ form.currency.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div class="flex items-center pb-1 sm:col-span-2">
+        <label class="flex items-center gap-2 cursor-pointer">
+          {{ form.is_active }}
+          <span class="text-sm font-medium text-gray-700">Active</span>
+        </label>
+      </div>
+
+    </div>
+  </div>
+
+</div>

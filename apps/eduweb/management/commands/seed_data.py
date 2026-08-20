@@ -251,9 +251,9 @@ class Command(BaseCommand):
             ("Abraytech Onboarding Playbook", "Our internal engineering onboarding playbook, packaged for other teams.", Decimal("99.00")),
             ("Abraytech API Style Guide", "The REST API design standards we use on every client project.", None),
         ]
-        for order, (title, summary, price) in enumerate(products_data, start=1):
+        for title, summary, price in products_data:
             Product.objects.update_or_create(
-                title=title, defaults={"summary": summary, "price": price, "order": order, "is_active": True},
+                title=title, defaults={"summary": summary, "price": price, "is_active": True},
             )
         self.stdout.write(f"Seeded {len(products_data)} Product rows.")
 

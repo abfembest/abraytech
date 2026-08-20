@@ -26,6 +26,7 @@ from apps.eduweb.models import (
     LMSCourse,
     LibraryItem,
     PaymentGateway,
+    Product,
     Program,
     Review,
     SiteConfig,
@@ -1088,6 +1089,22 @@ class SocialPostForm(forms.ModelForm):
             'caption': forms.TextInput(attrs={**_SC_I, 'placeholder': 'Optional short caption shown under the embed'}),
             'order': forms.NumberInput(attrs={**_SC_I, 'min': '0'}),
         }
+
+
+class ProductForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = ['title', 'summary', 'description', 'image', 'price', 'currency', 'is_active']
+        widgets = {
+            'title':       forms.TextInput(attrs=_SC_I),
+            'summary':     forms.Textarea(attrs={**_SC_T, 'rows': 2, 'placeholder': 'Short one-line summary shown on cards'}),
+            'description': forms.Textarea(attrs={**_SC_T, 'rows': 5}),
+            'price':       forms.NumberInput(attrs={**_SC_I, 'step': '0.01', 'min': '0', 'placeholder': "Leave blank for 'Contact for pricing'"}),
+            'currency':    forms.TextInput(attrs={**_SC_I, 'placeholder': 'USD', 'maxlength': '3'}),
+        }
+
+    def clean_image(self):
+        return _validate_upload(self.cleaned_data.get('image'), IMAGE_EXTENSIONS)
 
 
 class InstitutionMemberForm(forms.ModelForm):

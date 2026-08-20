@@ -1,0 +1,229 @@
+{% extends 'management/base.html' %}
+{% load static %}
+{% block title %}Store Products — Abraytech Admin{% endblock %}
+{% block content %}
+<div class="max-w-full">
+
+  {# ── Breadcrumb ── #}
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+    <span class="text-gray-400">Site Content</span>
+    <i class="fas fa-chevron-right text-xs"></i>
+    <span class="text-gray-800 font-medium">Store Products</span>
+  </nav>
+
+  {# ── Page header ── #}
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Store Products</h1>
+      <p class="text-gray-500 mt-1 text-sm">Products and tools shown in the public Store and the homepage "From the Store" section.</p>
+    </div>
+    {% if permissions.site_content.can_create %}
+    <button type="button" id="newProductBtn" class="js-open-product-modal inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium shadow-sm flex-shrink-0 transition-colors">
+      <i class="fas fa-plus"></i> Add Product
+    </button>
+    {% endif %}
+  </div>
+
+  {# ── Stats strip ── #}
+  <div class="grid grid-cols-2 gap-4 mb-8">
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="text-2xl font-bold text-primary-600">{{ products|length }}</div>
+      <div class="text-xs text-gray-500 mt-0.5">Total Products</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="text-2xl font-bold text-green-600">{{ active_count }}</div>
+      <div class="text-xs text-gray-500 mt-0.5">Visible in Store</div>
+    </div>
+  </div>
+
+  {# ── Products table ── #}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="overflow-x-auto p-5">
+      <table id="productsDataTable" class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wide">
+          <tr>
+            <th class="py-3 px-4 text-left font-semibold">Image</th>
+            <th class="py-3 px-4 text-left font-semibold">Title</th>
+            <th class="py-3 px-4 text-left font-semibold">Summary</th>
+            <th class="py-3 px-4 text-left font-semibold">Price</th>
+            <th class="py-3 px-4 text-left font-semibold">Status</th>
+            <th class="py-3 px-4 text-left font-semibold">Added</th>
+            <th class="py-3 px-4 text-left font-semibold">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for product in products %}
+          <tr class="hover:bg-gray-50 transition-colors">
+
+            <td class="py-3 px-4">
+              <div class="w-12 h-12 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.title }}" class="w-full h-full object-cover">
+                {% else %}
+                <i class="fas fa-box text-primary-500"></i>
+                {% endif %}
+              </div>
+            </td>
+
+            <td class="py-3 px-4 font-medium text-gray-800">{{ product.title }}</td>
+
+            <td class="py-3 px-4 text-gray-500 max-w-xs truncate" title="{{ product.summary }}">{{ product.summary }}</td>
+
+            <td class="py-3 px-4 text-gray-700 font-medium whitespace-nowrap">
+              {% if product.price %}{{ product.currency }} {{ product.price|floatformat:"0" }}{% else %}Contact for pricing{% endif %}
+            </td>
+
+            <td class="py-3 px-4">
+              {% if product.is_active %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Active
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>Hidden
+              </span>
+              {% endif %}
+            </td>
+
+            <td class="py-3 px-4 text-gray-500 whitespace-nowrap" data-order="{{ product.created_at|date:'U' }}">{{ product.created_at|date:"M d, Y" }}</td>
+
+            <td class="py-3 px-4">
+              <div class="flex items-center gap-2">
+                {% if permissions.site_content.can_edit %}
+                <button type="button" onclick="productModal.openForEdit('{{ product.pk }}')"
+                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Edit">
+                  <i class="fas fa-edit text-sm"></i>
+                </button>
+                {% endif %}
+                {% if permissions.site_content.can_delete %}
+                <button type="button"
+                        onclick="confirmDelete('{% url 'management:product_delete' product.pk %}', '{{ product|escapejs }}')"
+                        class="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors" title="Delete">
+                  <i class="fas fa-trash-alt text-sm"></i>
+                </button>
+                {% endif %}
+              </div>
+            </td>
+
+          </tr>
+          {% empty %}
+          <tr class="empty-row"><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<form id="deleteForm" method="post" action="" style="display:none;">{% csrf_token %}</form>
+
+<!-- New/Edit Product modal -->
+<div id="productCreateModal" class="fixed inset-0 z-50 hidden items-stretch sm:items-center justify-center sm:p-3" style="background: rgba(15,23,42,.55);">
+  <div class="bg-white sm:rounded-xl shadow-2xl w-full sm:max-w-2xl h-full sm:h-auto sm:max-h-[97vh] flex flex-col">
+    <div class="px-4 sm:px-5 py-2.5 border-b border-gray-100 flex items-center justify-between shrink-0">
+      <h2 class="text-base font-semibold text-gray-800 font-display" id="productModalTitle">New Product</h2>
+      <button type="button" id="productModalCloseBtn" data-modal-close class="text-gray-400 hover:text-gray-600 p-1 -m-1" aria-label="Close">
+        <i class="fas fa-times text-lg" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="px-4 sm:px-5 py-3 overflow-y-auto overflow-x-hidden flex-1 min-h-0" id="productModalBody">
+      <form method="post" enctype="multipart/form-data" action="{% url 'management:product_create' %}" id="productModalForm">
+        {% csrf_token %}
+        {% include 'management/site_config/_product_form_fields.html' %}
+      </form>
+    </div>
+    <div class="px-4 sm:px-5 py-2.5 border-t border-gray-100 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 shrink-0">
+      <button type="button" id="productModalCancelBtn" data-modal-close
+              class="w-full sm:w-auto px-5 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-medium">
+        Cancel
+      </button>
+      <button type="submit" form="productModalForm" id="productModalSubmitBtn"
+              class="w-full sm:w-auto px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium shadow-sm disabled:opacity-60 disabled:cursor-not-allowed">
+        <i class="fas fa-save mr-1.5" aria-hidden="true"></i>
+        <span id="productModalSubmitLabel">Create Product</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(url, name) {
+  Swal.fire({
+    title: 'Delete Product?',
+    html: `Delete <strong>${name}</strong>?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Delete',
+    cancelButtonText: 'Cancel',
+  }).then(r => {
+    if (r.isConfirmed) {
+      document.getElementById('deleteForm').action = url;
+      document.getElementById('deleteForm').submit();
+    }
+  });
+}
+
+var productModal = createAjaxModal({
+  modalId: 'productCreateModal',
+  bodyId: 'productModalBody',
+  formId: 'productModalForm',
+  titleId: 'productModalTitle',
+  submitBtnId: 'productModalSubmitBtn',
+  submitLabelId: 'productModalSubmitLabel',
+  fieldsPartialId: 'productFormFieldsPartial',
+  createUrl: '{% url "management:product_create" %}',
+  editUrlTemplate: '{% url "management:product_edit" 0 %}',
+  createTitle: 'New Product',
+  createLabel: 'Create Product',
+  editTitle: 'Edit Product',
+  editLabel: 'Save Changes',
+});
+
+document.querySelectorAll('.js-open-product-modal').forEach(function (trigger) {
+  trigger.addEventListener('click', function (e) {
+    e.preventDefault();
+    productModal.openForCreate();
+  });
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+  var tableOpts = {
+    pageLength: 10,
+    order: [[5, 'desc']],
+    columns: [
+      { orderable: false, searchable: false },
+      null, null, null, null,
+      null,
+      { orderable: false, searchable: false },
+    ],
+    dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4"lf>rt<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-4 pt-4 border-t"ip>',
+    language: {
+      search: '_INPUT_',
+      searchPlaceholder: 'Search by title, summary…',
+      lengthMenu: 'Show _MENU_',
+      info: '_START_–_END_ of _TOTAL_',
+      paginate: {
+        previous: '<i class="fas fa-chevron-left"></i>',
+        next: '<i class="fas fa-chevron-right"></i>'
+      },
+      emptyTable: 'No products found'
+    },
+    initComplete: function () {
+      var api = this.api();
+      if (api.page.info().recordsTotal === 1) {
+        var firstRow = api.row(0).data();
+        if (firstRow && firstRow[1] === '') { api.clear().draw(); }
+      }
+    }
+  };
+
+  try { $('#productsDataTable').DataTable(tableOpts); } catch (e) {}
+});
+</script>
+{% endblock %}

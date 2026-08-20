@@ -239,10 +239,10 @@ class ProjectAdmin(admin.ModelAdmin):
 # ==================== STORE / PRODUCTS ====================
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display  = ('title', 'price', 'currency', 'is_active', 'order')
+    list_display  = ('title', 'price', 'currency', 'is_active', 'created_at')
     list_filter   = ('is_active', 'currency')
     search_fields = ('title', 'summary', 'description')
-    list_editable = ('is_active', 'order')
+    list_editable = ('is_active',)
     prepopulated_fields = {'slug': ('title',)}
 
 

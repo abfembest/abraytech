@@ -151,7 +151,6 @@ def navigation_data(request):
         'projects_list':  'projects',
         'project_detail': 'projects',
         'all_programs':   'tech_skills',
-        'faculty_detail': 'tech_skills',
         'program_detail': 'tech_skills',
         'blog':           'blog',
         'blog_detail':    'blog',

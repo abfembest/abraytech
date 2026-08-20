@@ -4614,14 +4614,13 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Leave blank to show 'Contact for pricing'")
     currency = models.CharField(max_length=3, default='USD')
     is_active = models.BooleanField(default=True)
-    order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = 'Product'
         verbose_name_plural = 'Store Products'
-        ordering = ['order', 'title']
+        ordering = ['-created_at']
 
     def __str__(self):
         return self.title

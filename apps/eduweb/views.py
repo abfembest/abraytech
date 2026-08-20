@@ -962,7 +962,7 @@ THEOLOGY_SCHOOL_HOST = 'theology.miuedu.com'
 
 @check_for_auth
 def index(request):
-    from .models import Testimonial, Service, Industry, Project, SocialPost
+    from .models import Testimonial, Service, Industry, Project, SocialPost, Product
     captcha_question, captcha_answer = generate_captcha()
     request.session['contact_captcha_answer'] = captcha_answer
     current_host = request.get_host().split(':')[0].lower()
@@ -990,6 +990,7 @@ def index(request):
         'social_posts': SocialPost.objects.filter(is_active=True),
         'industries': Industry.objects.filter(is_active=True).order_by('order', 'title')[:6],
         'featured_projects': featured_projects,
+        'store_products': Product.objects.filter(is_active=True)[:6],
         'testimonials': Testimonial.objects.filter(is_active=True).order_by('author_name'),
         'recent_posts': (
             BlogPost.objects
@@ -1594,10 +1595,10 @@ def newsletter_subscribe(request):
 
 
 # =============================================================================
-# FACULTY & PROGRAM PAGES
+# PROGRAM PAGES
 # =============================================================================
 
-# Used only when a Faculty/Program has no gallery_video/gallery_image_*
+# Used only when a Program has no gallery_video/gallery_image_*
 # uploaded — keeps the carousel section a genuine 2-slide carousel (with
 # working prev/next + indicators) instead of a single static placeholder.
 # Distinct from the hero's own fallback (images/hero.webp) so the two
@@ -1607,7 +1608,7 @@ FALLBACK_GALLERY_IMAGES = ['images/hero2.webp', 'images/hero3.webp']
 
 def _build_gallery_items(obj, max_items=4):
     """
-    Shared by faculty_detail/program_detail: builds an ordered list of media
+    Used by program_detail: builds an ordered list of media
     items (video first if present, then images) from an object's
     gallery_video/gallery_image_1/2/3 fields, capped at max_items. If the
     object has none of these fields set, falls back to two static campus
@@ -1628,38 +1629,6 @@ def _build_gallery_items(obj, max_items=4):
             for path in FALLBACK_GALLERY_IMAGES
         ]
     return items[:max_items]
-
-
-@check_for_auth
-def faculty_detail(request, slug):
-    """
-    Faculty detail: Faculty → Departments → Programs → Courses
-    """
-    faculty = get_object_or_404(Faculty, slug=slug, is_active=True)
-    departments = (
-        faculty.departments
-        .filter(is_active=True)
-        .prefetch_related(
-            Prefetch(
-                'programs',
-                queryset=Program.objects.filter(is_active=True).prefetch_related(
-                    Prefetch(
-                        'courses',
-                        queryset=Course.objects.filter(is_active=True)
-                                        .order_by('name'),
-                        to_attr='active_courses',
-                    )
-                ).order_by('name'),
-                to_attr='active_programs',
-            )
-        )
-        .order_by('name')
-    )
-    return render(request, 'faculty_detail.html', {
-        'faculty':     faculty,
-        'departments': departments,
-        'gallery_items': _build_gallery_items(faculty),
-    })
 
 
 @check_for_auth

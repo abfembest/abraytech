@@ -214,10 +214,7 @@
       </div>
       {% endwith %}
 
-      <!-- Faculty header bar / accordion toggle. Plain div (not <button>) —
-           it contains a real <a> (Faculty Page link), and interactive
-           elements can't nest inside a <button>. The toggle JS ignores
-           clicks that originate from that link. -->
+      <!-- Faculty header bar / accordion toggle. -->
       <div class="fac-hdr faculty-toggle px-5 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
            role="button" tabindex="0"
            aria-expanded="false"
@@ -237,17 +234,13 @@
           </div>
         </div>
         <div class="flex items-center gap-2 flex-shrink-0">
+          {% comment %}
           {% if faculty.code %}
           <span class="fac-code-badge font-mono text-xs px-2.5 py-1 rounded-lg text-white/50">
             {{ faculty.code }}
           </span>
           {% endif %}
-          <a href="{% url 'eduweb:faculty_detail' faculty.slug %}"
-             class="fac-page-link inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold text-white transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-white/50"
-             aria-label="View {{ faculty.name }} faculty page">
-            <i data-lucide="external-link" class="w-3.5 h-3.5" aria-hidden="true"></i>
-            Faculty Page
-          </a>
+          {% endcomment %}
           <i data-lucide="chevron-down" class="fac-chevron w-4 h-4 text-white/70" aria-hidden="true"></i>
         </div>
       </div>
@@ -305,15 +298,17 @@
                   <span class="font-sora font-semibold text-gray-900 text-sm leading-snug">
                     {{ program.name }}
                   </span>
+                  {% comment %}
                   {% if program.is_featured %}
                   <span class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-ice text-brandblue border border-borderblue">
                     <i data-lucide="star" class="w-2.5 h-2.5 fill-current" aria-hidden="true"></i>
                     Featured
                   </span>
                   {% endif %}
+                  {% endcomment %}
                 </div>
                 <div class="flex flex-wrap items-center gap-2 mt-0.5">
-                  <span class="cbadge">{{ program.get_degree_level_display }}</span>
+                  {% comment %}<span class="cbadge">{{ program.get_degree_level_display }}</span>{% endcomment %}
                   {% if program.duration_years %}
                   <span class="inline-flex items-center gap-1 text-xs text-gray-400">
                     <i data-lucide="clock" class="w-3 h-3" aria-hidden="true"></i>
@@ -634,30 +629,35 @@ mobOpenBtn.addEventListener('click', openMob);
 mobCloseBtn.addEventListener('click', closeMob);
 mobOverlay.addEventListener('click', closeMob);
 
-/* ── Smooth scroll & close mobile on nav click ── */
+/* ── Jump to a faculty section: switches to its pagination page,
+   opens its accordion body, and scrolls it into view. Shared by
+   in-page sidebar nav clicks and the initial #faculty-<slug> deep
+   link landed on from the site nav (see faculty_detail phase-out). ── */
+function jumpToFaculty(target, opts){
+  opts = opts || {};
+  const matching = Array.from(allFaculties).filter(s=>s.dataset.match!=='0');
+  const idx = matching.indexOf(target);
+  if(idx !== -1){
+    const targetPage = Math.floor(idx / FACULTIES_PER_PAGE) + 1;
+    if(targetPage !== currentPage){
+      currentPage = targetPage;
+      paginate(false);
+    }
+  }
+  openFacultyBody(target, !isFiltering());
+
+  requestAnimationFrame(()=>{
+    window.scrollTo({top: target.getBoundingClientRect().top + window.scrollY - 48, behavior: opts.smooth===false ? 'auto' : 'smooth'});
+  });
+}
+
 document.querySelectorAll('.desk-snav, .mob-snav').forEach(link=>{
   link.addEventListener('click',e=>{
     e.preventDefault();
     closeMob();
     const t = document.querySelector(link.getAttribute('href'));
     if(!t) return;
-
-    // The target faculty may be on a different pagination page (hidden) —
-    // find it and switch pages first so the scroll has something to land on.
-    const matching = Array.from(allFaculties).filter(s=>s.dataset.match!=='0');
-    const idx = matching.indexOf(t);
-    if(idx !== -1){
-      const targetPage = Math.floor(idx / FACULTIES_PER_PAGE) + 1;
-      if(targetPage !== currentPage){
-        currentPage = targetPage;
-        paginate(false);
-      }
-    }
-    openFacultyBody(t, !isFiltering());
-
-    requestAnimationFrame(()=>{
-      window.scrollTo({top: t.getBoundingClientRect().top + window.scrollY - 48, behavior:'smooth'});
-    });
+    jumpToFaculty(t);
   });
 });
 
@@ -678,8 +678,18 @@ const io = new IntersectionObserver(entries=>{
 document.querySelectorAll('.faculty-section').forEach(s=>io.observe(s));
 
 /* ── Init ─────────────────────────────────────── */
+// Landed here from the nav / a homepage card with #faculty-<slug> already
+// in the URL — jump straight to that faculty's programs instead of the
+// default "open the first faculty on page 1" behaviour.
+const initialHashTarget = window.location.hash.indexOf('#faculty-') === 0
+  ? document.querySelector(window.location.hash)
+  : null;
+if(initialHashTarget) hasOpenedDefault = true;
+
 run();
 lucide.createIcons();
+
+if(initialHashTarget) jumpToFaculty(initialHashTarget, {smooth:false});
 
 })();
 </script>

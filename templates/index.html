@@ -36,7 +36,7 @@
 <!-- ============================================================ -->
 
 <!-- Hero Section -->
-<section class="relative overflow-hidden bg-soft" aria-label="Hero Section">
+<section class="relative overflow-hidden {% cycle 'bg-soft' 'bg-white' as hbg %}" aria-label="Hero Section">
     <div class="absolute inset-0 hero-radial-glow"></div>
 
     <!-- Hero visual -->
@@ -55,9 +55,11 @@
 
     <div class="w-full px-4 sm:px-6 lg:pl-12 xl:pl-20 lg:pr-8 relative z-10 flex items-center py-20 lg:py-28 hero-min-h">
         <div class="reveal w-full max-w-lg lg:max-w-[calc(44%_-_3.75rem)] xl:max-w-[calc(38%_-_5.25rem)]">
+            {% comment %}
             <span class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-brandblue bg-ice rounded-full uppercase tracking-wider border border-borderblue">
                 <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Technology · Innovation · Digital Excellence
             </span>
+            {% endcomment %}
 
             <h1 class="mt-5 hero-heading font-sora font-extrabold text-navy leading-tighter">
                 Building Digital Solutions for a <span class="brand-gradient-text">Smarter Future.</span>
@@ -85,11 +87,11 @@
 </section>
 
 <!-- About Section (PRD "Company introduction" — right after Hero) -->
-<section id="about" class="py-20 bg-white" aria-labelledby="about-heading">
+<section id="about" class="py-20 {% cycle hbg %}" aria-labelledby="about-heading">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16 items-center">
             <div class="reveal">
-                <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Who we are</span>
+                {% comment %}<span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Who we are</span>{% endcomment %}
                 <h2 id="about-heading" class="mt-3 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-sora font-bold text-navy">
                     A technology partner, not just a vendor
                 </h2>
@@ -120,11 +122,11 @@
 <!-- Social Carousel — reels/images pasted in by staff via SocialPost admin,
      no platform picking required, just embed code in → shown here. -->
 {% if social_posts %}
-<section class="py-20 bg-soft" aria-labelledby="social-heading">
+<section class="py-20 {% cycle hbg %}" aria-labelledby="social-heading">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex flex-wrap items-end justify-between gap-4 mb-10 reveal">
             <div>
-                <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Follow Along</span>
+                {% comment %}<span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Follow Along</span>{% endcomment %}
                 <h2 id="social-heading" class="mt-3 text-3xl sm:text-4xl font-sora font-bold text-navy">From Our Socials</h2>
             </div>
             <div class="hidden sm:flex items-center gap-2">
@@ -168,10 +170,10 @@
 
 <!-- Services Section (PRD "Core services") -->
 {% if services %}
-<section id="services" class="section-py bg-soft" aria-labelledby="services-heading">
+<section id="services" class="section-py {% cycle hbg %}" aria-labelledby="services-heading">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-2xl mx-auto reveal mb-12">
-            <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">What we do</span>
+            {% comment %}<span class="text-xs font-semibold uppercase tracking-widest text-brandblue">What we do</span>{% endcomment %}
             <h2 id="services-heading" class="mt-3 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-navy">Advanced Tech skills & Services</h2>
             <p class="mt-4 text-slate-600">From first line of code to production security, {{ site_config.school_short_name|default:"Abraytech" }} covers the full technology lifecycle.</p>
         </div>
@@ -199,8 +201,8 @@
 {% endif %}
 
 <!-- Technology Strip (PRD "Technology capabilities") -->
-<section class="border-y border-borderblue bg-soft py-8 overflow-hidden" aria-label="Core technologies">
-    <p class="text-center text-xs font-semibold uppercase tracking-widest text-slate-400 mb-5">Engineered with technologies built for scale</p>
+<section class="border-y border-borderblue {% cycle hbg %} py-8 overflow-hidden" aria-label="Core technologies">
+    {% comment %}<p class="text-center text-xs font-semibold uppercase tracking-widest text-slate-400 mb-5">Engineered with technologies built for scale</p>{% endcomment %}
     <div class="max-w-7xl mx-auto overflow-hidden">
         <div class="flex gap-14 marquee-track w-max text-slate-400 text-2xl items-center">
             <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="code-2" class="w-4 h-4"></i> Python</span>
@@ -228,11 +230,11 @@
 
 <!-- Featured Projects Section (PRD "Featured projects") -->
 {% if featured_projects %}
-<section id="projects" class="py-20 bg-white" aria-labelledby="projects-heading">
+<section id="projects" class="py-20 {% cycle hbg %}" aria-labelledby="projects-heading">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex flex-wrap items-end justify-between gap-4 reveal">
             <div>
-                <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Our work</span>
+                {% comment %}<span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Our work</span>{% endcomment %}
                 <h2 id="projects-heading" class="mt-3 text-3xl sm:text-4xl font-sora font-bold text-navy max-w-lg">Featured Projects</h2>
             </div>
             <a href="{% url 'eduweb:projects_list' %}" class="inline-flex items-center gap-1 text-sm font-semibold text-brandblue">View project repository <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
@@ -250,9 +252,47 @@
                 </div>
                 {% endif %}
                 <div class="p-5">
-                    {% if project.industry %}<span class="text-xs font-semibold text-brandblue uppercase">{{ project.industry.title }}</span>{% endif %}
+                    {% comment %}{% if project.industry %}<span class="text-xs font-semibold text-brandblue uppercase">{{ project.industry.title }}</span>{% endif %}{% endcomment %}
                     <h3 class="mt-2 font-sora font-semibold text-navy">{{ project.title }}</h3>
                     <p class="mt-2 text-sm text-slate-600">{{ project.summary }}</p>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Store / Products Section — placed right after Featured Projects: from
+     "what we've built for clients" to "what you can buy from us today". -->
+{% if store_products %}
+<section id="store" class="py-20 {% cycle hbg %}" aria-labelledby="store-heading">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-wrap items-end justify-between gap-4 reveal">
+            <div>
+                <h2 id="store-heading" class="mt-3 text-3xl sm:text-4xl font-sora font-bold text-navy max-w-lg">From the Store</h2>
+                <p class="mt-2 text-slate-600 max-w-xl">Ready-made tools and products built by our engineering team.</p>
+            </div>
+            <a href="{% url 'eduweb:store_list' %}" class="inline-flex items-center gap-1 text-sm font-semibold text-brandblue">Visit the store <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+        </div>
+        <div class="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for product in store_products %}
+            <a href="{% url 'eduweb:product_detail' product.slug %}" class="reveal bg-white rounded-2xl border border-borderblue overflow-hidden hover:shadow-brand hover:-translate-y-1 transition block">
+                {% if product.image %}
+                <div class="h-40 bg-gray-100 overflow-hidden">
+                    <img src="{{ product.image.url }}" alt="{{ product.title }}" class="w-full h-full object-cover" loading="lazy">
+                </div>
+                {% else %}
+                <div class="h-40 brand-gradient flex items-center justify-center">
+                    <i data-lucide="package" class="w-8 h-8 text-white/80"></i>
+                </div>
+                {% endif %}
+                <div class="p-5">
+                    <h3 class="font-sora font-semibold text-navy">{{ product.title }}</h3>
+                    <p class="mt-2 text-sm text-slate-600">{{ product.summary }}</p>
+                    <p class="mt-3 font-sora font-bold text-brandblue">
+                        {% if product.price %}{{ product.currency }} {{ product.price|floatformat:"0" }}{% else %}Contact for pricing{% endif %}
+                    </p>
                 </div>
             </a>
             {% endfor %}
@@ -286,10 +326,10 @@
 </section>
 
 <!-- Why Abraytech + Process -->
-<section class="py-20 bg-soft">
+<section class="py-20 {% cycle hbg %}">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-16">
         <div class="reveal">
-            <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Why {{ site_config.school_short_name|default:"Abraytech" }}</span>
+            {% comment %}<span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Why {{ site_config.school_short_name|default:"Abraytech" }}</span>{% endcomment %}
             <h2 class="mt-3 text-3xl font-sora font-bold text-navy">A single partner across the technology lifecycle</h2>
             <div class="mt-8 space-y-6">
                 <div class="flex gap-4">
@@ -307,7 +347,7 @@
             </div>
         </div>
         <div class="reveal reveal-delay-md">
-            <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">How we work</span>
+            {% comment %}<span class="text-xs font-semibold uppercase tracking-widest text-brandblue">How we work</span>{% endcomment %}
             <h2 class="mt-3 text-3xl font-sora font-bold text-navy">Our process</h2>
             <ol class="mt-8 space-y-5">
                 <li class="flex gap-4 items-start"><span class="w-8 h-8 rounded-full brand-gradient text-white text-sm font-bold flex items-center justify-center shrink-0">1</span><div><h3 class="font-semibold text-navy">Discover</h3><p class="text-sm text-slate-600">Understand your goals, constraints and users.</p></div></li>
@@ -319,7 +359,10 @@
     </div>
 </section>
 
-<!-- Cybersecurity Spotlight (PRD "Cybersecurity") -->
+{% comment %}
+<!-- Cybersecurity Spotlight (PRD "Cybersecurity") — commented out: repeats a
+     service already covered by the Services grid above; kept in code in
+     case we want it back as a dedicated flagship-service spotlight. -->
 <section class="py-24 bg-navy relative overflow-hidden">
     <div class="absolute inset-0 opacity-20 dot-grid-sky"></div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative grid lg:grid-cols-2 gap-14 items-center">
@@ -356,8 +399,12 @@
         </div>
     </div>
 </section>
+{% endcomment %}
 
-<!-- AI Spotlight (PRD "AI/data") -->
+{% comment %}
+<!-- AI Spotlight (PRD "AI/data") — commented out: repeats a service already
+     covered by the Services grid above; kept in code in case we want it
+     back as a dedicated flagship-service spotlight. -->
 <section class="py-24 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-14 items-center">
         <div class="reveal order-2 lg:order-1">
@@ -389,13 +436,14 @@
         </div>
     </div>
 </section>
+{% endcomment %}
 
 <!-- Industries Section — who we serve, right before the Training cluster -->
 {% if industries %}
-<section id="industries" class="py-20 bg-ice" aria-labelledby="industries-heading">
+<section id="industries" class="py-20 {% cycle hbg %}" aria-labelledby="industries-heading">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-2xl mx-auto reveal">
-            <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Industries</span>
+            {% comment %}<span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Industries</span>{% endcomment %}
             <h2 id="industries-heading" class="mt-3 text-3xl sm:text-4xl font-sora font-bold text-navy">Built for the sectors we serve</h2>
         </div>
         <div class="mt-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -420,7 +468,12 @@
 <!-- together as one coherent block instead of scattered.          -->
 <!-- ============================================================ -->
 
-<!-- Train Tech Leaders / Academy Intro -->
+{% comment %}
+<!-- Train Tech Leaders / Academy Intro — commented out: this narrative
+     block duplicates the "Popular Programs" grid right below it (both
+     promote featured_programs and link to all_programs); the grid is the
+     more concrete/actionable of the two. Kept in code in case we want the
+     mission-style copy back. -->
 <section class="py-20 bg-soft" id="academy-intro">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-14 items-center">
         <div class="reveal">
@@ -479,7 +532,7 @@
                 {% endif %}
                 <div class="grid grid-cols-3 gap-3 mt-6">
                     {% for faculty in faculties|slice:":3" %}
-                    <a href="{% url 'eduweb:faculty_detail' faculty.slug %}" class="rounded-lg bg-white/5 p-3 text-center hover:bg-white/10 transition-colors block">
+                    <a href="{% url 'eduweb:all_programs' %}#faculty-{{ faculty.slug }}" class="rounded-lg bg-white/5 p-3 text-center hover:bg-white/10 transition-colors block">
                         <i data-lucide="{{ faculty.icon }}" class="w-4 h-4 text-sky mx-auto"></i>
                         <div class="text-micro text-white/50 mt-1 truncate">{{ faculty.name }}</div>
                     </a>
@@ -493,13 +546,14 @@
         </div>
     </div>
 </section>
+{% endcomment %}
 
 <!-- Programs Section -->
 {% if featured_programs %}
-<section id="programs" class="py-20 bg-soft" aria-labelledby="programs-heading">
+<section id="programs" class="py-20 {% cycle hbg %}" aria-labelledby="programs-heading">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-2xl mx-auto reveal mb-12">
-            <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">{{ site_config.school_short_name|default:"Abraytech" }} Academy</span>
+            {% comment %}<span class="text-xs font-semibold uppercase tracking-widest text-brandblue">{{ site_config.school_short_name|default:"Abraytech" }} Academy</span>{% endcomment %}
             <h2 id="programs-heading" class="mt-3 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-sora font-bold text-navy">Popular Programs</h2>
             <p class="mt-4 text-slate-600 max-w-3xl mx-auto text-base lg:text-lg leading-relaxed">
                 Choose from our extensive range of technology training programs designed to build real, job-ready skills.
@@ -511,9 +565,11 @@
                 <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-ice flex items-center justify-center mb-4 sm:mb-5 text-brandblue">
                     <i data-lucide="graduation-cap" class="w-6 h-6 sm:w-7 sm:h-7" aria-hidden="true"></i>
                 </div>
+                {% comment %}
                 <span class="inline-block px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wide bg-ice text-brandblue mb-3">
                     {{ program.get_degree_level_display }}
                 </span>
+                {% endcomment %}
                 <h3 class="font-sora font-semibold text-lg sm:text-xl mb-3 text-navy">{{ program.name }}</h3>
                 <p class="text-slate-600 mb-5 text-base leading-relaxed">
                     {{ program.description|truncatewords:18|default:"A world-class program designed to prepare you for global success." }}
@@ -540,87 +596,14 @@
 </section>
 {% endif %}
 
-<!-- Training Tracks Section -->
-{% if faculties %}
-<section id="training-tracks" class="py-20 bg-white" aria-labelledby="training-tracks-heading">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center max-w-2xl mx-auto reveal mb-12">
-            <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Training &amp; Development</span>
-            <h2 id="training-tracks-heading" class="mt-3 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-navy">Build skills across our practice areas</h2>
-            <p class="mt-4 text-slate-600">Structured training tracks designed to build real, job-ready technology skills.</p>
-        </div>
-
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for faculty in faculties %}
-        <article class="reveal group bg-white rounded-2xl border border-borderblue p-6 hover:shadow-brand hover:-translate-y-1 transition">
-            <div class="w-12 h-12 rounded-xl bg-ice flex items-center justify-center text-brandblue group-hover:scale-110 transition-transform">
-                <i data-lucide="{{ faculty.icon }}" class="w-6 h-6" aria-hidden="true"></i>
-            </div>
-            <h3 class="mt-4 font-sora font-semibold text-lg text-navy">{{ faculty.name }}</h3>
-            <p class="mt-2 text-sm text-slate-600">{{ faculty.tagline }}</p>
-            <ul class="mt-4 space-y-2 text-sm text-slate-600">
-                {% for dept in faculty.departments.all|slice:":2" %}
-                <li class="flex items-start gap-2">
-                    <i data-lucide="check" class="w-4 h-4 flex-shrink-0 text-brandblue mt-0.5" aria-hidden="true"></i>
-                    <span>{{ dept.name }}</span>
-                </li>
-                {% endfor %}
-            </ul>
-            <a href="{% url 'eduweb:faculty_detail' faculty.slug %}"
-               class="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-brandblue focus:outline-none focus:ring-2 focus:ring-brandblue rounded"
-               aria-label="View {{ faculty.name }} training track">
-                View Track <i data-lucide="arrow-right" class="w-3.5 h-3.5" aria-hidden="true"></i>
-            </a>
-        </article>
-        {% empty %}
-        <p class="col-span-3 text-center text-slate-400 py-10">Training tracks coming soon.</p>
-        {% endfor %}
-        </div>
-
-        <div class="text-center mt-12">
-            <a href="{% url 'eduweb:all_programs' %}" class="inline-flex items-center gap-2 px-8 py-4 rounded-lg brand-gradient text-white font-semibold shadow-brand hover:opacity-95 transition">
-                Explore All Training Programs
-                <i data-lucide="graduation-cap" class="w-5 h-5"></i>
-            </a>
-        </div>
-    </div>
-</section>
-{% endif %}
-
-<!-- Training / Academy CTA — light (white), not dark: sits between AI
-     Spotlight/Academy Intro and How to Apply, both of which are also
-     unconditional, so this can't be dark without risking a dark-on-dark
-     run whenever Testimonials (DB-driven, between this and How to Apply)
-     has no data to show. -->
-<section class="py-24 bg-white relative overflow-hidden">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative reveal">
-        <span class="inline-flex items-center gap-2 text-xs font-semibold text-brandblue bg-ice px-3 py-1.5 rounded-full uppercase tracking-wider border border-borderblue"><i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i> {{ site_config.school_short_name|default:"Abraytech" }} Academy</span>
-        <h2 class="mt-5 text-3xl sm:text-4xl font-sora font-bold text-navy">Learn. Build. Innovate.</h2>
-        <p class="mt-5 text-slate-600 max-w-2xl mx-auto">Hands-on training in the technologies shaping tomorrow — software, cybersecurity, AI, data science and cloud — taught by practitioners.</p>
-        <div class="mt-10 grid sm:grid-cols-3 gap-5 max-w-3xl mx-auto text-left">
-            {% for faculty in faculties|slice:":3" %}
-            <a href="{% url 'eduweb:faculty_detail' faculty.slug %}" class="bg-soft border border-borderblue rounded-xl p-5 hover:bg-ice transition-colors block">
-                <i data-lucide="{{ faculty.icon }}" class="w-5 h-5 text-brandblue"></i>
-                <h3 class="mt-3 text-navy font-semibold text-sm">{{ faculty.name }}</h3>
-            </a>
-            {% empty %}
-            <div class="bg-soft border border-borderblue rounded-xl p-5"><i data-lucide="code-2" class="w-5 h-5 text-brandblue"></i><h3 class="mt-3 text-navy font-semibold text-sm">Software &amp; Web Dev</h3></div>
-            <div class="bg-soft border border-borderblue rounded-xl p-5"><i data-lucide="shield-check" class="w-5 h-5 text-brandblue"></i><h3 class="mt-3 text-navy font-semibold text-sm">Cybersecurity</h3></div>
-            <div class="bg-soft border border-borderblue rounded-xl p-5"><i data-lucide="brain" class="w-5 h-5 text-brandblue"></i><h3 class="mt-3 text-navy font-semibold text-sm">AI &amp; Data Science</h3></div>
-            {% endfor %}
-        </div>
-        <a href="{% url 'eduweb:all_programs' %}" class="mt-10 inline-flex items-center gap-2 px-7 py-3.5 rounded-lg brand-gradient text-white font-semibold shadow-brand hover:opacity-95 transition">Explore Courses <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
-    </div>
-</section>
-
 <!-- Testimonials Section (PRD "Testimonials") — placed right after the
      Training/Academy CTA (dark) so it stays light, and right before How to
      Apply (dark) keeps the light/dark rhythm from clashing there too. -->
 {% if testimonials %}
-<section class="py-20 bg-white" aria-labelledby="testimonials-heading">
+<section class="py-20 {% cycle hbg %}" aria-labelledby="testimonials-heading">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-2xl mx-auto reveal mb-12">
-            <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Testimonials</span>
+            {% comment %}<span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Testimonials</span>{% endcomment %}
             <h2 id="testimonials-heading" class="mt-3 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-navy">What our clients say</h2>
             <p class="mt-4 text-slate-600">Hear from the people we've worked with</p>
         </div>
@@ -669,7 +652,7 @@
 
         <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-10 reveal">
             <div>
-                <span class="inline-flex items-center gap-2 text-xs font-semibold text-sky bg-white/5 border border-white/10 px-3 py-1.5 rounded-full uppercase tracking-wider">Start Your Journey</span>
+                {% comment %}<span class="inline-flex items-center gap-2 text-xs font-semibold text-sky bg-white/5 border border-white/10 px-3 py-1.5 rounded-full uppercase tracking-wider">Start Your Journey</span>{% endcomment %}
                 <h2 id="apply-heading" class="mt-4 text-3xl sm:text-4xl font-sora font-bold text-white">How to Apply</h2>
                 <p class="mt-2 text-white/70 max-w-xl">A simple, transparent process to get you enrolled in a training track.</p>
             </div>
@@ -734,11 +717,11 @@
 
 <!-- Blog Preview (PRD "Latest articles") -->
 {% if recent_posts %}
-<section class="py-20 bg-soft">
+<section class="py-20 {% cycle hbg %}">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex flex-wrap items-end justify-between gap-4 reveal">
             <div>
-                <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Knowledge centre</span>
+                {% comment %}<span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Knowledge centre</span>{% endcomment %}
                 <h2 class="mt-3 text-3xl sm:text-4xl font-sora font-bold text-navy">From the blog</h2>
             </div>
             <a href="{% url 'eduweb:blog' %}" class="inline-flex items-center gap-1 text-sm font-semibold text-brandblue">Visit the blog <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
@@ -765,9 +748,11 @@
 </section>
 {% endif %}
 
-<!-- CTA (PRD "Call to action") — light (white): sits right after the always-
-     rendering dark How to Apply section, and Blog Preview (DB-driven,
-     between them) can't be relied on to break up the dark-on-dark. -->
+{% comment %}
+<!-- CTA (PRD "Call to action") — commented out: this generic closer sits
+     immediately before the Contact section below, which already serves the
+     same "reach out to us" purpose with an actual form. Kept in code in
+     case we want a soft CTA back between How to Apply/Blog and Contact. -->
 <section class="py-20 bg-white">
     <div class="max-w-4xl mx-auto text-center px-4 reveal">
         <h2 class="text-3xl sm:text-4xl font-sora font-bold text-navy">Have a technology challenge?</h2>
@@ -778,9 +763,10 @@
         </div>
     </div>
 </section>
+{% endcomment %}
 
 <!-- Newsletter -->
-<section class="py-14 bg-soft border-t border-borderblue">
+<section class="py-14 {% cycle hbg %} border-t border-borderblue">
     <div class="max-w-3xl mx-auto px-4 text-center reveal">
         <h3 class="text-xl font-sora font-bold text-navy">Stay ahead of the curve</h3>
         <p class="mt-2 text-sm text-slate-600">Occasional insights on software, security and AI. No spam.</p>
@@ -793,12 +779,13 @@
     </div>
 </section>
 
-<!-- Contact Form Section — white, so it doesn't land on the same dark tone
-     as the footer immediately below it (or Find Us, if that renders too). -->
-<section id="contact" class="py-20 bg-white" aria-labelledby="contact-heading">
+<!-- Contact Form Section — soft, so it alternates with Newsletter above and
+     Find Us below (or the dark footer, if Find Us doesn't render — soft
+     still contrasts cleanly against that). -->
+<section id="contact" class="py-20 {% cycle hbg %}" aria-labelledby="contact-heading">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-2xl mx-auto reveal mb-12">
-            <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Get In Touch</span>
+            {% comment %}<span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Get In Touch</span>{% endcomment %}
             <h2 id="contact-heading" class="mt-3 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-navy">
                 Contact {{ site_config.school_short_name|default:"Abraytech" }}
             </h2>
@@ -1004,10 +991,10 @@
 
 <!-- Find Us Section — only renders when real location data is configured -->
 {% if site_config.campus_map_embed_url or site_config.address_usa or site_config.address_nigeria %}
-<section id="find-us" class="py-20 bg-soft" aria-labelledby="find-us-heading">
+<section id="find-us" class="py-20 {% cycle hbg %}" aria-labelledby="find-us-heading">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-2xl mx-auto reveal mb-12">
-            <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Find Us</span>
+            {% comment %}<span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Find Us</span>{% endcomment %}
             <h2 id="find-us-heading" class="mt-3 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-navy">Where we work</h2>
         </div>
 

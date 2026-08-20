@@ -1,7 +1,7 @@
 {% comment %}
-Shared media carousel partial — used by faculty_detail.html and
-program_detail.html. `gallery_items` is guaranteed non-empty by
-eduweb.views._build_gallery_items: when a Faculty/Program has no uploaded
+Shared media carousel partial — used by program_detail.html.
+`gallery_items` is guaranteed non-empty by
+eduweb.views._build_gallery_items: when a Program has no uploaded
 gallery media, that helper falls back to a single static campus photo so
 this section always renders instead of disappearing. The `{% if
 gallery_items %}` guard below is just a defensive no-op for that contract.
@@ -17,7 +17,7 @@ Expected context:
                   more than once on the same page)
 {% endcomment %}
 {% if gallery_items %}
-<section class="relative py-14 sm:py-20 bg-gradient-to-b from-gray-50 to-white overflow-hidden" aria-labelledby="media-carousel-heading-{{ obj.pk }}">
+<section class="relative py-10 sm:py-14 lg:py-16 xl:py-20 bg-white overflow-hidden" aria-labelledby="media-carousel-heading-{{ obj.pk }}">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-8 sm:mb-12">
             <h2 id="media-carousel-heading-{{ obj.pk }}" class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">

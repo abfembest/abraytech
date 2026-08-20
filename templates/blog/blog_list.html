@@ -24,7 +24,13 @@
   ════════════════════════════════════════════════ -->
   <section class="relative overflow-hidden bg-navy py-20 lg:py-28"
            aria-labelledby="blog-heading">
-    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
+    <!-- Hero background image + dark overlay (same pattern as program_detail.html) -->
+    <div class="absolute inset-0 z-0" aria-hidden="true">
+      <img src="{% if site_config.hero_slide_1_image %}{{ site_config.hero_slide_1_image.url }}{% else %}{% static 'images/hero.webp' %}{% endif %}"
+           alt="" class="w-full h-full object-cover">
+      <div class="absolute inset-0 bg-navy/95"></div>
+    </div>
+    <div class="absolute inset-0 opacity-20 z-[1]" aria-hidden="true" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
 
     <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
 

@@ -57,6 +57,7 @@ from apps.eduweb.models import (
     LibraryItem,
     Notification,
     PaymentGateway,
+    Product,
     Program,
     Review,
     SiteConfig,
@@ -103,6 +104,7 @@ from apps.management.forms import (
     LibraryItemForm,
     NotificationConfigForm,
     PaymentGatewayForm,
+    ProductForm,
     ProgramForm,
     QuickRoleChangeForm,
     ReviewForm,
@@ -6136,6 +6138,109 @@ def social_post_delete(request, pk):
             logger.exception('social_post_delete: unexpected error deleting social post pk=%s', pk)
             messages.error(request, 'Something went wrong while deleting this social post. Please try again.')
     return redirect('management:social_posts_list')
+
+
+# ── STORE PRODUCTS ────────────────────────────────────────────────────────────
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+def products_list(request):
+    if not _has_permission(request, 'site_content', 'can_view'):
+        messages.error(request, 'You do not have permission to view store products.')
+        return redirect('management:dashboard')
+
+    products = Product.objects.all()
+    return render(request, 'management/site_config/products_list.html', {
+        'products': products,
+        'active_count': products.filter(is_active=True).count(),
+        'form': ProductForm(),
+    })
+
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+def product_create(request):
+    """"New Product" is a modal on products_list.html, not a standalone
+    page — mirrors social_post_create's pattern."""
+    if request.method != 'POST':
+        return redirect('management:products_list')
+
+    if not _has_permission(request, 'site_content', 'can_create'):
+        messages.error(request, 'You do not have permission to create store products.')
+        return redirect('management:products_list')
+
+    form = ProductForm(request.POST, request.FILES)
+    if form.is_valid():
+        try:
+            with transaction.atomic():
+                product = form.save()
+                AuditLog.objects.create(
+                    user=request.user, action='create',
+                    model_name='Product',
+                    description=f'Created store product: {product}'
+                )
+        except IntegrityError:
+            logger.exception('product_create: IntegrityError saving product')
+            messages.error(request, 'Could not save this product — please check the details and try again.')
+        except Exception:
+            logger.exception('product_create: unexpected error saving product')
+            messages.error(request, 'Something went wrong while saving this product. Please try again.')
+        else:
+            messages.success(request, 'Product created.')
+            return redirect('management:products_list')
+
+    return render(request, 'management/site_config/_product_form_fields.html', {
+        'form': form,
+    })
+
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+def product_edit(request, pk):
+    """Same modal as "New Product" on products_list.html, populated by
+    fetching this view's GET response — mirrors social_post_edit's pattern."""
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        if not _has_permission(request, 'site_content', 'can_edit'):
+            messages.error(request, 'You do not have permission to edit store products.')
+            return redirect('management:products_list')
+
+        form = ProductForm(request.POST, request.FILES, instance=product)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    form.save()
+                    AuditLog.objects.create(
+                        user=request.user, action='update',
+                        model_name='Product',
+                        description=f'Updated store product: {product}'
+                    )
+            except IntegrityError:
+                logger.exception('product_edit: IntegrityError saving product pk=%s', pk)
+                messages.error(request, 'Could not save this product — please check the details and try again.')
+            else:
+                messages.success(request, 'Product updated.')
+                return redirect('management:products_list')
+    else:
+        form = ProductForm(instance=product)
+    return render(request, 'management/site_config/_product_form_fields.html', {
+        'form': form, 'product': product,
+    })
+
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+@require_permission('site_content', 'can_delete', redirect_to='management:products_list')
+def product_delete(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        try:
+            product.delete()
+            messages.success(request, 'Product deleted.')
+        except Exception:
+            logger.exception('product_delete: unexpected error deleting product pk=%s', pk)
+            messages.error(request, 'Something went wrong while deleting this product. Please try again.')
+    return redirect('management:products_list')
 
 
 # ── INSTITUTION MEMBERS ───────────────────────────────────────────────────────

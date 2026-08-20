@@ -140,6 +140,10 @@
 
                     <a href="{% url 'eduweb:about' %}" {% if nav_active == 'about' %}aria-current="page"{% endif %} class="nav-link px-4 py-2.5 rounded-full text-nav font-semibold transition-colors {% if nav_active == 'about' %}bg-soft text-brandblue{% else %}text-slate-700 hover:bg-soft hover:text-brandblue{% endif %}">About</a>
 
+                    <a href="{% url 'eduweb:projects_list' %}" {% if nav_active == 'projects' %}aria-current="page"{% endif %} class="nav-link px-4 py-2.5 rounded-full text-nav font-semibold transition-colors {% if nav_active == 'projects' %}bg-soft text-brandblue{% else %}text-slate-700 hover:bg-soft hover:text-brandblue{% endif %}">Projects</a>
+
+                    <a href="{% url 'eduweb:blog' %}" {% if nav_active == 'blog' %}aria-current="page"{% endif %} class="nav-link px-4 py-2.5 rounded-full text-nav font-semibold transition-colors {% if nav_active == 'blog' %}bg-soft text-brandblue{% else %}text-slate-700 hover:bg-soft hover:text-brandblue{% endif %}">Blog</a>
+
                     <!-- Services mega menu — anchored left-0 (opens rightward from
                          the first nav item) so it never gets clipped by the left
                          OR right viewport edge the way center-anchoring could. -->
@@ -162,8 +166,6 @@
                         </div>
                     </div>
 
-                    <a href="{% url 'eduweb:projects_list' %}" {% if nav_active == 'projects' %}aria-current="page"{% endif %} class="nav-link px-4 py-2.5 rounded-full text-nav font-semibold transition-colors {% if nav_active == 'projects' %}bg-soft text-brandblue{% else %}text-slate-700 hover:bg-soft hover:text-brandblue{% endif %}">Projects</a>
-
                     <!-- Tech Skills (real Faculty/Program catalog) -->
                     <div class="relative">
                         <button id="trainingBtn" class="nav-link flex items-center gap-1.5 px-4 py-2.5 rounded-full text-nav font-semibold transition-colors {% if nav_active == 'tech_skills' %}bg-soft text-brandblue{% else %}text-slate-700 hover:bg-soft hover:text-brandblue{% endif %}" aria-haspopup="true" aria-expanded="false" aria-controls="trainingPanel" {% if nav_active == 'tech_skills' %}aria-current="page"{% endif %}>
@@ -172,7 +174,7 @@
                         <div id="trainingPanel" class="dropdown-panel absolute left-0 top-full mt-2 w-max max-w-[92vw] bg-white rounded-2xl shadow-brand border border-borderblue p-3" role="menu">
                             <div class="grid grid-cols-2 gap-1">
                                 {% for faculty in all_faculties %}
-                                <a href="{% url 'eduweb:faculty_detail' faculty.slug %}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">
+                                <a href="{% url 'eduweb:all_programs' %}#faculty-{{ faculty.slug }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-soft hover:text-brandblue" role="menuitem">
                                     <i data-lucide="{{ faculty.icon }}" class="w-4 h-4 text-brandblue shrink-0"></i>
                                     <span class="whitespace-nowrap">{{ faculty.name }}</span>
                                 </a>
@@ -183,8 +185,6 @@
                             <a href="{% url 'eduweb:all_programs' %}" class="block px-3 py-2 mt-1 rounded-lg text-sm font-semibold text-brandblue hover:bg-soft" role="menuitem">View all training →</a>
                         </div>
                     </div>
-
-                    <a href="{% url 'eduweb:blog' %}" {% if nav_active == 'blog' %}aria-current="page"{% endif %} class="nav-link px-4 py-2.5 rounded-full text-nav font-semibold transition-colors {% if nav_active == 'blog' %}bg-soft text-brandblue{% else %}text-slate-700 hover:bg-soft hover:text-brandblue{% endif %}">Blog</a>
 
                     <!-- Resources — catch-all for everything secondary: Industries,
                          Store, FAQ, Team, Careers. Anchored right-0 (opens
@@ -287,7 +287,7 @@
                 <summary class="flex items-center justify-between py-2 font-semibold {% if nav_active == 'tech_skills' %}text-brandblue{% else %}text-navy{% endif %}">Tech Skills <i data-lucide="chevron-down" class="chev w-3.5 h-3.5 transition-transform"></i></summary>
                 <div class="pl-3 pb-2 space-y-1 text-slate-600">
                     {% for faculty in all_faculties %}
-                    <a href="{% url 'eduweb:faculty_detail' faculty.slug %}" class="block py-1.5">{{ faculty.name }}</a>
+                    <a href="{% url 'eduweb:all_programs' %}#faculty-{{ faculty.slug }}" class="block py-1.5">{{ faculty.name }}</a>
                     {% empty %}
                     <p class="py-1.5 text-slate-400">Coming soon</p>
                     {% endfor %}

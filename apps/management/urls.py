@@ -206,6 +206,12 @@ urlpatterns = [
     path('site-config/social-posts/<int:pk>/edit/', views.social_post_edit, name='social_post_edit'),
     path('site-config/social-posts/<int:pk>/delete/', views.social_post_delete, name='social_post_delete'),
 
+    # Store Products (public /store/ catalog + homepage "From the Store")
+    path('site-config/products/', views.products_list, name='products_list'),
+    path('site-config/products/create/', views.product_create, name='product_create'),
+    path('site-config/products/<int:pk>/edit/', views.product_edit, name='product_edit'),
+    path('site-config/products/<int:pk>/delete/', views.product_delete, name='product_delete'),
+
     # Institution Members
     path('site-config/members/', views.institution_members_list, name='institution_members_list'),
     path('site-config/members/create/', views.institution_member_create, name='institution_member_create'),

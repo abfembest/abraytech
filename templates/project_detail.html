@@ -21,10 +21,12 @@
                 <li><span class="text-white/80 font-medium">{{ project.title }}</span></li>
             </ol>
         </nav>
+        {% comment %}
         <div class="flex items-center gap-2 mb-4 flex-wrap">
             {% if project.industry %}<span class="inline-flex items-center gap-2 text-xs font-semibold text-sky bg-white/5 border border-white/10 px-3 py-1.5 rounded-full uppercase tracking-wider">{{ project.industry.title }}</span>{% endif %}
             {% if project.service %}<span class="inline-flex items-center gap-2 text-xs font-semibold text-white bg-white/10 border border-white/20 px-3 py-1.5 rounded-full uppercase tracking-wider">{{ project.service.title }}</span>{% endif %}
         </div>
+        {% endcomment %}
         <h1 class="text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-white mb-6">{{ project.title }}</h1>
         <p class="text-lg text-white/70 max-w-3xl leading-relaxed">{{ project.summary }}</p>
     </div>
