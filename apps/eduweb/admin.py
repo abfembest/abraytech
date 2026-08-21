@@ -15,7 +15,7 @@ from .models import (
     Review, SiteConfig, SiteHistoryMilestone, SubscriptionPlan, Subscription, SupportTicket, TicketReply,
     StaffPayroll, StudyGroup, StudyGroupMember, StudyGroupMessage,
     SystemConfiguration, UserProfile, Vendor, BroadcastMessage, ListOfCountry, Testimonial, FeePayment, Exam, ExamQuestion, ExamStatusLog, StudentExamResponse,
-    Service, Industry, SocialPost, Project, Product, JobListing, ConsultationRequest, NewsletterSubscriber,
+    Service, Industry, SocialPost, Project, JobListing, ConsultationRequest, NewsletterSubscriber,
 )
 
 
@@ -234,16 +234,6 @@ class ProjectAdmin(admin.ModelAdmin):
             'fields': ('is_featured', 'is_active', 'order')
         }),
     )
-
-
-# ==================== STORE / PRODUCTS ====================
-@admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
-    list_display  = ('title', 'price', 'currency', 'is_active', 'created_at')
-    list_filter   = ('is_active', 'currency')
-    search_fields = ('title', 'summary', 'description')
-    list_editable = ('is_active',)
-    prepopulated_fields = {'slug': ('title',)}
 
 
 # ==================== CAREERS ====================

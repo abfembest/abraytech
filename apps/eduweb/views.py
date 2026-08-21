@@ -962,7 +962,8 @@ THEOLOGY_SCHOOL_HOST = 'theology.miuedu.com'
 
 @check_for_auth
 def index(request):
-    from .models import Testimonial, Service, Industry, Project, SocialPost, Product
+    from .models import Testimonial, Service, Industry, Project, SocialPost
+    from apps.store.models import Product
     captcha_question, captcha_answer = generate_captcha()
     request.session['contact_captcha_answer'] = captcha_answer
     current_host = request.get_host().split(':')[0].lower()
@@ -988,7 +989,7 @@ def index(request):
         ),
         'services': Service.objects.filter(is_active=True),
         'social_posts': SocialPost.objects.filter(is_active=True),
-        'industries': Industry.objects.filter(is_active=True).order_by('order', 'title')[:6],
+        'industries': Industry.objects.filter(is_active=True).order_by('order', 'title'),
         'featured_projects': featured_projects,
         'store_products': Product.objects.filter(is_active=True)[:6],
         'testimonials': Testimonial.objects.filter(is_active=True).order_by('author_name'),
@@ -1337,15 +1338,18 @@ def industries_list(request):
     })
 
 
-@check_for_auth
-def industry_detail(request, slug):
-    from .models import Industry, Project
-    industry = get_object_or_404(Industry, slug=slug, is_active=True)
-    return render(request, 'industry_detail.html', {
-        'industry': industry,
-        'other_industries': Industry.objects.filter(is_active=True).exclude(slug=slug),
-        'industry_projects': Project.objects.filter(is_active=True, industry=industry),
-    })
+# Detail page disabled for now — link removed from industries.html/index.html,
+# URL commented out in urls.py, kept here (commented) rather than deleted so
+# it can be turned back on easily.
+# @check_for_auth
+# def industry_detail(request, slug):
+#     from .models import Industry, Project
+#     industry = get_object_or_404(Industry, slug=slug, is_active=True)
+#     return render(request, 'industry_detail.html', {
+#         'industry': industry,
+#         'other_industries': Industry.objects.filter(is_active=True).exclude(slug=slug),
+#         'industry_projects': Project.objects.filter(is_active=True, industry=industry),
+#     })
 
 
 # =============================================================================
@@ -1373,27 +1377,7 @@ def project_detail(request, slug):
     })
 
 
-# =============================================================================
-# STORE
-# =============================================================================
-
-@check_for_auth
-def store_list(request):
-    from .models import Product
-    return render(request, 'store.html', {
-        'products': Product.objects.filter(is_active=True),
-    })
-
-
-@check_for_auth
-def product_detail(request, slug):
-    from .models import Product
-    product = get_object_or_404(Product, slug=slug, is_active=True)
-    return render(request, 'product_detail.html', {
-        'product': product,
-        'other_products': Product.objects.filter(is_active=True).exclude(slug=slug)[:3],
-    })
-
+# Store views moved to apps/store/views.py (store_list, product_detail).
 
 # =============================================================================
 # COMPANY TEAM

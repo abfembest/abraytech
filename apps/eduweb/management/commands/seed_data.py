@@ -17,6 +17,11 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
+from pathlib import Path
+
+from django.apps import apps as django_apps
+
+from apps.store.models import Product, ProductCategory, ProductSpecification, ProductVariant, MediaAsset, ProductImage
 from apps.eduweb.models import (
     Course,
     CourseApplication,
@@ -38,7 +43,6 @@ from apps.eduweb.models import (
     JobListing,
     ListOfCountry,
     NewsletterSubscriber,
-    Product,
     Project,
     Service,
     SiteConfig,
@@ -244,18 +248,275 @@ class Command(BaseCommand):
             )
         self.stdout.write(f"Seeded {len(projects_data)} Project rows.")
 
-        products_data = [
-            ("Abraytech DevSecOps Starter Kit", "A ready-to-use CI/CD + security scanning pipeline template.", Decimal("499.00")),
-            ("Abraytech Security Audit Toolkit", "Checklists and scripts our own auditors use for security reviews.", Decimal("299.00")),
-            ("Abraytech Cloud Cost Optimizer", "A lightweight tool that flags wasted cloud spend.", None),
-            ("Abraytech Onboarding Playbook", "Our internal engineering onboarding playbook, packaged for other teams.", Decimal("99.00")),
-            ("Abraytech API Style Guide", "The REST API design standards we use on every client project.", None),
+        # Store categories — created up front so products can be assigned one.
+        category_defs = [
+            ("Laptops", "laptop", "Ultrabooks and workstation-class laptops."),
+            ("Smartphones", "smartphone", "Android smartphones across budget and flagship tiers."),
+            ("Wireless Audio", "headphones", "True-wireless earbuds and headsets."),
+            ("Wearables", "watch", "Smartwatches and fitness trackers."),
+            ("Peripherals", "keyboard", "Keyboards, mice, and other desk accessories."),
+            ("Tablets", "tablet", "Android tablets for media, note-taking, and light work."),
+            ("Monitors", "monitor", "External displays for desks and multi-monitor setups."),
+            ("Networking", "wifi", "Routers and other home/office networking gear."),
+            ("Storage", "hard-drive", "External SSDs and other portable storage."),
+            ("Power & Charging", "battery-charging", "Power banks, chargers, and charging accessories."),
+            ("Apparel", "shirt", "Branded hoodies, t-shirts, and other wearables."),
+            ("Bags & Accessories", "briefcase", "Backpacks, sleeves, and everyday carry gear."),
         ]
-        for title, summary, price in products_data:
-            Product.objects.update_or_create(
-                title=title, defaults={"summary": summary, "price": price, "is_active": True},
+        categories = {}
+        for title, icon, description in category_defs:
+            categories[title], _ = ProductCategory.objects.update_or_create(
+                title=title, defaults={"icon": icon, "description": description},
             )
-        self.stdout.write(f"Seeded {len(products_data)} Product rows.")
+        self.stdout.write(f"Seeded {len(category_defs)} ProductCategory rows.")
+
+        # Gadget catalog — realistic Nigerian retail pricing (NGN, inclusive
+        # of the import/logistics markup real Nigerian electronics retailers
+        # charge, not a raw USD/NGN spot-rate conversion), one real photo per
+        # product (apps/store/seed_images/, sourced from Wikimedia Commons —
+        # see apps/store/seed_images/ATTRIBUTION.md), and a small spec sheet
+        # each for the product-detail page's "Technical Details" table.
+        products_data = [
+            {
+                "title": "Apex Pro 14 Ultrabook", "sku": "ABX-APEX14", "brand": "Apex",
+                "category": "Laptops", "image": "apex_pro_14_ultrabook.jpg",
+                "summary": "A 14-inch ultrabook built for engineers who live in their laptop.",
+                "description": "The Apex Pro 14 pairs a 13th-Gen Intel Core i7 with 16GB of RAM and a 512GB "
+                                "NVMe SSD in a 1.3kg magnesium-alloy chassis — fast enough for local dev "
+                                "environments and containers, light enough to carry all day.",
+                "price": Decimal("1450000.00"), "compare_at_price": None, "stock_quantity": 14,
+                "specs": [("Screen", "14-inch FHD+, 400 nits"), ("Processor", "Intel Core i7 (13th Gen)"),
+                          ("RAM", "16GB LPDDR5"), ("Storage", "512GB NVMe SSD"), ("Weight", "1.3 kg")],
+            },
+            {
+                "title": "Vector 16 Pro Laptop", "sku": "ABX-VEC16", "brand": "Vector",
+                "category": "Laptops", "image": "vector_16_pro_laptop.jpg",
+                "summary": "A 16-inch workstation laptop for heavier builds, VMs, and multitasking.",
+                "description": "The Vector 16 Pro steps up to an Intel Core i9, 32GB of RAM, and a 1TB SSD "
+                                "on a 16-inch QHD display — built for anyone running multiple VMs, large "
+                                "monorepos, or a Docker stack alongside a full IDE.",
+                "price": Decimal("2100000.00"), "compare_at_price": Decimal("2350000.00"), "stock_quantity": 9,
+                "specs": [("Screen", "16-inch QHD, 165Hz"), ("Processor", "Intel Core i9 (13th Gen)"),
+                          ("RAM", "32GB DDR5"), ("Storage", "1TB NVMe SSD"), ("Weight", "1.9 kg")],
+            },
+            {
+                "title": "Nova X12 Smartphone", "sku": "ABX-NOVAX12", "brand": "Nova",
+                "category": "Smartphones", "image": "nova_x12_smartphone.jpg",
+                "summary": "A dependable mid-range Android phone with all-day battery life.",
+                "description": "The Nova X12 covers the essentials well: a bright 6.5-inch AMOLED display, "
+                                "128GB of storage, and a 5000mAh battery that comfortably lasts a full day "
+                                "of calls, browsing, and mobile money apps.",
+                "price": Decimal("520000.00"), "compare_at_price": Decimal("580000.00"), "stock_quantity": 26,
+                "specs": [("Display", "6.5-inch AMOLED, 90Hz"), ("RAM", "8GB"), ("Storage", "128GB"),
+                          ("Battery", "5000mAh"), ("Camera", "50MP main + 8MP ultrawide")],
+            },
+            {
+                "title": "Pulse Edge Smartphone", "sku": "ABX-PULSE", "brand": "Pulse",
+                "category": "Smartphones", "image": "pulse_edge_smartphone.jpg",
+                "summary": "A flagship-tier phone with a faster chipset and a sharper camera stack.",
+                "description": "The Pulse Edge steps up to 12GB of RAM, 256GB of storage, and a 6.7-inch "
+                                "AMOLED panel, with a 5200mAh battery and 65W fast charging — ships with a "
+                                "protective folio case included.",
+                "price": Decimal("980000.00"), "compare_at_price": None, "stock_quantity": 11,
+                "specs": [("Display", "6.7-inch AMOLED, 120Hz"), ("RAM", "12GB"), ("Storage", "256GB"),
+                          ("Battery", "5200mAh, 65W fast charge"), ("In the box", "Phone + folio case")],
+            },
+            {
+                "title": "AeroBuds Pro Wireless Earbuds", "sku": "ABX-AERO", "brand": "AeroBuds",
+                "category": "Wireless Audio", "image": "aerobuds_pro_wireless_earbuds.jpg",
+                "summary": "True-wireless earbuds with active noise cancellation.",
+                "description": "AeroBuds Pro pack active noise cancellation, a sweat-resistant shell, and a "
+                                "compact charging case rated for 32 hours of total playback — 8 hours per "
+                                "charge on the earbuds alone.",
+                "price": Decimal("95000.00"), "compare_at_price": Decimal("115000.00"), "stock_quantity": 42,
+                "specs": [("Battery life", "8 hrs (32 hrs with case)"), ("Noise cancellation", "Active (ANC)"),
+                          ("Bluetooth", "5.3"), ("Water resistance", "IPX4")],
+            },
+            {
+                "title": "ChronoFit Smartwatch", "sku": "ABX-CHRONO", "brand": "ChronoFit",
+                "category": "Wearables", "image": "chronofit_smartwatch.jpg",
+                "summary": "A fitness-focused smartwatch with a week-long battery.",
+                "description": "ChronoFit tracks heart rate, sleep, and workouts on a always-legible AMOLED "
+                                "display, with up to 7 days of battery between charges and 5ATM water "
+                                "resistance for swimming.",
+                "price": Decimal("145000.00"), "compare_at_price": None, "stock_quantity": 30,
+                "specs": [("Display", "1.4-inch AMOLED"), ("Battery life", "Up to 7 days"),
+                          ("Water resistance", "5ATM"), ("Sensors", "Heart rate, SpO2, accelerometer")],
+            },
+            {
+                "title": "TypeCraft Mechanical Keyboard", "sku": "ABX-TYPE-KB", "brand": "TypeCraft",
+                "category": "Peripherals", "image": "typecraft_mechanical_keyboard.jpg",
+                "summary": "A full-size mechanical keyboard built for long typing sessions.",
+                "description": "TypeCraft uses hot-swappable blue mechanical switches on a full-size layout "
+                                "with per-key RGB backlighting — satisfying tactile feedback for both code "
+                                "and long-form writing.",
+                "price": Decimal("68000.00"), "compare_at_price": None, "stock_quantity": 22,
+                "specs": [("Switch type", "Mechanical (hot-swappable, blue)"), ("Layout", "Full-size, 104-key"),
+                          ("Backlight", "Per-key RGB"), ("Connectivity", "USB-C wired")],
+            },
+            {
+                "title": "GlideOne Wireless Mouse", "sku": "ABX-GLIDE-MS", "brand": "GlideOne",
+                "category": "Peripherals", "image": "glideone_wireless_mouse.jpg",
+                "summary": "A quiet, ergonomic wireless mouse for all-day desk use.",
+                "description": "GlideOne pairs a comfortable ergonomic shape with silent-click switches and "
+                                "a 12-month battery life on a single AA battery, connecting over a 2.4GHz "
+                                "USB receiver.",
+                "price": Decimal("24500.00"), "compare_at_price": None, "stock_quantity": 55,
+                "specs": [("DPI", "1600"), ("Connectivity", "2.4GHz wireless"),
+                          ("Battery life", "Up to 12 months (1x AA)"), ("Buttons", "3-button + scroll wheel")],
+            },
+            {
+                "title": "Slate 10 Tablet", "sku": "ABX-SLATE10", "brand": "Slate",
+                "category": "Tablets", "image": "slate_10_tablet.jpg",
+                "summary": "A 10.1-inch Android tablet for streaming, reading, and note-taking.",
+                "description": "The Slate 10 pairs a bright 10.1-inch display with 64GB of storage and a "
+                                "long-life battery — a straightforward tablet for media, browsing, and "
+                                "light productivity, expandable via microSD.",
+                "price": Decimal("185000.00"), "compare_at_price": Decimal("210000.00"), "stock_quantity": 18,
+                "specs": [("Display", "10.1-inch, 1920x1200"), ("RAM", "4GB"), ("Storage", "64GB, microSD expandable"),
+                          ("Battery", "6800mAh")],
+            },
+            {
+                "title": "ViewFrame 27 4K Monitor", "sku": "ABX-VIEW27", "brand": "ViewFrame",
+                "category": "Monitors", "image": "viewframe_27_4k_monitor.png",
+                "summary": "A 27-inch 4K monitor for code, design, and multitasking.",
+                "description": "A 27-inch IPS panel at 4K resolution with USB-C and HDMI inputs and a "
+                                "height-adjustable stand — enough screen real estate for a split editor "
+                                "and browser, or a full design canvas.",
+                "price": Decimal("310000.00"), "compare_at_price": None, "stock_quantity": 12,
+                "specs": [("Screen", "27-inch IPS, 4K (3840x2160)"), ("Refresh rate", "60Hz"),
+                          ("Ports", "HDMI, DisplayPort, USB-C"), ("Stand", "Height, tilt, swivel adjustable")],
+            },
+            {
+                "title": "NetPulse Wi-Fi 6 Router", "sku": "ABX-NETPULSE", "brand": "NetPulse",
+                "category": "Networking", "image": "netpulse_wifi6_router.jpg",
+                "summary": "A dual-band Wi-Fi 6 router built for busy households.",
+                "description": "NetPulse covers a full apartment or small office on dual-band Wi-Fi 6, with "
+                                "four Gigabit LAN ports for wired devices and simple app-based setup — built "
+                                "to hold up under multiple simultaneous streams and video calls.",
+                "price": Decimal("62000.00"), "compare_at_price": None, "stock_quantity": 24,
+                "specs": [("Wi-Fi standard", "Wi-Fi 6 (802.11ax)"), ("Bands", "Dual-band (2.4GHz + 5GHz)"),
+                          ("LAN ports", "4x Gigabit"), ("Coverage", "Up to 200 sqm")],
+            },
+            {
+                "title": "DriveVault 1TB External SSD", "sku": "ABX-VAULT1TB", "brand": "DriveVault",
+                "category": "Storage", "image": "drivevault_1tb_external_ssd.jpg",
+                "summary": "A pocket-sized 1TB external SSD for fast backups and file transfer.",
+                "description": "DriveVault packs 1TB into a shock-resistant aluminum shell with USB-C "
+                                "connectivity — fast enough for video editing scratch disks and large "
+                                "backups, small enough to carry in a pocket.",
+                "price": Decimal("115000.00"), "compare_at_price": Decimal("135000.00"), "stock_quantity": 20,
+                "specs": [("Capacity", "1TB"), ("Interface", "USB-C 3.2"), ("Read speed", "Up to 1050 MB/s"),
+                          ("Build", "Shock-resistant aluminum shell")],
+            },
+            {
+                "title": "PowerCell 20K Power Bank", "sku": "ABX-POWER20K", "brand": "PowerCell",
+                "category": "Power & Charging", "image": "powercell_20k_power_bank.jpg",
+                "summary": "A 20,000mAh power bank with fast charging for phones and small laptops.",
+                "description": "PowerCell 20K holds enough charge for multiple full phone top-ups, with "
+                                "18W fast-charge output over USB-C and USB-A — a reliable backup for travel "
+                                "or days with unreliable power.",
+                "price": Decimal("32000.00"), "compare_at_price": None, "stock_quantity": 48,
+                "specs": [("Capacity", "20,000mAh"), ("Output", "18W fast charge, USB-C + USB-A"),
+                          ("Ports", "2 output, 1 input"), ("Weight", "380g")],
+            },
+            {
+                "title": "BoomCube Portable Speaker", "sku": "ABX-BOOMCUBE", "brand": "BoomCube",
+                "category": "Wireless Audio", "image": "boomcube_portable_speaker.jpg",
+                "summary": "A compact Bluetooth speaker with surprisingly full sound.",
+                "description": "BoomCube fits in one hand but fills a room, with a rechargeable battery "
+                                "rated for 10 hours of playback and a durable metal grille built to handle "
+                                "daily use around the house or office.",
+                "price": Decimal("48000.00"), "compare_at_price": None, "stock_quantity": 33,
+                "specs": [("Battery life", "Up to 10 hours"), ("Bluetooth", "5.0"),
+                          ("Connectivity", "Bluetooth + AUX"), ("Weight", "540g")],
+            },
+            {
+                # No real product photo yet — Wikimedia Commons (the source for every
+                # other seed photo here) has essentially no usable, cleanly-licensed
+                # apparel/bag product photography; it's an encyclopedia media
+                # repository, not a stock-photo site. Shows the existing placeholder
+                # icon until a real photo is uploaded via the admin.
+                "title": "Abraytech Crewneck Hoodie", "sku": "ABX-HOODIE", "brand": "Abraytech",
+                "category": "Apparel", "image": None,
+                "summary": "A heavyweight cotton-blend hoodie with the Abraytech wordmark.",
+                "description": "A 320gsm cotton-blend fleece hoodie, brushed inside for warmth, with a "
+                                "kangaroo pocket and an embroidered Abraytech wordmark on the chest.",
+                "price": Decimal("22000.00"), "compare_at_price": None, "stock_quantity": 40,
+                "specs": [("Material", "80% cotton, 20% polyester fleece"), ("Fit", "Regular, unisex"),
+                          ("Care", "Machine wash cold")],
+                "variants": [("Size", "S"), ("Size", "M"), ("Size", "L"), ("Size", "XL"), ("Size", "XXL")],
+            },
+            {
+                "title": "Abraytech Logo T-Shirt", "sku": "ABX-TSHIRT", "brand": "Abraytech",
+                "category": "Apparel", "image": None,
+                "summary": "A soft, breathable crewneck tee with a printed Abraytech logo.",
+                "description": "A 180gsm combed-cotton crewneck tee with a screen-printed Abraytech logo on "
+                                "the chest — a everyday staple, true to size.",
+                "price": Decimal("8500.00"), "compare_at_price": None, "stock_quantity": 60,
+                "specs": [("Material", "100% combed cotton"), ("Fit", "Regular, unisex"),
+                          ("Care", "Machine wash cold")],
+                "variants": [("Size", "S"), ("Size", "M"), ("Size", "L"), ("Size", "XL"), ("Size", "XXL")],
+            },
+            {
+                "title": "TechPack 15-inch Laptop Backpack", "sku": "ABX-TECHPACK15", "brand": "TechPack",
+                "category": "Bags & Accessories", "image": None,
+                "summary": "A padded backpack built to carry a 15-inch laptop and a full workday.",
+                "description": "A water-resistant backpack with a dedicated padded sleeve for up to a "
+                                "15-inch laptop, a USB charging port on the exterior, and organizer pockets "
+                                "for cables and accessories.",
+                "price": Decimal("28000.00"), "compare_at_price": Decimal("34000.00"), "stock_quantity": 25,
+                "specs": [("Laptop compartment", "Fits up to 15-inch"), ("Material", "Water-resistant polyester"),
+                          ("Capacity", "22L"), ("Extras", "External USB charging port")],
+            },
+            {
+                "title": "GuardSleeve 14-inch Laptop Sleeve", "sku": "ABX-GUARDSLEEVE14", "brand": "GuardSleeve",
+                "category": "Bags & Accessories", "image": None,
+                "summary": "A slim, shock-absorbing sleeve for 13-14-inch laptops.",
+                "description": "A neoprene sleeve with a shock-absorbing foam lining and a zippered front "
+                                "pocket for a charger or cables — slim enough to fit inside most backpacks.",
+                "price": Decimal("9500.00"), "compare_at_price": None, "stock_quantity": 45,
+                "specs": [("Fits", "13 to 14-inch laptops"), ("Material", "Neoprene with foam padding"),
+                          ("Closure", "Zipper"), ("Extras", "Front accessory pocket")],
+            },
+        ]
+
+        seed_images_dir = Path(django_apps.get_app_config('store').path) / 'seed_images'
+        product_count = 0
+        for data in products_data:
+            product, _ = Product.objects.update_or_create(
+                title=data["title"],
+                defaults={
+                    "summary": data["summary"], "description": data["description"],
+                    "price": data["price"], "compare_at_price": data["compare_at_price"],
+                    "currency": "NGN", "sku": data["sku"], "brand": data["brand"],
+                    "category": categories[data["category"]], "stock_quantity": data["stock_quantity"],
+                    "track_inventory": True, "condition": "new", "is_active": True,
+                },
+            )
+            product_count += 1
+
+            for sort_order, (label, value) in enumerate(data["specs"]):
+                ProductSpecification.objects.update_or_create(
+                    product=product, label=label, defaults={"value": value, "sort_order": sort_order},
+                )
+
+            for sort_order, (option_name, value) in enumerate(data.get("variants", [])):
+                ProductVariant.objects.update_or_create(
+                    product=product, option_name=option_name, value=value, defaults={"sort_order": sort_order},
+                )
+
+            # Idempotent: only attach the seed photo if this product doesn't
+            # already have an image (so re-running the command never
+            # re-uploads duplicate MediaAsset rows).
+            if data.get("image") and not product.images.exists():
+                image_path = seed_images_dir / data["image"]
+                if image_path.exists():
+                    asset = MediaAsset.objects.create()
+                    asset.file.save(data["image"], ContentFile(image_path.read_bytes()), save=True)
+                    ProductImage.objects.create(product=product, asset=asset, sort_order=0, is_primary=True)
+
+        self.stdout.write(f"Seeded {product_count} Product rows (gadget catalog, NGN pricing).")
 
         jobs_data = [
             ("Full-Stack Software Engineer", "Engineering", "Lagos, Nigeria", "full_time"),

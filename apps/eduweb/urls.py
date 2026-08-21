@@ -47,17 +47,16 @@ urlpatterns = [
     path('services/', views.services_list, name='services_list'),
     path('services/<slug:slug>/', views.service_detail, name='service_detail'),
 
-    # Industries
+    # Industries — detail page disabled for now (commented out), list page
+    # still works.
     path('industries/', views.industries_list, name='industries_list'),
-    path('industries/<slug:slug>/', views.industry_detail, name='industry_detail'),
+    # path('industries/<slug:slug>/', views.industry_detail, name='industry_detail'),
 
     # Projects / Portfolio
     path('projects/', views.projects_list, name='projects_list'),
     path('projects/<slug:slug>/', views.project_detail, name='project_detail'),
 
-    # Store
-    path('store/', views.store_list, name='store_list'),
-    path('store/<slug:slug>/', views.product_detail, name='product_detail'),
+    # Store routes moved to apps/store/urls.py
 
     # Consultation booking
     path('consultation/', views.consultation_booking, name='consultation_booking'),

@@ -26,7 +26,6 @@ from apps.eduweb.models import (
     LMSCourse,
     LibraryItem,
     PaymentGateway,
-    Product,
     Program,
     Review,
     SiteConfig,
@@ -40,6 +39,7 @@ from apps.eduweb.models import (
     UserProfile,
     validate_file_size,
 )
+from apps.store.models import Product, ProductCategory, ProductSpecification, ProductVariant, MediaAsset
 
 
 def _clean_unique_email(email, instance=None, message='This email is already registered.'):
@@ -1091,20 +1091,84 @@ class SocialPostForm(forms.ModelForm):
         }
 
 
+class ProductCategoryForm(forms.ModelForm):
+    class Meta:
+        model = ProductCategory
+        fields = ['title', 'icon', 'description']
+        widgets = {
+            'title':       forms.TextInput(attrs=_SC_I),
+            'icon':        forms.TextInput(attrs={**_SC_I, 'placeholder': "Lucide icon name, e.g. 'laptop'"}),
+            'description': forms.Textarea(attrs={**_SC_T, 'rows': 2}),
+        }
+
+
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = ['title', 'summary', 'description', 'image', 'price', 'currency', 'is_active']
+        fields = [
+            'title', 'sku', 'brand', 'category', 'summary', 'description',
+            'price', 'compare_at_price', 'currency', 'cost_price',
+            'track_inventory', 'stock_quantity', 'low_stock_threshold',
+            'condition', 'warranty_months', 'weight_kg', 'length_cm', 'width_cm', 'height_cm',
+            'is_active', 'is_featured',
+        ]
         widgets = {
-            'title':       forms.TextInput(attrs=_SC_I),
-            'summary':     forms.Textarea(attrs={**_SC_T, 'rows': 2, 'placeholder': 'Short one-line summary shown on cards'}),
-            'description': forms.Textarea(attrs={**_SC_T, 'rows': 5}),
-            'price':       forms.NumberInput(attrs={**_SC_I, 'step': '0.01', 'min': '0', 'placeholder': "Leave blank for 'Contact for pricing'"}),
-            'currency':    forms.TextInput(attrs={**_SC_I, 'placeholder': 'USD', 'maxlength': '3'}),
+            'title':               forms.TextInput(attrs=_SC_I),
+            'sku':                 forms.TextInput(attrs={**_SC_I, 'placeholder': 'Optional unique product code'}),
+            'brand':               forms.TextInput(attrs=_SC_I),
+            'category':            forms.Select(attrs={**_SC_I, 'class': 'searchable-select ' + _SC_I['class'], 'data-ss-placeholder': 'Select a category…'}),
+            'summary':             forms.Textarea(attrs={**_SC_T, 'rows': 2, 'placeholder': 'Short one-line summary shown on cards'}),
+            'description':         forms.Textarea(attrs={**_SC_T, 'rows': 5}),
+            'price':               forms.NumberInput(attrs={**_SC_I, 'step': '0.01', 'min': '0', 'placeholder': "Leave blank for 'Contact for pricing'"}),
+            'compare_at_price':    forms.NumberInput(attrs={**_SC_I, 'step': '0.01', 'min': '0', 'placeholder': "Optional 'was' price"}),
+            'currency':            forms.TextInput(attrs={**_SC_I, 'placeholder': 'NGN', 'maxlength': '3'}),
+            'cost_price':          forms.NumberInput(attrs={**_SC_I, 'step': '0.01', 'min': '0', 'placeholder': 'Staff-only, never shown publicly'}),
+            'stock_quantity':      forms.NumberInput(attrs={**_SC_I, 'min': '0'}),
+            'low_stock_threshold': forms.NumberInput(attrs={**_SC_I, 'min': '0'}),
+            'condition':           forms.Select(attrs=_SC_I),
+            'warranty_months':     forms.NumberInput(attrs={**_SC_I, 'min': '0'}),
+            'weight_kg':           forms.NumberInput(attrs={**_SC_I, 'step': '0.01', 'min': '0'}),
+            'length_cm':           forms.NumberInput(attrs={**_SC_I, 'step': '0.01', 'min': '0'}),
+            'width_cm':            forms.NumberInput(attrs={**_SC_I, 'step': '0.01', 'min': '0'}),
+            'height_cm':           forms.NumberInput(attrs={**_SC_I, 'step': '0.01', 'min': '0'}),
         }
 
-    def clean_image(self):
-        return _validate_upload(self.cleaned_data.get('image'), IMAGE_EXTENSIONS)
+
+ProductSpecificationFormSet = forms.inlineformset_factory(
+    Product, ProductSpecification,
+    fields=['label', 'value', 'sort_order'],
+    widgets={
+        'label':      forms.TextInput(attrs={**_SC_I, 'placeholder': 'e.g. Screen Size'}),
+        'value':      forms.TextInput(attrs={**_SC_I, 'placeholder': 'e.g. 15.6-inch'}),
+        'sort_order': forms.NumberInput(attrs={**_SC_I, 'min': '0', 'placeholder': 'Auto'}),
+    },
+    extra=3, can_delete=True,
+)
+
+
+ProductVariantFormSet = forms.inlineformset_factory(
+    Product, ProductVariant,
+    fields=['option_name', 'value', 'sort_order'],
+    widgets={
+        'option_name': forms.TextInput(attrs={**_SC_I, 'placeholder': "e.g. 'Size' or 'Color'"}),
+        'value':       forms.TextInput(attrs={**_SC_I, 'placeholder': "e.g. 'Large' or 'Red'"}),
+        'sort_order':  forms.NumberInput(attrs={**_SC_I, 'min': '0', 'placeholder': 'Auto'}),
+    },
+    extra=3, can_delete=True,
+)
+
+
+class MediaAssetForm(forms.ModelForm):
+    """Uploads a new file into the shared MediaAsset pool (see ProductImage's
+    'choose from library' picker, which lists existing MediaAsset rows
+    instead of re-uploading)."""
+    class Meta:
+        model = MediaAsset
+        fields = ['file']
+        widgets = {'file': forms.ClearableFileInput(attrs={'class': _SC_I['class'], 'accept': 'image/*'})}
+
+    def clean_file(self):
+        return _validate_upload(self.cleaned_data.get('file'), IMAGE_EXTENSIONS)
 
 
 class InstitutionMemberForm(forms.ModelForm):

@@ -211,6 +211,24 @@ urlpatterns = [
     path('site-config/products/create/', views.product_create, name='product_create'),
     path('site-config/products/<int:pk>/edit/', views.product_edit, name='product_edit'),
     path('site-config/products/<int:pk>/delete/', views.product_delete, name='product_delete'),
+    path('site-config/products/<int:pk>/images/add/', views.product_image_add, name='product_image_add'),
+    path('site-config/products/<int:pk>/images/<int:image_id>/delete/', views.product_image_delete, name='product_image_delete'),
+    path('site-config/products/<int:pk>/images/<int:image_id>/set-primary/', views.product_image_set_primary, name='product_image_set_primary'),
+
+    # Store Product Categories
+    path('site-config/product-categories/', views.product_categories_list, name='product_categories_list'),
+    path('site-config/product-categories/create/', views.product_category_create, name='product_category_create'),
+    path('site-config/product-categories/<int:pk>/edit/', views.product_category_edit, name='product_category_edit'),
+    path('site-config/product-categories/<int:pk>/delete/', views.product_category_delete, name='product_category_delete'),
+
+    # Store Orders (fulfillment queue) — lives under its own top-level "Store"
+    # sidebar section, not under Site Settings/site-config. The refund-queue
+    # routes must come before the <str:order_number> catch-all or "refunds"
+    # would be swallowed as an order number.
+    path('orders/', views.orders_list, name='orders_list'),
+    path('orders/refunds/', views.refund_requests_list, name='refund_requests_list'),
+    path('orders/refunds/<str:order_number>/decide/', views.refund_request_decide, name='refund_request_decide'),
+    path('orders/<str:order_number>/', views.order_detail, name='order_detail'),
 
     # Institution Members
     path('site-config/members/', views.institution_members_list, name='institution_members_list'),

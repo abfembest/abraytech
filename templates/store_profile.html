@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Account Details | Abraytech Store{% endblock %}
+
+{% block content %}
+
+<section class="py-10 bg-white">
+    <div class="container-responsive mx-auto px-4 sm:px-6 lg:px-8">
+        <nav class="flex mb-8" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-2 text-sm">
+                <li><a href="{% url 'eduweb:index' %}" class="text-slate-500 hover:text-brandblue transition-colors">Home</a></li>
+                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-300"></i></li>
+                <li><a href="{% url 'store:store_list' %}" class="text-slate-500 hover:text-brandblue transition-colors">Store</a></li>
+                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-300"></i></li>
+                <li><span class="text-navy font-medium">Account Details</span></li>
+            </ol>
+        </nav>
+        <h1 class="text-2xl sm:text-3xl font-sora font-bold text-navy mb-8">Account Details</h1>
+
+        {% if is_customer %}
+        <div class="light-card p-6 max-w-lg mx-auto">
+            <h2 class="text-h4-brand text-navy mb-2">Contact &amp; Delivery Details</h2>
+            <p class="text-sm text-slate-500 mb-6">Saved here, used to prefill checkout so you don&rsquo;t retype it every order.</p>
+
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label class="label-brand" for="profileName">Full Name</label>
+                    <input type="text" id="profileName" name="name" value="{{ request.user.get_full_name|default:request.user.first_name }}" class="input-brand" required>
+                </div>
+                <div>
+                    <label class="label-brand" for="profileEmail">Email</label>
+                    <input type="email" id="profileEmail" value="{{ request.user.email }}" class="input-brand" disabled>
+                </div>
+                <div>
+                    <label class="label-brand" for="profilePhone">Phone Number</label>
+                    <input type="tel" id="profilePhone" name="phone" value="{{ profile.phone }}" class="input-brand" required>
+                </div>
+                <div>
+                    <label class="label-brand" for="profileAddress">Delivery Address</label>
+                    <textarea id="profileAddress" name="address" rows="2" class="input-brand" required>{{ profile.address }}</textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="label-brand" for="profileCity">City</label>
+                        <input type="text" id="profileCity" name="city" value="{{ profile.city }}" class="input-brand" required>
+                    </div>
+                    <div>
+                        <label class="label-brand" for="profileState">State</label>
+                        <input type="text" id="profileState" name="state" value="{{ profile.state }}" class="input-brand" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-brand w-full">Save Details</button>
+            </form>
+        </div>
+
+        {% else %}
+        {% comment %}Not signed in as a store customer — same inline login pattern as My Orders.{% endcomment %}
+        <div class="light-card p-6 max-w-md mx-auto">
+            <h2 class="text-h4-brand text-navy mb-2">Sign in to manage your details</h2>
+            <p class="text-sm text-slate-500 mb-6">Store accounts are separate from student/staff logins.</p>
+            <form method="post" action="{% url 'store:store_login' %}" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next }}">
+                <div>
+                    <label class="label-brand" for="acctLoginEmail">Email</label>
+                    <input type="email" id="acctLoginEmail" name="email" class="input-brand" required>
+                </div>
+                {% include '_password_field.html' with field_id='acctLoginPassword' %}
+                {% include '_login_captcha_field.html' with captcha_field_id='acctLoginCaptcha' %}
+                <button type="submit" class="btn-brand w-full">Log In</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}

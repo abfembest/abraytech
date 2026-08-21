@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Orders | Abraytech Store{% endblock %}
+
+{% block extra_css %}
+{% if is_customer %}
+<!-- DataTables + Buttons (vendored) — not loaded by the public base.html by
+     default (it's otherwise a dashboard-only tool), pulled in just for this
+     page. jQuery itself is already loaded site-wide. -->
+<link rel="stylesheet" href="{% static 'vendor/datatables/jquery.dataTables.min.css' %}">
+<link rel="stylesheet" href="{% static 'vendor/datatables/buttons/buttons.dataTables.min.css' %}">
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<section class="relative overflow-hidden bg-navy py-20 lg:py-28">
+    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <nav class="flex mb-6" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-2 text-sm">
+                <li><a href="{% url 'eduweb:index' %}" class="text-white/60 hover:text-white transition-colors">Home</a></li>
+                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+                <li><a href="{% url 'store:store_list' %}" class="text-white/60 hover:text-white transition-colors">Store</a></li>
+                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+                <li><span class="text-white/80 font-medium">My Orders</span></li>
+            </ol>
+        </nav>
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-white">My Orders</h1>
+    </div>
+</section>
+
+<section class="py-16 bg-white">
+    <div class="container-responsive mx-auto px-4 sm:px-6 lg:px-8">
+        {% if is_customer %}
+
+        {% csrf_token %}
+        {{ orders_data|json_script:"ordersDataJson" }}
+        <div class="table-brand-wrap">
+            <table id="myOrdersTable" class="table-brand" style="width:100%">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Order #</th>
+                        <th>Date</th>
+                        <th>Items</th>
+                        <th>Status</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        {% comment %}Real (non-AJAX) form — submitted natively so Django's messages
+           framework actually reaches the page the user sees. A fetch()-based
+           submit here would auto-follow the redirect and silently consume
+           the success/error message before this page ever re-renders.{% endcomment %}
+        <form id="refundRequestForm" method="post" action="{% url 'store:my_orders' %}" class="hidden">
+            {% csrf_token %}
+            <input type="hidden" name="reason" id="refundRequestReasonInput">
+        </form>
+
+        {% else %}
+        {% comment %}Not signed in as a store customer — a returning customer just needs
+           to log in here (they already have an account; no signup form).{% endcomment %}
+        <div class="light-card p-6 max-w-md mx-auto">
+            <h2 class="text-h4-brand text-navy mb-2">Sign in to view your orders</h2>
+            <p class="text-sm text-slate-500 mb-6">Store accounts are separate from student/staff logins.</p>
+            <form method="post" action="{% url 'store:store_login' %}" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next }}">
+                <div>
+                    <label class="label-brand" for="ordersLoginEmail">Email</label>
+                    <input type="email" id="ordersLoginEmail" name="email" class="input-brand" required>
+                </div>
+                {% include '_password_field.html' with field_id='ordersLoginPassword' %}
+                {% include '_login_captcha_field.html' with captcha_field_id='ordersLoginCaptcha' %}
+                <button type="submit" class="btn-brand w-full">Log In</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+{% if is_customer %}
+<script src="{% static 'vendor/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'vendor/datatables/buttons/dataTables.buttons.min.js' %}"></script>
+<script src="{% static 'vendor/jszip/jszip.min.js' %}"></script>
+<script src="{% static 'vendor/pdfmake/pdfmake.min.js' %}"></script>
+<script src="{% static 'vendor/pdfmake/vfs_fonts.js' %}"></script>
+<script src="{% static 'vendor/datatables/buttons/buttons.html5.min.js' %}"></script>
+<script src="{% static 'vendor/datatables/buttons/buttons.print.min.js' %}"></script>
+<script>
+(function () {
+    var orders = JSON.parse(document.getElementById('ordersDataJson').textContent);
+
+    var statusPillClass = {
+        paid: 'pill-amber',
+        processing: 'pill-cyan',
+        shipped: 'pill-cyan',
+        delivered: 'pill-lime',
+        failed: 'pill-danger',
+        refunded: 'pill-light',
+    };
+
+    function thumbHtml(imageUrl, sizeClass) {
+        var inner = imageUrl
+            ? '<img src="' + imageUrl + '" alt="">'
+            : '<div class="w-full h-full flex items-center justify-center"><i data-lucide="package" class="w-3.5 h-3.5 text-brandblue/50"></i></div>';
+        return '<span class="' + sizeClass + '">' + inner + '</span>';
+    }
+
+    function itemsSummary(items) {
+        var shown = items.slice(0, 2);
+        var thumbs = shown.map(function (i) { return thumbHtml(i.image_url, 'order-item-thumb'); }).join('');
+        var names = items.map(function (i) { return i.title; });
+        var text = names.length <= 2 ? names.join(', ') : names.slice(0, 2).join(', ') + ' +' + (names.length - 2) + ' more';
+        return '<div class="flex items-center gap-2"><span class="flex -space-x-1">' + thumbs + '</span><span>' + text + '</span></div>';
+    }
+
+    function childRowHtml(order) {
+        var rows = order.items.map(function (i) {
+            var variant = i.variant_label ? ' <span class="text-slate-400">(' + i.variant_label + ')</span>' : '';
+            return '<div class="flex items-center gap-3 py-1.5 border-b border-borderblue last:border-0">' +
+                thumbHtml(i.image_url, 'cart-line-image') +
+                '<span class="flex-1">' + i.title + variant + ' &times; ' + i.quantity + '</span>' +
+                '<span class="font-semibold text-navy">' + i.line_total_display + '</span>' +
+                '</div>';
+        }).join('');
+        var delivery = order.delivery_display
+            ? '<div class="mt-2 pt-2 border-t border-borderblue text-xs text-slate-500">Delivering to ' + order.delivery_display + ' &middot; ' + order.delivery_phone + '</div>'
+            : '';
+        var refundSection = '';
+        if (order.refund_request_status === 'pending') {
+            refundSection = '<div class="mt-2 pt-2 border-t border-borderblue text-xs text-brandblue font-medium">Refund request submitted — awaiting review.</div>';
+        } else if (order.can_request_refund) {
+            var declinedNote = order.refund_request_status === 'rejected'
+                ? '<p class="text-xs text-slate-500 mb-2">Your previous refund request was declined.</p>' : '';
+            refundSection = '<div class="mt-2 pt-2 border-t border-borderblue">' + declinedNote +
+                '<button type="button" class="js-request-refund-btn btn-brand-outline btn-brand-sm" data-order-number="' + order.order_number + '">' +
+                '<i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Request Cancellation / Refund</button></div>';
+        }
+        return '<div class="px-4 py-3 bg-soft rounded-lg text-sm text-slate-600">' + rows + delivery + refundSection + '</div>';
+    }
+
+    var table = $('#myOrdersTable').DataTable({
+        data: orders,
+        order: [[2, 'desc']],
+        columns: [
+            {
+                className: 'details-control text-center', orderable: false, data: null, defaultContent: '',
+                render: function () { return '<i data-lucide="chevron-right" class="w-4 h-4 inline-block transition-transform"></i>'; },
+            },
+            { data: 'order_number', render: function (d) { return '<span class="font-semibold text-navy">' + d + '</span>'; } },
+            { data: 'created_at' },
+            { data: 'items', render: function (items) { return itemsSummary(items); } },
+            {
+                data: 'status_display',
+                render: function (display, type, row) {
+                    var cls = statusPillClass[row.status] || 'pill-light';
+                    return '<span class="pill ' + cls + '">' + display + '</span>';
+                },
+            },
+            { data: 'total_display', render: function (d) { return '<span class="font-semibold text-navy">' + d + '</span>'; } },
+        ],
+        responsive: false,
+        pageLength: 10,
+        language: { search: '', searchPlaceholder: 'Search orders...', emptyTable: 'You haven\'t placed any orders yet.' },
+        dom: '<"flex flex-wrap items-center justify-between gap-3 mb-4"Bf>rt<"flex flex-wrap items-center justify-between gap-3 mt-4"lp>',
+        buttons: ['csv', 'print'],
+        drawCallback: function () { if (window.lucide) lucide.createIcons(); },
+        initComplete: function () { if (window.lucide) lucide.createIcons(); },
+    });
+
+    $('#myOrdersTable tbody').on('click', 'td.details-control', function () {
+        var tr = $(this).closest('tr');
+        var row = table.row(tr);
+        var icon = $(this).find('[data-lucide]');
+        if (row.child.isShown()) {
+            row.child.hide();
+            icon.removeClass('rotate-90');
+        } else {
+            row.child(childRowHtml(row.data())).show();
+            icon.addClass('rotate-90');
+            if (window.lucide) lucide.createIcons();
+        }
+    });
+
+    // Refund/cancellation request — delegated since the button lives inside
+    // a DataTables child row injected after page load. Submits the real
+    // hidden form (not fetch) so the redirect back here still carries
+    // Django's success/error message.
+    $('#myOrdersTable').on('click', '.js-request-refund-btn', function () {
+        var orderNumber = this.dataset.orderNumber;
+        Swal.fire({
+            title: 'Request cancellation / refund?',
+            input: 'textarea',
+            inputPlaceholder: 'Tell us why you want to cancel or return this order…',
+            inputValidator: function (value) {
+                if (!value) return 'Please tell us why — this helps our team review it faster.';
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Submit Request',
+        }).then(function (result) {
+            if (!result.isConfirmed) return;
+            var form = document.getElementById('refundRequestForm');
+            form.action = "{% url 'store:request_refund' 'PLACEHOLDER' %}".replace('PLACEHOLDER', orderNumber);
+            document.getElementById('refundRequestReasonInput').value = result.value;
+            form.submit();
+        });
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

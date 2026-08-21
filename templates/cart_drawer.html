@@ -1,0 +1,57 @@
+{% load static humanize %}
+{% if items %}
+<div class="divide-y divide-borderblue">
+    {% for item in items %}
+    <div class="py-4 flex gap-3">
+        <div class="cart-line-image bg-soft rounded-lg overflow-hidden shrink-0">
+            {% with image=item.product.primary_image %}
+            {% if image %}
+            <img src="{{ image.asset.file.url }}" alt="{{ item.product.title }}" loading="lazy">
+            {% else %}
+            <div class="w-full h-full flex items-center justify-center">
+                <i data-lucide="package" class="w-5 h-5 text-brandblue/50"></i>
+            </div>
+            {% endif %}
+            {% endwith %}
+        </div>
+
+        <div class="flex-1 min-w-0">
+            <a href="{% url 'store:product_detail' item.product.slug %}" class="font-sora font-semibold text-navy text-sm hover:text-brandblue transition line-clamp-1">{{ item.product.title }}</a>
+            {% if item.variant %}<p class="text-caption-brand text-slate-500">{{ item.variant.option_name }}: {{ item.variant.value }}</p>{% endif %}
+            <p class="text-caption-brand text-slate-500 mt-0.5">NGN {{ item.product.price|floatformat:"0"|intcomma }} each</p>
+
+            <form hx-post="{% url 'store:cart_view' %}" hx-target="#cartDrawerContent" hx-swap="innerHTML" class="mt-2 flex items-center gap-2">
+                {% csrf_token %}
+                <input type="hidden" name="cart_key" value="{{ item.cart_key }}">
+                <input type="hidden" name="action" value="update">
+                <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="input-brand cart-qty-input" onchange="this.form.requestSubmit()">
+                <button type="button" hx-post="{% url 'store:cart_view' %}" hx-vals='{"action": "remove", "cart_key": "{{ item.cart_key }}"}' hx-target="#cartDrawerContent" hx-swap="innerHTML" class="text-slate-400 hover:text-red-600 transition shrink-0" aria-label="Remove {{ item.product.title }}">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+            </form>
+        </div>
+
+        <p class="font-sora font-semibold text-navy text-sm whitespace-nowrap">NGN {{ item.line_total|floatformat:"0"|intcomma }}</p>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="pt-4 mt-2 border-t border-borderblue">
+    <div class="flex items-center justify-between mb-4">
+        <p class="text-body-brand text-navy font-semibold">Total</p>
+        <p class="text-h4-brand text-navy font-bold">NGN {{ total|floatformat:"0"|intcomma }}</p>
+    </div>
+    <a href="{% url 'store:checkout_view' %}" class="btn-brand w-full">
+        Proceed to Checkout <i data-lucide="arrow-right" class="w-4 h-4"></i>
+    </a>
+    <a href="{% url 'store:cart_view' %}" class="block text-center text-caption-brand text-slate-500 hover:text-brandblue mt-3 transition">View full cart page</a>
+</div>
+{% else %}
+<div class="text-center py-16">
+    <i data-lucide="shopping-cart" class="w-10 h-10 text-brandblue/40 mx-auto mb-4"></i>
+    <p class="text-slate-500 mb-6 text-sm">Your cart is empty.</p>
+    <a href="{% url 'store:store_list' %}" class="btn-brand btn-brand-sm">
+        Browse the Store <i data-lucide="arrow-right" class="w-4 h-4"></i>
+    </a>
+</div>
+{% endif %}

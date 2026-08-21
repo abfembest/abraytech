@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% load static %}
+{% load static humanize %}
 
 {% block title %}{{ site_config.school_short_name|default:"Abraytech" }} – {{ site_config.school_name|default:"Abraytech" }} | Technology Services, Training &amp; Products{% endblock %}
 
@@ -53,7 +53,7 @@
         <div class="absolute inset-x-0 bottom-0 h-40 hero-visual-bottom-fade"></div>
     </div>
 
-    <div class="w-full px-4 sm:px-6 lg:pl-12 xl:pl-20 lg:pr-8 relative z-10 flex items-center py-20 lg:py-28 hero-min-h">
+    <div class="w-full px-4 sm:px-6 lg:pl-20 xl:pl-28 2xl:pl-32 lg:pr-8 relative z-10 flex items-center py-20 lg:py-28 hero-min-h">
         <div class="reveal w-full max-w-lg lg:max-w-[calc(44%_-_3.75rem)] xl:max-w-[calc(38%_-_5.25rem)]">
             {% comment %}
             <span class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-brandblue bg-ice rounded-full uppercase tracking-wider border border-borderblue">
@@ -273,25 +273,27 @@
                 <h2 id="store-heading" class="mt-3 text-3xl sm:text-4xl font-sora font-bold text-navy max-w-lg">From the Store</h2>
                 <p class="mt-2 text-slate-600 max-w-xl">Ready-made tools and products built by our engineering team.</p>
             </div>
-            <a href="{% url 'eduweb:store_list' %}" class="inline-flex items-center gap-1 text-sm font-semibold text-brandblue">Visit the store <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+            <a href="{% url 'store:store_list' %}" class="inline-flex items-center gap-1 text-sm font-semibold text-brandblue">Visit the store <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
         </div>
         <div class="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for product in store_products %}
-            <a href="{% url 'eduweb:product_detail' product.slug %}" class="reveal bg-white rounded-2xl border border-borderblue overflow-hidden hover:shadow-brand hover:-translate-y-1 transition block">
-                {% if product.image %}
-                <div class="h-40 bg-gray-100 overflow-hidden">
-                    <img src="{{ product.image.url }}" alt="{{ product.title }}" class="w-full h-full object-cover" loading="lazy">
+            <a href="{% url 'store:product_detail' product.slug %}" class="reveal bg-white rounded-2xl border border-borderblue overflow-hidden hover:shadow-brand hover:-translate-y-1 transition block">
+                <div class="product-card-image bg-soft">
+                    {% with image=product.primary_image %}
+                    {% if image %}
+                    <img src="{{ image.asset.file.url }}" alt="{{ product.title }}" loading="lazy">
+                    {% else %}
+                    <div class="w-full h-full flex items-center justify-center">
+                        <i data-lucide="package" class="w-8 h-8 text-brandblue/50"></i>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
                 </div>
-                {% else %}
-                <div class="h-40 brand-gradient flex items-center justify-center">
-                    <i data-lucide="package" class="w-8 h-8 text-white/80"></i>
-                </div>
-                {% endif %}
                 <div class="p-5">
                     <h3 class="font-sora font-semibold text-navy">{{ product.title }}</h3>
                     <p class="mt-2 text-sm text-slate-600">{{ product.summary }}</p>
                     <p class="mt-3 font-sora font-bold text-brandblue">
-                        {% if product.price %}{{ product.currency }} {{ product.price|floatformat:"0" }}{% else %}Contact for pricing{% endif %}
+                        {% if product.price %}NGN {{ product.price|floatformat:"0"|intcomma }}{% else %}Contact for pricing{% endif %}
                     </p>
                 </div>
             </a>
@@ -446,17 +448,13 @@
             {% comment %}<span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Industries</span>{% endcomment %}
             <h2 id="industries-heading" class="mt-3 text-3xl sm:text-4xl font-sora font-bold text-navy">Built for the sectors we serve</h2>
         </div>
-        <div class="mt-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div class="mt-10 flex flex-wrap justify-center gap-4">
             {% for industry in industries %}
-            <a href="{% url 'eduweb:industry_detail' industry.slug %}" class="reveal text-center bg-white rounded-xl p-5 border border-borderblue hover:shadow-card block">
+            <div class="reveal text-center bg-white rounded-xl p-5 border border-borderblue w-36 sm:w-40">
                 <i data-lucide="{{ industry.icon }}" class="w-6 h-6 text-brandblue mx-auto"></i>
                 <div class="mt-2 text-sm font-medium text-navy">{{ industry.title }}</div>
-            </a>
+            </div>
             {% endfor %}
-            <a href="{% url 'eduweb:industries_list' %}" class="reveal text-center bg-navy rounded-xl p-5 border border-navy hover:shadow-card flex flex-col items-center justify-center">
-                <i data-lucide="arrow-right" class="w-6 h-6 text-sky"></i>
-                <div class="mt-2 text-sm font-medium text-white">All Industries</div>
-            </a>
         </div>
     </div>
 </section>

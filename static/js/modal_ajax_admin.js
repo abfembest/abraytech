@@ -126,9 +126,20 @@ function createAjaxModal(opts) {
     var originalLabel = submitLabel ? submitLabel.textContent : '';
     if (submitLabel) submitLabel.textContent = 'Saving…';
     try {
-      var resp = await fetch(modalForm.action, { method: 'POST', body: new FormData(modalForm) });
-      if (resp.redirected) {
-        window.location.href = resp.url;
+      // redirect: 'manual' — a plain fetch() with the default 'follow' mode
+      // silently auto-follows the server's post-save redirect, which means
+      // the browser actually renders products_list.html (or whichever list
+      // page) *inside* that invisible follow-up request — consuming Django's
+      // one-time success message right there. The real, visible navigation
+      // that happens next (window.location.href) then finds nothing left to
+      // show. Detecting success via the opaque redirect instead avoids ever
+      // triggering that phantom render, so the message survives to the page
+      // the user actually sees. A plain page reload is always correct here
+      // since every create/edit view in this pattern redirects back to the
+      // same list page the modal already lives on.
+      var resp = await fetch(modalForm.action, { method: 'POST', body: new FormData(modalForm), redirect: 'manual' });
+      if (resp.type === 'opaqueredirect' || (resp.status >= 300 && resp.status < 400)) {
+        window.location.reload();
         return;
       }
       var html = await resp.text();

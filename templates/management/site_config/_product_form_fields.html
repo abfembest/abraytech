@@ -7,51 +7,63 @@
   </div>
   {% endif %}
 
+  {# ── Identity ── #}
   <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
     <div class="px-4 py-2 bg-gray-50 border-b border-gray-100">
-      <h2 class="font-semibold text-gray-800 text-sm"><i class="fas fa-box text-primary-500 mr-2" aria-hidden="true"></i>Product</h2>
+      <h2 class="font-semibold text-gray-800 text-sm"><i class="fas fa-box text-primary-500 mr-2" aria-hidden="true"></i>Identity</h2>
     </div>
-    <div class="p-3 space-y-3">
+    <div class="p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
 
-      <div>
+      <div class="sm:col-span-2">
         <label class="block text-sm font-medium text-gray-700 mb-1">Title <span class="text-red-500">*</span></label>
         {{ form.title }}
         {% if form.title.errors %}<p class="text-xs text-red-500 mt-1">{{ form.title.errors.0 }}</p>{% endif %}
       </div>
 
       <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">SKU <span class="text-gray-400 font-normal">(optional)</span></label>
+        {{ form.sku }}
+        {% if form.sku.errors %}<p class="text-xs text-red-500 mt-1">{{ form.sku.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Brand <span class="text-gray-400 font-normal">(optional)</span></label>
+        {{ form.brand }}
+        {% if form.brand.errors %}<p class="text-xs text-red-500 mt-1">{{ form.brand.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div class="sm:col-span-2">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Category <span class="text-gray-400 font-normal">(optional)</span></label>
+        {{ form.category }}
+        {% if form.category.errors %}<p class="text-xs text-red-500 mt-1">{{ form.category.errors.0 }}</p>{% endif %}
+        <p class="text-xs text-gray-400 mt-1">
+          Need a new one? <a href="{% url 'management:product_categories_list' %}" target="_blank" class="text-primary-600 hover:underline">Manage categories</a>.
+        </p>
+      </div>
+
+      <div class="sm:col-span-2">
         <label class="block text-sm font-medium text-gray-700 mb-1">Summary <span class="text-red-500">*</span></label>
         {{ form.summary }}
         {% if form.summary.errors %}<p class="text-xs text-red-500 mt-1">{{ form.summary.errors.0 }}</p>{% endif %}
         <p class="text-xs text-gray-400 mt-1">Short line shown on the Store and homepage cards.</p>
       </div>
 
-      <div>
+      <div class="sm:col-span-2">
         <label class="block text-sm font-medium text-gray-700 mb-1">Description <span class="text-gray-400 font-normal">(optional)</span></label>
         {{ form.description }}
         {% if form.description.errors %}<p class="text-xs text-red-500 mt-1">{{ form.description.errors.0 }}</p>{% endif %}
         <p class="text-xs text-gray-400 mt-1">Shown on the product's own detail page.</p>
       </div>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Image <span class="text-gray-400 font-normal">(optional)</span></label>
-        {% if product and product.image %}
-        <div class="mb-2">
-          <img src="{{ product.image.url }}" alt="{{ product.title }}" class="h-20 w-20 object-cover rounded-lg border border-gray-200">
-        </div>
-        {% endif %}
-        {{ form.image }}
-        {% if form.image.errors %}<p class="text-xs text-red-500 mt-1">{{ form.image.errors.0 }}</p>{% endif %}
-      </div>
-
     </div>
   </div>
 
+  {# ── Pricing & Inventory ── #}
   <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mt-3">
     <div class="px-4 py-2 bg-gray-50 border-b border-gray-100">
-      <h2 class="font-semibold text-gray-800 text-sm"><i class="fas fa-tag text-primary-500 mr-2" aria-hidden="true"></i>Pricing &amp; Display</h2>
+      <h2 class="font-semibold text-gray-800 text-sm"><i class="fas fa-tag text-primary-500 mr-2" aria-hidden="true"></i>Pricing &amp; Inventory</h2>
     </div>
-    <div class="p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div class="p-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Price <span class="text-gray-400 font-normal">(optional)</span></label>
@@ -61,18 +73,267 @@
       </div>
 
       <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Compare-at Price <span class="text-gray-400 font-normal">(optional)</span></label>
+        {{ form.compare_at_price }}
+        {% if form.compare_at_price.errors %}<p class="text-xs text-red-500 mt-1">{{ form.compare_at_price.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Currency</label>
         {{ form.currency }}
         {% if form.currency.errors %}<p class="text-xs text-red-500 mt-1">{{ form.currency.errors.0 }}</p>{% endif %}
       </div>
 
-      <div class="flex items-center pb-1 sm:col-span-2">
+      <div class="sm:col-span-3">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Cost Price <span class="text-gray-400 font-normal">(staff-only, never shown publicly)</span></label>
+        {{ form.cost_price }}
+        {% if form.cost_price.errors %}<p class="text-xs text-red-500 mt-1">{{ form.cost_price.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div class="flex items-center pb-1">
         <label class="flex items-center gap-2 cursor-pointer">
-          {{ form.is_active }}
-          <span class="text-sm font-medium text-gray-700">Active</span>
+          {{ form.track_inventory }}
+          <span class="text-sm font-medium text-gray-700">Track inventory</span>
         </label>
       </div>
 
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Stock Quantity</label>
+        {{ form.stock_quantity }}
+        {% if form.stock_quantity.errors %}<p class="text-xs text-red-500 mt-1">{{ form.stock_quantity.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Low Stock Threshold <span class="text-gray-400 font-normal">(optional)</span></label>
+        {{ form.low_stock_threshold }}
+        {% if form.low_stock_threshold.errors %}<p class="text-xs text-red-500 mt-1">{{ form.low_stock_threshold.errors.0 }}</p>{% endif %}
+      </div>
+
+    </div>
+  </div>
+
+  {# ── Condition & Physical Attributes ── #}
+  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mt-3">
+    <div class="px-4 py-2 bg-gray-50 border-b border-gray-100">
+      <h2 class="font-semibold text-gray-800 text-sm"><i class="fas fa-ruler-combined text-primary-500 mr-2" aria-hidden="true"></i>Condition &amp; Physical Attributes</h2>
+    </div>
+    <div class="p-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Condition</label>
+        {{ form.condition }}
+        {% if form.condition.errors %}<p class="text-xs text-red-500 mt-1">{{ form.condition.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Warranty (months) <span class="text-gray-400 font-normal">(optional)</span></label>
+        {{ form.warranty_months }}
+        {% if form.warranty_months.errors %}<p class="text-xs text-red-500 mt-1">{{ form.warranty_months.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Weight (kg) <span class="text-gray-400 font-normal">(optional)</span></label>
+        {{ form.weight_kg }}
+        {% if form.weight_kg.errors %}<p class="text-xs text-red-500 mt-1">{{ form.weight_kg.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Length (cm)</label>
+        {{ form.length_cm }}
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Width (cm)</label>
+        {{ form.width_cm }}
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Height (cm)</label>
+        {{ form.height_cm }}
+      </div>
+
+    </div>
+  </div>
+
+  {# ── Status ── #}
+  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mt-3">
+    <div class="px-4 py-2 bg-gray-50 border-b border-gray-100">
+      <h2 class="font-semibold text-gray-800 text-sm"><i class="fas fa-toggle-on text-primary-500 mr-2" aria-hidden="true"></i>Status</h2>
+    </div>
+    <div class="p-3 flex flex-wrap gap-5">
+      <label class="flex items-center gap-2 cursor-pointer">
+        {{ form.is_active }}
+        <span class="text-sm font-medium text-gray-700">Active (visible in Store)</span>
+      </label>
+      <label class="flex items-center gap-2 cursor-pointer">
+        {{ form.is_featured }}
+        <span class="text-sm font-medium text-gray-700">Featured</span>
+      </label>
+    </div>
+  </div>
+
+  {# ── Specifications repeater ── #}
+  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mt-3">
+    <div class="px-4 py-2 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+      <h2 class="font-semibold text-gray-800 text-sm"><i class="fas fa-list-ul text-primary-500 mr-2" aria-hidden="true"></i>Specifications</h2>
+      <button type="button" id="addSpecRowBtn" class="text-xs font-medium text-primary-600 hover:text-primary-700">
+        <i class="fas fa-plus mr-1" aria-hidden="true"></i>Add Row
+      </button>
+    </div>
+    <div class="p-3">
+      {{ specs_formset.management_form }}
+      <div class="grid grid-cols-12 gap-2 mb-1 px-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+        <div class="col-span-4">Label</div>
+        <div class="col-span-5">Value</div>
+        <div class="col-span-2">Order</div>
+        <div class="col-span-1 text-center">Del</div>
+      </div>
+      <div class="space-y-2" id="specFormsetRows">
+        {% for spec_form in specs_formset %}
+        <div class="spec-form-row grid grid-cols-12 gap-2 items-center">
+          {% for hidden in spec_form.hidden_fields %}{{ hidden }}{% endfor %}
+          <div class="col-span-4">{{ spec_form.label }}</div>
+          <div class="col-span-5">{{ spec_form.value }}</div>
+          <div class="col-span-2">{{ spec_form.sort_order }}</div>
+          <div class="col-span-1 flex items-center justify-center">
+            {{ spec_form.DELETE }}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <template id="specEmptyFormTemplate">
+        <div class="spec-form-row grid grid-cols-12 gap-2 items-center">
+          {% for hidden in specs_formset.empty_form.hidden_fields %}{{ hidden }}{% endfor %}
+          <div class="col-span-4">{{ specs_formset.empty_form.label }}</div>
+          <div class="col-span-5">{{ specs_formset.empty_form.value }}</div>
+          <div class="col-span-2">{{ specs_formset.empty_form.sort_order }}</div>
+          <div class="col-span-1 flex items-center justify-center">
+            {{ specs_formset.empty_form.DELETE }}
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  {% comment %}── Options repeater (Size, Color, or any other selectable option this
+       product needs — customers pick one on the product page before adding
+       to cart). Leave empty for a product with no options. ──{% endcomment %}
+  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mt-3">
+    <div class="px-4 py-2 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+      <h2 class="font-semibold text-gray-800 text-sm"><i class="fas fa-sliders-h text-primary-500 mr-2" aria-hidden="true"></i>Options (Size, Color, etc.)</h2>
+      <button type="button" id="addVariantRowBtn" class="text-xs font-medium text-primary-600 hover:text-primary-700">
+        <i class="fas fa-plus mr-1" aria-hidden="true"></i>Add Row
+      </button>
+    </div>
+    <div class="p-3">
+      {{ variants_formset.management_form }}
+      <div class="grid grid-cols-12 gap-2 mb-1 px-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+        <div class="col-span-4">Option Name</div>
+        <div class="col-span-5">Value</div>
+        <div class="col-span-2">Order</div>
+        <div class="col-span-1 text-center">Del</div>
+      </div>
+      <div class="space-y-2" id="variantFormsetRows">
+        {% for variant_form in variants_formset %}
+        <div class="variant-form-row grid grid-cols-12 gap-2 items-center">
+          {% for hidden in variant_form.hidden_fields %}{{ hidden }}{% endfor %}
+          <div class="col-span-4">{{ variant_form.option_name }}</div>
+          <div class="col-span-5">{{ variant_form.value }}</div>
+          <div class="col-span-2">{{ variant_form.sort_order }}</div>
+          <div class="col-span-1 flex items-center justify-center">
+            {{ variant_form.DELETE }}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <template id="variantEmptyFormTemplate">
+        <div class="variant-form-row grid grid-cols-12 gap-2 items-center">
+          {% for hidden in variants_formset.empty_form.hidden_fields %}{{ hidden }}{% endfor %}
+          <div class="col-span-4">{{ variants_formset.empty_form.option_name }}</div>
+          <div class="col-span-5">{{ variants_formset.empty_form.value }}</div>
+          <div class="col-span-2">{{ variants_formset.empty_form.sort_order }}</div>
+          <div class="col-span-1 flex items-center justify-center">
+            {{ variants_formset.empty_form.DELETE }}
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  {# ── Image gallery manager (only once the product has a pk) ── #}
+  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mt-3">
+    <div class="px-4 py-2 bg-gray-50 border-b border-gray-100">
+      <h2 class="font-semibold text-gray-800 text-sm"><i class="fas fa-images text-primary-500 mr-2" aria-hidden="true"></i>Images</h2>
+    </div>
+    <div class="p-3">
+      {% if product %}
+
+      <div class="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-3" id="productImageGrid">
+        {% for image in existing_images %}
+        <div class="product-image-tile relative border border-gray-200 rounded-lg overflow-hidden aspect-square bg-gray-50" data-image-id="{{ image.id }}">
+          <img src="{{ image.asset.file.url }}" alt="{{ product.title }}" class="w-full h-full object-contain">
+          {% if image.is_primary %}
+          <span class="absolute top-1 left-1 px-1.5 py-0.5 bg-primary-600 text-white text-xs font-semibold rounded">Primary</span>
+          {% endif %}
+          <div class="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 p-1 bg-gray-900/60">
+            {% if not image.is_primary %}
+            <button type="button" class="js-product-image-set-primary text-xs text-white hover:underline" data-product-pk="{{ product.pk }}" data-image-id="{{ image.id }}">Set primary</button>
+            {% else %}<span></span>{% endif %}
+            <button type="button" class="js-product-image-delete text-xs text-red-300 hover:text-red-100" data-product-pk="{{ product.pk }}" data-image-id="{{ image.id }}" title="Remove image">
+              <i class="fas fa-trash-alt" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+        {% empty %}
+        <p class="text-xs text-gray-400 col-span-full">No images yet — add one below.</p>
+        {% endfor %}
+      </div>
+
+      <div class="border-t border-gray-100 pt-3">
+        <div class="flex gap-2 mb-2">
+          <button type="button" class="js-image-tab-btn active px-3 py-1.5 text-xs font-medium rounded-lg bg-primary-50 text-primary-700" data-tab="upload">
+            <i class="fas fa-upload mr-1" aria-hidden="true"></i>Upload New
+          </button>
+          <button type="button" class="js-image-tab-btn px-3 py-1.5 text-xs font-medium rounded-lg text-gray-500 hover:bg-gray-50" data-tab="library">
+            <i class="fas fa-photo-film mr-1" aria-hidden="true"></i>Choose From Library
+          </button>
+        </div>
+
+        {% comment %}Not a <form> — this whole block already lives inside the outer
+           #productModalForm, and nested <form> elements are invalid HTML
+           (the browser would silently break the outer form). The Add
+           button below is a plain button; JS builds the multipart POST
+           by hand from the file input.{% endcomment %}
+        <div class="js-product-image-upload-widget" data-product-pk="{{ product.pk }}" data-tab-panel="upload">
+          <div class="flex items-center gap-2">
+            <input type="file" class="js-product-image-upload-input flex-1 text-xs text-gray-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-primary-50 file:text-primary-700 file:text-xs file:font-medium hover:file:bg-primary-100" accept="image/*">
+            <button type="button" class="js-product-image-upload-btn px-3 py-1.5 bg-primary-600 text-white text-xs font-medium rounded-lg hover:bg-primary-700 flex-shrink-0">Add</button>
+          </div>
+          <p class="text-xs text-gray-400 mt-1" data-upload-error></p>
+        </div>
+
+        <div data-tab-panel="library" class="hidden">
+          <p class="text-xs text-gray-400 mb-2">Click an image to add it — click as many as you need, one at a time.</p>
+          <div class="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-48 overflow-y-auto p-1 border border-gray-100 rounded-lg" id="libraryAssetGrid">
+            {% for asset in library_assets %}
+            {% if asset.pk in attached_asset_ids %}
+            <div class="relative aspect-square rounded-lg overflow-hidden border border-gray-200 opacity-40 cursor-not-allowed" title="Already in this product's gallery">
+              <img src="{{ asset.file.url }}" alt="" class="w-full h-full object-contain bg-gray-50">
+              <span class="absolute inset-x-0 bottom-0 bg-gray-900/70 text-white text-[10px] text-center py-0.5">Added</span>
+            </div>
+            {% else %}
+            <button type="button" class="js-library-asset-pick relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-primary-500" data-product-pk="{{ product.pk }}" data-asset-id="{{ asset.pk }}" title="Attach this image">
+              <img src="{{ asset.file.url }}" alt="" class="w-full h-full object-contain bg-gray-50">
+            </button>
+            {% endif %}
+            {% empty %}
+            <p class="text-xs text-gray-400 col-span-full">No images uploaded yet.</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      {% else %}
+      <p class="text-xs text-gray-400">Save the product first, then reopen it here to add images.</p>
+      {% endif %}
     </div>
   </div>
 

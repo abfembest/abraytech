@@ -152,13 +152,17 @@ def navigation_data(request):
         'project_detail': 'projects',
         'all_programs':   'tech_skills',
         'program_detail': 'tech_skills',
-        'blog':           'blog',
-        'blog_detail':    'blog',
-        'blog_category':  'blog',
+        'blog':           'resources',
+        'blog_detail':    'resources',
+        'blog_category':  'resources',
         'industries_list': 'resources',
         'industry_detail': 'resources',
-        'store_list':      'resources',
-        'product_detail':  'resources',
+        'store_list':      'store',
+        'product_detail':  'store',
+        'cart_view':       'store',
+        'checkout_view':   'store',
+        'my_orders':       'store',
+        'store_profile':   'account',
         'faq':             'resources',
         'team':            'resources',
         'careers':         'resources',
@@ -304,6 +308,9 @@ def admin_counts(request):
     if request.user.profile.role not in ('admin',) and not request.user.is_staff:
         return {}
 
+    from django.db.models import F, Q
+    from apps.store.models import Order, Product
+
     try:
         return {
             'open_tickets_count': SupportTicket.objects.filter(
@@ -312,12 +319,27 @@ def admin_counts(request):
             'unread_contact_count': ContactMessage.objects.filter(
                 is_read=False
             ).count(),
+            'unfulfilled_orders_count': Order.objects.filter(
+                status__in=['paid', 'processing', 'shipped']
+            ).count(),
+            'pending_refund_requests_count': Order.objects.filter(
+                refund_request_status='pending'
+            ).count(),
+            'low_stock_products_count': Product.objects.filter(
+                is_active=True, track_inventory=True, stock_quantity__gt=0
+            ).filter(
+                Q(low_stock_threshold__isnull=False, stock_quantity__lte=F('low_stock_threshold'))
+                | Q(low_stock_threshold__isnull=True, stock_quantity__lte=10)
+            ).count(),
         }
     except Exception:
         logger.exception('admin_counts: failed to fetch counts')
         return {
             'open_tickets_count': 0,
             'unread_contact_count': 0,
+            'unfulfilled_orders_count': 0,
+            'pending_refund_requests_count': 0,
+            'low_stock_products_count': 0,
         }
 
 

@@ -1,0 +1,190 @@
+{% extends 'management/base.html' %}
+{% load static humanize %}
+{% block title %}Refund Requests — Abraytech Admin{% endblock %}
+{% block content %}
+<div class="max-w-full">
+
+  {# ── Breadcrumb ── #}
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+    <a href="{% url 'management:orders_list' %}" class="hover:text-primary-600 transition">Store</a>
+    <i class="fas fa-chevron-right text-xs"></i>
+    <span class="text-gray-800 font-medium">Refund Requests</span>
+  </nav>
+
+  {# ── Page header ── #}
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Refund Requests</h1>
+      <p class="text-gray-500 mt-1 text-sm">Customer-submitted cancel/refund requests. Approving here is the only place that actually calls Paystack.</p>
+    </div>
+    <div class="bg-white rounded-xl px-4 py-2.5 shadow-sm border border-gray-200 flex items-center gap-2 flex-shrink-0">
+      <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+      <span class="text-sm text-gray-700"><strong>{{ pending_requests|length }}</strong> awaiting review</span>
+    </div>
+  </div>
+
+  {# ── Pending requests ── #}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
+    <div class="px-5 py-4 border-b border-gray-100">
+      <h2 class="font-semibold text-gray-800">Pending Review</h2>
+    </div>
+    <div class="overflow-x-auto p-5">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wide">
+          <tr>
+            <th class="py-3 px-4 text-left font-semibold">Order #</th>
+            <th class="py-3 px-4 text-left font-semibold">Buyer</th>
+            <th class="py-3 px-4 text-left font-semibold">Amount</th>
+            <th class="py-3 px-4 text-left font-semibold">Order Status</th>
+            <th class="py-3 px-4 text-left font-semibold">Requested</th>
+            <th class="py-3 px-4 text-left font-semibold">Reason</th>
+            <th class="py-3 px-4 text-left font-semibold">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for order in pending_requests %}
+          <tr class="hover:bg-gray-50 transition-colors align-top">
+            <td class="py-3 px-4">
+              <a href="{% url 'management:order_detail' order.order_number %}" class="text-primary-600 hover:underline">
+                <code class="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-mono whitespace-nowrap">{{ order.order_number }}</code>
+              </a>
+            </td>
+            <td class="py-3 px-4">
+              <div class="font-medium text-gray-800">{{ order.buyer_name }}</div>
+              <div class="text-xs text-gray-400">{{ order.buyer_email }}</div>
+            </td>
+            <td class="py-3 px-4 text-gray-700 font-medium whitespace-nowrap">NGN {{ order.amount|floatformat:"0"|intcomma }}</td>
+            <td class="py-3 px-4 whitespace-nowrap">
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium border bg-gray-50 text-gray-600 border-gray-200">{{ order.get_status_display }}</span>
+            </td>
+            <td class="py-3 px-4 text-gray-500 whitespace-nowrap">{{ order.refund_requested_at|date:"M d, Y H:i" }}</td>
+            <td class="py-3 px-4 text-gray-700 max-w-xs">
+              <p class="whitespace-pre-wrap">{{ order.refund_request_reason }}</p>
+            </td>
+            <td class="py-3 px-4 whitespace-nowrap">
+              {% if permissions.store_orders.can_edit %}
+              <div class="flex flex-col gap-2">
+                <button type="button" class="js-refund-approve-btn px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-lg transition"
+                        data-order-number="{{ order.order_number }}" data-order-amount="NGN {{ order.amount|floatformat:'0'|intcomma }}">
+                  <i class="fas fa-check mr-1" aria-hidden="true"></i>Approve &amp; Refund
+                </button>
+                <button type="button" class="js-refund-reject-btn px-3 py-1.5 border border-gray-300 text-gray-600 hover:bg-gray-50 text-xs font-semibold rounded-lg transition"
+                        data-order-number="{{ order.order_number }}">
+                  <i class="fas fa-xmark mr-1" aria-hidden="true"></i>Reject
+                </button>
+              </div>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="py-6 px-4 text-center text-gray-400">No refund requests waiting on review.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {# ── Recently decided ── #}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100">
+      <h2 class="font-semibold text-gray-800">Recently Decided</h2>
+    </div>
+    <div class="overflow-x-auto p-5">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wide">
+          <tr>
+            <th class="py-3 px-4 text-left font-semibold">Order #</th>
+            <th class="py-3 px-4 text-left font-semibold">Buyer</th>
+            <th class="py-3 px-4 text-left font-semibold">Amount</th>
+            <th class="py-3 px-4 text-left font-semibold">Decision</th>
+            <th class="py-3 px-4 text-left font-semibold">Note</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for order in decided_requests %}
+          <tr class="hover:bg-gray-50 transition-colors align-top">
+            <td class="py-3 px-4">
+              <a href="{% url 'management:order_detail' order.order_number %}" class="text-primary-600 hover:underline">
+                <code class="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-mono whitespace-nowrap">{{ order.order_number }}</code>
+              </a>
+            </td>
+            <td class="py-3 px-4 text-gray-800">{{ order.buyer_name }}</td>
+            <td class="py-3 px-4 text-gray-700 font-medium whitespace-nowrap">NGN {{ order.amount|floatformat:"0"|intcomma }}</td>
+            <td class="py-3 px-4 whitespace-nowrap">
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium border
+                {% if order.refund_request_status == 'approved' %}bg-green-50 text-green-700 border-green-200
+                {% else %}bg-red-50 text-red-700 border-red-200{% endif %}">
+                {{ order.get_refund_request_status_display }}
+              </span>
+            </td>
+            <td class="py-3 px-4 text-gray-700 max-w-xs"><p class="whitespace-pre-wrap">{{ order.refund_reason|default:"—" }}</p></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="py-6 px-4 text-center text-gray-400">No decided requests yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+{# Hidden forms POSTed by the Approve/Reject buttons above #}
+<form id="refundDecisionForm" method="post" class="hidden">
+  {% csrf_token %}
+  <input type="hidden" name="decision" id="refundDecisionInput">
+  <input type="hidden" name="note" id="refundNoteInput">
+</form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var form = document.getElementById('refundDecisionForm');
+
+  document.querySelectorAll('.js-refund-approve-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      Swal.fire({
+        title: 'Approve this refund?',
+        html: 'This will issue a real refund of <strong>' + btn.dataset.orderAmount + '</strong> via Paystack for order <strong>' + btn.dataset.orderNumber + '</strong>. This cannot be undone.',
+        icon: 'warning',
+        input: 'textarea',
+        inputPlaceholder: 'Optional note for this approval…',
+        showCancelButton: true,
+        confirmButtonColor: '#16a34a',
+        confirmButtonText: 'Approve & Refund',
+      }).then(function (result) {
+        if (!result.isConfirmed) return;
+        form.action = '{% url "management:refund_request_decide" "PLACEHOLDER" %}'.replace('PLACEHOLDER', btn.dataset.orderNumber);
+        document.getElementById('refundDecisionInput').value = 'approve';
+        document.getElementById('refundNoteInput').value = result.value || '';
+        form.submit();
+      });
+    });
+  });
+
+  document.querySelectorAll('.js-refund-reject-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      Swal.fire({
+        title: 'Reject this request?',
+        input: 'textarea',
+        inputPlaceholder: 'Let the customer know why (sent to them by email)…',
+        inputValidator: function (value) {
+          if (!value) return 'Please give a reason — this is sent to the customer.';
+        },
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        confirmButtonText: 'Reject Request',
+      }).then(function (result) {
+        if (!result.isConfirmed) return;
+        form.action = '{% url "management:refund_request_decide" "PLACEHOLDER" %}'.replace('PLACEHOLDER', btn.dataset.orderNumber);
+        document.getElementById('refundDecisionInput').value = 'reject';
+        document.getElementById('refundNoteInput').value = result.value;
+        form.submit();
+      });
+    });
+  });
+});
+</script>
+{% endblock %}

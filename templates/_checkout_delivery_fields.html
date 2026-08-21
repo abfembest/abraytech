@@ -1,0 +1,23 @@
+<div>
+    <h3 class="text-caption-brand text-slate-500 uppercase tracking-wide mb-3">Delivery Details</h3>
+    <div class="space-y-4">
+        <div>
+            <label class="label-brand" for="deliveryPhone">Phone Number</label>
+            <input type="tel" id="deliveryPhone" name="delivery_phone" value="{{ delivery.phone|default:'' }}" class="input-brand" required>
+        </div>
+        <div>
+            <label class="label-brand" for="deliveryAddress">Delivery Address</label>
+            <textarea id="deliveryAddress" name="delivery_address" rows="2" class="input-brand" required>{{ delivery.address|default:'' }}</textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="label-brand" for="deliveryCity">City</label>
+                <input type="text" id="deliveryCity" name="delivery_city" value="{{ delivery.city|default:'' }}" class="input-brand" required>
+            </div>
+            <div>
+                <label class="label-brand" for="deliveryState">State</label>
+                <input type="text" id="deliveryState" name="delivery_state" value="{{ delivery.state|default:'' }}" class="input-brand" required>
+            </div>
+        </div>
+    </div>
+</div>

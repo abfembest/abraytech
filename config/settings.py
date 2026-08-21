@@ -78,6 +78,7 @@ INSTALLED_APPS = [
     "apps.payments",
     "apps.melbac",
     'apps.library',
+    'apps.store',
 
     "django.contrib.humanize",
     'apps.chatbot',
@@ -119,6 +120,7 @@ TEMPLATES = [
                 'apps.eduweb.context.instructor_counts',
                 'apps.eduweb.context.permissions_context',
                 'apps.support.context_processors.support_context',
+                'apps.store.context_processors.cart_context',
             ],
         },
     },
@@ -276,6 +278,14 @@ CSRF_COOKIE_SECURE = config(
 STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY", default="")
 STRIPE_PUBLIC_KEY = config("STRIPE_PUBLIC_KEY", default="")
 STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET", default="")
+
+# --------------------------------------------------
+# PAYSTACK PAYMENT SETTINGS (store checkout only — Stripe above stays the
+# application/course-fee gateway)
+# --------------------------------------------------
+
+PAYSTACK_SECRET_KEY = config("PAYSTACK_SECRET_KEY", default="")
+PAYSTACK_PUBLIC_KEY = config("PAYSTACK_PUBLIC_KEY", default="")
 
 # --------------------------------------------------
 # CORS / CSRF

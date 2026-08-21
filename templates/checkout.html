@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}Checkout | Abraytech Store{% endblock %}
+
+{% block content %}
+
+<section class="relative overflow-hidden bg-navy py-20 lg:py-28">
+    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <nav class="flex mb-6" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-2 text-sm">
+                <li><a href="{% url 'eduweb:index' %}" class="text-white/60 hover:text-white transition-colors">Home</a></li>
+                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+                <li><a href="{% url 'store:store_list' %}" class="text-white/60 hover:text-white transition-colors">Store</a></li>
+                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+                <li><span class="text-white/80 font-medium">Checkout</span></li>
+            </ol>
+        </nav>
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-white">Checkout</h1>
+    </div>
+</section>
+
+<section class="py-20 bg-white">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-2 gap-12 items-start">
+
+            <!-- Order summary -->
+            <div class="light-card p-6">
+                <h2 class="text-h4-brand text-navy mb-4">Order Summary</h2>
+                <div class="divide-y divide-borderblue">
+                    {% for item in items %}
+                    <div class="py-3 flex items-center gap-4">
+                        <div class="cart-line-image bg-soft rounded-lg overflow-hidden shrink-0">
+                            {% with image=item.product.primary_image %}
+                            {% if image %}
+                            <img src="{{ image.asset.file.url }}" alt="{{ item.product.title }}" loading="lazy">
+                            {% else %}
+                            <div class="w-full h-full flex items-center justify-center">
+                                <i data-lucide="package" class="w-5 h-5 text-brandblue/50"></i>
+                            </div>
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-semibold text-navy">{{ item.product.title }}</p>
+                            {% if item.variant %}<p class="text-caption-brand text-slate-500">{{ item.variant.option_name }}: {{ item.variant.value }}</p>{% endif %}
+                            <p class="text-sm text-slate-500">Qty {{ item.quantity }} &times; NGN {{ item.product.price|floatformat:"0"|intcomma }}</p>
+                        </div>
+                        <p class="font-sora font-semibold text-navy whitespace-nowrap">NGN {{ item.line_total|floatformat:"0"|intcomma }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="pt-4 mt-4 border-t border-borderblue flex items-center justify-between">
+                    <p class="text-h4-brand text-navy">Total</p>
+                    <p class="text-h4-brand text-navy font-bold">NGN {{ total|floatformat:"0"|intcomma }}</p>
+                </div>
+            </div>
+
+            <!-- Buyer / payment -->
+            <div class="light-card p-6">
+                {% if is_customer %}
+                <h2 class="text-h4-brand text-navy mb-2">Checking out as</h2>
+                <p class="text-slate-600 mb-6">{{ request.user.email }}</p>
+                <form method="post" action="{% url 'store:checkout_view' %}" class="space-y-4">
+                    {% csrf_token %}
+                    {% include '_checkout_delivery_fields.html' %}
+                    <button type="submit" class="btn-brand btn-brand-lg w-full">
+                        <i data-lucide="credit-card" class="w-5 h-5"></i> Pay with Paystack
+                    </button>
+                </form>
+
+                {% else %}
+                <div class="flex gap-2 mb-6" role="tablist">
+                    <button type="button" id="tabSignup" class="btn-brand btn-brand-sm" data-tab-target="panelSignup">Sign Up</button>
+                    <button type="button" id="tabLogin" class="btn-brand-outline btn-brand-sm" data-tab-target="panelLogin">Log In</button>
+                </div>
+
+                <div id="panelSignup">
+                    <p class="text-sm text-slate-500 mb-4">Store accounts are separate from student/staff logins &mdash; create one to check out.</p>
+                    <form method="post" action="{% url 'store:checkout_view' %}" class="space-y-4">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="signup">
+
+                        <div>
+                            <label class="label-brand" for="signupName">Full Name</label>
+                            <input type="text" id="signupName" name="name" value="{{ name|default:'' }}" class="input-brand" required>
+                        </div>
+                        <div>
+                            <label class="label-brand" for="signupEmail">Email</label>
+                            <input type="email" id="signupEmail" name="email" value="{{ email|default:'' }}" class="input-brand" required>
+                        </div>
+                        {% include '_password_field.html' with field_id='signupPassword' %}
+
+                        <div class="pt-2 border-t border-borderblue">
+                            {% include '_checkout_delivery_fields.html' %}
+                        </div>
+
+                        {% if captcha_question %}
+                        <div>
+                            <label class="label-brand">Security Check</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="bg-ice border-2 border-dashed border-brandblue rounded-lg flex items-center justify-center py-3 text-xl font-bold text-navy">
+                                    {{ captcha_question }} = ?
+                                </div>
+                                <input type="text" id="signupCaptcha" name="captcha" class="input-brand" inputmode="numeric" pattern="[0-9]*" placeholder="Your answer" required>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if signup_error %}<p class="error-brand">{{ signup_error }}</p>{% endif %}
+
+                        <button type="submit" class="btn-brand w-full">Create Account &amp; Continue</button>
+                    </form>
+                </div>
+
+                <div id="panelLogin" class="hidden">
+                    <p class="text-sm text-slate-500 mb-4">Already have a store account? Log in to continue.</p>
+                    <form method="post" action="{% url 'store:store_login' %}" class="space-y-4">
+                        {% csrf_token %}
+                        <div>
+                            <label class="label-brand" for="loginEmail">Email</label>
+                            <input type="email" id="loginEmail" name="email" class="input-brand" required>
+                        </div>
+                        {% include '_password_field.html' with field_id='loginPassword' %}
+                        {% include '_login_captcha_field.html' with captcha_field_id='loginCaptcha' %}
+                        <button type="submit" class="btn-brand w-full">Log In &amp; Continue</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        var tabs = document.querySelectorAll('[data-tab-target]');
+        tabs.forEach(function (tab) {
+            tab.addEventListener('click', function () {
+                tabs.forEach(function (t) {
+                    t.classList.remove('btn-brand');
+                    t.classList.add('btn-brand-outline');
+                });
+                tab.classList.add('btn-brand');
+                tab.classList.remove('btn-brand-outline');
+
+                document.querySelectorAll('[id^="panel"]').forEach(function (panel) {
+                    panel.classList.add('hidden');
+                });
+                var target = document.getElementById(tab.getAttribute('data-tab-target'));
+                if (target) target.classList.remove('hidden');
+            });
+        });
+    })();
+</script>
+{% endblock %}

@@ -1,40 +1,91 @@
 {% extends 'management/base.html' %}
-{% load static %}
+{% load static humanize %}
 {% block title %}Store Products — Abraytech Admin{% endblock %}
 {% block content %}
 <div class="max-w-full">
 
   {# ── Breadcrumb ── #}
   <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
-    <span class="text-gray-400">Site Content</span>
+    <span class="text-gray-400">Store</span>
     <i class="fas fa-chevron-right text-xs"></i>
-    <span class="text-gray-800 font-medium">Store Products</span>
+    <span class="text-gray-800 font-medium">Products</span>
   </nav>
 
   {# ── Page header ── #}
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
     <div>
       <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Store Products</h1>
-      <p class="text-gray-500 mt-1 text-sm">Products and tools shown in the public Store and the homepage "From the Store" section.</p>
+      <p class="text-gray-500 mt-1 text-sm">Products and gadgets shown in the public Store and the homepage "From the Store" section.</p>
     </div>
-    {% if permissions.site_content.can_create %}
-    <button type="button" id="newProductBtn" class="js-open-product-modal inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium shadow-sm flex-shrink-0 transition-colors">
-      <i class="fas fa-plus"></i> Add Product
-    </button>
-    {% endif %}
+    <div class="flex items-center gap-2 flex-shrink-0">
+      <a href="{% url 'management:product_categories_list' %}"
+         class="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 font-medium transition-colors">
+        <i class="fas fa-tags"></i> Categories
+      </a>
+      {% if permissions.store_products.can_create %}
+      <button type="button" id="newProductBtn" class="js-open-product-modal inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium shadow-sm transition-colors">
+        <i class="fas fa-plus"></i> Add Product
+      </button>
+      {% endif %}
+    </div>
   </div>
 
   {# ── Stats strip ── #}
-  <div class="grid grid-cols-2 gap-4 mb-8">
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
     <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
       <div class="text-2xl font-bold text-primary-600">{{ products|length }}</div>
-      <div class="text-xs text-gray-500 mt-0.5">Total Products</div>
+      <div class="text-xs text-gray-500 mt-0.5">Matching Products</div>
     </div>
     <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
       <div class="text-2xl font-bold text-green-600">{{ active_count }}</div>
       <div class="text-xs text-gray-500 mt-0.5">Visible in Store</div>
     </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="text-2xl font-bold text-secondary-600">{{ featured_count }}</div>
+      <div class="text-xs text-gray-500 mt-0.5">Featured</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="text-2xl font-bold text-red-500">{{ out_of_stock_count }}</div>
+      <div class="text-xs text-gray-500 mt-0.5">Out of Stock</div>
+    </div>
   </div>
+
+  {# ── Filters ── #}
+  <form method="get" class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      <select name="category" class="searchable-select px-3 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:outline-none" data-ss-placeholder="All Categories">
+        <option value="">All Categories</option>
+        {% for cat in categories %}
+        <option value="{{ cat.pk }}" {% if request.GET.category == cat.pk|stringformat:"s" %}selected{% endif %}>{{ cat.title }}</option>
+        {% endfor %}
+      </select>
+      <select name="condition" class="px-3 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:outline-none">
+        <option value="">Any Condition</option>
+        <option value="new" {% if request.GET.condition == 'new' %}selected{% endif %}>New</option>
+        <option value="refurbished" {% if request.GET.condition == 'refurbished' %}selected{% endif %}>Refurbished</option>
+        <option value="used" {% if request.GET.condition == 'used' %}selected{% endif %}>Used</option>
+      </select>
+      <select name="stock" class="px-3 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:outline-none">
+        <option value="">Any Stock Level</option>
+        <option value="in" {% if request.GET.stock == 'in' %}selected{% endif %}>In Stock</option>
+        <option value="out" {% if request.GET.stock == 'out' %}selected{% endif %}>Out of Stock</option>
+      </select>
+      <label class="flex items-center gap-2 px-3 py-2.5 border border-gray-300 rounded-lg text-sm bg-white">
+        <input type="checkbox" name="featured" value="1" {% if request.GET.featured == '1' %}checked{% endif %}>
+        Featured only
+      </label>
+      <div class="flex gap-2">
+        <button type="submit" class="flex-1 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition focus:outline-none focus:ring-2 focus:ring-primary-500">
+          Filter
+        </button>
+        {% if request.GET.category or request.GET.condition or request.GET.stock or request.GET.featured %}
+        <a href="{% url 'management:products_list' %}" class="px-4 py-2.5 border border-gray-300 text-gray-600 rounded-lg text-sm hover:bg-gray-50 transition flex items-center">
+          Clear
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </form>
 
   {# ── Products table ── #}
   <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -44,8 +95,10 @@
           <tr>
             <th class="py-3 px-4 text-left font-semibold">Image</th>
             <th class="py-3 px-4 text-left font-semibold">Title</th>
-            <th class="py-3 px-4 text-left font-semibold">Summary</th>
+            <th class="py-3 px-4 text-left font-semibold">Category</th>
             <th class="py-3 px-4 text-left font-semibold">Price</th>
+            <th class="py-3 px-4 text-left font-semibold">Stock</th>
+            <th class="py-3 px-4 text-left font-semibold">Condition</th>
             <th class="py-3 px-4 text-left font-semibold">Status</th>
             <th class="py-3 px-4 text-left font-semibold">Added</th>
             <th class="py-3 px-4 text-left font-semibold">Actions</th>
@@ -57,21 +110,40 @@
 
             <td class="py-3 px-4">
               <div class="w-12 h-12 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                {% if product.image %}
-                <img src="{{ product.image.url }}" alt="{{ product.title }}" class="w-full h-full object-cover">
+                {% with image=product.primary_image %}
+                {% if image %}
+                <img src="{{ image.asset.file.url }}" alt="{{ product.title }}" class="w-full h-full object-contain">
                 {% else %}
                 <i class="fas fa-box text-primary-500"></i>
                 {% endif %}
+                {% endwith %}
               </div>
             </td>
 
-            <td class="py-3 px-4 font-medium text-gray-800">{{ product.title }}</td>
+            <td class="py-3 px-4">
+              <div class="font-medium text-gray-800">{{ product.title }}{% if product.is_featured %} <i class="fas fa-star text-amber-400 text-xs" title="Featured"></i>{% endif %}</div>
+              {% if product.sku %}<div class="text-xs text-gray-400">SKU: {{ product.sku }}</div>{% endif %}
+            </td>
 
-            <td class="py-3 px-4 text-gray-500 max-w-xs truncate" title="{{ product.summary }}">{{ product.summary }}</td>
+            <td class="py-3 px-4 text-gray-500">{{ product.category.title|default:"—" }}</td>
 
             <td class="py-3 px-4 text-gray-700 font-medium whitespace-nowrap">
-              {% if product.price %}{{ product.currency }} {{ product.price|floatformat:"0" }}{% else %}Contact for pricing{% endif %}
+              {% if product.price %}NGN {{ product.price|floatformat:"0"|intcomma }}{% else %}Contact for pricing{% endif %}
             </td>
+
+            <td class="py-3 px-4 whitespace-nowrap">
+              {% if not product.track_inventory %}
+              <span class="text-gray-400 text-xs">Not tracked</span>
+              {% elif product.stock_quantity <= 0 %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">Out of stock</span>
+              {% elif product.is_low_stock %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-medium">{{ product.stock_quantity }} left</span>
+              {% else %}
+              <span class="text-gray-700">{{ product.stock_quantity }}</span>
+              {% endif %}
+            </td>
+
+            <td class="py-3 px-4 text-gray-500">{{ product.get_condition_display }}</td>
 
             <td class="py-3 px-4">
               {% if product.is_active %}
@@ -89,13 +161,13 @@
 
             <td class="py-3 px-4">
               <div class="flex items-center gap-2">
-                {% if permissions.site_content.can_edit %}
+                {% if permissions.store_products.can_edit %}
                 <button type="button" onclick="productModal.openForEdit('{{ product.pk }}')"
                         class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Edit">
                   <i class="fas fa-edit text-sm"></i>
                 </button>
                 {% endif %}
-                {% if permissions.site_content.can_delete %}
+                {% if permissions.store_products.can_delete %}
                 <button type="button"
                         onclick="confirmDelete('{% url 'management:product_delete' product.pk %}', '{{ product|escapejs }}')"
                         class="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors" title="Delete">
@@ -107,7 +179,7 @@
 
           </tr>
           {% empty %}
-          <tr class="empty-row"><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr class="empty-row"><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -128,7 +200,7 @@
       </button>
     </div>
     <div class="px-4 sm:px-5 py-3 overflow-y-auto overflow-x-hidden flex-1 min-h-0" id="productModalBody">
-      <form method="post" enctype="multipart/form-data" action="{% url 'management:product_create' %}" id="productModalForm">
+      <form method="post" action="{% url 'management:product_create' %}" id="productModalForm">
         {% csrf_token %}
         {% include 'management/site_config/_product_form_fields.html' %}
       </form>
@@ -169,6 +241,10 @@ function confirmDelete(url, name) {
   });
 }
 
+function csrfToken() {
+  return (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '';
+}
+
 var productModal = createAjaxModal({
   modalId: 'productCreateModal',
   bodyId: 'productModalBody',
@@ -192,20 +268,222 @@ document.querySelectorAll('.js-open-product-modal').forEach(function (trigger) {
   });
 });
 
+// ── Repeater "Add Row" buttons: clone the hidden <template>, swap
+// __prefix__ for the current TOTAL_FORMS count, and bump that formset's
+// own TOTAL_FORMS. Two independent repeaters share this page (specs,
+// variants) — each formset has its own explicit prefix (see prefix='specs'/
+// 'variants' in the view), so the TOTAL_FORMS lookup must use the exact
+// prefixed name, not a generic "-TOTAL_FORMS" suffix match, or adding a row
+// to one repeater could bump the wrong formset's count. Delegated on
+// document so it keeps working after the modal body is swapped by
+// createAjaxModal (create <-> edit). ──
+var REPEATER_ROW_CONFIG = {
+  addSpecRowBtn:    { container: 'specFormsetRows',    template: 'specEmptyFormTemplate',    totalFormsName: 'specs-TOTAL_FORMS' },
+  addVariantRowBtn: { container: 'variantFormsetRows', template: 'variantEmptyFormTemplate', totalFormsName: 'variants-TOTAL_FORMS' },
+};
+document.addEventListener('click', function (e) {
+  var addBtn = null;
+  var config = null;
+  for (var btnId in REPEATER_ROW_CONFIG) {
+    addBtn = e.target.closest('#' + btnId);
+    if (addBtn) { config = REPEATER_ROW_CONFIG[btnId]; break; }
+  }
+  if (!addBtn || !config) return;
+  e.preventDefault();
+  var container = document.getElementById(config.container);
+  var template = document.getElementById(config.template);
+  var totalInput = document.querySelector('[name="' + config.totalFormsName + '"]');
+  if (!container || !template || !totalInput) return;
+  var index = parseInt(totalInput.value, 10);
+  var html = template.innerHTML.replace(/__prefix__/g, index);
+  var wrapper = document.createElement('div');
+  wrapper.innerHTML = html.trim();
+  container.appendChild(wrapper.firstElementChild);
+  totalInput.value = index + 1;
+});
+
+// ── Image gallery: upload-new / choose-from-library tabs ──
+//
+// Every mutating action below re-fetches just #productImageGrid from the
+// edit endpoint and swaps that element in place, instead of calling
+// productModal.openForEdit() (which reloads the *entire* modal). Reloading
+// the whole modal used to reset the Images section back to its "Upload New"
+// tab default on every single click — so picking a second library image
+// meant re-clicking "Choose From Library" first, which read as "nothing
+// happened" / "doesn't work". This keeps whichever tab is open, open.
+function imageGridToast(title) {
+  if (!window.Swal) return;
+  Swal.fire({
+    toast: true, position: 'top-end', icon: 'success', title: title,
+    showConfirmButton: false, timer: 1800, timerProgressBar: true,
+  });
+}
+function imageGridErrorToast(title) {
+  if (!window.Swal) return;
+  Swal.fire({ icon: 'error', title: title || 'Something went wrong. Please try again.' });
+}
+function refreshProductImageGrid(pk) {
+  // Swaps both #productImageGrid (the attached-images grid) and
+  // #libraryAssetGrid (which needs to re-mark whatever was just attached as
+  // "Added" so it can't be picked twice) from one fetch of the same
+  // fragment — the tab state itself lives outside both of these, untouched.
+  var editUrl = '/management/site-config/products/' + pk + '/edit/';
+  return fetch(editUrl)
+    .then(function (resp) { return resp.text(); })
+    .then(function (html) {
+      var doc = new DOMParser().parseFromString(html, 'text/html');
+      ['productImageGrid', 'libraryAssetGrid'].forEach(function (id) {
+        var fresh = doc.getElementById(id);
+        var current = document.getElementById(id);
+        if (fresh && current) current.replaceWith(fresh);
+      });
+      if (window.lucide) { try { lucide.createIcons(); } catch (err) { /* cosmetic only */ } }
+    });
+}
+
+document.addEventListener('click', function (e) {
+  var tabBtn = e.target.closest('.js-image-tab-btn');
+  if (tabBtn) {
+    e.preventDefault();
+    var section = tabBtn.closest('#productModalBody') || document;
+    section.querySelectorAll('.js-image-tab-btn').forEach(function (b) {
+      b.classList.remove('active', 'bg-primary-50', 'text-primary-700');
+      b.classList.add('text-gray-500');
+    });
+    tabBtn.classList.add('active', 'bg-primary-50', 'text-primary-700');
+    tabBtn.classList.remove('text-gray-500');
+    section.querySelectorAll('[data-tab-panel]').forEach(function (panel) {
+      panel.classList.toggle('hidden', panel.getAttribute('data-tab-panel') !== tabBtn.dataset.tab);
+    });
+    return;
+  }
+
+  var delBtn = e.target.closest('.js-product-image-delete');
+  if (delBtn) {
+    e.preventDefault();
+    var pk = delBtn.dataset.productPk, imageId = delBtn.dataset.imageId;
+    Swal.fire({
+      title: 'Remove image?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Remove',
+    }).then(function (r) {
+      if (!r.isConfirmed) return;
+      var url = '/management/site-config/products/' + pk + '/images/' + imageId + '/delete/';
+      fetch(url, { method: 'POST', headers: { 'X-CSRFToken': csrfToken() } })
+        .then(function (resp) { return resp.json(); })
+        .then(function (data) {
+          if (data.success) {
+            refreshProductImageGrid(pk);
+            imageGridToast('Image removed');
+          } else {
+            imageGridErrorToast(data.error || 'Could not remove this image.');
+          }
+        })
+        .catch(function () { imageGridErrorToast(); });
+    });
+    return;
+  }
+
+  var primaryBtn = e.target.closest('.js-product-image-set-primary');
+  if (primaryBtn) {
+    e.preventDefault();
+    if (primaryBtn.disabled) return;
+    primaryBtn.disabled = true;
+    var pk2 = primaryBtn.dataset.productPk, imageId2 = primaryBtn.dataset.imageId;
+    var url2 = '/management/site-config/products/' + pk2 + '/images/' + imageId2 + '/set-primary/';
+    fetch(url2, { method: 'POST', headers: { 'X-CSRFToken': csrfToken() } })
+      .then(function (resp) { return resp.json(); })
+      .then(function (data) {
+        if (data.success) {
+          refreshProductImageGrid(pk2);
+          imageGridToast('Primary image updated');
+        } else {
+          primaryBtn.disabled = false;
+          imageGridErrorToast(data.error || 'Could not update the primary image.');
+        }
+      })
+      .catch(function () { primaryBtn.disabled = false; imageGridErrorToast(); });
+    return;
+  }
+
+  var libBtn = e.target.closest('.js-library-asset-pick');
+  if (libBtn) {
+    e.preventDefault();
+    if (libBtn.disabled) return;
+    libBtn.disabled = true;
+    libBtn.classList.add('opacity-50');
+    var pk3 = libBtn.dataset.productPk, assetId = libBtn.dataset.assetId;
+    var url3 = '/management/site-config/products/' + pk3 + '/images/add/';
+    var body = new FormData();
+    body.append('source', 'library');
+    body.append('asset_id', assetId);
+    fetch(url3, { method: 'POST', headers: { 'X-CSRFToken': csrfToken() }, body: body })
+      .then(function (resp) { return resp.json(); })
+      .then(function (data) {
+        if (data.success) {
+          refreshProductImageGrid(pk3);
+          imageGridToast('Image added — pick another, or switch tabs when done');
+        } else {
+          imageGridErrorToast(data.error || 'Could not attach this image.');
+        }
+      })
+      .catch(function () { imageGridErrorToast(); })
+      .finally(function () { libBtn.disabled = false; libBtn.classList.remove('opacity-50'); });
+  }
+});
+
+document.addEventListener('click', function (e) {
+  var uploadBtn = e.target.closest('.js-product-image-upload-btn');
+  if (!uploadBtn) return;
+  e.preventDefault();
+  var widget = uploadBtn.closest('.js-product-image-upload-widget');
+  var fileInput = widget.querySelector('.js-product-image-upload-input');
+  var errorEl = widget.querySelector('[data-upload-error]');
+  if (errorEl) { errorEl.textContent = ''; errorEl.classList.remove('text-red-500'); }
+  if (!fileInput.files.length) {
+    if (errorEl) { errorEl.textContent = 'Choose an image file first.'; errorEl.classList.add('text-red-500'); }
+    return;
+  }
+  var pk = widget.dataset.productPk;
+  var url = '/management/site-config/products/' + pk + '/images/add/';
+  var body = new FormData();
+  body.append('source', 'upload');
+  body.append('file', fileInput.files[0]);
+  uploadBtn.disabled = true;
+  fetch(url, { method: 'POST', headers: { 'X-CSRFToken': csrfToken() }, body: body })
+    .then(function (resp) { return resp.json(); })
+    .then(function (data) {
+      if (data.success) {
+        fileInput.value = '';
+        refreshProductImageGrid(pk);
+        imageGridToast('Image uploaded');
+      } else if (errorEl) {
+        errorEl.textContent = data.error || 'Could not upload this image.';
+        errorEl.classList.add('text-red-500');
+      }
+    })
+    .catch(function () {
+      if (errorEl) { errorEl.textContent = 'Something went wrong. Please try again.'; errorEl.classList.add('text-red-500'); }
+    })
+    .finally(function () { uploadBtn.disabled = false; });
+});
+
 document.addEventListener('DOMContentLoaded', function () {
   var tableOpts = {
     pageLength: 10,
-    order: [[5, 'desc']],
+    order: [[7, 'desc']],
     columns: [
       { orderable: false, searchable: false },
-      null, null, null, null,
+      null, null, null, null, null, null,
       null,
       { orderable: false, searchable: false },
     ],
     dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4"lf>rt<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-4 pt-4 border-t"ip>',
     language: {
       search: '_INPUT_',
-      searchPlaceholder: 'Search by title, summary…',
+      searchPlaceholder: 'Search by title, SKU…',
       lengthMenu: 'Show _MENU_',
       info: '_START_–_END_ of _TOTAL_',
       paginate: {

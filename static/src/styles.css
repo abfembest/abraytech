@@ -905,10 +905,11 @@
      border: 1px solid transparent;
    }
 
-   .pill-cyan  { background: rgba(6,182,212,0.12);  color: #0891b2; border-color: rgba(6,182,212,0.3); }
-   .pill-lime  { background: rgba(132,204,22,0.12); color: #65a30d; border-color: rgba(132,204,22,0.3); }
-   .pill-amber { background: rgba(245,158,11,0.12); color: #b45309; border-color: rgba(245,158,11,0.3); }
-   .pill-light { background: rgba(255,255,255,0.9); color: #0f2236; border-color: rgba(255,255,255,0.4); }
+   .pill-cyan   { background: rgba(6,182,212,0.12);  color: #0891b2; border-color: rgba(6,182,212,0.3); }
+   .pill-lime   { background: rgba(132,204,22,0.12); color: #65a30d; border-color: rgba(132,204,22,0.3); }
+   .pill-amber  { background: rgba(245,158,11,0.12); color: #b45309; border-color: rgba(245,158,11,0.3); }
+   .pill-light  { background: rgba(255,255,255,0.9); color: #0f2236; border-color: rgba(255,255,255,0.4); }
+   .pill-danger { background: rgba(220,38,38,0.1);   color: #b91c1c; border-color: rgba(220,38,38,0.3); }
 
    /* ── Buttons — public-brand variants (dashboard keeps .btn-primary/.btn-secondary untouched) ── */
    .btn-brand {
@@ -1072,7 +1073,78 @@
      overflow-x: auto;
      border-radius: var(--radius-lg);
      border: 1px solid #e2e8f0;
+     padding: 1rem;
    }
+
+   /* DataTables theming — scoped under .table-brand-wrap (public-only) so
+      it never bleeds into the dashboard's own, separately-themed DataTables
+      usage, since both share this one compiled stylesheet. */
+   .table-brand-wrap .dataTables_wrapper { padding: 0; }
+   .table-brand-wrap .table-brand { border: none; }
+   .table-brand-wrap .dataTables_filter input {
+     margin-left: 0.5rem;
+     padding: 0.5rem 0.75rem;
+     border-radius: var(--radius-md);
+     border: 1px solid #d1d5db;
+     font-size: var(--text-small);
+   }
+   .table-brand-wrap .dataTables_filter input:focus {
+     outline: none;
+     border-color: #06b6d4;
+     box-shadow: 0 0 0 3px rgba(6,182,212,0.15);
+   }
+   .table-brand-wrap .dt-buttons .dt-button {
+     padding: 0.5rem 1rem;
+     margin-right: 0.5rem;
+     border-radius: var(--radius-md);
+     border: 1px solid #d1d5db;
+     background: #ffffff;
+     color: #0f2236;
+     font-size: var(--text-caption);
+     font-weight: 600;
+     cursor: pointer;
+     transition: background 0.2s ease, border-color 0.2s ease;
+   }
+   .table-brand-wrap .dt-buttons .dt-button:hover { background: #f4faff; border-color: #06b6d4; }
+   .table-brand-wrap .dataTables_paginate .paginate_button {
+     padding: 0.4rem 0.75rem;
+     margin-left: 0.25rem;
+     border-radius: var(--radius-md);
+     border: 1px solid transparent;
+     cursor: pointer;
+   }
+   .table-brand-wrap .dataTables_paginate .paginate_button.current {
+     background: #06b6d4 !important;
+     color: #ffffff !important;
+     border-color: #06b6d4;
+   }
+   .table-brand-wrap .dataTables_paginate .paginate_button:not(.current):hover {
+     background: #f4faff !important;
+     border-color: #06b6d4;
+   }
+   .table-brand-wrap .dataTables_paginate .paginate_button.disabled { opacity: 0.4; cursor: not-allowed; }
+   .table-brand-wrap .dataTables_length select {
+     margin: 0 0.4rem;
+     padding: 0.3rem 0.6rem;
+     border-radius: var(--radius-md);
+     border: 1px solid #d1d5db;
+   }
+   .table-brand-wrap .dataTables_info { color: #64748b; font-size: var(--text-caption); }
+   .table-brand-wrap td.details-control { cursor: pointer; }
+
+   /* Small inline product thumbnail for the My Orders "Items" summary column
+      (the expanded child-row detail reuses the existing .cart-line-image
+      size instead — this one's just for the collapsed row). */
+   .order-item-thumb {
+     width: 1.75rem;
+     height: 1.75rem;
+     border-radius: var(--radius-sm);
+     overflow: hidden;
+     flex-shrink: 0;
+     background: #f4faff;
+     display: inline-flex;
+   }
+   .order-item-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
    /* ── Modals ── */
    .modal-brand-overlay {
@@ -1081,12 +1153,19 @@
      background: rgba(3,11,19,0.6);
      backdrop-filter: blur(4px);
      -webkit-backdrop-filter: blur(4px);
-     display: flex;
+     display: none;
      align-items: center;
      justify-content: center;
      padding: 1rem;
      z-index: 1000;
    }
+
+   /* .open (not Tailwind's .hidden) toggles visibility — this component
+      lives outside Tailwind's cascade layers (plain CSS after @import
+      "tailwindcss"), so an unlayered display:flex here would always beat
+      the layered .hidden utility regardless of which class JS adds. Same
+      .open convention the cart/mobile nav drawers already use. */
+   .modal-brand-overlay.open { display: flex; }
 
    .modal-brand-panel {
      width: 100%;
@@ -1288,6 +1367,22 @@
    }
    #mobileOverlay.open { opacity: 1; pointer-events: auto; }
 
+   /* Cart drawer — slides in from the right, ~quarter of a wide desktop
+      screen, capped at 90vw so it stays usable on narrow viewports. Same
+      transform/opacity mechanics as the mobile nav drawer above. */
+   #cartDrawer {
+     width: min(420px, 90vw);
+     transform: translateX(100%);
+     transition: transform .3s ease;
+   }
+   #cartDrawer.open { transform: translateX(0); }
+   #cartDrawerOverlay {
+     opacity: 0;
+     pointer-events: none;
+     transition: opacity .3s ease;
+   }
+   #cartDrawerOverlay.open { opacity: 1; pointer-events: auto; }
+
    /* Scroll reveal */
    .reveal {
      opacity: 0;
@@ -1311,7 +1406,7 @@
 
    @media (prefers-reduced-motion: reduce) {
      .reveal { opacity: 1; transform: none; transition: none; }
-     #mobileDrawer, #mobileOverlay, .dropdown-panel, .nav-link { transition: none; }
+     #mobileDrawer, #mobileOverlay, #cartDrawer, #cartDrawerOverlay, .dropdown-panel, .nav-link { transition: none; }
    }
 
    details.mobile-accordion > summary { list-style: none; cursor: pointer; }
@@ -1703,3 +1798,120 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* =============================================================================
+   STORE — apps/store templates (store.html, product_detail.html, cart.html,
+   checkout.html, order_confirmation.html). Additive only; reuses the
+   ABRAYTECH BRAND COMPONENT SYSTEM above (.btn-brand*, .light-card, .pill*,
+   .input-brand/.label-brand/.error-brand, .table-brand, .alert-brand-*) for
+   everything except the store-specific fixed-aspect image boxes, thumbnail
+   strip, and quantity stepper below.
+   ============================================================================= */
+
+/* Product grid card image — fixed-aspect box with object-fit: contain so
+   every card in the grid is the same height regardless of the source
+   photo's own aspect ratio, without cropping any of the product out of
+   frame (the AliExpress/Amazon convention this catalog follows). */
+.product-card-image {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.product-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.product-card-badge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+}
+
+/* Product detail page — large main gallery image, same contain treatment
+   as the grid card. */
+.product-detail-main-image {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.product-detail-main-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Product detail page — thumbnail strip beneath the main image. */
+.product-thumb {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: var(--radius-md);
+  border: 2px solid #e2e8f0;
+  overflow: hidden;
+  background: #f1f5f9;
+  cursor: pointer;
+  padding: 0;
+  transition: border-color 0.2s ease;
+  flex-shrink: 0;
+}
+.product-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.product-thumb-active { border-color: #06b6d4; }
+
+/* Product detail page — quantity stepper next to Add to Cart. */
+.quantity-stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #d1d5db;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.quantity-stepper button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: #f8fafc;
+  border: none;
+  cursor: pointer;
+  color: #0f2236;
+}
+.quantity-stepper button:hover { background: #e2e8f0; }
+.quantity-stepper input {
+  width: 3.5rem;
+  height: 2.5rem;
+  text-align: center;
+  border: none;
+  border-left: 1px solid #d1d5db;
+  border-right: 1px solid #d1d5db;
+  font-family: var(--font-sans);
+  -moz-appearance: textfield;
+}
+.quantity-stepper input:focus { outline: none; }
+
+/* Cart line item thumbnail + title column width + quantity input. */
+.cart-line-image {
+  width: 4rem;
+  height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.cart-line-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 0.375rem;
+}
+.min-w-cart-line { min-width: 10rem; }
+.cart-qty-input { width: 5rem; text-align: center; }

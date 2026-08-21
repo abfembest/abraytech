@@ -883,17 +883,59 @@
                     </div>
                     {% endif %}
 
+                    <!-- Store — Products & Orders. Own top-level section (relocated out from
+                         under Site Settings), gated on either store module so a user granted
+                         only one of the two (e.g. an order-fulfillment-only staffer) still sees it. -->
+                    {% if permissions.store_products.can_view or permissions.store_orders.can_view or request.user.is_superuser %}
+                    <div class="mb-1">
+                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all {% if 'site-config/products' in request.path or 'site-config/product-categories' in request.path or 'management/orders' in request.path %}bg-white/20{% endif %}">
+                            <div class="flex items-center">
+                                <i class="fas fa-store w-5 text-center" aria-hidden="true"></i>
+                                <span class="ml-3 text-[17px] font-semibold">Store</span>
+                            </div>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform {% if 'site-config/products' in request.path or 'site-config/product-categories' in request.path or 'management/orders' in request.path %}rotate-180{% endif %}" aria-hidden="true"></i>
+                        </button>
+                        <div id="storeMenu" class="mt-1 space-y-1 {% if 'site-config/products' not in request.path and 'site-config/product-categories' not in request.path and 'management/orders' not in request.path %}hidden{% endif %} bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                            {% if permissions.store_products.can_view or request.user.is_superuser %}
+                            <a href="{% url 'management:products_list' %}"
+                               class="flex items-center justify-between py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'site-config/products' in request.path or 'site-config/product-categories' in request.path %}bg-white/20{% endif %}">
+                                <span><i class="fas fa-box mr-2" aria-hidden="true"></i>Products</span>
+                                {% if low_stock_products_count > 0 %}
+                                <span class="badge-count bg-amber-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full" title="Low stock">{{ low_stock_products_count }}</span>
+                                {% endif %}
+                            </a>
+                            {% endif %}
+                            {% if permissions.store_orders.can_view or request.user.is_superuser %}
+                            <a href="{% url 'management:orders_list' %}"
+                               class="flex items-center justify-between py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'management/orders' in request.path and 'refunds' not in request.path %}bg-white/20{% endif %}">
+                                <span><i class="fas fa-clipboard-list mr-2" aria-hidden="true"></i>Orders</span>
+                                {% if unfulfilled_orders_count > 0 %}
+                                <span class="badge-count bg-amber-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{{ unfulfilled_orders_count }}</span>
+                                {% endif %}
+                            </a>
+                            <a href="{% url 'management:refund_requests_list' %}"
+                               class="flex items-center justify-between py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'orders/refunds' in request.path %}bg-white/20{% endif %}">
+                                <span><i class="fas fa-rotate-left mr-2" aria-hidden="true"></i>Refunds</span>
+                                {% if pending_refund_requests_count > 0 %}
+                                <span class="badge-count bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{{ pending_refund_requests_count }}</span>
+                                {% endif %}
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}{# /store #}
+
                     <!-- Site Content -->
                     {% if permissions.site_content.can_view %}
                     <div class="mb-1">
-                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all {% if 'site-config' in request.path %}bg-white/20{% endif %}">
+                        <button class="menu-toggle flex items-center justify-between w-full py-3 px-4 rounded-lg hover:bg-white/10 transition-all {% if 'site-config' in request.path and 'site-config/products' not in request.path and 'site-config/product-categories' not in request.path %}bg-white/20{% endif %}">
                             <div class="flex items-center">
                                 <i class="fas fa-globe w-5 text-center" aria-hidden="true"></i>
                                 <span class="ml-3 text-[17px] font-semibold">Site Settings</span>
                             </div>
-                            <i class="fas fa-chevron-down menu-arrow transition-transform {% if 'site-config' in request.path %}rotate-180{% endif %}" aria-hidden="true"></i>
+                            <i class="fas fa-chevron-down menu-arrow transition-transform {% if 'site-config' in request.path and 'site-config/products' not in request.path and 'site-config/product-categories' not in request.path %}rotate-180{% endif %}" aria-hidden="true"></i>
                         </button>
-                        <div id="siteConfigMenu" class="mt-1 space-y-1 {% if 'site-config' not in request.path %}hidden{% endif %} bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
+                        <div id="siteConfigMenu" class="mt-1 space-y-1 {% if 'site-config' not in request.path or 'site-config/products' in request.path or 'site-config/product-categories' in request.path %}hidden{% endif %} bg-white/5 rounded-lg py-2 px-2 border-l-2 border-white/20">
                             <a href="{% url 'management:site_config_general' %}"
                                class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if request.resolver_match.url_name == 'site_config_general' %}bg-white/20{% endif %}">
                                 <i class="fas fa-id-card mr-2" aria-hidden="true"></i>General &amp; Identity
@@ -917,10 +959,6 @@
                             <a href="{% url 'management:social_posts_list' %}"
                                class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'social-posts' in request.path %}bg-white/20{% endif %}">
                                 <i class="fas fa-share-nodes mr-2" aria-hidden="true"></i>Social Posts
-                            </a>
-                            <a href="{% url 'management:products_list' %}"
-                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'site-config/products' in request.path %}bg-white/20{% endif %}">
-                                <i class="fas fa-box mr-2" aria-hidden="true"></i>Store Products
                             </a>
                             <a href="{% url 'management:institution_members_list' %}"
                                class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'members' in request.path %}bg-white/20{% endif %}">

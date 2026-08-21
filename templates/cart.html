@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}Your Cart | Abraytech Store{% endblock %}
+
+{% block content %}
+
+<section class="relative overflow-hidden bg-navy py-20 lg:py-28">
+    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <nav class="flex mb-6" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-2 text-sm">
+                <li><a href="{% url 'eduweb:index' %}" class="text-white/60 hover:text-white transition-colors">Home</a></li>
+                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+                <li><a href="{% url 'store:store_list' %}" class="text-white/60 hover:text-white transition-colors">Store</a></li>
+                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+                <li><span class="text-white/80 font-medium">Cart</span></li>
+            </ol>
+        </nav>
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-white">Your Cart</h1>
+    </div>
+</section>
+
+<section class="py-20 bg-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {% if items %}
+        <div class="space-y-4">
+            {% for item in items %}
+            <form method="post" action="{% url 'store:cart_view' %}" class="light-card flex flex-wrap items-center gap-4 p-4">
+                {% csrf_token %}
+                <input type="hidden" name="cart_key" value="{{ item.cart_key }}">
+
+                <div class="cart-line-image bg-soft rounded-lg overflow-hidden shrink-0">
+                    {% with image=item.product.primary_image %}
+                    {% if image %}
+                    <img src="{{ image.asset.file.url }}" alt="{{ item.product.title }}" loading="lazy">
+                    {% else %}
+                    <div class="w-full h-full flex items-center justify-center">
+                        <i data-lucide="package" class="w-6 h-6 text-brandblue/50"></i>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+
+                <div class="flex-1 min-w-cart-line">
+                    <a href="{% url 'store:product_detail' item.product.slug %}" class="font-sora font-semibold text-navy hover:text-brandblue transition">{{ item.product.title }}</a>
+                    {% if item.variant %}<p class="text-caption-brand text-slate-500">{{ item.variant.option_name }}: {{ item.variant.value }}</p>{% endif %}
+                    <p class="text-sm text-slate-500 mt-1">NGN {{ item.product.price|floatformat:"0"|intcomma }} each</p>
+                </div>
+
+                <label class="sr-only" for="qty-{{ item.cart_key }}">Quantity for {{ item.product.title }}</label>
+                <input type="number" id="qty-{{ item.cart_key }}" name="quantity" value="{{ item.quantity }}" min="1" class="input-brand cart-qty-input">
+
+                <p class="font-sora font-semibold text-navy w-28 text-right">NGN {{ item.line_total|floatformat:"0"|intcomma }}</p>
+
+                <div class="flex items-center gap-2">
+                    <button type="submit" name="action" value="update" class="btn-brand-outline btn-brand-sm">Update</button>
+                    <button type="submit" name="action" value="remove" class="btn-brand-outline btn-brand-sm" aria-label="Remove {{ item.product.title }}">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </form>
+            {% endfor %}
+        </div>
+
+        <div class="mt-8 flex flex-wrap items-center justify-between gap-4 light-card p-6">
+            <p class="text-h4-brand text-navy">Total: <span class="font-bold">NGN {{ total|floatformat:"0"|intcomma }}</span></p>
+            <a href="{% url 'store:checkout_view' %}" class="btn-brand btn-brand-lg">
+                Proceed to Checkout <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </a>
+        </div>
+        {% else %}
+        <div class="text-center py-16">
+            <i data-lucide="shopping-cart" class="w-12 h-12 text-brandblue/40 mx-auto mb-4"></i>
+            <p class="text-slate-500 mb-6">Your cart is empty.</p>
+            <a href="{% url 'store:store_list' %}" class="btn-brand">
+                Browse the Store <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}

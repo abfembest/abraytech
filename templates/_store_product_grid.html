@@ -1,0 +1,103 @@
+{% load static humanize %}
+{% if products %}
+<div id="productGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for product in products %}
+    <a href="{% url 'store:product_detail' product.slug %}" class="reveal light-card overflow-hidden block" data-product-card data-search="{{ product.title|lower }} {{ product.brand|default:''|lower }} {{ product.summary|lower }}">
+        <div class="product-card-image bg-soft">
+            {% with image=product.primary_image %}
+            {% if image %}
+            <img src="{{ image.asset.file.url }}" alt="{{ product.title }}" loading="lazy">
+            {% else %}
+            <div class="w-full h-full flex items-center justify-center">
+                <i data-lucide="package" class="w-12 h-12 text-brandblue/50"></i>
+            </div>
+            {% endif %}
+            {% endwith %}
+            {% if product.compare_at_price and product.price %}
+            <span class="pill pill-amber product-card-badge">Sale</span>
+            {% elif not product.is_in_stock %}
+            <span class="pill pill-light product-card-badge">Out of Stock</span>
+            {% endif %}
+        </div>
+        <div class="p-6">
+            {% if product.brand %}<p class="text-caption-brand text-slate-500 uppercase tracking-wide mb-1">{{ product.brand }}</p>{% endif %}
+            <h3 class="font-sora font-semibold text-lg text-navy mb-2">{{ product.title }}</h3>
+            <p class="text-sm text-slate-600 mb-3 line-clamp-2">{{ product.summary }}</p>
+
+            <div class="flex items-center gap-2 mb-4">
+                {% if product.price %}
+                <span class="font-sora font-semibold text-lg text-navy">NGN {{ product.price|floatformat:"0"|intcomma }}</span>
+                {% if product.compare_at_price %}
+                <span class="text-sm text-slate-400 line-through">NGN {{ product.compare_at_price|floatformat:"0"|intcomma }}</span>
+                {% endif %}
+                {% else %}
+                <span class="text-sm text-brandblue font-semibold">Contact for pricing</span>
+                {% endif %}
+            </div>
+
+            {% if product.is_low_stock %}
+            <p class="text-caption-brand text-amber-600 mb-3">Only {{ product.stock_quantity }} left in stock</p>
+            {% endif %}
+
+            {% if product.price %}
+            {% if product.variants.exists %}
+            <span class="btn-brand-outline btn-brand-sm w-full pointer-events-none">
+                <i data-lucide="sliders-horizontal" class="w-4 h-4"></i> View Options
+            </span>
+            {% else %}
+            <button type="button" class="btn-brand btn-brand-sm w-full" data-add-to-cart data-product-id="{{ product.id }}">
+                <i data-lucide="shopping-cart" class="w-4 h-4"></i> Add to Cart
+            </button>
+            {% endif %}
+            {% else %}
+            <span class="btn-brand-outline btn-brand-sm w-full pointer-events-none">
+                <i data-lucide="message-circle" class="w-4 h-4"></i> Request a Quote
+            </span>
+            {% endif %}
+        </div>
+    </a>
+    {% endfor %}
+</div>
+<p id="noSearchResults" class="hidden text-center text-slate-500 py-10">No products match &ldquo;<span id="noSearchResultsQuery"></span>&rdquo;.</p>
+
+{% if page_obj.paginator.num_pages > 1 %}
+<nav class="flex justify-center mt-10 sm:mt-14 gap-1.5 sm:gap-2 flex-wrap" aria-label="Pagination">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% if active_category %}&category={{ active_category }}{% endif %}{% if query %}&q={{ query }}{% endif %}"
+       hx-get="{% url 'store:store_list' %}?page={{ page_obj.previous_page_number }}{% if active_category %}&category={{ active_category }}{% endif %}{% if query %}&q={{ query }}{% endif %}"
+       hx-target="#productGridContainer" hx-swap="innerHTML" hx-push-url="true"
+       class="flex items-center gap-1 px-3 sm:px-4 py-2 bg-white border border-borderblue rounded-lg text-sm text-navy hover:bg-ice transition-colors focus:outline-none focus:ring-2 focus:ring-brandblue"
+       aria-label="Previous page">
+        <i data-lucide="chevron-left" class="w-4 h-4" aria-hidden="true"></i>
+        <span class="hidden sm:inline">Prev</span>
+    </a>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <span class="px-3 sm:px-4 py-2 brand-gradient text-white rounded-lg text-sm font-semibold" aria-current="page" aria-label="Page {{ num }}, current">{{ num }}</span>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <a href="?page={{ num }}{% if active_category %}&category={{ active_category }}{% endif %}{% if query %}&q={{ query }}{% endif %}"
+           hx-get="{% url 'store:store_list' %}?page={{ num }}{% if active_category %}&category={{ active_category }}{% endif %}{% if query %}&q={{ query }}{% endif %}"
+           hx-target="#productGridContainer" hx-swap="innerHTML" hx-push-url="true"
+           class="px-3 sm:px-4 py-2 bg-white border border-borderblue rounded-lg text-sm text-navy hover:bg-ice transition-colors focus:outline-none focus:ring-2 focus:ring-brandblue"
+           aria-label="Page {{ num }}">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% if active_category %}&category={{ active_category }}{% endif %}{% if query %}&q={{ query }}{% endif %}"
+       hx-get="{% url 'store:store_list' %}?page={{ page_obj.next_page_number }}{% if active_category %}&category={{ active_category }}{% endif %}{% if query %}&q={{ query }}{% endif %}"
+       hx-target="#productGridContainer" hx-swap="innerHTML" hx-push-url="true"
+       class="flex items-center gap-1 px-3 sm:px-4 py-2 bg-white border border-borderblue rounded-lg text-sm text-navy hover:bg-ice transition-colors focus:outline-none focus:ring-2 focus:ring-brandblue"
+       aria-label="Next page">
+        <span class="hidden sm:inline">Next</span>
+        <i data-lucide="chevron-right" class="w-4 h-4" aria-hidden="true"></i>
+    </a>
+    {% endif %}
+</nav>
+{% endif %}
+
+{% else %}
+<p class="text-center text-slate-500">Our store is being stocked &mdash; check back soon.</p>
+{% endif %}

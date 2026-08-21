@@ -21,7 +21,7 @@ from django.core.exceptions import SuspiciousOperation
 from django.core.mail import EmailMultiAlternatives, send_mail, send_mass_mail
 from django.core.paginator import Paginator
 from django.db import transaction, connection, IntegrityError
-from django.db.models import Q, Count, Sum, Avg, Value, DecimalField
+from django.db.models import F, Q, Count, Sum, Avg, Value, DecimalField, Max
 from django.db.models.functions import Coalesce, TruncMonth, TruncDate
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -57,7 +57,6 @@ from apps.eduweb.models import (
     LibraryItem,
     Notification,
     PaymentGateway,
-    Product,
     Program,
     Review,
     SiteConfig,
@@ -78,6 +77,9 @@ from apps.eduweb.models import (
     ExamStatusLog,
     StaffPermissionsMatrix,
 )
+from apps.store import services as store_services
+from apps.store.emailservices import send_order_refunded_email, send_refund_request_rejected_email
+from apps.store.models import Product, ProductCategory, ProductSpecification, MediaAsset, ProductImage, Order, OrderItem
 
 # Forms
 from apps.management.forms import (
@@ -102,9 +104,13 @@ from apps.management.forms import (
     InstitutionPartnerForm,
     LMSCourseForm,
     LibraryItemForm,
+    MediaAssetForm,
     NotificationConfigForm,
     PaymentGatewayForm,
+    ProductCategoryForm,
     ProductForm,
+    ProductSpecificationFormSet,
+    ProductVariantFormSet,
     ProgramForm,
     QuickRoleChangeForm,
     ReviewForm,
@@ -6145,52 +6151,102 @@ def social_post_delete(request, pk):
 @login_required(login_url='eduweb:auth_page')
 @user_passes_test(is_admin)
 def products_list(request):
-    if not _has_permission(request, 'site_content', 'can_view'):
+    if not _has_permission(request, 'store_products', 'can_view'):
         messages.error(request, 'You do not have permission to view store products.')
         return redirect('management:dashboard')
 
-    products = Product.objects.all()
+    products = Product.objects.select_related('category').all()
+
+    category_id = request.GET.get('category', '').strip()
+    condition = request.GET.get('condition', '').strip()
+    stock = request.GET.get('stock', '').strip()
+    featured = request.GET.get('featured', '').strip()
+
+    if category_id:
+        products = products.filter(category_id=category_id)
+    if condition:
+        products = products.filter(condition=condition)
+    if stock == 'in':
+        products = products.filter(Q(track_inventory=False) | Q(stock_quantity__gt=0))
+    elif stock == 'out':
+        products = products.filter(track_inventory=True, stock_quantity=0)
+    if featured == '1':
+        products = products.filter(is_featured=True)
+
     return render(request, 'management/site_config/products_list.html', {
         'products': products,
-        'active_count': products.filter(is_active=True).count(),
+        'categories': ProductCategory.objects.all(),
+        'active_count': Product.objects.filter(is_active=True).count(),
+        'featured_count': Product.objects.filter(is_featured=True).count(),
+        'out_of_stock_count': Product.objects.filter(track_inventory=True, stock_quantity=0).count(),
         'form': ProductForm(),
+        'specs_formset': ProductSpecificationFormSet(prefix='specs'),
+        'variants_formset': ProductVariantFormSet(prefix='variants'),
     })
+
+
+def _auto_number_sort_order(formset):
+    """A row left with 'Order' blank gets its position in the formset as
+    its sort_order (0, 1, 2, ...) instead of failing validation — staff
+    reordering only a couple of rows shouldn't have to number every row."""
+    for i, f in enumerate(formset.forms):
+        if f.cleaned_data.get('DELETE'):
+            continue
+        if f.cleaned_data.get('sort_order') in (None, ''):
+            f.instance.sort_order = i
 
 
 @login_required(login_url='eduweb:auth_page')
 @user_passes_test(is_admin)
 def product_create(request):
     """"New Product" is a modal on products_list.html, not a standalone
-    page — mirrors social_post_create's pattern."""
+    page — mirrors social_post_create's pattern. The specifications repeater
+    is an inline formset bound to an as-yet-unsaved Product() so validation
+    errors on either the product or its specs re-render together; the real
+    parent link is only written once both halves are valid (see Django's
+    documented "formset bound to an unsaved instance" idiom)."""
     if request.method != 'POST':
         return redirect('management:products_list')
 
-    if not _has_permission(request, 'site_content', 'can_create'):
+    if not _has_permission(request, 'store_products', 'can_create'):
         messages.error(request, 'You do not have permission to create store products.')
         return redirect('management:products_list')
 
-    form = ProductForm(request.POST, request.FILES)
+    form = ProductForm(request.POST)
     if form.is_valid():
-        try:
-            with transaction.atomic():
-                product = form.save()
-                AuditLog.objects.create(
-                    user=request.user, action='create',
-                    model_name='Product',
-                    description=f'Created store product: {product}'
-                )
-        except IntegrityError:
-            logger.exception('product_create: IntegrityError saving product')
-            messages.error(request, 'Could not save this product — please check the details and try again.')
-        except Exception:
-            logger.exception('product_create: unexpected error saving product')
-            messages.error(request, 'Something went wrong while saving this product. Please try again.')
-        else:
-            messages.success(request, 'Product created.')
-            return redirect('management:products_list')
+        product = form.save(commit=False)
+        specs_formset = ProductSpecificationFormSet(request.POST, instance=product, prefix='specs')
+        variants_formset = ProductVariantFormSet(request.POST, instance=product, prefix='variants')
+        if specs_formset.is_valid() and variants_formset.is_valid():
+            _auto_number_sort_order(specs_formset)
+            _auto_number_sort_order(variants_formset)
+            try:
+                with transaction.atomic():
+                    product.save()
+                    specs_formset.save()
+                    variants_formset.save()
+                    AuditLog.objects.create(
+                        user=request.user, action='create',
+                        model_name='Product', object_id=str(product.pk),
+                        description=f'Created store product: {product}'
+                    )
+            except IntegrityError:
+                logger.exception('product_create: IntegrityError saving product')
+                messages.error(request, 'Could not save this product — please check the details and try again.')
+            except Exception:
+                logger.exception('product_create: unexpected error saving product')
+                messages.error(request, 'Something went wrong while saving this product. Please try again.')
+            else:
+                messages.success(request, 'Product created. Add images from the Edit screen.')
+                return redirect('management:products_list')
+    else:
+        specs_formset = ProductSpecificationFormSet(request.POST, instance=Product(), prefix='specs')
+        variants_formset = ProductVariantFormSet(request.POST, instance=Product(), prefix='variants')
 
     return render(request, 'management/site_config/_product_form_fields.html', {
         'form': form,
+        'specs_formset': specs_formset,
+        'variants_formset': variants_formset,
     })
 
 
@@ -6198,49 +6254,451 @@ def product_create(request):
 @user_passes_test(is_admin)
 def product_edit(request, pk):
     """Same modal as "New Product" on products_list.html, populated by
-    fetching this view's GET response — mirrors social_post_edit's pattern."""
+    fetching this view's GET response — mirrors social_post_edit's pattern.
+    Also carries the image-gallery manager (existing ProductImages + the
+    upload-new/choose-from-library "Add Image" controls), since images can
+    only be attached once the product itself has a pk."""
     product = get_object_or_404(Product, pk=pk)
     if request.method == 'POST':
-        if not _has_permission(request, 'site_content', 'can_edit'):
+        if not _has_permission(request, 'store_products', 'can_edit'):
             messages.error(request, 'You do not have permission to edit store products.')
             return redirect('management:products_list')
 
-        form = ProductForm(request.POST, request.FILES, instance=product)
+        form = ProductForm(request.POST, instance=product)
+        if form.is_valid():
+            specs_formset = ProductSpecificationFormSet(request.POST, instance=product, prefix='specs')
+            variants_formset = ProductVariantFormSet(request.POST, instance=product, prefix='variants')
+            if specs_formset.is_valid() and variants_formset.is_valid():
+                _auto_number_sort_order(specs_formset)
+                _auto_number_sort_order(variants_formset)
+                try:
+                    with transaction.atomic():
+                        form.save()
+                        specs_formset.save()
+                        variants_formset.save()
+                        AuditLog.objects.create(
+                            user=request.user, action='update',
+                            model_name='Product', object_id=str(product.pk),
+                            description=f'Updated store product: {product}'
+                        )
+                except IntegrityError:
+                    logger.exception('product_edit: IntegrityError saving product pk=%s', pk)
+                    messages.error(request, 'Could not save this product — please check the details and try again.')
+                else:
+                    messages.success(request, 'Product updated.')
+                    return redirect('management:products_list')
+        else:
+            specs_formset = ProductSpecificationFormSet(request.POST, instance=product, prefix='specs')
+            variants_formset = ProductVariantFormSet(request.POST, instance=product, prefix='variants')
+    else:
+        form = ProductForm(instance=product)
+        specs_formset = ProductSpecificationFormSet(instance=product, prefix='specs')
+        variants_formset = ProductVariantFormSet(instance=product, prefix='variants')
+
+    existing_images = product.images.select_related('asset').all()
+    return render(request, 'management/site_config/_product_form_fields.html', {
+        'form': form, 'product': product, 'specs_formset': specs_formset, 'variants_formset': variants_formset,
+        'existing_images': existing_images,
+        'library_assets': MediaAsset.objects.all()[:60],
+        'attached_asset_ids': set(existing_images.values_list('asset_id', flat=True)),
+    })
+
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+@require_permission('store_products', 'can_delete', redirect_to='management:products_list')
+def product_delete(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        try:
+            product_repr = str(product)
+            product_pk = product.pk
+            product.delete()
+            AuditLog.objects.create(
+                user=request.user, action='delete',
+                model_name='Product', object_id=str(product_pk),
+                description=f'Deleted store product: {product_repr}'
+            )
+            messages.success(request, 'Product deleted.')
+        except Exception:
+            logger.exception('product_delete: unexpected error deleting product pk=%s', pk)
+            messages.error(request, 'Something went wrong while deleting this product. Please try again.')
+    return redirect('management:products_list')
+
+
+# ── PRODUCT IMAGES (AJAX, called from inside the product edit modal) ──────────
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+@require_POST
+def product_image_add(request, pk):
+    """Handles both "Add Image" paths from the gallery manager: uploading a
+    brand-new file (creates a MediaAsset then a ProductImage) or picking an
+    existing MediaAsset from the shared library (creates only the
+    ProductImage, so the same file can back more than one product)."""
+    product = get_object_or_404(Product, pk=pk)
+    if not _has_permission(request, 'store_products', 'can_edit'):
+        return JsonResponse({'success': False, 'error': 'Permission denied.'}, status=403)
+
+    source = request.POST.get('source', 'upload')
+
+    try:
+        with transaction.atomic():
+            if source == 'library':
+                asset = MediaAsset.objects.filter(pk=request.POST.get('asset_id')).first()
+                if not asset:
+                    return JsonResponse({'success': False, 'error': 'Selected image could not be found.'}, status=404)
+                if product.images.filter(asset=asset).exists():
+                    return JsonResponse({'success': False, 'error': 'This image is already in this product\'s gallery.'}, status=400)
+            else:
+                asset_form = MediaAssetForm(request.POST, request.FILES)
+                if not asset_form.is_valid():
+                    errors = ' '.join(e for errs in asset_form.errors.values() for e in errs)
+                    return JsonResponse({'success': False, 'error': errors or 'Invalid image file.'}, status=400)
+                asset = asset_form.save(commit=False)
+                asset.uploaded_by = request.user
+                asset.save()
+
+            is_first = not product.images.exists()
+            next_order = (product.images.aggregate(Max('sort_order'))['sort_order__max'] or 0) + 1
+            image = ProductImage.objects.create(
+                product=product, asset=asset, sort_order=next_order, is_primary=is_first,
+            )
+    except Exception:
+        logger.exception('product_image_add: unexpected error pk=%s', pk)
+        return JsonResponse({'success': False, 'error': 'Something went wrong while adding this image.'}, status=500)
+
+    AuditLog.objects.create(
+        user=request.user, action='update', model_name='Product', object_id=str(product.pk),
+        description=f'Added an image to store product: {product}'
+    )
+    return JsonResponse({
+        'success': True,
+        'image': {'id': image.id, 'url': image.asset.file.url, 'is_primary': image.is_primary},
+    })
+
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+@require_POST
+def product_image_delete(request, pk, image_id):
+    product = get_object_or_404(Product, pk=pk)
+    if not _has_permission(request, 'store_products', 'can_edit'):
+        return JsonResponse({'success': False, 'error': 'Permission denied.'}, status=403)
+
+    image = get_object_or_404(ProductImage, pk=image_id, product=product)
+    was_primary = image.is_primary
+    image.delete()
+
+    if was_primary:
+        next_image = product.images.first()
+        if next_image:
+            next_image.is_primary = True
+            next_image.save(update_fields=['is_primary'])
+
+    AuditLog.objects.create(
+        user=request.user, action='update', model_name='Product', object_id=str(product.pk),
+        description=f'Removed an image from store product: {product}'
+    )
+    return JsonResponse({'success': True})
+
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+@require_POST
+def product_image_set_primary(request, pk, image_id):
+    product = get_object_or_404(Product, pk=pk)
+    if not _has_permission(request, 'store_products', 'can_edit'):
+        return JsonResponse({'success': False, 'error': 'Permission denied.'}, status=403)
+
+    image = get_object_or_404(ProductImage, pk=image_id, product=product)
+    with transaction.atomic():
+        product.images.exclude(pk=image.pk).update(is_primary=False)
+        image.is_primary = True
+        image.save(update_fields=['is_primary'])
+
+    return JsonResponse({'success': True})
+
+
+# ── PRODUCT CATEGORIES ─────────────────────────────────────────────────────────
+# Gated on 'store_products' too — categories are part of product management,
+# not a separate permission module (products need one to exist before they
+# can be assigned to it).
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+def product_categories_list(request):
+    if not _has_permission(request, 'store_products', 'can_view'):
+        messages.error(request, 'You do not have permission to view product categories.')
+        return redirect('management:dashboard')
+
+    categories = ProductCategory.objects.annotate(product_count=Count('products')).order_by('title')
+    return render(request, 'management/site_config/product_categories_list.html', {
+        'categories': categories,
+        'form': ProductCategoryForm(),
+    })
+
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+def product_category_create(request):
+    if request.method != 'POST':
+        return redirect('management:product_categories_list')
+
+    if not _has_permission(request, 'store_products', 'can_create'):
+        messages.error(request, 'You do not have permission to create product categories.')
+        return redirect('management:product_categories_list')
+
+    form = ProductCategoryForm(request.POST)
+    if form.is_valid():
+        try:
+            with transaction.atomic():
+                category = form.save()
+                AuditLog.objects.create(
+                    user=request.user, action='create',
+                    model_name='ProductCategory', object_id=str(category.pk),
+                    description=f'Created product category: {category}'
+                )
+        except IntegrityError:
+            logger.exception('product_category_create: IntegrityError saving category')
+            messages.error(request, 'Could not save this category — that title may already be in use.')
+        except Exception:
+            logger.exception('product_category_create: unexpected error saving category')
+            messages.error(request, 'Something went wrong while saving this category. Please try again.')
+        else:
+            messages.success(request, 'Category created.')
+            return redirect('management:product_categories_list')
+
+    return render(request, 'management/site_config/_product_category_form_fields.html', {
+        'form': form,
+    })
+
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+def product_category_edit(request, pk):
+    category = get_object_or_404(ProductCategory, pk=pk)
+    if request.method == 'POST':
+        if not _has_permission(request, 'store_products', 'can_edit'):
+            messages.error(request, 'You do not have permission to edit product categories.')
+            return redirect('management:product_categories_list')
+
+        form = ProductCategoryForm(request.POST, instance=category)
         if form.is_valid():
             try:
                 with transaction.atomic():
                     form.save()
                     AuditLog.objects.create(
                         user=request.user, action='update',
-                        model_name='Product',
-                        description=f'Updated store product: {product}'
+                        model_name='ProductCategory', object_id=str(category.pk),
+                        description=f'Updated product category: {category}'
                     )
             except IntegrityError:
-                logger.exception('product_edit: IntegrityError saving product pk=%s', pk)
-                messages.error(request, 'Could not save this product — please check the details and try again.')
+                logger.exception('product_category_edit: IntegrityError saving category pk=%s', pk)
+                messages.error(request, 'Could not save this category — that title may already be in use.')
             else:
-                messages.success(request, 'Product updated.')
-                return redirect('management:products_list')
+                messages.success(request, 'Category updated.')
+                return redirect('management:product_categories_list')
     else:
-        form = ProductForm(instance=product)
-    return render(request, 'management/site_config/_product_form_fields.html', {
-        'form': form, 'product': product,
+        form = ProductCategoryForm(instance=category)
+
+    return render(request, 'management/site_config/_product_category_form_fields.html', {
+        'form': form, 'category': category,
     })
 
 
 @login_required(login_url='eduweb:auth_page')
 @user_passes_test(is_admin)
-@require_permission('site_content', 'can_delete', redirect_to='management:products_list')
-def product_delete(request, pk):
-    product = get_object_or_404(Product, pk=pk)
+@require_permission('store_products', 'can_delete', redirect_to='management:product_categories_list')
+def product_category_delete(request, pk):
+    category = get_object_or_404(ProductCategory, pk=pk)
     if request.method == 'POST':
+        product_count = category.products.count()
+        if product_count:
+            messages.error(
+                request,
+                f'Cannot delete "{category}" — {product_count} product(s) are still assigned to it.'
+            )
+            return redirect('management:product_categories_list')
         try:
-            product.delete()
-            messages.success(request, 'Product deleted.')
+            category_repr = str(category)
+            category_pk = category.pk
+            category.delete()
+            AuditLog.objects.create(
+                user=request.user, action='delete',
+                model_name='ProductCategory', object_id=str(category_pk),
+                description=f'Deleted product category: {category_repr}'
+            )
+            messages.success(request, 'Category deleted.')
         except Exception:
-            logger.exception('product_delete: unexpected error deleting product pk=%s', pk)
-            messages.error(request, 'Something went wrong while deleting this product. Please try again.')
-    return redirect('management:products_list')
+            logger.exception('product_category_delete: unexpected error deleting category pk=%s', pk)
+            messages.error(request, 'Something went wrong while deleting this category. Please try again.')
+    return redirect('management:product_categories_list')
+
+
+# ── STORE ORDERS (fulfillment queue) ───────────────────────────────────────────
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+def orders_list(request):
+    if not _has_permission(request, 'store_orders', 'can_view'):
+        messages.error(request, 'You do not have permission to view store orders.')
+        return redirect('management:dashboard')
+
+    qs = Order.objects.select_related('user').prefetch_related('items').order_by('-created_at')
+
+    status = request.GET.get('status', '').strip()
+    if status:
+        qs = qs.filter(status=status)
+
+    pending_count = Order.objects.filter(status__in=['paid', 'processing', 'shipped']).count()
+
+    paginator = Paginator(qs, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    return render(request, 'management/site_config/orders_list.html', {
+        'orders': page_obj,
+        'pending_count': pending_count,
+        'status_choices': Order.STATUS_CHOICES,
+    })
+
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+def order_detail(request, order_number):
+    if not _has_permission(request, 'store_orders', 'can_view'):
+        messages.error(request, 'You do not have permission to view store orders.')
+        return redirect('management:orders_list')
+
+    order = get_object_or_404(
+        Order.objects.select_related('user').prefetch_related('items'),
+        order_number=order_number
+    )
+
+    if request.method == 'POST' and request.POST.get('action') == 'advance_status':
+        if not _has_permission(request, 'store_orders', 'can_edit'):
+            messages.error(request, 'You do not have permission to update store orders.')
+            return redirect('management:order_detail', order_number=order_number)
+
+        target_status = request.POST.get('target_status', '').strip()
+        staff_note = request.POST.get('staff_note', '').strip()
+        try:
+            if staff_note:
+                order.staff_note = staff_note
+                order.save(update_fields=['staff_note'])
+            order.advance_status(target_status, request.user)
+        except ValueError as e:
+            messages.error(request, str(e))
+        else:
+            AuditLog.objects.create(
+                user=request.user, action='update', model_name='Order', object_id=str(order.id),
+                description=f'Marked order {order.order_number} as {order.get_status_display()}.'
+            )
+            messages.success(request, f'Order {order.order_number} marked as {order.get_status_display()}.')
+        return redirect('management:order_detail', order_number=order_number)
+
+    fulfillment_stages = None
+    if order.status in Order.FULFILLMENT_SEQUENCE:
+        current_index = Order.FULFILLMENT_SEQUENCE.index(order.status)
+        stage_labels = {'paid': 'Paid', 'processing': 'Processing', 'shipped': 'Shipped', 'delivered': 'Delivered'}
+        fulfillment_stages = [
+            {'label': stage_labels[stage], 'done': i <= current_index}
+            for i, stage in enumerate(Order.FULFILLMENT_SEQUENCE)
+        ]
+
+    return render(request, 'management/site_config/order_detail.html', {
+        'order': order,
+        'fulfillment_stages': fulfillment_stages,
+    })
+
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+def refund_requests_list(request):
+    """Standalone review queue for customer-submitted cancel/refund
+    requests (Order.request_refund in apps/store/views.py sets these —
+    nothing here has touched Paystack or the order's status yet). Approving
+    from this page is the only place that actually calls Paystack."""
+    if not _has_permission(request, 'store_orders', 'can_view'):
+        messages.error(request, 'You do not have permission to view store orders.')
+        return redirect('management:dashboard')
+
+    pending = (
+        Order.objects.filter(refund_request_status='pending')
+        .select_related('user').order_by('refund_requested_at')
+    )
+    decided = (
+        Order.objects.filter(refund_request_status__in=['approved', 'rejected'])
+        .select_related('user', 'refunded_by').order_by('-updated_at')[:25]
+    )
+
+    return render(request, 'management/site_config/refund_requests_list.html', {
+        'pending_requests': pending,
+        'decided_requests': decided,
+    })
+
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+@require_POST
+def refund_request_decide(request, order_number):
+    if not _has_permission(request, 'store_orders', 'can_edit'):
+        messages.error(request, 'You do not have permission to update store orders.')
+        return redirect('management:refund_requests_list')
+
+    order = get_object_or_404(Order, order_number=order_number)
+    decision = request.POST.get('decision', '').strip()
+    note = request.POST.get('note', '').strip()
+
+    if order.refund_request_status != 'pending':
+        messages.error(request, f'Order {order.order_number} has no pending refund request.')
+        return redirect('management:refund_requests_list')
+
+    if decision == 'reject':
+        order.refund_request_status = 'rejected'
+        order.refund_reason = note
+        order.save(update_fields=['refund_request_status', 'refund_reason'])
+        AuditLog.objects.create(
+            user=request.user, action='update', model_name='Order', object_id=str(order.id),
+            description=f'Rejected refund request for {order.order_number}.'
+        )
+        send_refund_request_rejected_email(order)
+        messages.success(request, f'Refund request for {order.order_number} rejected.')
+        return redirect('management:refund_requests_list')
+
+    if decision != 'approve':
+        messages.error(request, 'Unknown decision.')
+        return redirect('management:refund_requests_list')
+
+    if not order.can_be_refunded:
+        messages.error(request, f'Order {order.order_number} is no longer eligible for a refund (status: {order.get_status_display()}).')
+        return redirect('management:refund_requests_list')
+
+    data = store_services.create_refund(order)
+    if not data.get('status'):
+        messages.error(request, f"Paystack refund failed: {data.get('message', 'Unknown error')}")
+        return redirect('management:refund_requests_list')
+
+    with transaction.atomic():
+        for item in order.items.select_related('product').all():
+            if item.product and item.product.track_inventory:
+                Product.objects.filter(pk=item.product_id).update(
+                    stock_quantity=F('stock_quantity') + item.quantity
+                )
+        order.status = 'refunded'
+        order.refunded_at = timezone.now()
+        order.refunded_by = request.user
+        order.refund_reason = note
+        order.refund_request_status = 'approved'
+        order.save(update_fields=['status', 'refunded_at', 'refunded_by', 'refund_reason', 'refund_request_status', 'updated_at'])
+
+    AuditLog.objects.create(
+        user=request.user, action='update', model_name='Order', object_id=str(order.id),
+        description=f'Approved and processed refund for {order.order_number}.'
+    )
+    send_order_refunded_email(order)
+    messages.success(request, f'Order {order.order_number} refunded.')
+    return redirect('management:refund_requests_list')
 
 
 # ── INSTITUTION MEMBERS ───────────────────────────────────────────────────────

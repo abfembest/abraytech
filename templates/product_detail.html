@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static humanize %}
 
 {% block title %}{{ product.title }} | Abraytech Store{% endblock %}
 
@@ -9,52 +9,148 @@
 
 {% block content %}
 
-<section class="relative overflow-hidden bg-navy py-20 lg:py-28">
-    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <nav class="flex mb-6" aria-label="Breadcrumb">
+<section class="py-10 bg-white">
+    <div class="container-responsive mx-auto px-4 sm:px-6 lg:px-8">
+        <nav class="flex mb-8" aria-label="Breadcrumb">
             <ol class="inline-flex items-center space-x-2 text-sm">
-                <li><a href="{% url 'eduweb:index' %}" class="text-white/60 hover:text-white transition-colors">Home</a></li>
-                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
-                <li><a href="{% url 'eduweb:store_list' %}" class="text-white/60 hover:text-white transition-colors">Store</a></li>
-                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
-                <li><span class="text-white/80 font-medium">{{ product.title }}</span></li>
+                <li><a href="{% url 'eduweb:index' %}" class="text-slate-500 hover:text-brandblue transition-colors">Home</a></li>
+                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-300"></i></li>
+                <li><a href="{% url 'store:store_list' %}" class="text-slate-500 hover:text-brandblue transition-colors">Store</a></li>
+                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-300"></i></li>
+                <li><span class="text-navy font-medium">{{ product.title }}</span></li>
             </ol>
         </nav>
-        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-white mb-6">{{ product.title }}</h1>
-        <p class="text-lg text-white/70 max-w-3xl leading-relaxed">{{ product.summary }}</p>
-    </div>
-</section>
 
-<section class="py-20 bg-white">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid md:grid-cols-2 gap-12 items-start">
-            <div>
-                {% if product.image %}
-                <img src="{{ product.image.url }}" alt="{{ product.title }}" class="w-full rounded-2xl shadow-brand object-cover border border-borderblue" loading="lazy">
-                {% else %}
-                <div class="aspect-video bg-ice rounded-2xl flex items-center justify-center">
-                    <i data-lucide="package" class="w-14 h-14 text-brandblue"></i>
+        {% csrf_token %}
+        <div class="grid lg:grid-cols-2 gap-12 items-start">
+
+            <!-- Image column -->
+            <div class="lg:sticky lg:top-24">
+                <div class="product-detail-main-image bg-soft rounded-2xl border border-borderblue overflow-hidden">
+                    {% if images %}
+                    <img id="mainProductImage" src="{{ images.0.asset.file.url }}" alt="{{ product.title }}" loading="lazy">
+                    {% else %}
+                    <div class="w-full h-full flex items-center justify-center">
+                        <i data-lucide="package" class="w-16 h-16 text-brandblue/50"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                {% if images|length > 1 %}
+                <div class="mt-4 flex flex-wrap gap-3">
+                    {% for image in images %}
+                    <button type="button" class="product-thumb {% if forloop.first %}product-thumb-active{% endif %}" data-thumb data-image-url="{{ image.asset.file.url }}">
+                        <img src="{{ image.asset.file.url }}" alt="{{ product.title }} thumbnail {{ forloop.counter }}" loading="lazy">
+                    </button>
+                    {% endfor %}
                 </div>
                 {% endif %}
             </div>
-            <div>
-                {% if product.price %}
-                <p class="text-2xl sm:text-3xl font-sora font-bold text-navy mb-4">{{ product.currency }} {{ product.price }}</p>
-                {% else %}
-                <p class="text-lg font-sora font-semibold text-brandblue mb-4">Contact for pricing</p>
-                {% endif %}
 
-                {% if product.description %}
-                <div class="prose max-w-none text-slate-700 leading-relaxed mb-8">
-                    {{ product.description|linebreaks }}
+            <!-- Everything else: title, buy box, specs, description -->
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-sora font-bold text-navy mb-2">{{ product.title }}</h1>
+                {% if product.brand %}<p class="text-caption-brand text-slate-500 uppercase tracking-wide mb-4">{{ product.brand }}</p>{% endif %}
+
+                <div class="flex flex-wrap items-center gap-2 mb-4">
+                    <span class="pill pill-cyan">{{ product.get_condition_display }}</span>
+                    {% if product.is_low_stock %}
+                    <span class="pill pill-amber"><i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> Only {{ product.stock_quantity }} left</span>
+                    {% elif product.is_in_stock %}
+                    <span class="pill pill-lime"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> In Stock</span>
+                    {% else %}
+                    <span class="pill pill-light"><i data-lucide="x-circle" class="w-3.5 h-3.5"></i> Out of Stock</span>
+                    {% endif %}
+                    {% if product.warranty_months %}
+                    <span class="pill pill-light">{{ product.warranty_months }} mo warranty</span>
+                    {% endif %}
+                </div>
+
+                <div class="flex items-center gap-3 mb-6">
+                    {% if product.price %}
+                    <span class="text-2xl sm:text-3xl font-sora font-bold text-navy">NGN {{ product.price|floatformat:"0"|intcomma }}</span>
+                    {% if product.compare_at_price %}
+                    <span class="text-lg text-slate-400 line-through">NGN {{ product.compare_at_price|floatformat:"0"|intcomma }}</span>
+                    {% endif %}
+                    {% else %}
+                    <span class="text-lg font-sora font-semibold text-brandblue">Contact for pricing</span>
+                    {% endif %}
+                </div>
+
+                {% if product.price %}
+                {% if variants %}
+                <!-- Option picker (size, color, etc. — whatever this product defines).
+                     One overall selection: fine for a single-dimension product (e.g.
+                     just Size). A product needing two independent dimensions at once
+                     (Size AND Color together) would need a real per-combination
+                     variant matrix, which isn't built — not needed by anything in
+                     the catalog today. -->
+                <div class="mb-6" id="variantPicker">
+                    {% regroup variants by option_name as variant_groups %}
+                    {% for group in variant_groups %}
+                    <div class="mb-3">
+                        <label class="label-brand">{{ group.grouper }}</label>
+                        <div class="flex flex-wrap gap-2">
+                            {% for v in group.list %}
+                            <button type="button" class="pill pill-light" data-variant-option data-variant-id="{{ v.id }}">{{ v.value }}</button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <p id="variantError" class="error-brand hidden">Please select an option above.</p>
                 </div>
                 {% endif %}
 
+                <div class="flex items-center gap-4 mb-6">
+                    <label for="quantityInput" class="label-brand">Quantity</label>
+                    <div class="quantity-stepper">
+                        <button type="button" data-qty-decrease aria-label="Decrease quantity">
+                            <i data-lucide="minus" class="w-4 h-4"></i>
+                        </button>
+                        <input type="number" id="quantityInput" value="1" min="1" {% if product.track_inventory %}max="{{ product.stock_quantity }}"{% endif %} inputmode="numeric">
+                        <button type="button" data-qty-increase aria-label="Increase quantity">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="button" id="addToCartBtn" class="btn-brand btn-brand-lg" data-product-id="{{ product.id }}" {% if not product.is_in_stock %}disabled{% endif %}>
+                    <i data-lucide="shopping-cart" class="w-5 h-5"></i> Add to Cart
+                </button>
+                {% else %}
                 <a href="{% url 'eduweb:consultation_booking' %}" class="inline-flex items-center gap-2 px-6 py-3 rounded-lg brand-gradient text-white font-semibold shadow-brand hover:opacity-95 transition">
                     Request a Quote
                     <i data-lucide="arrow-right" class="w-5 h-5"></i>
                 </a>
+                {% endif %}
+
+                <!-- Specifications -->
+                {% if specifications %}
+                <div class="mt-10">
+                    <h2 class="text-h4-brand text-navy mb-4">Specifications</h2>
+                    <div class="table-brand-wrap">
+                        <table class="table-brand">
+                            <tbody>
+                                {% for spec in specifications %}
+                                <tr>
+                                    <td class="font-semibold text-navy w-1/3">{{ spec.label }}</td>
+                                    <td>{{ spec.value }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Description -->
+                {% if product.description %}
+                <div class="mt-10">
+                    <h2 class="text-h4-brand text-navy mb-4">Description</h2>
+                    <div class="prose max-w-none text-slate-700 leading-relaxed">
+                        {{ product.description|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -64,11 +160,24 @@
 <section class="py-16 bg-soft">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-2xl sm:text-3xl font-sora font-bold text-navy mb-8 text-center">More From the Store</h2>
-        <div class="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
             {% for other in other_products %}
-            <a href="{% url 'eduweb:product_detail' other.slug %}" class="reveal bg-white rounded-2xl border border-borderblue p-6 hover:shadow-brand hover:-translate-y-1 transition block">
-                <h3 class="font-sora font-semibold text-lg text-navy">{{ other.title }}</h3>
-                <p class="mt-2 text-sm text-slate-600">{{ other.summary }}</p>
+            <a href="{% url 'store:product_detail' other.slug %}" class="reveal light-card overflow-hidden block">
+                <div class="product-card-image bg-white">
+                    {% with image=other.primary_image %}
+                    {% if image %}
+                    <img src="{{ image.asset.file.url }}" alt="{{ other.title }}" loading="lazy">
+                    {% else %}
+                    <div class="w-full h-full flex items-center justify-center">
+                        <i data-lucide="package" class="w-10 h-10 text-brandblue/50"></i>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+                <div class="p-5">
+                    <h3 class="font-sora font-semibold text-navy">{{ other.title }}</h3>
+                    <p class="mt-2 text-sm text-slate-600 line-clamp-2">{{ other.summary }}</p>
+                </div>
             </a>
             {% endfor %}
         </div>
@@ -76,4 +185,101 @@
 </section>
 {% endif %}
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        function getCsrfToken() {
+            const token = document.querySelector('[name=csrfmiddlewaretoken]');
+            return token ? token.value : '';
+        }
+
+        // Thumbnail swap
+        document.querySelectorAll('[data-thumb]').forEach(function (thumb) {
+            thumb.addEventListener('click', function () {
+                const mainImage = document.getElementById('mainProductImage');
+                if (mainImage) mainImage.src = thumb.getAttribute('data-image-url');
+                document.querySelectorAll('[data-thumb]').forEach(function (t) { t.classList.remove('product-thumb-active'); });
+                thumb.classList.add('product-thumb-active');
+            });
+        });
+
+        // Option (variant) picker — single overall selection, see the comment
+        // above the picker markup for why.
+        const variantButtons = document.querySelectorAll('[data-variant-option]');
+        let selectedVariantId = null;
+        variantButtons.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                variantButtons.forEach(function (b) {
+                    b.classList.remove('pill-cyan');
+                    b.classList.add('pill-light');
+                });
+                btn.classList.remove('pill-light');
+                btn.classList.add('pill-cyan');
+                selectedVariantId = btn.getAttribute('data-variant-id');
+                const err = document.getElementById('variantError');
+                if (err) err.classList.add('hidden');
+            });
+        });
+
+        // Quantity stepper
+        const qtyInput = document.getElementById('quantityInput');
+        const decreaseBtn = document.querySelector('[data-qty-decrease]');
+        const increaseBtn = document.querySelector('[data-qty-increase]');
+        if (decreaseBtn && qtyInput) {
+            decreaseBtn.addEventListener('click', function () {
+                const val = Math.max(1, (parseInt(qtyInput.value, 10) || 1) - 1);
+                qtyInput.value = val;
+            });
+        }
+        if (increaseBtn && qtyInput) {
+            increaseBtn.addEventListener('click', function () {
+                const max = qtyInput.getAttribute('max');
+                let val = (parseInt(qtyInput.value, 10) || 1) + 1;
+                if (max) val = Math.min(val, parseInt(max, 10));
+                qtyInput.value = val;
+            });
+        }
+
+        // Add to cart
+        const addBtn = document.getElementById('addToCartBtn');
+        if (addBtn) {
+            addBtn.addEventListener('click', function () {
+                if (variantButtons.length && !selectedVariantId) {
+                    const err = document.getElementById('variantError');
+                    if (err) err.classList.remove('hidden');
+                    return;
+                }
+                const productId = addBtn.getAttribute('data-product-id');
+                const quantity = qtyInput ? (parseInt(qtyInput.value, 10) || 1) : 1;
+                let body = 'product_id=' + encodeURIComponent(productId) + '&quantity=' + encodeURIComponent(quantity);
+                if (selectedVariantId) body += '&variant_id=' + encodeURIComponent(selectedVariantId);
+                fetch("{% url 'store:cart_add' %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCsrfToken(),
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: body,
+                })
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        if (data.success) {
+                            document.querySelectorAll('[data-cart-count]').forEach(function (badge) {
+                                badge.textContent = data.cart_count;
+                                badge.classList.toggle('hidden', !data.cart_count);
+                            });
+                            Swal.fire({ icon: 'success', title: 'Added to cart', showConfirmButton: false, timer: 1200 });
+                        } else {
+                            Swal.fire({ icon: 'error', title: 'Could not add to cart', text: data.error || '' });
+                        }
+                    })
+                    .catch(function () {
+                        Swal.fire({ icon: 'error', title: 'Something went wrong', text: 'Please try again.' });
+                    });
+            });
+        }
+    })();
+</script>
 {% endblock %}

@@ -39,6 +39,7 @@ urlpatterns = [
 
     # path('melbac/', include('apps.melbac.urls')),
     path('library/', include('apps.library.urls')),
+    path('store/', include('apps.store.urls')),
 
     path('support/', include('apps.support.urls', namespace='support')),
 

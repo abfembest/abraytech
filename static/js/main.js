@@ -9,6 +9,28 @@ function initLucide() {
 document.addEventListener('DOMContentLoaded', initLucide);
 window.addEventListener('load', initLucide);
 
+// ─── Password show/hide toggle — site-wide delegated handler ───────────────
+// Markup: an <i class="password-toggle" data-target="inputId" data-lucide="eye">
+// sitting next to the password <input id="inputId">. Delegated on document
+// (not wired per-page) so it works on every password field across the site,
+// including ones added to the DOM later (e.g. an HTMX/modal swap), without
+// each template needing its own copy of this listener.
+document.addEventListener('click', function (e) {
+    const toggle = e.target.classList && e.target.classList.contains('password-toggle')
+        ? e.target
+        : e.target.closest && e.target.closest('.password-toggle');
+    if (!toggle) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const input = document.getElementById(toggle.dataset.target);
+    if (!input) return;
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    toggle.setAttribute('data-lucide', isPassword ? 'eye-off' : 'eye');
+    initLucide();
+});
+
 // ─── SweetAlert2 Toast — deferred until window.load so Swal is ready ────────
 let Toast;
 window.addEventListener('load', function () {
@@ -108,6 +130,40 @@ document.addEventListener('DOMContentLoaded', function () {
     mobileOverlay && mobileOverlay.addEventListener('click', closeDrawer);
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') closeDrawer();
+    });
+
+    // ---- Cart drawer (same open/close mechanics as the mobile nav drawer
+    // above; its content is loaded/refreshed by HTMX, see cart_drawer.html) ----
+    const cartToggleBtn = document.getElementById('cartToggleBtn');
+    const cartCloseBtn = document.getElementById('cartCloseBtn');
+    const cartDrawer = document.getElementById('cartDrawer');
+    const cartOverlay = document.getElementById('cartDrawerOverlay');
+
+    function openCartDrawer() {
+        if (!cartDrawer || !cartOverlay) return;
+        cartDrawer.classList.add('open');
+        cartOverlay.classList.add('open');
+        if (cartToggleBtn) cartToggleBtn.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeCartDrawer() {
+        if (!cartDrawer || !cartOverlay) return;
+        cartDrawer.classList.remove('open');
+        cartOverlay.classList.remove('open');
+        if (cartToggleBtn) cartToggleBtn.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+    }
+    cartToggleBtn && cartToggleBtn.addEventListener('click', openCartDrawer);
+    cartCloseBtn && cartCloseBtn.addEventListener('click', closeCartDrawer);
+    cartOverlay && cartOverlay.addEventListener('click', closeCartDrawer);
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeCartDrawer();
+    });
+    // Re-render Lucide icons every time HTMX swaps in fresh drawer content
+    // (quantity update/remove re-fetch the fragment) — new <i data-lucide>
+    // tags from a swap aren't converted to SVG automatically.
+    document.body.addEventListener('htmx:afterSwap', function (e) {
+        if (e.target && e.target.id === 'cartDrawerContent') initLucide();
     });
 
     // ---- Smooth scroll for on-page anchors ----

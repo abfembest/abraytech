@@ -38,7 +38,7 @@
         {% if industries %}
         <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {% for industry in industries %}
-            <a href="{% url 'eduweb:industry_detail' industry.slug %}" class="reveal bg-white rounded-2xl border border-borderblue p-6 hover:shadow-brand hover:-translate-y-1 transition block">
+            <a href="{% url 'eduweb:consultation_booking' %}" class="reveal bg-white rounded-2xl border border-borderblue p-6 hover:shadow-brand hover:-translate-y-1 transition block">
                 <div class="w-12 h-12 rounded-xl bg-ice flex items-center justify-center text-brandblue">
                     <i data-lucide="{{ industry.icon }}" class="w-6 h-6"></i>
                 </div>
@@ -46,6 +46,14 @@
                 <p class="mt-2 text-sm text-slate-600">{{ industry.summary }}</p>
             </a>
             {% endfor %}
+        </div>
+
+        <div class="mt-12 text-center light-card p-8 max-w-2xl mx-auto">
+            <h2 class="text-h4-brand text-navy mb-2">Don't see your industry?</h2>
+            <p class="text-slate-600 mb-6">We build for sectors beyond this list too — let's talk about what you need.</p>
+            <a href="{% url 'eduweb:consultation_booking' %}" class="btn-brand">
+                Book a Consultation <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </a>
         </div>
         {% else %}
         <p class="text-center text-slate-500">Industry pages are being finalized &mdash; check back soon.</p>

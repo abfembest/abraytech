@@ -1,0 +1,190 @@
+{% extends 'management/base.html' %}
+{% load static %}
+{% block title %}Product Categories — Abraytech Admin{% endblock %}
+{% block content %}
+<div class="max-w-full">
+
+  {# ── Breadcrumb ── #}
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+    <span class="text-gray-400">Store</span>
+    <i class="fas fa-chevron-right text-xs"></i>
+    <a href="{% url 'management:products_list' %}" class="hover:text-gray-700">Products</a>
+    <i class="fas fa-chevron-right text-xs"></i>
+    <span class="text-gray-800 font-medium">Categories</span>
+  </nav>
+
+  {# ── Page header ── #}
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Product Categories</h1>
+      <p class="text-gray-500 mt-1 text-sm">Categories power the Store's filter bar — create one before assigning products to it.</p>
+    </div>
+    {% if permissions.store_products.can_create %}
+    <button type="button" id="newCategoryBtn" class="js-open-category-modal inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium shadow-sm flex-shrink-0 transition-colors">
+      <i class="fas fa-plus"></i> Add Category
+    </button>
+    {% endif %}
+  </div>
+
+  {# ── Categories table ── #}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="overflow-x-auto p-5">
+      <table id="categoriesDataTable" class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wide">
+          <tr>
+            <th class="py-3 px-4 text-left font-semibold">Icon</th>
+            <th class="py-3 px-4 text-left font-semibold">Title</th>
+            <th class="py-3 px-4 text-left font-semibold">Description</th>
+            <th class="py-3 px-4 text-left font-semibold">Products</th>
+            <th class="py-3 px-4 text-left font-semibold">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for category in categories %}
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="py-3 px-4">
+              <div class="w-9 h-9 rounded-lg bg-primary-50 flex items-center justify-center text-primary-500">
+                <i class="fas fa-tag text-sm"></i>
+              </div>
+            </td>
+            <td class="py-3 px-4 font-medium text-gray-800">{{ category.title }}</td>
+            <td class="py-3 px-4 text-gray-500 max-w-xs truncate" title="{{ category.description }}">{{ category.description|default:"—" }}</td>
+            <td class="py-3 px-4 text-gray-700">{{ category.product_count }}</td>
+            <td class="py-3 px-4">
+              <div class="flex items-center gap-2">
+                {% if permissions.store_products.can_edit %}
+                <button type="button" onclick="categoryModal.openForEdit('{{ category.pk }}')"
+                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Edit">
+                  <i class="fas fa-edit text-sm"></i>
+                </button>
+                {% endif %}
+                {% if permissions.store_products.can_delete %}
+                <button type="button"
+                        onclick="confirmCategoryDelete('{% url 'management:product_category_delete' category.pk %}', '{{ category|escapejs }}')"
+                        class="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors" title="Delete">
+                  <i class="fas fa-trash-alt text-sm"></i>
+                </button>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr class="empty-row"><td></td><td></td><td></td><td></td><td></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<form id="deleteCategoryForm" method="post" action="" style="display:none;">{% csrf_token %}</form>
+
+<!-- New/Edit Category modal -->
+<div id="categoryCreateModal" class="fixed inset-0 z-50 hidden items-stretch sm:items-center justify-center sm:p-3" style="background: rgba(15,23,42,.55);">
+  <div class="bg-white sm:rounded-xl shadow-2xl w-full sm:max-w-md h-full sm:h-auto sm:max-h-[97vh] flex flex-col">
+    <div class="px-4 sm:px-5 py-2.5 border-b border-gray-100 flex items-center justify-between shrink-0">
+      <h2 class="text-base font-semibold text-gray-800 font-display" id="categoryModalTitle">New Category</h2>
+      <button type="button" id="categoryModalCloseBtn" data-modal-close class="text-gray-400 hover:text-gray-600 p-1 -m-1" aria-label="Close">
+        <i class="fas fa-times text-lg" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="px-4 sm:px-5 py-3 overflow-y-auto overflow-x-hidden flex-1 min-h-0" id="categoryModalBody">
+      <form method="post" action="{% url 'management:product_category_create' %}" id="categoryModalForm">
+        {% csrf_token %}
+        {% include 'management/site_config/_product_category_form_fields.html' %}
+      </form>
+    </div>
+    <div class="px-4 sm:px-5 py-2.5 border-t border-gray-100 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 shrink-0">
+      <button type="button" id="categoryModalCancelBtn" data-modal-close
+              class="w-full sm:w-auto px-5 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-medium">
+        Cancel
+      </button>
+      <button type="submit" form="categoryModalForm" id="categoryModalSubmitBtn"
+              class="w-full sm:w-auto px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium shadow-sm disabled:opacity-60 disabled:cursor-not-allowed">
+        <i class="fas fa-save mr-1.5" aria-hidden="true"></i>
+        <span id="categoryModalSubmitLabel">Create Category</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmCategoryDelete(url, name) {
+  Swal.fire({
+    title: 'Delete Category?',
+    html: `Delete <strong>${name}</strong>? Products already assigned to it are not deleted.`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Delete',
+    cancelButtonText: 'Cancel',
+  }).then(r => {
+    if (r.isConfirmed) {
+      document.getElementById('deleteCategoryForm').action = url;
+      document.getElementById('deleteCategoryForm').submit();
+    }
+  });
+}
+
+var categoryModal = createAjaxModal({
+  modalId: 'categoryCreateModal',
+  bodyId: 'categoryModalBody',
+  formId: 'categoryModalForm',
+  titleId: 'categoryModalTitle',
+  submitBtnId: 'categoryModalSubmitBtn',
+  submitLabelId: 'categoryModalSubmitLabel',
+  fieldsPartialId: 'categoryFormFieldsPartial',
+  createUrl: '{% url "management:product_category_create" %}',
+  editUrlTemplate: '{% url "management:product_category_edit" 0 %}',
+  createTitle: 'New Category',
+  createLabel: 'Create Category',
+  editTitle: 'Edit Category',
+  editLabel: 'Save Changes',
+});
+
+document.querySelectorAll('.js-open-category-modal').forEach(function (trigger) {
+  trigger.addEventListener('click', function (e) {
+    e.preventDefault();
+    categoryModal.openForCreate();
+  });
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+  var tableOpts = {
+    pageLength: 10,
+    order: [[1, 'asc']],
+    columns: [
+      { orderable: false, searchable: false },
+      null, null, null,
+      { orderable: false, searchable: false },
+    ],
+    dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4"lf>rt<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-4 pt-4 border-t"ip>',
+    language: {
+      search: '_INPUT_',
+      searchPlaceholder: 'Search categories…',
+      lengthMenu: 'Show _MENU_',
+      info: '_START_–_END_ of _TOTAL_',
+      paginate: {
+        previous: '<i class="fas fa-chevron-left"></i>',
+        next: '<i class="fas fa-chevron-right"></i>'
+      },
+      emptyTable: 'No categories found'
+    },
+    initComplete: function () {
+      var api = this.api();
+      if (api.page.info().recordsTotal === 1) {
+        var firstRow = api.row(0).data();
+        if (firstRow && firstRow[1] === '') { api.clear().draw(); }
+      }
+    }
+  };
+
+  try { $('#categoriesDataTable').DataTable(tableOpts); } catch (e) {}
+});
+</script>
+{% endblock %}

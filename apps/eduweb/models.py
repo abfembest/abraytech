@@ -3976,6 +3976,7 @@ class PaymentGateway(models.Model):
         ('stripe', 'Stripe'),
         ('paypal', 'PayPal'),
         ('razorpay', 'Razorpay'),
+        ('paystack', 'Paystack'),
     ]
     
     name = models.CharField(max_length=100)
@@ -4592,35 +4593,6 @@ class Project(models.Model):
         verbose_name = 'Project'
         verbose_name_plural = 'Projects'
         ordering = ['order', '-created_at']
-
-    def __str__(self):
-        return self.title
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.title)
-        super().save(*args, **kwargs)
-
-
-class Product(models.Model):
-    """A packaged product/tool shown in the Store catalog. Pricing is
-    optional — leave blank to show 'Contact for pricing' instead of a
-    fabricated number."""
-    title = models.CharField(max_length=150)
-    slug = models.SlugField(max_length=170, unique=True, blank=True)
-    summary = models.CharField(max_length=300)
-    description = models.TextField(blank=True)
-    image = models.ImageField(upload_to='store/products/', blank=True, null=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Leave blank to show 'Contact for pricing'")
-    currency = models.CharField(max_length=3, default='USD')
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name = 'Product'
-        verbose_name_plural = 'Store Products'
-        ordering = ['-created_at']
 
     def __str__(self):
         return self.title
@@ -5424,6 +5396,8 @@ class StaffPermissionsMatrix(models.Model):
         ('library',          'Library'),
         ('site_content',     'Site Content'),
         ('security_audit',   'Security & Audit'),
+        ('store_products',   'Store Products'),
+        ('store_orders',     'Store Orders'),
         ('instructor_courses',        'My Courses'),
         ('instructor_assessments',    'Assessments'),
         ('instructor_analytics',     'Analytics'),
@@ -5456,6 +5430,8 @@ class StaffPermissionsMatrix(models.Model):
         'library':         {'can_view': True, 'can_create': True, 'can_edit': True, 'can_delete': True},
         'site_content':    {'can_view': True, 'can_edit': True},
         'security_audit':  {'can_view': True},
+        'store_products':  {'can_view': True, 'can_create': True, 'can_edit': True, 'can_delete': True},
+        'store_orders':    {'can_view': True, 'can_edit': True},
         'support_config':  {'can_view': True, 'can_create': True, 'can_edit': True},
         # Deliberately its own module rather than riding on 'user_management':
         # a staff member can be granted the user list (user_management) without
@@ -6288,6 +6264,7 @@ class UserProfile(models.Model):
         ('support', 'Support'),
         # ('qa', 'QA Reviewer'),
         ('finance', 'Finance'),
+        ('customer', 'Customer'),
     ]
     
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
@@ -6307,6 +6284,7 @@ class UserProfile(models.Model):
     # Address
     address = models.TextField(blank=True)
     city = models.CharField(max_length=100, blank=True)
+    state = models.CharField(max_length=100, blank=True)
     country = models.CharField(max_length=100, blank=True)
     
     # Social

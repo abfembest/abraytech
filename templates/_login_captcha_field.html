@@ -1,0 +1,11 @@
+{% if login_captcha_question %}
+<div>
+    <label class="label-brand">Security Check</label>
+    <div class="grid grid-cols-2 gap-3">
+        <div class="bg-ice border-2 border-dashed border-brandblue rounded-lg flex items-center justify-center py-3 text-xl font-bold text-navy">
+            {{ login_captcha_question }} = ?
+        </div>
+        <input type="text" id="{{ captcha_field_id|default:'loginCaptcha' }}" name="captcha" class="input-brand" inputmode="numeric" pattern="[0-9]*" placeholder="Your answer" required>
+    </div>
+</div>
+{% endif %}

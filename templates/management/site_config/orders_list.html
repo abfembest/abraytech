@@ -1,0 +1,167 @@
+{% extends 'management/base.html' %}
+{% load static humanize %}
+{% block title %}Store Orders — Abraytech Admin{% endblock %}
+{% block content %}
+<div class="max-w-full">
+
+  {# ── Breadcrumb ── #}
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+    <span class="text-gray-400">Store</span>
+    <i class="fas fa-chevron-right text-xs"></i>
+    <span class="text-gray-800 font-medium">Orders</span>
+  </nav>
+
+  {# ── Page header ── #}
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Store Orders</h1>
+      <p class="text-gray-500 mt-1 text-sm">Paid orders waiting on manual fulfillment, plus the full order history.</p>
+    </div>
+    <div class="bg-white rounded-xl px-4 py-2.5 shadow-sm border border-gray-200 flex items-center gap-2 flex-shrink-0">
+      <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+      <span class="text-sm text-gray-700"><strong>{{ pending_count }}</strong> awaiting fulfillment</span>
+    </div>
+  </div>
+
+  {# ── Filters ── #}
+  <form method="get" class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-5">
+    <div class="flex flex-col sm:flex-row gap-3">
+      <select name="status" class="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:outline-none">
+        <option value="">All Statuses</option>
+        {% for value, label in status_choices %}
+        <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <div class="flex gap-2">
+        <button type="submit" class="flex-1 sm:flex-none px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition focus:outline-none focus:ring-2 focus:ring-primary-500">
+          Filter
+        </button>
+        {% if request.GET.status %}
+        <a href="{% url 'management:orders_list' %}" class="px-4 py-2.5 border border-gray-300 text-gray-600 rounded-lg text-sm hover:bg-gray-50 transition flex items-center">
+          Clear
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </form>
+
+  {# ── Orders table ── #}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="flex items-center justify-end px-5 pt-4">
+      <div id="ordersTableButtons" class="flex flex-wrap gap-2"></div>
+    </div>
+    <div class="overflow-x-auto p-5">
+      <table id="ordersDataTable" class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wide">
+          <tr>
+            <th class="py-3 px-4 text-left font-semibold">Order #</th>
+            <th class="py-3 px-4 text-left font-semibold">Buyer</th>
+            <th class="py-3 px-4 text-left font-semibold">Amount</th>
+            <th class="py-3 px-4 text-left font-semibold">Status</th>
+            <th class="py-3 px-4 text-left font-semibold">Placed</th>
+            <th class="py-3 px-4 text-left font-semibold">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for order in orders %}
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="py-3 px-4">
+              <code class="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-mono whitespace-nowrap">{{ order.order_number }}</code>
+            </td>
+            <td class="py-3 px-4">
+              <div class="font-medium text-gray-800">{{ order.buyer_name }}</div>
+              <div class="text-xs text-gray-400">{{ order.buyer_email }}</div>
+            </td>
+            <td class="py-3 px-4 text-gray-700 font-medium whitespace-nowrap">NGN {{ order.amount|floatformat:"0"|intcomma }}</td>
+            <td class="py-3 px-4 whitespace-nowrap">
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium border
+                {% if order.status == 'delivered' %}bg-green-50 text-green-700 border-green-200
+                {% elif order.status == 'shipped' %}bg-blue-50 text-blue-700 border-blue-200
+                {% elif order.status == 'processing' %}bg-indigo-50 text-indigo-700 border-indigo-200
+                {% elif order.status == 'paid' %}bg-amber-50 text-amber-700 border-amber-200
+                {% elif order.status == 'failed' %}bg-red-50 text-red-700 border-red-200
+                {% elif order.status == 'refunded' %}bg-purple-50 text-purple-700 border-purple-200
+                {% else %}bg-gray-50 text-gray-600 border-gray-200{% endif %}">
+                {{ order.get_status_display }}
+              </span>
+            </td>
+            <td class="py-3 px-4 text-gray-500 whitespace-nowrap" data-order="{{ order.created_at|date:'U' }}">{{ order.created_at|date:"M d, Y H:i" }}</td>
+            <td class="py-3 px-4">
+              <a href="{% url 'management:order_detail' order.order_number %}"
+                 class="px-2.5 py-1.5 text-xs font-medium text-primary-600 hover:bg-primary-50 rounded-lg transition inline-flex items-center gap-1">
+                <i class="fas fa-eye"></i> View
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr class="empty-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# Server-side pagination (Paginator, 25/page — matches Transactions) #}
+    {% if orders.has_other_pages %}
+    <div class="px-5 py-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
+      <span>Page {{ orders.number }} of {{ orders.paginator.num_pages }} &nbsp;·&nbsp; {{ orders.paginator.count }} orders</span>
+      <nav class="flex gap-1">
+        {% if orders.has_previous %}
+        <a href="?page={{ orders.previous_page_number }}&status={{ request.GET.status|default:'' }}"
+           class="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50">&laquo;</a>
+        {% endif %}
+        {% for n in orders.paginator.page_range %}
+          {% if orders.number == n %}
+            <span class="px-3 py-1.5 bg-primary-600 text-white rounded-lg font-medium">{{ n }}</span>
+          {% elif n > orders.number|add:"-3" and n < orders.number|add:"3" %}
+            <a href="?page={{ n }}&status={{ request.GET.status|default:'' }}"
+               class="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50">{{ n }}</a>
+          {% endif %}
+        {% endfor %}
+        {% if orders.has_next %}
+        <a href="?page={{ orders.next_page_number }}&status={{ request.GET.status|default:'' }}"
+           class="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50">&raquo;</a>
+        {% endif %}
+      </nav>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var hasRows = {{ orders|length }} > 0;
+  var tableOpts = {
+    responsive: true,
+    paging: false,
+    info: false,
+    order: [[4, 'desc']],
+    columns: [
+      null, null, null, null, null,
+      { orderable: false, searchable: false },
+    ],
+    dom: hasRows ? 'Bfrt' : 'frt',
+    buttons: [
+      {
+        extend: 'csv',
+        text: '<i class="fas fa-file-csv mr-2"></i>Export CSV',
+        className: 'px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg',
+        exportOptions: { columns: [0, 1, 2, 3, 4] }
+      }
+    ],
+    language: {
+      search: '_INPUT_',
+      searchPlaceholder: 'Search this page…',
+      emptyTable: 'No orders found'
+    },
+    initComplete: function () {
+      this.api().buttons().container().appendTo('#ordersTableButtons');
+    }
+  };
+
+  try { $('#ordersDataTable').DataTable(tableOpts); } catch (e) {}
+});
+</script>
+{% endblock %}
