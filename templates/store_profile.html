@@ -68,6 +68,7 @@
                     <input type="email" id="acctLoginEmail" name="email" class="input-brand" required>
                 </div>
                 {% include '_password_field.html' with field_id='acctLoginPassword' %}
+                <a href="{% url 'store:forgot_password' %}" class="block text-sm text-brandblue hover:text-electric transition-colors -mt-2">Forgot password?</a>
                 {% include '_login_captcha_field.html' with captcha_field_id='acctLoginCaptcha' %}
                 <button type="submit" class="btn-brand w-full">Log In</button>
             </form>

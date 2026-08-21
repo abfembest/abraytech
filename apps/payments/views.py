@@ -526,29 +526,47 @@ def refund_payment(request, payment_reference):
             notes = form.cleaned_data.get('notes', '')
             refund_amount = form.cleaned_data['refund_amount']
 
-            # If paid via Stripe, issue the actual refund on Stripe first
+            # Issue the actual refund on whichever gateway processed this
+            # payment first — Stripe (existing) or Paystack (apps/eduweb/paystack.py).
             if payment.gateway_payment_id:
-                try:
-                    import stripe
-                    from apps.eduweb.views import get_stripe_secret_key
-                    stripe.api_key = get_stripe_secret_key()
+                if payment.gateway == 'paystack':
+                    try:
+                        from apps.eduweb.paystack import refund as paystack_refund
+                        result = paystack_refund(payment.gateway_payment_id, amount=refund_amount)
+                        if not result.get('status'):
+                            raise Exception(result.get('message', 'Paystack refund was not accepted'))
+                    except Exception as e:
+                        messages.error(
+                            request,
+                            f'Paystack refund failed: {e}. '
+                            f'Record not updated.'
+                        )
+                        return redirect(
+                            'payments:payment_detail',
+                            payment_reference=payment_reference,
+                        )
+                else:
+                    try:
+                        import stripe
+                        from apps.eduweb.views import get_stripe_secret_key
+                        stripe.api_key = get_stripe_secret_key()
 
-                    stripe.Refund.create(
-                        payment_intent=payment.gateway_payment_id,
-                        amount=int(refund_amount * 100),  # convert to pence/cents
-                    )
-                except Exception as e:
-                    messages.error(
-                        request,
-                        f'Stripe refund failed: {e}. '
-                        f'Record not updated.'
-                    )
-                    return redirect(
-                        'payments:payment_detail',
-                        payment_reference=payment_reference,
-                    )
+                        stripe.Refund.create(
+                            payment_intent=payment.gateway_payment_id,
+                            amount=int(refund_amount * 100),  # convert to pence/cents
+                        )
+                    except Exception as e:
+                        messages.error(
+                            request,
+                            f'Stripe refund failed: {e}. '
+                            f'Record not updated.'
+                        )
+                        return redirect(
+                            'payments:payment_detail',
+                            payment_reference=payment_reference,
+                        )
 
-            # Update record only after Stripe succeeds (or no Stripe)
+            # Update record only after the gateway call succeeds (or there was none)
             with transaction.atomic():
                 payment.status = 'refunded'
                 payment.failure_reason = (

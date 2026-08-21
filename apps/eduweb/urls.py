@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import paystack
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -112,6 +113,13 @@ urlpatterns = [
     # Stripe Webhook
     # --------------------
     path("stripe/webhook/", views.stripe_webhook, name="stripe_webhook"),
+
+    # --------------------
+    # Paystack (NGN alternative to the Stripe flow above) — apps/eduweb/paystack.py
+    # --------------------
+    path("paystack/initialize/", paystack.initialize_paystack_transaction, name="initialize_paystack_transaction"),
+    path("paystack/confirm/", paystack.confirm_paystack_payment, name="confirm_paystack_payment"),
+    path("paystack/webhook/", paystack.paystack_webhook, name="paystack_webhook"),
 
     ################## APPLICATION SUBMISSIONS #######
 

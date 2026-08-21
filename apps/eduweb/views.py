@@ -973,14 +973,14 @@ def index(request):
     if not featured_projects:
         featured_projects = active_projects.order_by('-created_at')[:3]
 
+    active_programs = Program.objects.filter(is_active=True).select_related('department__faculty')
+    featured_programs = active_programs.filter(is_featured=True).order_by('name')[:6]
+    if not featured_programs:
+        featured_programs = active_programs.order_by('-created_at')[:6]
+
     return render(request, 'index.html', {
         'show_theology_ad': current_host != THEOLOGY_SCHOOL_HOST,
-        'featured_programs': (
-            Program.objects
-            .filter(is_active=True, is_featured=True)
-            .select_related('department__faculty')
-            .order_by('name')[:6]
-        ),
+        'featured_programs': featured_programs,
         'faculties': (
             Faculty.objects
             .filter(is_active=True)
@@ -2265,6 +2265,10 @@ def stddebt_by_id(request):
 @login_required
 def get_payment_summary(request, application_id=None, student_fee_id=None):
     """Return payment summary JSON for either a student fee or an application."""
+    # Local import avoids a circular import (paystack.py imports
+    # _get_client_ip from this module) — same deferred-import pattern
+    # already used elsewhere in this file (e.g. index()).
+    from .paystack import get_paystack_public_key, usd_to_ngn
     try:
         if student_fee_id:
             fee = get_object_or_404(
@@ -2281,7 +2285,9 @@ def get_payment_summary(request, application_id=None, student_fee_id=None):
                 'purpose':          fee.purpose,
                 'description':      fee.purpose,
                 'student_fee_id':   fee.id,
-                'stripe_public_key': get_stripe_public_key(),
+                'stripe_public_key':   get_stripe_public_key(),
+                'paystack_public_key': get_paystack_public_key(),
+                'ngn_amount':          float(usd_to_ngn(fee.amount)),
             }
 
         elif application_id:
@@ -2294,7 +2300,9 @@ def get_payment_summary(request, application_id=None, student_fee_id=None):
                 'amount':           float(application.application_fee),
                 'currency':         'USD',
                 'description':      'Application Processing Fee',
-                'stripe_public_key': get_stripe_public_key(),
+                'stripe_public_key':   get_stripe_public_key(),
+                'paystack_public_key': get_paystack_public_key(),
+                'ngn_amount':          float(usd_to_ngn(application.application_fee)),
             }
 
         else:
@@ -2312,6 +2320,7 @@ def get_payment_summary(request, application_id=None, student_fee_id=None):
 @login_required
 def get_student_fee_summary(request, fee_pk):
     """Return JSON summary for a single student fee (used by the payment modal)."""
+    from .paystack import get_paystack_public_key, usd_to_ngn
     try:
         fee = AllRequiredPayments.objects.select_related(
             'program__department__faculty'
@@ -2326,7 +2335,9 @@ def get_student_fee_summary(request, fee_pk):
             'purpose':           fee.purpose,
             'amount':            float(fee.amount),
             'currency':          fee.currency,
-            'stripe_public_key': get_stripe_public_key(),
+            'stripe_public_key':   get_stripe_public_key(),
+            'paystack_public_key': get_paystack_public_key(),
+            'ngn_amount':          float(usd_to_ngn(fee.amount)) if fee.currency == 'USD' else float(fee.amount),
         },
     })
 

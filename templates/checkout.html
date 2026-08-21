@@ -122,6 +122,7 @@
                             <input type="email" id="loginEmail" name="email" class="input-brand" required>
                         </div>
                         {% include '_password_field.html' with field_id='loginPassword' %}
+                        <a href="{% url 'store:forgot_password' %}" class="block text-sm text-brandblue hover:text-electric transition-colors -mt-2">Forgot password?</a>
                         {% include '_login_captcha_field.html' with captcha_field_id='loginCaptcha' %}
                         <button type="submit" class="btn-brand w-full">Log In &amp; Continue</button>
                     </form>

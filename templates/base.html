@@ -115,8 +115,10 @@
         <div class="container-responsive mx-auto px-4 lg:px-6">
             <div class="grid header-grid items-center gap-4 lg:gap-8 h-16 lg:h-20">
 
-                <!-- Logo -->
-                <a href="{% url 'eduweb:index' %}"
+                <!-- Logo - a logged-in store customer has no reason to land on
+                     the LMS/company homepage, so the logo (like the nav's
+                     Home link) points at the store for them instead. -->
+                <a href="{% if user.profile.role == 'customer' %}{% url 'store:store_list' %}{% else %}{% url 'eduweb:index' %}{% endif %}"
                    class="flex items-center gap-2.5 shrink-0 focus:outline-none focus:ring-2 focus:ring-brandblue focus:ring-offset-2 rounded-lg"
                    aria-label="{{ site_config.school_name|default:'Abraytech' }} Home">
                     {% if site_config.logo %}
@@ -136,17 +138,22 @@
                      and centered regardless of viewport width. -->
                 <nav class="hidden 2xl:flex items-center justify-center gap-1" aria-label="Primary">
 
-                    <a href="{% url 'eduweb:index' %}" {% if nav_active == 'home' %}aria-current="page"{% endif %} class="nav-link flex items-center gap-1.5 px-3.5 py-2 rounded-full text-nav font-semibold transition-colors {% if nav_active == 'home' %}bg-soft text-brandblue{% else %}text-slate-700 hover:bg-soft hover:text-brandblue{% endif %}"><i data-lucide="home" class="w-4 h-4"></i> Home</a>
-
                     {% if user.profile.role != 'customer' %}
                     {% comment %}Everything in this block is LMS/company-site
                        navigation — a logged-in store customer only ever sees
-                       Home + Store here (My Orders/Logout live in the
-                       right-side action area).{% endcomment %}
+                       Store here (Store is their home; My Orders/Logout live
+                       in the right-side action area).{% endcomment %}
+                    <a href="{% url 'eduweb:index' %}" {% if nav_active == 'home' %}aria-current="page"{% endif %} class="nav-link flex items-center gap-1.5 px-3.5 py-2 rounded-full text-nav font-semibold transition-colors {% if nav_active == 'home' %}bg-soft text-brandblue{% else %}text-slate-700 hover:bg-soft hover:text-brandblue{% endif %}"><i data-lucide="home" class="w-4 h-4"></i> Home</a>
+
                     <a href="{% url 'eduweb:about' %}" {% if nav_active == 'about' %}aria-current="page"{% endif %} class="nav-link flex items-center gap-1.5 px-3.5 py-2 rounded-full text-nav font-semibold transition-colors {% if nav_active == 'about' %}bg-soft text-brandblue{% else %}text-slate-700 hover:bg-soft hover:text-brandblue{% endif %}"><i data-lucide="info" class="w-4 h-4"></i> About</a>
                     {% endif %}
 
+                    {% if not user.is_authenticated or user.profile.role == 'customer' %}
+                    {% comment %}Store is for anonymous visitors and store customers only —
+                       a logged-in school user (student/instructor/finance/admin/support)
+                       has no reason to see it or the cart.{% endcomment %}
                     <a href="{% url 'store:store_list' %}" {% if nav_active == 'store' %}aria-current="page"{% endif %} class="nav-link flex items-center gap-1.5 px-3.5 py-2 rounded-full text-nav font-semibold transition-colors {% if nav_active == 'store' %}bg-soft text-brandblue{% else %}text-slate-700 hover:bg-soft hover:text-brandblue{% endif %}"><i data-lucide="shopping-bag" class="w-4 h-4"></i> Store</a>
+                    {% endif %}
 
                     {% if user.profile.role == 'customer' %}
                     <a href="{% url 'store:store_profile' %}" {% if nav_active == 'account' %}aria-current="page"{% endif %} class="nav-link flex items-center gap-1.5 px-3.5 py-2 rounded-full text-nav font-semibold transition-colors {% if nav_active == 'account' %}bg-soft text-brandblue{% else %}text-slate-700 hover:bg-soft hover:text-brandblue{% endif %}"><i data-lucide="user" class="w-4 h-4"></i> Account</a>
@@ -260,15 +267,19 @@
                         Book Consultation
                     </a>
                     {% endif %}
-                    <!-- Cart — always visible regardless of login state, since the store works for anyone.
-                         Opens the slide-in drawer (below) and loads its contents via HTMX rather than
-                         navigating to a separate page. -->
+                    {% if not user.is_authenticated or user.profile.role == 'customer' %}
+                    <!-- Cart — visible to anonymous visitors and store customers, not
+                         logged-in school users (student/instructor/finance/admin/support),
+                         who have no reason to see store state. Opens the slide-in drawer
+                         (below) and loads its contents via HTMX rather than navigating to
+                         a separate page. -->
                     <button type="button" id="cartToggleBtn" class="relative w-11 h-11 inline-flex items-center justify-center rounded-full text-navy hover:bg-soft transition-colors" aria-label="View cart" aria-controls="cartDrawer" aria-expanded="false"
                             hx-get="{% url 'store:cart_view' %}" hx-target="#cartDrawerContent" hx-swap="innerHTML" hx-trigger="click">
                         <i data-lucide="shopping-cart" class="w-5 h-5"></i>
                         <span data-cart-count class="absolute -top-1 -right-1 w-5 h-5 bg-accent-400 rounded-full flex items-center justify-center text-caption-brand font-bold text-white {% if not cart_count %}hidden{% endif %}">{{ cart_count|default:0 }}</span>
                     </button>
                     <noscript><a href="{% url 'store:cart_view' %}" class="w-11 h-11 inline-flex items-center justify-center rounded-full text-navy hover:bg-soft transition-colors" aria-label="View cart"><i data-lucide="shopping-cart" class="w-5 h-5"></i></a></noscript>
+                    {% endif %}
                     <!-- Mobile trigger -->
                     <button id="mobileMenuBtn" class="2xl:hidden w-11 h-11 inline-flex items-center justify-center rounded-full text-navy hover:bg-soft transition-colors" aria-label="Open menu" aria-expanded="false" aria-controls="mobileDrawer">
                         <i data-lucide="menu" class="w-6 h-6" id="menuIcon"></i>
@@ -288,18 +299,22 @@
             </button>
         </div>
         <nav class="p-5 space-y-1 text-sm" aria-label="Mobile primary">
-            <a href="{% url 'eduweb:index' %}" {% if nav_active == 'home' %}aria-current="page"{% endif %} class="flex items-center gap-2 py-3 font-semibold border-b border-borderblue {% if nav_active == 'home' %}text-brandblue{% else %}text-navy{% endif %}"><i data-lucide="home" class="w-4 h-4"></i> Home</a>
             {% if user.profile.role != 'customer' %}
+            <a href="{% url 'eduweb:index' %}" {% if nav_active == 'home' %}aria-current="page"{% endif %} class="flex items-center gap-2 py-3 font-semibold border-b border-borderblue {% if nav_active == 'home' %}text-brandblue{% else %}text-navy{% endif %}"><i data-lucide="home" class="w-4 h-4"></i> Home</a>
             <a href="{% url 'eduweb:about' %}" {% if nav_active == 'about' %}aria-current="page"{% endif %} class="flex items-center gap-2 py-3 font-semibold border-b border-borderblue {% if nav_active == 'about' %}text-brandblue{% else %}text-navy{% endif %}"><i data-lucide="info" class="w-4 h-4"></i> About</a>
             {% endif %}
+            {% if not user.is_authenticated or user.profile.role == 'customer' %}
             <a href="{% url 'store:store_list' %}" {% if nav_active == 'store' %}aria-current="page"{% endif %} class="flex items-center gap-2 py-3 font-semibold border-b border-borderblue {% if nav_active == 'store' %}text-brandblue{% else %}text-navy{% endif %}"><i data-lucide="shopping-bag" class="w-4 h-4"></i> Store</a>
+            {% endif %}
             {% if user.profile.role == 'customer' %}
             <a href="{% url 'store:store_profile' %}" {% if nav_active == 'account' %}aria-current="page"{% endif %} class="flex items-center gap-2 py-3 font-semibold border-b border-borderblue {% if nav_active == 'account' %}text-brandblue{% else %}text-navy{% endif %}"><i data-lucide="user" class="w-4 h-4"></i> Account</a>
             {% endif %}
+            {% if not user.is_authenticated or user.profile.role == 'customer' %}
             <a href="{% url 'store:cart_view' %}" class="flex items-center justify-between py-3 font-semibold border-b border-borderblue text-navy">
                 <span class="flex items-center gap-2"><i data-lucide="shopping-cart" class="w-4 h-4"></i> Cart</span>
                 <span data-cart-count class="w-5 h-5 bg-accent-400 rounded-full flex items-center justify-center text-caption-brand font-bold text-white {% if not cart_count %}hidden{% endif %}">{{ cart_count|default:0 }}</span>
             </a>
+            {% endif %}
             {% if user.profile.role != 'customer' %}
             <a href="{% url 'eduweb:services_list' %}" {% if nav_active == 'services' %}aria-current="page"{% endif %} class="flex items-center gap-2 py-3 font-semibold border-b border-borderblue {% if nav_active == 'services' %}text-brandblue{% else %}text-navy{% endif %}"><i data-lucide="layers" class="w-4 h-4"></i> Services</a>
             <a href="{% url 'eduweb:projects_list' %}" {% if nav_active == 'projects' %}aria-current="page"{% endif %} class="flex items-center gap-2 py-3 font-semibold border-b border-borderblue {% if nav_active == 'projects' %}text-brandblue{% else %}text-navy{% endif %}"><i data-lucide="folder-kanban" class="w-4 h-4"></i> Projects</a>
@@ -444,7 +459,9 @@
                     <ul class="mt-4 space-y-2 text-sm">
                         <li><a href="{% url 'eduweb:industries_list' %}" class="hover:text-white transition-colors">Industries</a></li>
                         <li><a href="{% url 'eduweb:all_programs' %}" class="hover:text-white transition-colors">Tech Skills</a></li>
+                        {% if not user.is_authenticated or user.profile.role == 'customer' %}
                         <li><a href="{% url 'store:store_list' %}" class="hover:text-white transition-colors">Store</a></li>
+                        {% endif %}
                         <li><a href="{% url 'eduweb:consultation_booking' %}" class="hover:text-white transition-colors">Consultation</a></li>
                         <li><a href="{% url 'eduweb:projects_list' %}" class="hover:text-white transition-colors">Projects</a></li>
                     </ul>

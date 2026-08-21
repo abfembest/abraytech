@@ -26,9 +26,10 @@
 
             <!-- Image column -->
             <div class="lg:sticky lg:top-24">
-                <div class="product-detail-main-image bg-soft rounded-2xl border border-borderblue overflow-hidden">
+                <div class="product-detail-main-image bg-soft rounded-2xl border border-borderblue overflow-hidden" id="mainImageZoomContainer">
                     {% if images %}
                     <img id="mainProductImage" src="{{ images.0.asset.file.url }}" alt="{{ product.title }}" loading="lazy">
+                    <div id="mainImageZoomLens" class="product-zoom-lens" aria-hidden="true"></div>
                     {% else %}
                     <div class="w-full h-full flex items-center justify-center">
                         <i data-lucide="package" class="w-16 h-16 text-brandblue/50"></i>
@@ -202,8 +203,46 @@
                 if (mainImage) mainImage.src = thumb.getAttribute('data-image-url');
                 document.querySelectorAll('[data-thumb]').forEach(function (t) { t.classList.remove('product-thumb-active'); });
                 thumb.classList.add('product-thumb-active');
+                syncZoomImage();
             });
         });
+
+        // Hover-to-magnify on the main image — the zoom layer is the same
+        // image at a larger background-size, panned via background-position
+        // so whatever's under the cursor is what gets magnified. Mouseleave
+        // always fades it back out; the container's `cursor: zoom-in` (see
+        // styles.css) reverts to normal automatically once the mouse leaves.
+        const zoomContainer = document.getElementById('mainImageZoomContainer');
+        const zoomLens      = document.getElementById('mainImageZoomLens');
+        const zoomImage     = document.getElementById('mainProductImage');
+        const ZOOM_LEVEL     = 2.5;
+
+        function syncZoomImage() {
+            if (zoomLens && zoomImage) zoomLens.style.backgroundImage = 'url(' + zoomImage.src + ')';
+        }
+
+        if (zoomContainer && zoomLens && zoomImage) {
+            syncZoomImage();
+            zoomLens.style.backgroundSize = (ZOOM_LEVEL * 100) + '%';
+
+            zoomContainer.addEventListener('mouseenter', function () {
+                syncZoomImage();
+                zoomLens.classList.add('is-active');
+            });
+
+            zoomContainer.addEventListener('mousemove', function (e) {
+                const rect = zoomContainer.getBoundingClientRect();
+                let x = ((e.clientX - rect.left) / rect.width) * 100;
+                let y = ((e.clientY - rect.top) / rect.height) * 100;
+                x = Math.max(0, Math.min(100, x));
+                y = Math.max(0, Math.min(100, y));
+                zoomLens.style.backgroundPosition = x + '% ' + y + '%';
+            });
+
+            zoomContainer.addEventListener('mouseleave', function () {
+                zoomLens.classList.remove('is-active');
+            });
+        }
 
         // Option (variant) picker — single overall selection, see the comment
         // above the picker markup for why.

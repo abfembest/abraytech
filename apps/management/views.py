@@ -2120,7 +2120,7 @@ def branding_config(request):
 
 # account name -> SystemConfiguration key prefix for that account's credentials/sender identity.
 # SMTP host/port are shared between accounts and stored under the bare 'email_' prefix.
-_EMAIL_ACCOUNTS = {'default': 'email_', 'admissions': 'email_admissions_'}
+_EMAIL_ACCOUNTS = {'default': 'email_', 'admissions': 'email_admissions_', 'store': 'email_store_'}
 _SERVER_FIELDS = ['smtp_host', 'smtp_port']
 _ACCOUNT_FIELDS = ['smtp_username', 'smtp_password', 'from_email', 'from_name']
 
@@ -2186,14 +2186,23 @@ def _clear_config_keys(request, db_prefix, fields, description):
 @login_required(login_url='eduweb:auth_page')
 @user_passes_test(is_superuser_only)
 def email_config(request):
-    """Manage the shared SMTP server plus both outbound-email accounts (default/general
-    and admissions) on one page. Three independent forms, saved independently, each with
-    its own Clear action to remove the override and fall back to .env again."""
+    """Manage the shared SMTP server plus every outbound-email account
+    (default/admissions/store — see _EMAIL_ACCOUNTS) on one page.
+    Independent forms, saved independently, each with its own Clear action
+    to remove the override and fall back to .env (or the default account)
+    again."""
     target = request.POST.get('save') if request.method == 'POST' else None
+
+    def _all_account_forms(overrides=None):
+        overrides = overrides or {}
+        return {
+            account: overrides.get(account) or _load_account_form(account)
+            for account in _EMAIL_ACCOUNTS
+        }
 
     if target and target.startswith('test_') and target[len('test_'):] in _EMAIL_ACCOUNTS:
         account = target[len('test_'):]
-        account_label = 'Admissions' if account == 'admissions' else 'Default'
+        account_label = account.title()
         to_email = request.user.email
         if not to_email:
             messages.error(request, 'Your account has no email address on file to send the test to.')
@@ -2203,7 +2212,7 @@ def email_config(request):
         auth_user = diagnostics.get('username') if diagnostics else None
         auth_note = f' Authenticated SMTP user: {auth_user}.' if auth_user else ''
         if ok:
-            note = (' — note: the admissions account has no override configured, '
+            note = (f' — note: the {account_label.lower()} account has no override configured, '
                      'so this actually went out via the default account.'
                      ) if used_fallback else ''
             messages.success(
@@ -2216,15 +2225,15 @@ def email_config(request):
 
     if target == 'clear_server':
         _clear_config_keys(request, 'email_', _SERVER_FIELDS, 'Cleared shared SMTP server settings')
-        messages.success(request, 'SMTP server settings cleared. Both accounts will fall back to .env until a server is configured again.')
+        messages.success(request, 'SMTP server settings cleared. All accounts will fall back to .env until a server is configured again.')
         return redirect('management:email_config')
 
     if target and target.startswith('clear_') and target[len('clear_'):] in _EMAIL_ACCOUNTS:
         account = target[len('clear_'):]
         db_prefix = _EMAIL_ACCOUNTS[account]
         _clear_config_keys(request, db_prefix, _ACCOUNT_FIELDS, f'Cleared {db_prefix}* email configuration')
-        account_label = 'Admissions' if account == 'admissions' else 'Default'
-        fallback = 'the default account' if account == 'admissions' else '.env'
+        account_label = account.title()
+        fallback = 'the default account' if account != 'default' else '.env'
         messages.success(request, f'{account_label} account cleared. It will fall back to {fallback} until reconfigured.')
         return redirect('management:email_config')
 
@@ -2236,12 +2245,12 @@ def email_config(request):
             return redirect('management:email_config')
         messages.error(request, 'SMTP server settings were not saved — please fix the errors below.')
         server_form = submitted
-        default_form = _load_account_form('default')
-        admissions_form = _load_account_form('admissions')
+        account_forms = _all_account_forms()
 
     elif target in _EMAIL_ACCOUNTS:
         db_prefix = _EMAIL_ACCOUNTS[target]
         submitted = EmailAccountForm(request.POST, prefix=target)
+        account_label = target.title()
         if submitted.is_valid():
             # Blank password means "keep the existing one" — never overwrite a real
             # password with an empty value just because the admin didn't retype it.
@@ -2249,25 +2258,21 @@ def email_config(request):
             if not to_save.get('smtp_password'):
                 to_save.pop('smtp_password', None)
             _save_config_keys(request, db_prefix, to_save, encrypt_fields={'smtp_password'})
-            account_label = 'Admissions' if target == 'admissions' else 'Default'
             messages.success(request, f'{account_label} account settings updated successfully.')
             return redirect('management:email_config')
-        account_label = 'Admissions' if target == 'admissions' else 'Default'
         messages.error(request, f'{account_label} account settings were not saved — please fix the errors below.')
-        other_account = 'admissions' if target == 'default' else 'default'
         server_form = _load_server_form()
-        account_forms = {target: submitted, other_account: _load_account_form(other_account)}
-        default_form, admissions_form = account_forms['default'], account_forms['admissions']
+        account_forms = _all_account_forms({target: submitted})
 
     else:
         server_form = _load_server_form()
-        default_form = _load_account_form('default')
-        admissions_form = _load_account_form('admissions')
+        account_forms = _all_account_forms()
 
     return render(request, 'management/system_config/email.html', {
         'server_form': server_form,
-        'default_form': default_form,
-        'admissions_form': admissions_form,
+        'default_form': account_forms['default'],
+        'admissions_form': account_forms['admissions'],
+        'store_form': account_forms['store'],
     })
 
 
@@ -5761,7 +5766,13 @@ def site_config_general(request):
             form = SiteConfigGeneralForm(instance=site)
     else:
         form = SiteConfigGeneralForm(instance=site)
-    return render(request, 'management/site_config/general.html', {'form': form, 'site': site})
+
+    from apps.eduweb.paystack import _fetch_live_usd_to_ngn_rate
+    return render(request, 'management/site_config/general.html', {
+        'form': form,
+        'site': site,
+        'live_usd_to_ngn_rate': _fetch_live_usd_to_ngn_rate(),
+    })
 
 
 @login_required(login_url='eduweb:auth_page')

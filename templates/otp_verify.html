@@ -27,16 +27,7 @@
 
         <!-- OTP Input -->
         <div id="otpForm">
-          <div class="flex gap-2 justify-center mb-2" id="otpBoxes">
-            {% for i in "123456" %}
-            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]"
-                   class="otp-digit w-12 h-14 text-center text-2xl font-bold border-2 border-borderblue
-                          rounded-xl focus:border-brandblue focus:ring-2 focus:ring-ice
-                          transition-all outline-none"
-                   autocomplete="off">
-            {% endfor %}
-          </div>
-          <input type="hidden" id="otpHidden" value="">
+          {% include '_otp_digit_boxes.html' %}
           <div class="text-red-500 text-sm text-center mt-1 min-h-5" id="otpError"></div>
 
           <button id="verifyBtn"
@@ -59,7 +50,7 @@
             </button>
             <span id="resendTimer" class="text-gray-400 text-xs ml-1"></span>
           </p>
-          <a href="{% url 'eduweb:auth_page' %}"
+          <a href="{% if back_url %}{{ back_url }}{% else %}{% url 'eduweb:auth_page' %}{% endif %}"
              class="block text-sm text-gray-400 hover:text-gray-600 transition-colors">
             ← Back to Login
           </a>
@@ -74,97 +65,79 @@
 document.addEventListener('DOMContentLoaded', function () {
   lucide.createIcons();
 
-  const digits   = document.querySelectorAll('.otp-digit');
-  const hidden   = document.getElementById('otpHidden');
-  const errorEl  = document.getElementById('otpError');
-  const verifyBtn = document.getElementById('verifyBtn');
-  const resendBtn = document.getElementById('resendBtn');
-  const timerEl  = document.getElementById('resendTimer');
+  var verifyUrl = '{% if verify_url %}{{ verify_url }}{% else %}{% url "eduweb:otp_verify" %}{% endif %}';
+  var resendUrl = '{% if resend_url %}{{ resend_url }}{% else %}{% url "eduweb:otp_verify" %}?resend=1{% endif %}';
+  var loginUrl  = '{% if back_url %}{{ back_url }}{% else %}{% url "eduweb:auth_page" %}{% endif %}';
 
-  // ── OTP digit behaviour ──────────────────────────────────────────────────
-  digits.forEach((input, idx) => {
-    input.addEventListener('input', () => {
-      input.value = input.value.replace(/\D/, '');
-      if (input.value && idx < digits.length - 1) digits[idx + 1].focus();
-      updateHidden();
-    });
-    input.addEventListener('keydown', e => {
-      if (e.key === 'Backspace' && !input.value && idx > 0) {
-        digits[idx - 1].focus();
-        digits[idx - 1].value = '';
-        updateHidden();
-      }
-    });
-    input.addEventListener('paste', e => {
-      const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
-      if (pasted.length === 6) {
-        pasted.split('').forEach((ch, i) => { if (digits[i]) digits[i].value = ch; });
-        digits[5].focus();
-        updateHidden();
-      }
-      e.preventDefault();
-    });
-  });
+  var errorEl   = document.getElementById('otpError');
+  var verifyBtn = document.getElementById('verifyBtn');
+  var resendBtn = document.getElementById('resendBtn');
+  var timerEl   = document.getElementById('resendTimer');
+  var submitting = false;
 
-  function updateHidden() {
-    hidden.value = Array.from(digits).map(d => d.value).join('');
+  var otp = initOtpDigitInput({ onComplete: submitOtp });
+
+  function setVerifying(isVerifying) {
+    submitting = isVerifying;
+    verifyBtn.disabled = isVerifying;
+    verifyBtn.innerHTML = isVerifying
+      ? '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Verifying…</span>'
+      : '<i data-lucide="check-circle" class="w-5 h-5"></i><span>Verify Code</span>';
+    lucide.createIcons();
   }
 
-  // ── Verify ───────────────────────────────────────────────────────────────
-  verifyBtn.addEventListener('click', async () => {
+  // ── Verify — fires automatically once all 6 digits are entered/pasted,
+  // and stays available via the button for accessibility/fallback. ─────────
+  async function submitOtp(code) {
+    if (submitting) return;
     errorEl.textContent = '';
-    const otp = hidden.value.trim();
-    if (otp.length !== 6) {
+
+    code = (code || document.getElementById('otpHidden').value).trim();
+    if (code.length !== 6) {
       errorEl.textContent = 'Please enter all 6 digits.';
       return;
     }
 
-    verifyBtn.disabled = true;
-    verifyBtn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Verifying…</span>';
-    lucide.createIcons();
+    setVerifying(true);
 
-    const fd = new FormData();
-    fd.append('otp', otp);
+    var fd = new FormData();
+    fd.append('otp', code);
     fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
 
     try {
-      const res  = await fetch('{% url "eduweb:otp_verify" %}', {
+      var res  = await fetch(verifyUrl, {
         method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' }
       });
-      const data = await res.json();
+      var data = await res.json();
 
       if (data.success) {
         if (window.showToast) window.showToast('success', data.message);
-        setTimeout(() => window.location.href = data.redirect_url, 1200);
+        setTimeout(function () { window.location.href = data.redirect_url; }, 1200);
       } else {
-        errorEl.textContent = (data.errors?.otp || ['Verification failed.']).join(' ');
+        errorEl.textContent = (data.errors && data.errors.otp || ['Verification failed.']).join(' ');
         if (data.redirect_login) {
-          setTimeout(() => window.location.href = '{% url "eduweb:auth_page" %}', 2000);
+          setTimeout(function () { window.location.href = loginUrl; }, 2000);
         }
-        verifyBtn.disabled = false;
-        verifyBtn.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i><span>Verify Code</span>';
-        lucide.createIcons();
-        digits.forEach(d => d.value = '');
-        digits[0].focus();
-        updateHidden();
+        setVerifying(false);
+        otp.clear();
       }
-    } catch {
+    } catch (e) {
       errorEl.textContent = 'Network error. Please try again.';
-      verifyBtn.disabled = false;
-      verifyBtn.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i><span>Verify Code</span>';
-      lucide.createIcons();
+      setVerifying(false);
     }
-  });
+  }
+
+  verifyBtn.addEventListener('click', function () { submitOtp(); });
 
   // ── Resend with 60s cooldown ─────────────────────────────────────────────
-  let cooldown = 0;
+  var cooldown = 0;
   function startCooldown(secs) {
     cooldown = secs;
     resendBtn.disabled = true;
     resendBtn.classList.add('opacity-40', 'cursor-not-allowed');
-    const tick = setInterval(() => {
+    var tick = setInterval(function () {
       cooldown--;
-      timerEl.textContent = `(${cooldown}s)`;
+      timerEl.textContent = '(' + cooldown + 's)';
       if (cooldown <= 0) {
         clearInterval(tick);
         timerEl.textContent = '';
@@ -174,33 +147,31 @@ document.addEventListener('DOMContentLoaded', function () {
     }, 1000);
   }
 
-  resendBtn.addEventListener('click', async () => {
+  resendBtn.addEventListener('click', async function () {
     // Disable immediately — the request takes a couple of seconds (it emails
     // a fresh code server-side), and without this a second click before the
     // response lands fires a duplicate send.
     resendBtn.disabled = true;
     resendBtn.classList.add('opacity-40', 'cursor-not-allowed');
-    const originalLabel = resendBtn.textContent;
+    var originalLabel = resendBtn.textContent;
     resendBtn.textContent = 'Sending…';
 
     try {
-      const res  = await fetch('{% url "eduweb:otp_verify" %}?resend=1', {
+      var res  = await fetch(resendUrl, {
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
       });
-      const data = await res.json();
+      var data = await res.json();
       resendBtn.textContent = originalLabel;
       if (data.success) {
         if (window.showToast) window.showToast('success', data.message);
         startCooldown(60);
-        digits.forEach(d => d.value = '');
-        digits[0].focus();
-        updateHidden();
+        otp.clear();
       } else {
         if (window.showToast) window.showToast('error', data.message || 'Could not resend code.');
         resendBtn.disabled = false;
         resendBtn.classList.remove('opacity-40', 'cursor-not-allowed');
       }
-    } catch {
+    } catch (e) {
       resendBtn.textContent = originalLabel;
       resendBtn.disabled = false;
       resendBtn.classList.remove('opacity-40', 'cursor-not-allowed');
@@ -210,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Start with 30s initial cooldown so user can't spam immediately
   startCooldown(30);
-  digits[0].focus();
+  otp.focus();
 });
 </script>
 {% endblock %}

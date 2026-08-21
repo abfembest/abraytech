@@ -2,23 +2,28 @@ import hashlib
 import hmac
 import json
 import logging
+import random
 import uuid
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import F, Q
 from django.db.models.functions import Greatest
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect, render, resolve_url
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from apps.eduweb.models import AuditLog
+from apps.eduweb.emailservices import send_otp_email
+from apps.eduweb.models import AuditLog, UserProfile
 from apps.eduweb.views import generate_captcha
 
 from . import cart, services
@@ -27,6 +32,7 @@ from .emailservices import (
     send_order_confirmation_email,
     send_refund_request_staff_notification,
     send_staff_order_notification,
+    send_store_password_reset_email,
 )
 from .models import Order, OrderItem, Product, ProductCategory, ProductVariant
 
@@ -235,7 +241,10 @@ def _create_order_and_pay(request, items, total, delivery):
 
     data = services.initialize_transaction(order, request)
     if data.get('status'):
-        cart.clear_cart(request.session)
+        # Cart is cleared only once payment is confirmed (checkout_callback,
+        # after _confirm_paid_order marks the order 'paid') — not here, or
+        # abandoning the Paystack page and coming back would find an empty
+        # cart despite never having paid.
         return redirect(data['data']['authorization_url'])
 
     order.status = 'failed'
@@ -398,8 +407,212 @@ def store_login(request):
         )
         return _redirect_next()
 
-    login(request, user)
-    return _redirect_next()
+    # ── OTP: same two-step verification as eduweb:auth_page — hold login
+    # until the emailed code is confirmed on store:otp_verify. ─────────────
+    profile = user.profile
+    otp = str(random.randint(100000, 999999))
+    profile.otp_code       = otp      # encrypted via setter
+    profile.otp_created_at = timezone.now()
+    profile.otp_attempts   = 0
+    profile.save(update_fields=['_otp_code', 'otp_created_at', 'otp_attempts'])
+
+    if not send_otp_email(user, otp):
+        messages.error(
+            request,
+            'Could not send your verification code right now. Please try again shortly.',
+        )
+        return _redirect_next()
+
+    request.session['store_otp_user_id']  = user.pk
+    request.session['store_otp_next_url'] = next_url
+
+    messages.success(request, f'A 6-digit code has been sent to {user.email}')
+    return redirect('store:otp_verify')
+
+
+def otp_verify(request):
+    """Second step of store_login — mirrors eduweb.views.otp_verify (same
+    5-attempt lockout, same 10-minute expiry, same JSON response shape so
+    the shared otp_verify.html/_otp_digit_boxes.html JS works unmodified),
+    keyed off store_otp_user_id/store_otp_next_url instead of eduweb's own
+    session keys and role-based redirect map."""
+    user_id = request.session.get('store_otp_user_id')
+    if not user_id:
+        return redirect('store:store_list')
+
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return redirect('store:store_list')
+
+    # ── resend (GET ?resend=1) ────────────────────────────────────────────────
+    if request.method == 'GET' and request.GET.get('resend') == '1':
+        otp = str(random.randint(100000, 999999))
+        profile = user.profile
+        previous_code, previous_created_at = profile.otp_code, profile.otp_created_at
+        profile.otp_code       = otp
+        profile.otp_created_at = timezone.now()
+        profile.otp_attempts   = 0
+        profile.save(update_fields=['_otp_code', 'otp_created_at', 'otp_attempts'])
+
+        if not send_otp_email(user, otp):
+            profile.otp_code       = previous_code
+            profile.otp_created_at = previous_created_at
+            profile.save(update_fields=['_otp_code', 'otp_created_at'])
+            return JsonResponse({
+                'success': False,
+                'message': 'Could not send a new code right now. Please try again shortly.',
+            }, status=502)
+
+        return JsonResponse({'success': True, 'message': 'new code sent to your email.'})
+
+    # ── POST: validate submitted otp ──────────────────────────────────────────
+    if request.method == 'POST':
+        entered_otp = request.POST.get('otp', '').strip()
+        profile = user.profile
+
+        if profile.otp_attempts >= 5:
+            request.session.pop('store_otp_user_id', None)
+            return JsonResponse({
+                'success': False,
+                'errors': {'otp': ['too many failed attempts. please log in again.']},
+                'redirect_login': True,
+            }, status=429)
+
+        if not profile.otp_created_at or (
+            timezone.now() - profile.otp_created_at
+        ).total_seconds() > 600:
+            request.session.pop('store_otp_user_id', None)
+            return JsonResponse({
+                'success': False,
+                'errors': {'otp': ['your code has expired. please log in again.']},
+                'redirect_login': True,
+            }, status=400)
+
+        if entered_otp != profile.otp_code:
+            profile.otp_attempts += 1
+            profile.save(update_fields=['otp_attempts'])
+            remaining = 5 - profile.otp_attempts
+            return JsonResponse({
+                'success': False,
+                'errors': {'otp': [f'incorrect code. {remaining} attempt(s) remaining.']},
+            }, status=400)
+
+        # ── correct — complete login ──────────────────────────────────────────
+        profile.otp_code = ''
+        profile.otp_created_at = None
+        profile.otp_attempts = 0
+        profile.save(update_fields=['_otp_code', 'otp_created_at', 'otp_attempts'])
+
+        login(request, user)
+
+        AuditLog.objects.create(
+            user=user,
+            action='login',
+            model_name='User',
+            object_id=str(user.pk),
+            description=f'{user.username} logged in to the store (OTP verified).',
+        )
+
+        next_url = request.session.pop('store_otp_next_url', None) or 'store:store_list'
+        request.session.pop('store_otp_user_id', None)
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Verification Successful!',
+            'redirect_url': resolve_url(next_url),
+        })
+
+    # ── GET: render otp page ──────────────────────────────────────────────────
+    email = user.email or ''
+    if '@' in email:
+        masked = email[:3] + '****' + email[email.index('@'):]
+    else:
+        masked = email
+
+    return render(request, 'otp_verify.html', {
+        'masked_email': masked,
+        'verify_url':   reverse('store:otp_verify'),
+        'resend_url':   reverse('store:otp_verify') + '?resend=1',
+        'back_url':     reverse('store:store_list'),
+    })
+
+
+# =============================================================================
+# PASSWORD RESET — link-based, matching eduweb.views.forgot_password/
+# reset_password exactly (same UserProfile.generate_password_reset_token()/
+# is_reset_token_valid()/clear_reset_token(), same 1-hour expiry, same
+# no-enumeration silence on an unknown email), just pointed at the store's
+# own login/email. The token in the emailed link is the proof of identity
+# — no separate OTP step here (that's what store_otp_verify/store login
+# above already uses OTP for; this is a different, already-secure pattern).
+# =============================================================================
+
+def forgot_password(request):
+    """Display forgot-password form and dispatch the reset-link email."""
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip()
+        user = User.objects.filter(email__iexact=email, profile__role='customer', is_active=True).first()
+
+        if user:
+            if not send_store_password_reset_email(request, user):
+                logger.error("Store password reset email failed silently for %s", email)
+
+        # Always show the same success screen to prevent email enumeration
+        return render(request, 'store_forgot_password.html', {
+            'email_sent': True,
+            'submitted_email': email,
+        })
+
+    return render(request, 'store_forgot_password.html')
+
+
+def reset_password(request, token):
+    """Validate the reset token and let the user set a new password."""
+    try:
+        profile = UserProfile.objects.get(password_reset_token=token, role='customer')
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'Invalid or expired password reset link.')
+        return redirect('store:forgot_password')
+
+    if not profile.is_reset_token_valid():
+        profile.clear_reset_token()
+        messages.error(request, 'This reset link has expired. Please request a new one.')
+        return redirect('store:forgot_password')
+
+    user = profile.user
+
+    if request.method == 'POST':
+        new_password      = request.POST.get('password1', '')
+        confirm_password  = request.POST.get('password2', '')
+
+        if not new_password or new_password != confirm_password:
+            messages.error(request, 'Passwords do not match.')
+            return render(request, 'store_reset_password.html', {'token': token})
+
+        try:
+            validate_password(new_password, user=user)
+        except ValidationError as e:
+            for err in e.messages:
+                messages.error(request, err)
+            return render(request, 'store_reset_password.html', {'token': token})
+
+        user.set_password(new_password)
+        user.save(update_fields=['password'])
+        profile.clear_reset_token()
+
+        AuditLog.objects.create(
+            user=user,
+            action='update',
+            model_name='User',
+            object_id=str(user.pk),
+            description=f'{user.username} reset their store account password via the forgot-password link.',
+        )
+
+        messages.success(request, 'Your password has been reset successfully. You can now log in.')
+        return redirect('store:store_list')
+
+    return render(request, 'store_reset_password.html', {'token': token})
 
 
 # =============================================================================
@@ -482,6 +695,8 @@ def checkout_callback(request):
     verified = bool(data.get('status') and data.get('data', {}).get('status') == 'success')
     if verified:
         order = _confirm_paid_order(order, data['data'])
+        if order.status == 'paid':
+            cart.clear_cart(request.session)
     elif order.status != 'paid':
         order.status = 'failed'
         order.save(update_fields=['status'])

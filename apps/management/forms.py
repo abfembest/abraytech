@@ -907,6 +907,8 @@ class SiteConfigGeneralForm(forms.ModelForm):
             'office_hours_weekday', 'office_hours_saturday', 'office_hours_sunday',
             # Social
             'facebook', 'twitter', 'instagram', 'linkedin', 'youtube', 'tiktok',
+            # Currency
+            'use_manual_usd_to_ngn_rate', 'usd_to_ngn_rate',
         ]
         widgets = {
             # Identity
@@ -952,6 +954,11 @@ class SiteConfigGeneralForm(forms.ModelForm):
             'linkedin':              forms.URLInput(attrs=_SC_I),
             'youtube':               forms.URLInput(attrs=_SC_I),
             'tiktok':                forms.URLInput(attrs=_SC_I),
+            # Currency
+            'use_manual_usd_to_ngn_rate': forms.CheckboxInput(attrs={
+                'class': 'w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500'
+            }),
+            'usd_to_ngn_rate':       forms.NumberInput(attrs={**_SC_I, 'step': '0.01', 'min': '0'}),
         }
 
     def clean_logo(self):

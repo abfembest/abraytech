@@ -1,0 +1,71 @@
+<div class="flex gap-2 justify-center mb-2" id="otpBoxes">
+    {% for i in "123456" %}
+    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]"
+           class="otp-digit w-12 h-14 text-center text-2xl font-bold border-2 border-borderblue
+                  rounded-xl focus:border-brandblue focus:ring-2 focus:ring-ice
+                  transition-all outline-none"
+           autocomplete="off">
+    {% endfor %}
+</div>
+<input type="hidden" id="otpHidden" name="otp" value="">
+
+<script>
+    // Shared 6-digit OTP input: auto-advance, backspace-to-previous, 6-digit
+    // paste, and auto-fires onComplete(code) the moment all 6 boxes are
+    // filled (typing the last digit or pasting) — no separate submit click
+    // required. Returns a small controller so the including page can clear
+    // the boxes / refocus after a failed attempt.
+    function initOtpDigitInput(options) {
+        options = options || {};
+        var onComplete = options.onComplete || function () {};
+        var digits = Array.prototype.slice.call(document.querySelectorAll('#otpBoxes .otp-digit'));
+        var hidden = document.getElementById('otpHidden');
+        var fired = false;
+
+        function updateHidden() {
+            hidden.value = digits.map(function (d) { return d.value; }).join('');
+            if (hidden.value.length === 6) {
+                if (!fired) {
+                    fired = true;
+                    onComplete(hidden.value);
+                }
+            } else {
+                fired = false;
+            }
+        }
+
+        digits.forEach(function (input, idx) {
+            input.addEventListener('input', function () {
+                input.value = input.value.replace(/\D/, '');
+                if (input.value && idx < digits.length - 1) digits[idx + 1].focus();
+                updateHidden();
+            });
+            input.addEventListener('keydown', function (e) {
+                if (e.key === 'Backspace' && !input.value && idx > 0) {
+                    digits[idx - 1].focus();
+                    digits[idx - 1].value = '';
+                    updateHidden();
+                }
+            });
+            input.addEventListener('paste', function (e) {
+                var pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+                if (pasted.length === 6) {
+                    pasted.split('').forEach(function (ch, i) { if (digits[i]) digits[i].value = ch; });
+                    digits[5].focus();
+                    updateHidden();
+                }
+                e.preventDefault();
+            });
+        });
+
+        return {
+            clear: function () {
+                fired = false;
+                digits.forEach(function (d) { d.value = ''; });
+                hidden.value = '';
+                digits[0].focus();
+            },
+            focus: function () { digits[0].focus(); }
+        };
+    }
+</script>

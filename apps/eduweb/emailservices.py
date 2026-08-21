@@ -11,10 +11,11 @@ logger = logging.getLogger(__name__)
 
 
 def _get_category_connection(category):
-    """category: 'default' or 'admissions'. SMTP host/port are shared between both
-    accounts (stored under 'email_smtp_host'/'email_smtp_port'); username/password/
-    from-identity are per-account. Returns (connection, from_header), or (None, None)
-    if this account's username isn't configured in the DB yet."""
+    """category: any key in apps.management.views._EMAIL_ACCOUNTS (currently
+    'default', 'admissions', 'store'). SMTP host/port are shared between all
+    accounts (stored under 'email_smtp_host'/'email_smtp_port'); username/
+    password/from-identity are per-account. Returns (connection, from_header),
+    or (None, None) if this account's username isn't configured in the DB yet."""
     prefix = 'email_' if category == 'default' else f'email_{category}_'
     keys = SystemConfiguration.get_values([
         'email_smtp_host', 'email_smtp_port',
@@ -44,7 +45,7 @@ def _get_category_connection(category):
 
 def _resolve_sender(category):
     """Returns (connection, from_email) for a mail category, falling back
-    admissions -> default -> settings.DEFAULT_FROM_EMAIL/.env connection."""
+    category -> default -> settings.DEFAULT_FROM_EMAIL/.env connection."""
     connection, from_email = _get_category_connection(category)
     if connection is None and category != 'default':
         connection, from_email = _get_category_connection('default')
@@ -91,7 +92,7 @@ def send_test_email(account, to_email):
             'username': getattr(connection, 'username', None),
         }
 
-        account_label = 'Admissions' if account == 'admissions' else 'Default'
+        account_label = account.title()
         email = EmailMultiAlternatives(
             subject=f'Abraytech Test Email — {account_label} Account',
             body=(

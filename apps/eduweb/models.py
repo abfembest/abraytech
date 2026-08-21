@@ -573,6 +573,12 @@ class ApplicationPayment(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=3, default='USD')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    gateway = models.CharField(
+        max_length=20,
+        choices=[('stripe', 'Stripe'), ('paystack', 'Paystack')],
+        default='stripe',
+        help_text="Which payment gateway processed this payment"
+    )
     payment_method = models.CharField(max_length=30, choices=PAYMENT_METHOD_CHOICES)
     payment_reference = models.CharField(max_length=100, unique=True)
     gateway_payment_id = models.CharField(max_length=255, blank=True)
@@ -3164,6 +3170,13 @@ class FeePayment(models.Model):
         default='pending'
     )
 
+    gateway = models.CharField(
+        max_length=20,
+        choices=[('stripe', 'Stripe'), ('paystack', 'Paystack')],
+        default='stripe',
+        help_text="Which payment gateway processed this payment"
+    )
+
     payment_method = models.CharField(
         max_length=30,
         choices=PAYMENT_METHOD_CHOICES,
@@ -4954,6 +4967,29 @@ class SiteConfig(models.Model):
             'Store as a JSON array of strings, e.g. '
             '["Excellence in Education", "Diversity & Inclusion", "Innovation & Creativity", "Global Citizenship"]'
         )
+    )
+
+    # =========================================================================
+    # CURRENCY — USD→NGN rate used to quote fee/application payments in
+    # Naira when a student pays via Paystack instead of Stripe (USD is the
+    # single canonical currency stored on Program.application_fee /
+    # AllRequiredPayments.amount). Live-fetched automatically (cached ~1h)
+    # from the free open.er-api.com FX API — see
+    # apps.eduweb.paystack.get_usd_to_ngn_rate(). usd_to_ngn_rate is used
+    # either as a deliberate override (use_manual_usd_to_ngn_rate=True) or
+    # as the fallback when the live lookup fails.
+    # =========================================================================
+    use_manual_usd_to_ngn_rate = models.BooleanField(
+        "Use manual rate instead of the live rate",
+        default=False,
+        help_text="If checked, the rate below is always used and the live FX lookup is skipped entirely — e.g. to deliberately quote a padded/rounded rate."
+    )
+    usd_to_ngn_rate = models.DecimalField(
+        "USD to NGN rate",
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('1500.00'),
+        help_text="1 USD = how many NGN. Used when the manual override above is checked, or as the fallback if the live FX rate lookup (open.er-api.com) is unreachable."
     )
 
     class Meta:

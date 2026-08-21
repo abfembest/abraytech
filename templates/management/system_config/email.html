@@ -25,13 +25,15 @@
         <div class="flex items-start">
             <i class="fas fa-info-circle text-blue-500 text-xl mr-3 mt-1"></i>
             <div>
-                <h4 class="font-medium text-blue-900 mb-1">One Server, Two Sender Accounts</h4>
+                <h4 class="font-medium text-blue-900 mb-1">One Server, Three Sender Accounts</h4>
                 <p class="text-sm text-blue-800">
-                    The SMTP server (host/port) below is shared by both accounts. <strong>Default</strong> sends
-                    everything except admissions email — OTP, password resets, contact-form replies, payroll, and
+                    The SMTP server (host/port) below is shared by all three accounts. <strong>Default</strong> sends
+                    everything except admissions/store email — OTP, password resets, contact-form replies, payroll, and
                     LMS notifications. <strong>Admissions</strong> sends application confirmations, decision letters,
-                    document-upload receipts, and transcript notices. Until the admissions account is configured,
-                    admissions email falls back to the default account.
+                    document-upload receipts, and transcript notices. <strong>Store</strong> sends order confirmations,
+                    refund updates, and store login/password-reset email — so store customers see a distinct sender
+                    identity (e.g. "Abraytech Store") instead of Admissions'. Until an account is configured, its
+                    email falls back to the default account.
                 </p>
             </div>
         </div>
@@ -191,6 +193,47 @@
                                 class="w-full sm:w-auto px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all shadow-md hover:shadow-lg">
                             <i class="fas fa-save mr-2"></i>
                             Save Admissions Account
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Store account -->
+            <form method="post" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                {% csrf_token %}
+
+                <div class="px-6 pt-6">
+                    <h2 class="text-xl font-bold text-gray-900 flex items-center">
+                        <i class="fas fa-shopping-bag mr-3 text-primary-600"></i>
+                        Store Account
+                    </h2>
+                    <p class="text-sm text-gray-500 mt-1">
+                        Used for order confirmations, refund updates, and store login/password-reset email.
+                    </p>
+                </div>
+
+                <div class="p-6 space-y-6">
+                    {% include 'management/system_config/_email_account_fields.html' with form=store_form %}
+                </div>
+
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                    <button type="submit" name="save" value="clear_store"
+                            onclick="return swalConfirmSubmit(this, {title: 'Clear the store account?', text: 'It will fall back to the default account until reconfigured.', confirmButtonText: 'Yes, clear'});"
+                            class="w-full sm:w-auto px-4 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-all text-sm">
+                        <i class="fas fa-eraser mr-2"></i>
+                        Clear
+                    </button>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <button type="submit" name="save" value="test_store"
+                                formnovalidate
+                                class="w-full sm:w-auto px-4 py-2.5 border border-primary-200 text-primary-700 rounded-lg hover:bg-primary-50 transition-all">
+                            <i class="fas fa-paper-plane mr-2"></i>
+                            Send Test Email
+                        </button>
+                        <button type="submit" name="save" value="store"
+                                class="w-full sm:w-auto px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all shadow-md hover:shadow-lg">
+                            <i class="fas fa-save mr-2"></i>
+                            Save Store Account
                         </button>
                     </div>
                 </div>

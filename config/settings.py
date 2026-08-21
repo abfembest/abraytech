@@ -96,6 +96,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.eduweb.security_middleware.SessionSecurityMiddleware",
     "apps.eduweb.exam_middleware.ExamLockMiddleware",
+    "apps.store.middleware.StoreCustomerScopeMiddleware",
 ]
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"

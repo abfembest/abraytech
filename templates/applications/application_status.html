@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static humanize %}
 
 {% block title %}Application Status - {{ site_config.school_name|default:"Abraytech" }}{% endblock %}
 
@@ -739,7 +739,7 @@
                                     {% endif %}
                                 </p>
                                 <p class="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-200">
-                                    Payment of {{application.payment.currency}} {{ application.payment.amount }} confirmed
+                                    Payment of {{ application.payment.currency }} {{ application.payment.amount|floatformat:"0"|intcomma }} confirmed
                                 </p>
                             </div>
                         </div>

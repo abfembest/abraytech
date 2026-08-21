@@ -168,31 +168,30 @@
 </script>
 {% endif %}
 
-<!-- Services Section (PRD "Core services") -->
-{% if services %}
+{% if featured_programs %}
 <section id="services" class="section-py {% cycle hbg %}" aria-labelledby="services-heading">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-2xl mx-auto reveal mb-12">
-            {% comment %}<span class="text-xs font-semibold uppercase tracking-widest text-brandblue">What we do</span>{% endcomment %}
-            <h2 id="services-heading" class="mt-3 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-navy">Advanced Tech skills & Services</h2>
+            <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">AbrayTech Academy</span>
+            <h2 id="services-heading" class="mt-3 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-navy">Acquire Advanced Tech skills</h2>
             <p class="mt-4 text-slate-600">From first line of code to production security, {{ site_config.school_short_name|default:"Abraytech" }} covers the full technology lifecycle.</p>
         </div>
         <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {% for service in services %}
-            <a href="{% url 'eduweb:service_detail' service.slug %}" class="reveal bg-white rounded-2xl p-6 border border-borderblue hover:shadow-brand hover:-translate-y-1 transition block">
+            {% for program in featured_programs|slice:":4" %}
+            <a href="{% url 'eduweb:program_detail' program.slug %}" class="reveal bg-white rounded-2xl p-6 border border-borderblue hover:shadow-brand hover:-translate-y-1 transition block">
                 <div class="w-12 h-12 rounded-xl bg-ice flex items-center justify-center text-brandblue">
-                    <i data-lucide="{{ service.icon }}" class="w-6 h-6"></i>
+                    <i data-lucide="graduation-cap" class="w-6 h-6"></i>
                 </div>
-                <h3 class="mt-4 font-sora font-semibold text-lg text-navy">{{ service.title }}</h3>
-                <p class="mt-2 text-sm text-slate-600">{{ service.summary }}</p>
+                <h3 class="mt-4 font-sora font-semibold text-lg text-navy">{{ program.name }}</h3>
+                <p class="mt-2 text-sm text-slate-600 line-clamp-3">{{ program.overview|default:program.description|truncatewords:18 }}</p>
                 <span class="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brandblue">Learn more <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></span>
             </a>
             {% endfor %}
         </div>
         <div class="text-center mt-12">
-            <a href="{% url 'eduweb:services_list' %}"
+            <a href="{% url 'eduweb:all_programs' %}"
             class="inline-flex items-center gap-2 border border-borderblue bg-white text-navy px-8 py-4 rounded-lg font-semibold text-base lg:text-lg hover:bg-ice transition-all shadow-card focus:outline-none focus:ring-2 focus:ring-brandblue focus:ring-offset-2">
-                View All Services
+                View All Courses
                 <i data-lucide="arrow-right" class="w-5 h-5"></i>
             </a>
         </div>

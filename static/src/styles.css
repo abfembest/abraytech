@@ -1846,6 +1846,24 @@
   object-fit: cover;
 }
 
+/* Hover-to-magnify lens over the main product image — see
+   templates/product_detail.html's extra_js for the mousemove pan logic. */
+.product-detail-main-image {
+  position: relative;
+  cursor: zoom-in;
+}
+.product-zoom-lens {
+  position: absolute;
+  inset: 0;
+  background-repeat: no-repeat;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+.product-zoom-lens.is-active {
+  opacity: 1;
+}
+
 /* Product detail page — thumbnail strip beneath the main image. */
 .product-thumb {
   width: 4.5rem;

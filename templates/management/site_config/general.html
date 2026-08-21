@@ -146,6 +146,41 @@
       </div>
     </div>
 
+    <!-- ── CURRENCY ── -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gray-50 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800"><i class="fas fa-money-bill-wave text-emerald-500 mr-2"></i>Currency</h2>
+        <p class="text-xs text-gray-500 mt-0.5">Application/required fees are stored in USD. Paystack payments are auto-converted to Naira using a live rate, refreshed automatically (cached up to 1 hour) from the free open.er-api.com FX API — no admin action needed.</p>
+      </div>
+      <div class="p-6 space-y-4">
+        {% if site.use_manual_usd_to_ngn_rate %}
+        <div class="flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2.5 w-fit">
+          <i class="fas fa-lock"></i>
+          <span>Manual override active — the rate below is being used for all payments; live lookup is skipped.</span>
+        </div>
+        {% elif live_usd_to_ngn_rate %}
+        <div class="flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-2.5 w-fit">
+          <i class="fas fa-circle-check"></i>
+          <span>Live rate right now: <strong>1 USD = {{ live_usd_to_ngn_rate }} NGN</strong></span>
+        </div>
+        {% else %}
+        <div class="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2.5 w-fit">
+          <i class="fas fa-triangle-exclamation"></i>
+          <span>Live rate lookup is currently unreachable — the rate below is being used instead.</span>
+        </div>
+        {% endif %}
+        <div class="flex items-center gap-2">
+          {{ form.use_manual_usd_to_ngn_rate }}
+          <label class="text-sm font-medium text-gray-700">{{ form.use_manual_usd_to_ngn_rate.label }}</label>
+        </div>
+        <div class="max-w-xs">
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ form.usd_to_ngn_rate.label }}</label>
+          {{ form.usd_to_ngn_rate }}
+          <p class="text-xs text-gray-400 mt-1">1 USD = this many NGN. Used when the override above is checked, or as the fallback if the live rate is unreachable.</p>
+        </div>
+      </div>
+    </div>
+
     <!-- ── FOOTER ── -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div class="px-6 py-4 bg-gray-50 border-b border-gray-100">

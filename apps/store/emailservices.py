@@ -7,7 +7,9 @@ import logging
 from django.conf import settings
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.core.mail import EmailMultiAlternatives
+from django.urls import reverse
 
+from apps.eduweb.emailservices import _resolve_sender
 from apps.eduweb.models import SiteConfig
 
 logger = logging.getLogger(__name__)
@@ -141,9 +143,10 @@ def send_order_confirmation_email(order):
             f"Best regards,\nThe {site.school_short_name} Store Team"
         )
 
+        connection, from_email = _resolve_sender('store')
         msg = EmailMultiAlternatives(
-            subject=subject, body=text_content, from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[order.buyer_email],
+            subject=subject, body=text_content, from_email=from_email,
+            to=[order.buyer_email], connection=connection,
         )
         msg.attach_alternative(html_content, "text/html")
         msg.send(fail_silently=False)
@@ -220,9 +223,10 @@ def send_staff_order_notification(order):
             f"Please fulfill this order from the Store > Orders queue in the admin panel."
         )
 
+        connection, from_email = _resolve_sender('store')
         msg = EmailMultiAlternatives(
-            subject=subject, body=text_content, from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[recipient],
+            subject=subject, body=text_content, from_email=from_email,
+            to=[recipient], connection=connection,
         )
         msg.attach_alternative(html_content, "text/html")
         msg.send(fail_silently=False)
@@ -286,9 +290,10 @@ def send_order_refunded_email(order):
             + f"\nBest regards,\nThe {site.school_short_name} Store Team"
         )
 
+        connection, from_email = _resolve_sender('store')
         msg = EmailMultiAlternatives(
-            subject=subject, body=text_content, from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[order.buyer_email],
+            subject=subject, body=text_content, from_email=from_email,
+            to=[order.buyer_email], connection=connection,
         )
         msg.attach_alternative(html_content, "text/html")
         msg.send(fail_silently=False)
@@ -350,9 +355,10 @@ def send_refund_request_staff_notification(order):
             f"Review and approve or reject this request from the Store > Orders queue in the admin panel."
         )
 
+        connection, from_email = _resolve_sender('store')
         msg = EmailMultiAlternatives(
-            subject=subject, body=text_content, from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[recipient],
+            subject=subject, body=text_content, from_email=from_email,
+            to=[recipient], connection=connection,
         )
         msg.attach_alternative(html_content, "text/html")
         msg.send(fail_silently=False)
@@ -409,13 +415,87 @@ def send_refund_request_rejected_email(order):
             f"Best regards,\nThe {site.school_short_name} Store Team"
         )
 
+        connection, from_email = _resolve_sender('store')
         msg = EmailMultiAlternatives(
-            subject=subject, body=text_content, from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[order.buyer_email],
+            subject=subject, body=text_content, from_email=from_email,
+            to=[order.buyer_email], connection=connection,
         )
         msg.attach_alternative(html_content, "text/html")
         msg.send(fail_silently=False)
         return True
     except Exception:
         logger.exception('Failed to send refund-rejected email for %s', order.order_number)
+        return False
+
+
+def send_store_password_reset_email(request, user):
+    """Send a password-reset link for a store account. Mirrors
+    apps.eduweb.emailservices.send_password_reset_email's shape exactly
+    (same UserProfile.generate_password_reset_token()/1-hour expiry), just
+    pointed at store:reset_password instead of eduweb:reset_password —
+    the store has its own login, so it needs its own reset link target.
+    Returns bool success, matching every other function in this module."""
+    try:
+        site    = _site()
+        profile = user.profile
+        token   = profile.generate_password_reset_token()
+        reset_url = request.build_absolute_uri(
+            reverse('store:reset_password', kwargs={'token': str(token)})
+        )
+
+        subject = f'Reset Your {site.school_short_name} Store Password'
+
+        html_content = f"""
+        <html>
+          <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4;">
+              <div style="background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
+                          padding: 30px; text-align: center;">
+                <h1 style="color: white; margin: 0;">🔐 Password Reset</h1>
+              </div>
+              <div style="background-color: white; padding: 30px; margin-top: 20px;">
+                <p style="font-size: 16px;">
+                  Dear <strong>{user.get_full_name() or user.username}</strong>,
+                </p>
+                <p>
+                  We received a request to reset your {site.school_short_name} Store account password.
+                  Click the button below to set a new password.
+                </p>
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="{reset_url}"
+                     style="display: inline-block; padding: 15px 40px;
+                            background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
+                            color: white; text-decoration: none; border-radius: 8px;
+                            font-weight: bold;">
+                    Reset Password
+                  </a>
+                </div>
+                <p style="color: #6b7280; font-size: 13px;">
+                  This link expires in 1 hour. If you didn't request this, you can safely ignore this email.
+                </p>
+              </div>
+            </div>
+          </body>
+        </html>
+        """
+
+        text_content = (
+            f"Reset your {site.school_short_name} Store password\n\n"
+            f"Dear {user.get_full_name() or user.username},\n\n"
+            f"We received a request to reset your {site.school_short_name} Store account password. "
+            f"Visit the link below to set a new password (expires in 1 hour):\n\n"
+            f"{reset_url}\n\n"
+            f"If you didn't request this, you can safely ignore this email."
+        )
+
+        connection, from_email = _resolve_sender('store')
+        msg = EmailMultiAlternatives(
+            subject=subject, body=text_content, from_email=from_email,
+            to=[user.email], connection=connection,
+        )
+        msg.attach_alternative(html_content, "text/html")
+        msg.send(fail_silently=False)
+        return True
+    except Exception:
+        logger.exception('Failed to send store password reset email for %s', user.email)
         return False
