@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Order, Product, ProductCategory
+from .models import Order, Product, ProductCategory, ReturnItem, ReturnRequest
 
 
 @admin.register(ProductCategory)
@@ -23,3 +23,23 @@ class OrderAdmin(admin.ModelAdmin):
     list_display = ('order_number', 'buyer_name', 'buyer_email', 'amount', 'currency', 'status', 'created_at')
     list_filter = ('status', 'currency')
     search_fields = ('order_number', 'buyer_name', 'buyer_email', 'payment_reference')
+
+
+class ReturnItemInline(admin.TabularInline):
+    model = ReturnItem
+    extra = 0
+    readonly_fields = ('order_item', 'reason', 'reason_details', 'decided_by', 'received_by', 'refund_amount')
+
+
+@admin.register(ReturnRequest)
+class ReturnRequestAdmin(admin.ModelAdmin):
+    list_display = ('return_number', 'order', 'user', 'condition_confirmed', 'requested_at')
+    search_fields = ('return_number', 'order__order_number', 'user__email')
+    inlines = [ReturnItemInline]
+
+
+@admin.register(ReturnItem)
+class ReturnItemAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'return_request', 'status', 'reason', 'decided_at', 'received_at', 'refunded_at')
+    list_filter = ('status', 'reason')
+    search_fields = ('return_request__return_number', 'order_item__product_title', 'order_item__order__order_number')

@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Return Item(s) — Order {{ order.order_number }} | Abraytech Store{% endblock %}
+
+{% block content %}
+
+<section class="relative overflow-hidden bg-navy py-20 lg:py-28">
+    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <nav class="flex mb-6" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-2 text-sm">
+                <li><a href="{% url 'eduweb:index' %}" class="text-white/60 hover:text-white transition-colors">Home</a></li>
+                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+                <li><a href="{% url 'store:my_orders' %}" class="text-white/60 hover:text-white transition-colors">My Orders</a></li>
+                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+                <li><span class="text-white/80 font-medium">Return Item(s)</span></li>
+            </ol>
+        </nav>
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-white">Return Item(s)</h1>
+        <p class="mt-3 text-white/70">Order {{ order.order_number }}</p>
+    </div>
+</section>
+
+<section class="py-16 bg-white">
+    <div class="container-responsive mx-auto px-4 sm:px-6 lg:px-8 max-w-3xl">
+
+        <div class="light-card p-4 mb-6 flex items-center gap-3 text-sm">
+            <i data-lucide="clock" class="w-4 h-4 text-brandblue flex-shrink-0"></i>
+            <span class="text-slate-600">Returnable until <strong class="text-navy">{{ return_window_expires_at|date:"M d, Y H:i" }}</strong> — after that this order can no longer be returned.</span>
+        </div>
+
+        <form method="post" class="light-card p-6">
+            {% csrf_token %}
+
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-h4-brand text-navy">Select item(s) to return</h2>
+                <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+                    <input type="checkbox" id="selectAllItems" class="rounded border-borderblue text-brandblue focus:ring-brandblue">
+                    Select all
+                </label>
+            </div>
+
+            <div class="space-y-4">
+                {% for item in items %}
+                <div class="border border-borderblue rounded-lg p-4 return-item-row">
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" name="items" value="{{ item.id }}" class="js-return-item-checkbox mt-1 rounded border-borderblue text-brandblue focus:ring-brandblue">
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between gap-3">
+                                <span class="font-semibold text-navy">
+                                    {{ item.product_title }}{% if item.variant_label %} <span class="text-slate-400 font-normal">({{ item.variant_label }})</span>{% endif %}
+                                </span>
+                                <span class="text-sm text-slate-500 whitespace-nowrap">Qty {{ item.quantity }} &middot; NGN {{ item.line_total|floatformat:"0" }}</span>
+                            </div>
+                        </div>
+                    </label>
+
+                    <div class="js-return-item-fields mt-3 pl-7 space-y-3 hidden">
+                        <div>
+                            <label class="label-brand" for="reason_{{ item.id }}">Reason for return</label>
+                            <select name="reason_{{ item.id }}" id="reason_{{ item.id }}" class="input-brand">
+                                <option value="">Select a reason…</option>
+                                {% for value, label in reason_choices %}
+                                <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="label-brand" for="details_{{ item.id }}">Additional details <span class="text-slate-400 font-normal">(optional)</span></label>
+                            <textarea name="details_{{ item.id }}" id="details_{{ item.id }}" rows="2" class="input-brand"></textarea>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="mt-6 pt-6 border-t border-borderblue">
+                <label class="flex items-start gap-3 cursor-pointer">
+                    <input type="checkbox" name="condition_confirmed" required class="mt-1 rounded border-borderblue text-brandblue focus:ring-brandblue">
+                    <span class="text-sm text-slate-600">
+                        I confirm the selected item(s) are unused, undamaged, and in the same condition they arrived in.
+                    </span>
+                </label>
+            </div>
+
+            <div class="mt-6 flex items-center gap-3">
+                <button type="submit" class="btn-brand">
+                    <i data-lucide="undo-2" class="w-4 h-4"></i> Submit Return Request
+                </button>
+                <a href="{% url 'store:my_orders' %}" class="btn-brand-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    var selectAll = document.getElementById('selectAllItems');
+    var checkboxes = Array.prototype.slice.call(document.querySelectorAll('.js-return-item-checkbox'));
+
+    function syncRow(checkbox) {
+        var row = checkbox.closest('.return-item-row');
+        var fields = row.querySelector('.js-return-item-fields');
+        var reasonSelect = row.querySelector('select');
+        if (checkbox.checked) {
+            fields.classList.remove('hidden');
+            reasonSelect.required = true;
+        } else {
+            fields.classList.add('hidden');
+            reasonSelect.required = false;
+        }
+    }
+
+    checkboxes.forEach(function (cb) {
+        cb.addEventListener('change', function () { syncRow(cb); });
+    });
+
+    if (selectAll) {
+        selectAll.addEventListener('change', function () {
+            checkboxes.forEach(function (cb) {
+                cb.checked = selectAll.checked;
+                syncRow(cb);
+            });
+        });
+    }
+})();
+</script>
+{% endblock %}

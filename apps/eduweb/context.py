@@ -309,7 +309,7 @@ def admin_counts(request):
         return {}
 
     from django.db.models import F, Q
-    from apps.store.models import Order, Product
+    from apps.store.models import Order, Product, ReturnItem
 
     try:
         return {
@@ -325,6 +325,9 @@ def admin_counts(request):
             'pending_refund_requests_count': Order.objects.filter(
                 refund_request_status='pending'
             ).count(),
+            'pending_return_requests_count': ReturnItem.objects.filter(
+                status='pending'
+            ).count(),
             'low_stock_products_count': Product.objects.filter(
                 is_active=True, track_inventory=True, stock_quantity__gt=0
             ).filter(
@@ -339,6 +342,7 @@ def admin_counts(request):
             'unread_contact_count': 0,
             'unfulfilled_orders_count': 0,
             'pending_refund_requests_count': 0,
+            'pending_return_requests_count': 0,
             'low_stock_products_count': 0,
         }
 

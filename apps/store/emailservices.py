@@ -428,6 +428,285 @@ def send_refund_request_rejected_email(order):
         return False
 
 
+def send_return_request_staff_notification(return_request):
+    """Sent to CONTACT_EMAIL when a customer submits a Return covering one
+    or more items from a delivered order — staff must review each item
+    from the Store > Returns queue; nothing is refunded yet."""
+    recipient = getattr(settings, 'CONTACT_EMAIL', '')
+    if not recipient:
+        return False
+    try:
+        order = return_request.order
+        subject = f"Return request — {order.order_number}"
+
+        items_rows = ''
+        for ri in return_request.items.select_related('order_item').all():
+            items_rows += f"""
+                <tr>
+                    <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">{ri.order_item.product_title}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">{ri.get_reason_display()}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; white-space: pre-wrap;">{ri.reason_details}</td>
+                </tr>
+            """
+
+        html_content = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <h2 style="color: #071A3D;">Customer Requested a Return</h2>
+                <p>A customer has asked to return item(s) from a delivered order. This requires your review — nothing has been refunded yet.</p>
+
+                <table style="border-collapse: collapse; width: 100%; max-width: 600px;">
+                    <tr>
+                        <td style="padding: 8px; font-weight: bold; width: 150px;">Order Number:</td>
+                        <td style="padding: 8px;">{order.order_number}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; font-weight: bold;">Return Number:</td>
+                        <td style="padding: 8px;">{return_request.return_number}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; font-weight: bold;">Buyer:</td>
+                        <td style="padding: 8px;">{order.buyer_name} ({order.buyer_email})</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; font-weight: bold;">Condition Confirmed:</td>
+                        <td style="padding: 8px;">{'Yes' if return_request.condition_confirmed else 'No'}</td>
+                    </tr>
+                </table>
+
+                <h3>Item(s) Requested for Return</h3>
+                <table style="border-collapse: collapse; width: 100%; max-width: 600px;">
+                    <tr style="background-color: #f9fafb;">
+                        <th style="padding: 8px; text-align: left;">Item</th>
+                        <th style="padding: 8px; text-align: left;">Reason</th>
+                        <th style="padding: 8px; text-align: left;">Details</th>
+                    </tr>
+                    {items_rows}
+                </table>
+
+                <p style="margin-top: 20px;">Review each item and approve or reject it from the Store &rsaquo; Returns queue in the admin panel.</p>
+            </body>
+        </html>
+        """
+
+        text_lines = '\n'.join(
+            f"- {ri.order_item.product_title}: {ri.get_reason_display()}"
+            + (f" ({ri.reason_details})" if ri.reason_details else '')
+            for ri in return_request.items.select_related('order_item').all()
+        )
+        text_content = (
+            f"Customer requested a return for {order.order_number} (return {return_request.return_number})\n\n"
+            f"Buyer: {order.buyer_name} ({order.buyer_email})\n"
+            f"Condition Confirmed: {'Yes' if return_request.condition_confirmed else 'No'}\n\n"
+            f"Item(s) requested for return:\n{text_lines}\n\n"
+            f"Review and approve or reject from the Store > Returns queue in the admin panel."
+        )
+
+        connection, from_email = _resolve_sender('store')
+        msg = EmailMultiAlternatives(
+            subject=subject, body=text_content, from_email=from_email,
+            to=[recipient], connection=connection,
+        )
+        msg.attach_alternative(html_content, "text/html")
+        msg.send(fail_silently=False)
+        return True
+    except Exception:
+        logger.exception('Failed to send return request notification for %s', return_request.return_number)
+        return False
+
+
+def send_return_item_approved_email(return_item):
+    """Sent to the buyer once staff approves a returned item — tells them
+    to await return-shipping instructions; no refund yet, that only
+    happens once the item is physically back and inspected."""
+    try:
+        site = _site()
+        order = return_item.order_item.order
+        subject = f"Return approved — {order.order_number}"
+
+        html_content = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4;">
+                    <div style="background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
+                                padding: 30px; text-align: center;">
+                        <h1 style="color: white; margin: 0;">Return Approved</h1>
+                    </div>
+                    <div style="background-color: white; padding: 30px; margin-top: 20px;">
+                        <p style="font-size: 16px;">Dear <strong>{order.buyer_name}</strong>,</p>
+                        <p>
+                            Your return for <strong>{return_item.order_item.product_title}</strong> from order
+                            <strong>{order.order_number}</strong> has been approved.
+                        </p>
+                        <p>
+                            Our team will be in touch shortly with instructions on how to send the item back to us.
+                            Once we receive it and confirm it's in the condition it arrived in, your refund will be processed.
+                        </p>
+
+                        <p style="margin-top: 30px;">
+                            Questions in the meantime? Just reach out to us directly.
+                        </p>
+
+                        <p>
+                            Best regards,<br>
+                            <strong style="color: #071A3D;">The {site.school_short_name} Store Team</strong>
+                        </p>
+                    </div>
+                </div>
+            </body>
+        </html>
+        """
+
+        text_content = (
+            f"Return approved — {order.order_number}\n\n"
+            f"Dear {order.buyer_name},\n\n"
+            f"Your return for {return_item.order_item.product_title} from order {order.order_number} has been approved.\n\n"
+            f"Our team will be in touch shortly with instructions on how to send the item back to us. Once we "
+            f"receive it and confirm it's in the condition it arrived in, your refund will be processed.\n\n"
+            f"Best regards,\nThe {site.school_short_name} Store Team"
+        )
+
+        connection, from_email = _resolve_sender('store')
+        msg = EmailMultiAlternatives(
+            subject=subject, body=text_content, from_email=from_email,
+            to=[order.buyer_email], connection=connection,
+        )
+        msg.attach_alternative(html_content, "text/html")
+        msg.send(fail_silently=False)
+        return True
+    except Exception:
+        logger.exception('Failed to send return-approved email for return item %s', return_item.pk)
+        return False
+
+
+def send_return_item_rejected_email(return_item):
+    """Sent to the buyer when staff decline a returned item — reused for
+    both the initial-review rejection and a post-receipt failed-inspection
+    rejection, since both leave the item in the same 'rejected' state with
+    no refund."""
+    try:
+        site = _site()
+        order = return_item.order_item.order
+        subject = f"About your return — {order.order_number}"
+
+        html_content = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4;">
+                    <div style="background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
+                                padding: 30px; text-align: center;">
+                        <h1 style="color: white; margin: 0;">Update on Your Return</h1>
+                    </div>
+                    <div style="background-color: white; padding: 30px; margin-top: 20px;">
+                        <p style="font-size: 16px;">Dear <strong>{order.buyer_name}</strong>,</p>
+                        <p>
+                            We've reviewed your return for <strong>{return_item.order_item.product_title}</strong>
+                            from order <strong>{order.order_number}</strong> and are unable to approve it.
+                        </p>
+
+                        {f'<div style="background-color: #f9fafb; padding: 15px; border-radius: 5px; border-left: 3px solid #0B5CFF;"><strong>Reason:</strong> {return_item.staff_note}</div>' if return_item.staff_note else ''}
+
+                        <p style="margin-top: 20px;">
+                            If you believe this was a mistake or have more information to share, please reach out to us directly.
+                        </p>
+
+                        <p>
+                            Best regards,<br>
+                            <strong style="color: #071A3D;">The {site.school_short_name} Store Team</strong>
+                        </p>
+                    </div>
+                </div>
+            </body>
+        </html>
+        """
+
+        text_content = (
+            f"About your return — {order.order_number}\n\n"
+            f"Dear {order.buyer_name},\n\n"
+            f"We've reviewed your return for {return_item.order_item.product_title} from order {order.order_number} "
+            f"and are unable to approve it.\n\n"
+            + (f"Reason: {return_item.staff_note}\n\n" if return_item.staff_note else '')
+            + f"If you believe this was a mistake or have more information to share, please reach out to us directly.\n\n"
+            f"Best regards,\nThe {site.school_short_name} Store Team"
+        )
+
+        connection, from_email = _resolve_sender('store')
+        msg = EmailMultiAlternatives(
+            subject=subject, body=text_content, from_email=from_email,
+            to=[order.buyer_email], connection=connection,
+        )
+        msg.attach_alternative(html_content, "text/html")
+        msg.send(fail_silently=False)
+        return True
+    except Exception:
+        logger.exception('Failed to send return-rejected email for return item %s', return_item.pk)
+        return False
+
+
+def send_return_item_refunded_email(return_item):
+    """Sent to the buyer once a returned item's refund has been accepted
+    by Paystack."""
+    try:
+        site = _site()
+        order = return_item.order_item.order
+        subject = f"Return refunded — {order.order_number}"
+
+        html_content = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4;">
+                    <div style="background: linear-gradient(135deg, #071A3D 0%, #0B5CFF 55%, #38BDF8 100%);
+                                padding: 30px; text-align: center;">
+                        <h1 style="color: white; margin: 0;">Return Refunded</h1>
+                    </div>
+                    <div style="background-color: white; padding: 30px; margin-top: 20px;">
+                        <p style="font-size: 16px;">Dear <strong>{order.buyer_name}</strong>,</p>
+                        <p>
+                            We've received your returned item and processed your refund. It has been submitted to
+                            Paystack and should reflect on your original payment method within a few business days,
+                            depending on your bank.
+                        </p>
+
+                        <div style="background-color: #EAF6FF; padding: 20px; border-radius: 8px; margin: 25px 0;">
+                            <p style="margin: 0;"><strong>Order Number:</strong> {order.order_number}</p>
+                            <p style="margin: 5px 0 0;"><strong>Item:</strong> {return_item.order_item.product_title}</p>
+                            <p style="margin: 5px 0 0;"><strong>Refunded Amount:</strong> NGN {intcomma(int(return_item.refund_amount or 0))}</p>
+                        </div>
+
+                        <p>
+                            Best regards,<br>
+                            <strong style="color: #071A3D;">The {site.school_short_name} Store Team</strong>
+                        </p>
+                    </div>
+                </div>
+            </body>
+        </html>
+        """
+
+        text_content = (
+            f"Return Refunded — {order.order_number}\n\n"
+            f"Dear {order.buyer_name},\n\n"
+            f"We've received your returned item and processed your refund. It has been submitted to Paystack "
+            f"and should reflect on your original payment method within a few business days.\n\n"
+            f"Order Number: {order.order_number}\n"
+            f"Item: {return_item.order_item.product_title}\n"
+            f"Refunded Amount: NGN {intcomma(int(return_item.refund_amount or 0))}\n\n"
+            f"Best regards,\nThe {site.school_short_name} Store Team"
+        )
+
+        connection, from_email = _resolve_sender('store')
+        msg = EmailMultiAlternatives(
+            subject=subject, body=text_content, from_email=from_email,
+            to=[order.buyer_email], connection=connection,
+        )
+        msg.attach_alternative(html_content, "text/html")
+        msg.send(fail_silently=False)
+        return True
+    except Exception:
+        logger.exception('Failed to send return-refunded email for return item %s', return_item.pk)
+        return False
+
+
 def send_store_password_reset_email(request, user):
     """Send a password-reset link for a store account. Mirrors
     apps.eduweb.emailservices.send_password_reset_email's shape exactly

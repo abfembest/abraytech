@@ -78,8 +78,14 @@ from apps.eduweb.models import (
     StaffPermissionsMatrix,
 )
 from apps.store import services as store_services
-from apps.store.emailservices import send_order_refunded_email, send_refund_request_rejected_email
-from apps.store.models import Product, ProductCategory, ProductSpecification, MediaAsset, ProductImage, Order, OrderItem
+from apps.store.emailservices import (
+    send_order_refunded_email,
+    send_refund_request_rejected_email,
+    send_return_item_approved_email,
+    send_return_item_refunded_email,
+    send_return_item_rejected_email,
+)
+from apps.store.models import Product, ProductCategory, ProductSpecification, MediaAsset, ProductImage, Order, OrderItem, ReturnItem
 
 # Forms
 from apps.management.forms import (
@@ -6710,6 +6716,167 @@ def refund_request_decide(request, order_number):
     send_order_refunded_email(order)
     messages.success(request, f'Order {order.order_number} refunded.')
     return redirect('management:refund_requests_list')
+
+
+# ── RETURNS ────────────────────────────────────────────────────────────────────
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+def return_requests_list(request):
+    """Staff review queue for customer-submitted Returns (apps/store's
+    return_request_new). Each ReturnItem is reviewed and decided
+    independently of any other item in the same ReturnRequest, so a single
+    bundled request can end up partially approved and partially rejected."""
+    if not _has_permission(request, 'store_orders', 'can_view'):
+        messages.error(request, 'You do not have permission to view store orders.')
+        return redirect('management:dashboard')
+
+    items = ReturnItem.objects.select_related('return_request__order', 'return_request__user', 'order_item')
+    return render(request, 'management/site_config/return_requests_list.html', {
+        'pending_items': items.filter(status='pending').order_by('return_request__requested_at'),
+        'approved_items': items.filter(status='approved').order_by('decided_at'),
+        'received_items': items.filter(status='received').order_by('received_at'),
+        'decided_items': items.filter(status__in=['refunded', 'rejected']).order_by('-decided_at')[:25],
+    })
+
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+@require_POST
+def return_item_decide(request, item_id):
+    """First checkpoint — approve or reject a still-pending return item.
+    Approving doesn't refund anything yet; it just tells the customer to
+    ship the item back (see return_item_mark_received)."""
+    if not _has_permission(request, 'store_orders', 'can_edit'):
+        messages.error(request, 'You do not have permission to update store orders.')
+        return redirect('management:return_requests_list')
+
+    item = get_object_or_404(ReturnItem.objects.select_related('order_item__order', 'return_request'), pk=item_id)
+    decision = request.POST.get('decision', '').strip()
+    note = request.POST.get('note', '').strip()
+
+    if item.status != 'pending':
+        messages.error(request, f'{item.order_item.product_title} has no pending return decision.')
+        return redirect('management:return_requests_list')
+
+    if decision not in ('approve', 'reject'):
+        messages.error(request, 'Unknown decision.')
+        return redirect('management:return_requests_list')
+
+    item.status = 'approved' if decision == 'approve' else 'rejected'
+    item.staff_note = note
+    item.decided_at = timezone.now()
+    item.decided_by = request.user
+    item.save(update_fields=['status', 'staff_note', 'decided_at', 'decided_by'])
+
+    AuditLog.objects.create(
+        user=request.user, action='update', model_name='ReturnItem', object_id=str(item.id),
+        description=f"{'Approved' if decision == 'approve' else 'Rejected'} return for "
+                    f"{item.order_item.product_title} ({item.order_item.order.order_number})."
+    )
+    if decision == 'approve':
+        send_return_item_approved_email(item)
+        messages.success(request, f'Return for {item.order_item.product_title} approved.')
+    else:
+        send_return_item_rejected_email(item)
+        messages.success(request, f'Return for {item.order_item.product_title} rejected.')
+    return redirect('management:return_requests_list')
+
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+@require_POST
+def return_item_mark_received(request, item_id):
+    """Second checkpoint — staff confirms the physical item is back.
+    'ok' restocks it and moves to 'received' (ready to refund); goods that
+    arrive damaged/used fail the "perfect condition" requirement and are
+    rejected here instead, with no refund and no restock."""
+    if not _has_permission(request, 'store_orders', 'can_edit'):
+        messages.error(request, 'You do not have permission to update store orders.')
+        return redirect('management:return_requests_list')
+
+    item = get_object_or_404(ReturnItem.objects.select_related('order_item__product', 'order_item__order'), pk=item_id)
+    outcome = request.POST.get('outcome', '').strip()
+    note = request.POST.get('note', '').strip()
+
+    if item.status != 'approved':
+        messages.error(request, f'{item.order_item.product_title} is not awaiting receipt.')
+        return redirect('management:return_requests_list')
+
+    if outcome not in ('ok', 'failed_inspection'):
+        messages.error(request, 'Unknown outcome.')
+        return redirect('management:return_requests_list')
+
+    if outcome == 'failed_inspection':
+        item.status = 'rejected'
+        item.staff_note = note
+        item.decided_at = timezone.now()
+        item.decided_by = request.user
+        item.save(update_fields=['status', 'staff_note', 'decided_at', 'decided_by'])
+        AuditLog.objects.create(
+            user=request.user, action='update', model_name='ReturnItem', object_id=str(item.id),
+            description=f'Return for {item.order_item.product_title} rejected after inspection '
+                        f'({item.order_item.order.order_number}).'
+        )
+        send_return_item_rejected_email(item)
+        messages.success(request, f'Return for {item.order_item.product_title} rejected after inspection.')
+        return redirect('management:return_requests_list')
+
+    with transaction.atomic():
+        order_item = item.order_item
+        if order_item.product and order_item.product.track_inventory:
+            Product.objects.filter(pk=order_item.product_id).update(
+                stock_quantity=F('stock_quantity') + order_item.quantity
+            )
+        item.status = 'received'
+        item.received_at = timezone.now()
+        item.received_by = request.user
+        item.save(update_fields=['status', 'received_at', 'received_by'])
+
+    AuditLog.objects.create(
+        user=request.user, action='update', model_name='ReturnItem', object_id=str(item.id),
+        description=f'Marked return received for {item.order_item.product_title} ({item.order_item.order.order_number}).'
+    )
+    messages.success(request, f'{item.order_item.product_title} marked as received.')
+    return redirect('management:return_requests_list')
+
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+@require_POST
+def return_item_refund(request, item_id):
+    """Final checkpoint — issue the actual Paystack refund for just this
+    line's amount, not the whole order (unlike the legacy whole-order
+    refund_request_decide above)."""
+    if not _has_permission(request, 'store_orders', 'can_edit'):
+        messages.error(request, 'You do not have permission to update store orders.')
+        return redirect('management:return_requests_list')
+
+    item = get_object_or_404(ReturnItem.objects.select_related('order_item__order'), pk=item_id)
+
+    if item.status != 'received':
+        messages.error(request, f'{item.order_item.product_title} is not ready to be refunded.')
+        return redirect('management:return_requests_list')
+
+    order = item.order_item.order
+    amount = item.order_item.line_total
+    data = store_services.create_refund(order, amount=amount)
+    if not data.get('status'):
+        messages.error(request, f"Paystack refund failed: {data.get('message', 'Unknown error')}")
+        return redirect('management:return_requests_list')
+
+    item.status = 'refunded'
+    item.refunded_at = timezone.now()
+    item.refund_amount = amount
+    item.save(update_fields=['status', 'refunded_at', 'refund_amount'])
+
+    AuditLog.objects.create(
+        user=request.user, action='update', model_name='ReturnItem', object_id=str(item.id),
+        description=f'Refunded return for {item.order_item.product_title} ({order.order_number}).'
+    )
+    send_return_item_refunded_email(item)
+    messages.success(request, f'{item.order_item.product_title} refunded.')
+    return redirect('management:return_requests_list')
 
 
 # ── INSTITUTION MEMBERS ───────────────────────────────────────────────────────

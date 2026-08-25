@@ -16,6 +16,7 @@ urlpatterns = [
     path('paystack/webhook/', views.paystack_webhook, name='paystack_webhook'),
     path('orders/', views.my_orders, name='my_orders'),
     path('orders/<str:order_number>/refund-request/', views.request_refund, name='request_refund'),
+    path('orders/<str:order_number>/return/', views.return_request_new, name='return_request_new'),
     path('account/', views.store_profile, name='store_profile'),
     path('<slug:slug>/', views.product_detail, name='product_detail'),
 ]

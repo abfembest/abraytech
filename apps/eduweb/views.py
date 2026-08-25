@@ -807,9 +807,17 @@ def otp_verify(request):
 
 def user_logout(request):
     user = request.user
+    # Store customers land back on the store, not the school's sign-in page
+    # — the store is their "home" (see base.html's nav gating on
+    # profile.role == 'customer'), so this mirrors that everywhere else in
+    # the app already keys logout-destination off role, not which page the
+    # logout link was clicked from.
+    redirect_to = 'eduweb:auth_page'
     if user.is_authenticated:
         try:
             profile = user.profile
+            if profile.role == 'customer':
+                redirect_to = 'store:store_list'
             profile.is_logged_in = False
             profile.active_session_key = ''
             profile.save(update_fields=['is_logged_in', 'active_session_key'])
@@ -828,7 +836,7 @@ def user_logout(request):
 
     logout(request)
     messages.success(request, 'You have been logged out.')
-    return redirect('eduweb:auth_page')
+    return redirect(redirect_to)
 
 @login_required
 def resend_verification(request):

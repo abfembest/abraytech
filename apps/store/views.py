@@ -28,10 +28,11 @@ from .decorators import store_access
 from .emailservices import (
     send_order_confirmation_email,
     send_refund_request_staff_notification,
+    send_return_request_staff_notification,
     send_staff_order_notification,
     send_store_password_reset_email,
 )
-from .models import Order, OrderItem, Product, ProductCategory, ProductVariant
+from .models import Order, OrderItem, Product, ProductCategory, ProductVariant, ReturnItem, ReturnRequest
 
 logger = logging.getLogger(__name__)
 
@@ -632,25 +633,39 @@ def my_orders(request):
     # (not left to the JS) so currency/date rendering stays identical to
     # every other NGN amount on the site (server-side intcomma, not a
     # reimplementation in JS).
-    orders_data = [{
-        'order_number': order.order_number,
-        'created_at': order.created_at.strftime('%d %b %Y, %H:%M'),
-        'status': order.status,
-        'status_display': order.get_status_display(),
-        'total_display': f"NGN {intcomma(int(order.amount))}",
-        'delivery_display': f"{order.delivery_address}, {order.delivery_city}, {order.delivery_state}" if order.delivery_address else '',
-        'delivery_phone': order.delivery_phone,
-        'can_request_refund': order.can_be_refunded and order.refund_request_status in ('none', 'rejected'),
-        'refund_request_status': order.refund_request_status,
-        'items': [{
-            'title': item.product_title,
-            'variant_label': item.variant_label,
-            'quantity': item.quantity,
-            'image_url': _item_image_url(item),
-            'unit_price_display': f"NGN {intcomma(int(item.unit_price))}",
-            'line_total_display': f"NGN {intcomma(int(item.line_total))}",
-        } for item in order.items.all()],
-    } for order in orders]
+    def _order_dict(order):
+        items = list(order.items.all())
+        active_returns = {item.id: item.active_return_item for item in items}
+        return {
+            'order_number': order.order_number,
+            'created_at': order.created_at.strftime('%d %b %Y, %H:%M'),
+            'status': order.status,
+            'status_display': order.get_status_display(),
+            'total_display': f"NGN {intcomma(int(order.amount))}",
+            'delivery_display': f"{order.delivery_address}, {order.delivery_city}, {order.delivery_state}" if order.delivery_address else '',
+            'delivery_phone': order.delivery_phone,
+            'can_request_refund': order.can_be_refunded and order.refund_request_status in ('none', 'rejected'),
+            'refund_request_status': order.refund_request_status,
+            'delivered_at': order.delivered_at.strftime('%d %b %Y, %H:%M') if order.delivered_at else None,
+            'return_window_expires_at': order.return_window_expires_at.strftime('%d %b %Y, %H:%M') if order.return_window_expires_at else None,
+            'can_request_return': (
+                order.status == 'delivered' and order.is_within_return_window
+                and any(active_returns[item.id] is None for item in items)
+            ),
+            'items': [{
+                'id': item.id,
+                'title': item.product_title,
+                'variant_label': item.variant_label,
+                'quantity': item.quantity,
+                'image_url': _item_image_url(item),
+                'unit_price_display': f"NGN {intcomma(int(item.unit_price))}",
+                'line_total_display': f"NGN {intcomma(int(item.line_total))}",
+                'return_status': active_returns[item.id].status if active_returns[item.id] else None,
+                'return_status_display': active_returns[item.id].get_status_display() if active_returns[item.id] else None,
+            } for item in items],
+        }
+
+    orders_data = [_order_dict(order) for order in orders]
 
     return render(request, 'my_orders.html', {
         'is_customer': True,
@@ -698,6 +713,84 @@ def request_refund(request, order_number):
 
     messages.success(request, f'Your request for {order.order_number} has been sent to our team for review.')
     return redirect('store:my_orders')
+
+
+@store_access
+def return_request_new(request, order_number):
+    """Customer-initiated Return — scoped to individual order items (or
+    the whole order, by selecting all of them), unlike the retired
+    whole-order-only refund flow above. Only reachable for delivered
+    orders within Order.RETURN_WINDOW_HOURS of delivery; nothing here
+    touches money — that only happens once staff approves, receives, and
+    inspects the item(s) (see management.views.return_item_refund)."""
+    if not _is_store_customer(request.user):
+        messages.error(request, 'Please sign in to manage your orders.')
+        return redirect('store:my_orders')
+
+    order = get_object_or_404(Order, order_number=order_number, user=request.user)
+
+    if order.status != 'delivered':
+        messages.error(request, f'Order {order.order_number} is not eligible for a return.')
+        return redirect('store:my_orders')
+
+    if not order.is_within_return_window:
+        messages.error(request, f'The 72-hour return window for {order.order_number} has closed.')
+        return redirect('store:my_orders')
+
+    eligible_items = [item for item in order.items.select_related('product') if item.active_return_item is None]
+
+    if not eligible_items:
+        messages.info(request, f'Every item in {order.order_number} already has a return in progress.')
+        return redirect('store:my_orders')
+
+    if request.method == 'POST':
+        condition_confirmed = request.POST.get('condition_confirmed') == 'on'
+        selected_ids = request.POST.getlist('items')
+        selected_items = [item for item in eligible_items if str(item.id) in selected_ids]
+
+        if not condition_confirmed:
+            messages.error(request, 'Please confirm the item(s) are in the condition they arrived in.')
+            return redirect('store:return_request_new', order_number=order.order_number)
+
+        if not selected_items:
+            messages.error(request, 'Please select at least one item to return.')
+            return redirect('store:return_request_new', order_number=order.order_number)
+
+        valid_reasons = dict(ReturnItem.REASON_CHOICES)
+        reasons = {}
+        for item in selected_items:
+            reason = request.POST.get(f'reason_{item.id}', '').strip()
+            if reason not in valid_reasons:
+                messages.error(request, f'Please select a reason for returning {item.product_title}.')
+                return redirect('store:return_request_new', order_number=order.order_number)
+            reasons[item.id] = (reason, request.POST.get(f'details_{item.id}', '').strip())
+
+        with transaction.atomic():
+            return_request = ReturnRequest.objects.create(
+                order=order, user=request.user, condition_confirmed=True,
+            )
+            for item in selected_items:
+                reason, details = reasons[item.id]
+                ReturnItem.objects.create(
+                    return_request=return_request, order_item=item,
+                    reason=reason, reason_details=details,
+                )
+
+        AuditLog.objects.create(
+            user=request.user, action='create', model_name='ReturnRequest', object_id=str(return_request.id),
+            description=f'Customer requested a return of {len(selected_items)} item(s) for {order.order_number}.'
+        )
+        send_return_request_staff_notification(return_request)
+
+        messages.success(request, f'Your return request for {order.order_number} has been sent to our team for review.')
+        return redirect('store:my_orders')
+
+    return render(request, 'store_return_request.html', {
+        'order': order,
+        'items': eligible_items,
+        'reason_choices': ReturnItem.REASON_CHOICES,
+        'return_window_expires_at': order.return_window_expires_at,
+    })
 
 
 # =============================================================================

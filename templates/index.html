@@ -141,7 +141,7 @@
 
         <div id="socialTrack" class="reveal flex gap-5 overflow-x-auto snap-x snap-mandatory pb-2 sb-hide scroll-smooth">
             {% for post in social_posts %}
-            <div class="social-embed-card snap-start shrink-0 w-72 sm:w-80 rounded-2xl overflow-hidden border border-borderblue bg-white shadow-card">
+            <div class="social-embed-card snap-start shrink-0 w-full sm:w-[calc((100%-20px)/2)] rounded-2xl overflow-hidden border border-borderblue bg-white shadow-card">
                 <div class="social-embed-wrap">{{ post.embed_code|safe }}</div>
                 {% if post.caption %}
                 <p class="px-4 py-3 text-sm text-slate-600">{{ post.caption }}</p>
@@ -157,13 +157,13 @@
     var prev  = document.getElementById('socialPrev');
     var next  = document.getElementById('socialNext');
     if (!track) return;
-    function scrollByCard(dir) {
-        var card = track.querySelector('.social-embed-card');
-        var amount = card ? card.getBoundingClientRect().width + 20 : track.clientWidth * 0.8;
-        track.scrollBy({ left: dir * amount, behavior: 'smooth' });
+    function scrollByPage(dir) {
+        // Move a full page at a time (however many cards are visible at once —
+        // 1/2/3 depending on breakpoint) so "next" always lands on a fresh set.
+        track.scrollBy({ left: dir * track.clientWidth, behavior: 'smooth' });
     }
-    if (prev) prev.addEventListener('click', function () { scrollByCard(-1); });
-    if (next) next.addEventListener('click', function () { scrollByCard(1); });
+    if (prev) prev.addEventListener('click', function () { scrollByPage(-1); });
+    if (next) next.addEventListener('click', function () { scrollByPage(1); });
 })();
 </script>
 {% endif %}

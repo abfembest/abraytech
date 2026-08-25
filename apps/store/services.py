@@ -61,16 +61,23 @@ def verify_transaction(reference):
     return response.json()
 
 
-def create_refund(order):
-    """Issue a full refund for `order` via Paystack's /refund endpoint.
-    Omitting 'amount' refunds the full original charge. Returns the parsed
-    JSON response — caller checks data.get('status'); Paystack accepting
-    the request just means it's queued for processing on their side, not
-    that funds have already moved."""
+def create_refund(order, amount=None):
+    """Issue a refund for `order` via Paystack's /refund endpoint. Omitting
+    `amount` refunds the full original charge (whole-order refund flow);
+    passing `amount` (a Decimal, in the order's own currency units) issues
+    a partial refund for just that much — used by the per-item Return
+    flow, where only some of an order's items are being refunded. Amount
+    is converted to kobo since the store is NGN/Paystack-only. Returns the
+    parsed JSON response — caller checks data.get('status'); Paystack
+    accepting the request just means it's queued for processing on their
+    side, not that funds have already moved."""
+    payload = {'transaction': order.payment_reference}
+    if amount is not None:
+        payload['amount'] = int(amount * 100)
     response = requests.post(
         f'{PAYSTACK_BASE_URL}/refund',
         headers={'Authorization': f'Bearer {get_paystack_secret_key()}'},
-        json={'transaction': order.payment_reference},
+        json=payload,
         timeout=15,
     )
     return response.json()

@@ -1,4 +1,5 @@
 import uuid
+from datetime import timedelta
 
 from django.contrib.auth.models import User
 from django.db import models
@@ -238,6 +239,20 @@ class Order(models.Model):
     def can_be_refunded(self):
         return self.status in self.REFUNDABLE_STATUSES
 
+    # Return window — a delivered order can have a Return requested against
+    # it (see ReturnRequest/ReturnItem below) only within this many hours of
+    # delivered_at. Kept separate from the legacy refund flow above, which
+    # has no time limit.
+    RETURN_WINDOW_HOURS = 72
+
+    @property
+    def return_window_expires_at(self):
+        return self.delivered_at + timedelta(hours=self.RETURN_WINDOW_HOURS) if self.delivered_at else None
+
+    @property
+    def is_within_return_window(self):
+        return bool(self.delivered_at) and timezone.now() <= self.return_window_expires_at
+
     def advance_status(self, new_status, user):
         """Move this order to `new_status`, stamping the matching timestamp
         (and delivered_by, for the terminal stage). Only allows moving to
@@ -301,5 +316,89 @@ class OrderItem(models.Model):
     def line_total(self):
         return self.unit_price * self.quantity
 
+    @property
+    def active_return_item(self):
+        """The current in-flight/decided ReturnItem for this line, if any —
+        'active' meaning not rejected, so a previously-rejected return
+        doesn't block a fresh request. None if this line has never had a
+        return requested (or its only ones were rejected)."""
+        return self.return_items.exclude(status='rejected').order_by('-return_request__requested_at').first()
+
     def __str__(self):
         return f"{self.product_title} x{self.quantity}"
+
+
+class ReturnRequest(models.Model):
+    """One customer submission — may bundle several OrderItems together
+    (or just one, for an individual-item return) into a single request
+    event. The envelope only; each line is reviewed/decided independently
+    via ReturnItem.status below, so staff can approve part of a bundled
+    request and reject the rest."""
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='return_requests')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='store_return_requests')
+    return_number = models.CharField(max_length=20, unique=True, editable=False)
+    condition_confirmed = models.BooleanField(
+        default=False,
+        help_text="Customer confirmed the goods are unused/undamaged, in the condition they arrived in.",
+    )
+    requested_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-requested_at']
+        verbose_name = 'Return Request'
+        verbose_name_plural = 'Return Requests'
+
+    def __str__(self):
+        return f"Return {self.return_number} for {self.order.order_number}"
+
+    def save(self, *args, **kwargs):
+        if not self.return_number:
+            self.return_number = f"RET-{uuid.uuid4().hex[:10].upper()}"
+        super().save(*args, **kwargs)
+
+
+class ReturnItem(models.Model):
+    """A single order line within a ReturnRequest, tracked and decided
+    independently of any other line in the same request. Money only ever
+    moves at the 'refunded' transition, and only after staff has separately
+    confirmed the goods were physically received back in acceptable
+    condition (the 'received' stage) — the customer's condition_confirmed
+    checkbox on ReturnRequest is their up-front declaration, not proof."""
+    REASON_CHOICES = [
+        ('wrong_item', 'Wrong item received'),
+        ('damaged', 'Item arrived damaged/defective'),
+        ('not_as_described', "Item doesn't match description"),
+        ('changed_mind', 'No longer needed / changed my mind'),
+        ('other', 'Other'),
+    ]
+    STATUS_CHOICES = [
+        ('pending', 'Pending Review'),
+        ('approved', 'Approved — Awaiting Return Shipment'),
+        ('received', 'Received — Refund Processing'),
+        ('refunded', 'Refunded'),
+        ('rejected', 'Rejected'),
+    ]
+
+    return_request = models.ForeignKey(ReturnRequest, on_delete=models.CASCADE, related_name='items')
+    order_item = models.ForeignKey(OrderItem, on_delete=models.CASCADE, related_name='return_items')
+    reason = models.CharField(max_length=30, choices=REASON_CHOICES)
+    reason_details = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+
+    decided_at = models.DateTimeField(null=True, blank=True)
+    decided_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='store_return_items_decided')
+    staff_note = models.TextField(blank=True, help_text="Staff's note — set on approve, reject, or failed-inspection.")
+
+    received_at = models.DateTimeField(null=True, blank=True)
+    received_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='store_return_items_received')
+
+    refunded_at = models.DateTimeField(null=True, blank=True)
+    refund_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    class Meta:
+        ordering = ['-return_request__requested_at']
+        verbose_name = 'Return Item'
+        verbose_name_plural = 'Return Items'
+
+    def __str__(self):
+        return f"{self.order_item.product_title} — {self.get_status_display()}"

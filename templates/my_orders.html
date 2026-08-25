@@ -53,14 +53,21 @@
             </table>
         </div>
 
-        {% comment %}Real (non-AJAX) form — submitted natively so Django's messages
-           framework actually reaches the page the user sees. A fetch()-based
-           submit here would auto-follow the redirect and silently consume
-           the success/error message before this page ever re-renders.{% endcomment %}
+        {% comment %}
+        RETIRED — whole-order "Request Cancellation / Refund" button, replaced
+        by the item-level Return flow (store:return_request_new) below. Kept
+        commented out, not deleted, in case it's needed again; store:request_refund
+        still works if posted to directly.
+
+        Real (non-AJAX) form — submitted natively so Django's messages
+        framework actually reaches the page the user sees. A fetch()-based
+        submit here would auto-follow the redirect and silently consume
+        the success/error message before this page ever re-renders.
         <form id="refundRequestForm" method="post" action="{% url 'store:my_orders' %}" class="hidden">
             {% csrf_token %}
             <input type="hidden" name="reason" id="refundRequestReasonInput">
         </form>
+        {% endcomment %}
 
         {% else %}
         {% comment %}Not signed in as a store customer — a returning customer just needs
@@ -99,6 +106,7 @@
 <script>
 (function () {
     var orders = JSON.parse(document.getElementById('ordersDataJson').textContent);
+    var orderReturnUrlTemplate = "{% url 'store:return_request_new' 'PLACEHOLDER' %}";
 
     var statusPillClass = {
         paid: 'pill-amber',
@@ -107,6 +115,14 @@
         delivered: 'pill-lime',
         failed: 'pill-danger',
         refunded: 'pill-light',
+    };
+
+    var returnPillClass = {
+        pending: 'pill-amber',
+        approved: 'pill-cyan',
+        received: 'pill-cyan',
+        refunded: 'pill-lime',
+        rejected: 'pill-danger',
     };
 
     function thumbHtml(imageUrl, sizeClass) {
@@ -127,15 +143,23 @@
     function childRowHtml(order) {
         var rows = order.items.map(function (i) {
             var variant = i.variant_label ? ' <span class="text-slate-400">(' + i.variant_label + ')</span>' : '';
+            var returnPill = i.return_status
+                ? ' <span class="pill ' + (returnPillClass[i.return_status] || 'pill-light') + '" style="font-size:10px;padding:1px 6px;">' + i.return_status_display + '</span>'
+                : '';
             return '<div class="flex items-center gap-3 py-1.5 border-b border-borderblue last:border-0">' +
                 thumbHtml(i.image_url, 'cart-line-image') +
-                '<span class="flex-1">' + i.title + variant + ' &times; ' + i.quantity + '</span>' +
+                '<span class="flex-1">' + i.title + variant + ' &times; ' + i.quantity + returnPill + '</span>' +
                 '<span class="font-semibold text-navy">' + i.line_total_display + '</span>' +
                 '</div>';
         }).join('');
         var delivery = order.delivery_display
             ? '<div class="mt-2 pt-2 border-t border-borderblue text-xs text-slate-500">Delivering to ' + order.delivery_display + ' &middot; ' + order.delivery_phone + '</div>'
             : '';
+
+        /* RETIRED — whole-order "Request Cancellation / Refund" button,
+           replaced by the item-level Return flow below. Kept here (commented
+           out, not deleted) in case it's needed again — store:request_refund
+           still works if this is ever restored.
         var refundSection = '';
         if (order.refund_request_status === 'pending') {
             refundSection = '<div class="mt-2 pt-2 border-t border-borderblue text-xs text-brandblue font-medium">Refund request submitted — awaiting review.</div>';
@@ -146,7 +170,17 @@
                 '<button type="button" class="js-request-refund-btn btn-brand-outline btn-brand-sm" data-order-number="' + order.order_number + '">' +
                 '<i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Request Cancellation / Refund</button></div>';
         }
-        return '<div class="px-4 py-3 bg-soft rounded-lg text-sm text-slate-600">' + rows + delivery + refundSection + '</div>';
+        */
+
+        var returnSection = '';
+        if (order.can_request_return) {
+            returnSection = '<div class="mt-2 pt-2 border-t border-borderblue flex items-center justify-between gap-2 flex-wrap">' +
+                '<span class="text-xs text-slate-500">Returnable until ' + order.return_window_expires_at + '</span>' +
+                '<a href="' + orderReturnUrlTemplate.replace('PLACEHOLDER', order.order_number) + '" class="btn-brand-outline btn-brand-sm">' +
+                '<i data-lucide="undo-2" class="w-3.5 h-3.5"></i> Return Item(s)</a></div>';
+        }
+
+        return '<div class="px-4 py-3 bg-soft rounded-lg text-sm text-slate-600">' + rows + delivery + returnSection + '</div>';
     }
 
     var table = $('#myOrdersTable').DataTable({
@@ -192,6 +226,9 @@
         }
     });
 
+    /* RETIRED — whole-order refund/cancellation request handler, replaced by
+       the item-level Return flow (a real link to store:return_request_new,
+       no JS submit needed). Kept here in case it's needed again.
     // Refund/cancellation request — delegated since the button lives inside
     // a DataTables child row injected after page load. Submits the real
     // hidden form (not fetch) so the redirect back here still carries
@@ -215,6 +252,7 @@
             form.submit();
         });
     });
+    */
 })();
 </script>
 {% endif %}

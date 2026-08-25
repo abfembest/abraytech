@@ -1306,10 +1306,11 @@
    /* Homepage social carousel — cards hold whatever embed code staff pasted
       in (Instagram/TikTok blockquote+script, YouTube iframe, etc). Platform
       embed scripts are already responsive to their container; this just
-      guards against them overflowing the fixed-width card. */
-   .social-embed-wrap { width: 100%; }
-   .social-embed-wrap iframe { max-width: 100% !important; }
-   .social-embed-wrap blockquote { margin: 0 !important; max-width: 100% !important; min-width: 0 !important; }
+      guards against them overflowing the card and pins every embed to the
+      same height regardless of platform, so 2-3 cards in a row line up. */
+   .social-embed-wrap { width: 100%; height: 550px; overflow: hidden; }
+   .social-embed-wrap iframe { width: 100% !important; max-width: 100% !important; height: 100% !important; }
+   .social-embed-wrap blockquote { margin: 0 !important; max-width: 100% !important; min-width: 0 !important; height: 100% !important; overflow: hidden; }
 
 
    /* Staggered entrance-animation delay (used by loading-dot pulses) */

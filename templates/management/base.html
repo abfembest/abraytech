@@ -907,7 +907,7 @@
                             {% endif %}
                             {% if permissions.store_orders.can_view or request.user.is_superuser %}
                             <a href="{% url 'management:orders_list' %}"
-                               class="flex items-center justify-between py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'management/orders' in request.path and 'refunds' not in request.path %}bg-white/20{% endif %}">
+                               class="flex items-center justify-between py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'management/orders' in request.path and 'refunds' not in request.path and 'returns' not in request.path %}bg-white/20{% endif %}">
                                 <span><i class="fas fa-clipboard-list mr-2" aria-hidden="true"></i>Orders</span>
                                 {% if unfulfilled_orders_count > 0 %}
                                 <span class="badge-count bg-amber-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{{ unfulfilled_orders_count }}</span>
@@ -918,6 +918,13 @@
                                 <span><i class="fas fa-rotate-left mr-2" aria-hidden="true"></i>Refunds</span>
                                 {% if pending_refund_requests_count > 0 %}
                                 <span class="badge-count bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{{ pending_refund_requests_count }}</span>
+                                {% endif %}
+                            </a>
+                            <a href="{% url 'management:return_requests_list' %}"
+                               class="flex items-center justify-between py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'orders/returns' in request.path %}bg-white/20{% endif %}">
+                                <span><i class="fas fa-box-open mr-2" aria-hidden="true"></i>Returns</span>
+                                {% if pending_return_requests_count > 0 %}
+                                <span class="badge-count bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{{ pending_return_requests_count }}</span>
                                 {% endif %}
                             </a>
                             {% endif %}

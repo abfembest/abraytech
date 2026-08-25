@@ -228,6 +228,10 @@ urlpatterns = [
     path('orders/', views.orders_list, name='orders_list'),
     path('orders/refunds/', views.refund_requests_list, name='refund_requests_list'),
     path('orders/refunds/<str:order_number>/decide/', views.refund_request_decide, name='refund_request_decide'),
+    path('orders/returns/', views.return_requests_list, name='return_requests_list'),
+    path('orders/returns/<int:item_id>/decide/', views.return_item_decide, name='return_item_decide'),
+    path('orders/returns/<int:item_id>/receive/', views.return_item_mark_received, name='return_item_mark_received'),
+    path('orders/returns/<int:item_id>/refund/', views.return_item_refund, name='return_item_refund'),
     path('orders/<str:order_number>/', views.order_detail, name='order_detail'),
 
     # Institution Members
