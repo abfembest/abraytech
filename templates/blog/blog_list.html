@@ -14,6 +14,37 @@
 <meta property="og:title" content="Blog – News, Stories & Insights | {{ site_config.school_short_name|default:'Abraytech' }}">
 <meta property="og:description" content="Discover the latest news, project stories, and insights from {{ site_config.school_short_name|default:'Abraytech' }}.">
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
+{% if site_config.og_image %}<meta property="og:image" content="{{ site_config.og_image.url }}">{% endif %}
+{% endblock %}
+
+{% block twitter_tags %}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Blog – News, Stories & Insights | {{ site_config.school_short_name|default:'Abraytech' }}">
+<meta name="twitter:description" content="Discover the latest news, project stories, and insights from {{ site_config.school_short_name|default:'Abraytech' }}.">
+{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Blog | {{ site_config.school_short_name|default:'Abraytech' }}",
+  "url": "{{ request.build_absolute_uri }}"
+}
+</script>
+{% if posts %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "itemListElement": [
+    {% for post in posts %}
+    {"@type": "ListItem", "position": {{ forloop.counter }}, "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'eduweb:blog_detail' post.slug %}"}{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endif %}
 {% endblock %}
 
 {% block content %}

@@ -1,10 +1,57 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Industries | Abraytech{% endblock %}
+{% block title %}Industries We Serve | {{ site_config.school_short_name|default:"Abraytech" }}{% endblock %}
 
-{% block extra_css %}
-<meta name="description" content="Industries Abraytech serves with tailored technology solutions.">
+{% block meta_tags %}
+<meta name="description" content="Industries {{ site_config.school_short_name|default:'Abraytech' }} serves with tailored technology solutions.">
+<meta name="keywords" content="industries served, {{ site_config.school_short_name|default:'Abraytech' }} sectors, technology solutions by industry">
+<meta name="robots" content="index, follow">
+{% endblock %}
+
+{% block og_tags %}
+<meta property="og:type" content="website">
+<meta property="og:title" content="Industries We Serve | {{ site_config.school_short_name|default:'Abraytech' }}">
+<meta property="og:description" content="Industries {{ site_config.school_short_name|default:'Abraytech' }} serves with tailored technology solutions.">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+{% if site_config.og_image %}<meta property="og:image" content="{{ site_config.og_image.url }}">{% endif %}
+{% endblock %}
+
+{% block twitter_tags %}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Industries We Serve | {{ site_config.school_short_name|default:'Abraytech' }}">
+<meta name="twitter:description" content="Industries {{ site_config.school_short_name|default:'Abraytech' }} serves with tailored technology solutions.">
+{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'eduweb:index' %}"},
+    {"@type": "ListItem", "position": 2, "name": "Industries", "item": "{{ request.build_absolute_uri }}"}
+  ]
+}
+</script>
+{% if industries %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Industries We Serve",
+  "url": "{{ request.build_absolute_uri }}",
+  "mainEntity": {
+    "@type": "ItemList",
+    "itemListElement": [
+      {% for industry in industries %}
+      {"@type": "ListItem", "position": {{ forloop.counter }}, "name": "{{ industry.title|escapejs }}"}{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }
+}
+</script>
+{% endif %}
 {% endblock %}
 
 {% block content %}

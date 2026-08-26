@@ -4,29 +4,42 @@
 {% block title %}{{ post.title }} | {{ site_config.school_short_name|default:"Abraytech" }} Blog{% endblock %}
 
 {% block meta_tags %}
-<meta name="description" content="{{ post.meta_description|default:post.excerpt }}">
-<meta name="keywords" content="{{ post.meta_keywords }}">
+<meta name="description" content="{{ post.meta_description|default:post.excerpt|truncatechars:160 }}">
+<meta name="keywords" content="{{ post.meta_keywords|default:post.title }}">
 <meta name="author" content="{{ post.author_name }}">
 <meta name="robots" content="index, follow">
+{% endblock %}
 
-<!-- Open Graph -->
+{% block og_tags %}
+<!-- Open Graph — overriding this block (instead of dumping og: tags inside
+     meta_tags) matters: base.html's default og_tags block still renders on
+     top of anything left inside meta_tags, producing two <meta
+     property="og:title"> tags. Overriding the block itself is what
+     suppresses the default. -->
 <meta property="og:type" content="article">
 <meta property="og:title" content="{{ post.title }}">
-<meta property="og:description" content="{{ post.excerpt }}">
+<meta property="og:description" content="{{ post.excerpt|truncatechars:200 }}">
 {% if post.featured_image %}
 <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ post.featured_image.url }}">
+{% elif site_config.og_image %}
+<meta property="og:image" content="{{ site_config.og_image.url }}">
 {% endif %}
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
 <meta property="article:published_time" content="{{ post.publish_date|date:'c' }}">
+<meta property="article:modified_time" content="{{ post.updated_at|date:'c' }}">
 <meta property="article:author" content="{{ post.author_name }}">
 {% if post.category %}
 <meta property="article:section" content="{{ post.category.name }}">
 {% endif %}
+{% for tag in post.tags %}
+<meta property="article:tag" content="{{ tag }}">
+{% endfor %}
+{% endblock %}
 
-<!-- Twitter Card -->
+{% block twitter_tags %}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ post.title }}">
-<meta name="twitter:description" content="{{ post.excerpt }}">
+<meta name="twitter:description" content="{{ post.excerpt|truncatechars:200 }}">
 {% if post.featured_image %}
 <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ post.featured_image.url }}">
 {% endif %}
@@ -53,6 +66,21 @@
     "@type": "Organization",
     "name": "{{ site_config.school_name|default:'Abraytech' }}"
   }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'eduweb:index' %}"},
+    {"@type": "ListItem", "position": 2, "name": "Blog", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'eduweb:blog' %}"}{% if post.category %},
+    {"@type": "ListItem", "position": 3, "name": "{{ post.category.name|escapejs }}", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'eduweb:blog_category' post.category.slug %}"},
+    {"@type": "ListItem", "position": 4, "name": "{{ post.title|escapejs }}", "item": "{{ request.build_absolute_uri }}"}
+    {% else %},
+    {"@type": "ListItem", "position": 3, "name": "{{ post.title|escapejs }}", "item": "{{ request.build_absolute_uri }}"}
+    {% endif %}
+  ]
 }
 </script>
 {% endblock %}

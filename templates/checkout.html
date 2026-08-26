@@ -1,7 +1,12 @@
 {% extends 'base.html' %}
 {% load static humanize %}
 
-{% block title %}Checkout | Abraytech Store{% endblock %}
+{% block title %}Checkout | {{ site_config.school_short_name|default:"Abraytech" }} Store{% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="Secure checkout at {{ site_config.school_short_name|default:'Abraytech' }} Store.">
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
 
 {% block content %}
 
@@ -71,12 +76,12 @@
                 </form>
 
                 {% else %}
-                <div class="flex gap-2 mb-6" role="tablist">
-                    <button type="button" id="tabSignup" class="btn-brand btn-brand-sm" data-tab-target="panelSignup">Sign Up</button>
-                    <button type="button" id="tabLogin" class="btn-brand-outline btn-brand-sm" data-tab-target="panelLogin">Log In</button>
+                <div class="flex gap-2 mb-6" role="tablist" aria-label="Checkout account options">
+                    <button type="button" id="tabSignup" class="btn-brand btn-brand-sm" data-tab-target="panelSignup" role="tab" aria-selected="true" aria-controls="panelSignup">Sign Up</button>
+                    <button type="button" id="tabLogin" class="btn-brand-outline btn-brand-sm" data-tab-target="panelLogin" role="tab" aria-selected="false" aria-controls="panelLogin">Log In</button>
                 </div>
 
-                <div id="panelSignup">
+                <div id="panelSignup" role="tabpanel" aria-labelledby="tabSignup">
                     <p class="text-sm text-slate-500 mb-4">Store accounts are separate from student/staff logins &mdash; create one to check out.</p>
                     <form method="post" action="{% url 'store:checkout_view' %}" class="space-y-4">
                         {% csrf_token %}
@@ -113,7 +118,7 @@
                     </form>
                 </div>
 
-                <div id="panelLogin" class="hidden">
+                <div id="panelLogin" class="hidden" role="tabpanel" aria-labelledby="tabLogin">
                     <p class="text-sm text-slate-500 mb-4">Already have a store account? Log in to continue.</p>
                     <form method="post" action="{% url 'store:store_login' %}" class="space-y-4">
                         {% csrf_token %}
@@ -144,9 +149,11 @@
                 tabs.forEach(function (t) {
                     t.classList.remove('btn-brand');
                     t.classList.add('btn-brand-outline');
+                    t.setAttribute('aria-selected', 'false');
                 });
                 tab.classList.add('btn-brand');
                 tab.classList.remove('btn-brand-outline');
+                tab.setAttribute('aria-selected', 'true');
 
                 document.querySelectorAll('[id^="panel"]').forEach(function (panel) {
                     panel.classList.add('hidden');

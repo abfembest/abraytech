@@ -19,6 +19,7 @@ All processors listed here must also be registered in settings.py:
     }]
 """
 
+import json
 import logging
 from django.template import Library
 from .models import (
@@ -58,6 +59,78 @@ def site_config_context(request):
         site = _EmptySiteConfig()
 
     return {'site_config': site}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 1b. ORGANIZATION JSON-LD
+#     Builds the site-wide Organization + WebSite structured data as real
+#     JSON (json.dumps), not string-concatenated template conditionals —
+#     an optional sameAs/contactPoint field being blank must never produce
+#     a trailing comma and invalid JSON. Rendered once in base.html via
+#     {{ organization_jsonld|safe }}, present on every page regardless of
+#     whatever a child template's own {% block structured_data %} adds.
+# ─────────────────────────────────────────────────────────────────────────────
+def organization_jsonld(request):
+    try:
+        site = SiteConfig.get()
+    except Exception:
+        site = None
+
+    school_name = (getattr(site, 'school_name', '') or 'Abraytech')
+    short_name = (getattr(site, 'school_short_name', '') or school_name)
+    base_url = f"{request.scheme}://{request.get_host()}/"
+
+    same_as = [
+        url for url in [
+            getattr(site, 'linkedin', ''),
+            getattr(site, 'twitter', ''),
+            getattr(site, 'facebook', ''),
+            getattr(site, 'instagram', ''),
+            getattr(site, 'youtube', ''),
+        ] if url
+    ]
+
+    organization = {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "@id": f"{base_url}#organization",
+        "name": school_name,
+        "alternateName": short_name,
+        "url": base_url,
+    }
+    logo = getattr(site, 'logo', None)
+    if logo:
+        try:
+            organization["logo"] = request.build_absolute_uri(logo.url)
+        except Exception:
+            pass
+    tagline = getattr(site, 'tagline', '')
+    if tagline:
+        organization["description"] = tagline
+    if same_as:
+        organization["sameAs"] = same_as
+
+    email = getattr(site, 'email', '')
+    phone = getattr(site, 'phone_primary', '')
+    if email or phone:
+        contact_point = {"@type": "ContactPoint", "contactType": "customer support"}
+        if email:
+            contact_point["email"] = email
+        if phone:
+            contact_point["telephone"] = phone
+        organization["contactPoint"] = contact_point
+
+    website = {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": school_name,
+        "url": base_url,
+    }
+
+    return {
+        'organization_jsonld': json.dumps(organization),
+        'website_jsonld': json.dumps(website),
+    }
 
 
 # ─────────────────────────────────────────────────────────────────────────────

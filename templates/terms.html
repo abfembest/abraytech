@@ -1,7 +1,33 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Terms of Service | Abraytech{% endblock %}
+{% block title %}Terms of Service | {{ site_config.school_short_name|default:"Abraytech" }}{% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="The terms that govern your use of {{ site_config.school_name|default:'Abraytech' }}'s services, products, and training.">
+<meta name="keywords" content="{{ site_config.school_short_name|default:'Abraytech' }} terms of service, terms and conditions">
+<meta name="robots" content="index, follow">
+{% endblock %}
+
+{% block og_tags %}
+<meta property="og:type" content="website">
+<meta property="og:title" content="Terms of Service | {{ site_config.school_short_name|default:'Abraytech' }}">
+<meta property="og:description" content="The terms that govern your use of {{ site_config.school_name|default:'Abraytech' }}'s services, products, and training.">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'eduweb:index' %}"},
+    {"@type": "ListItem", "position": 2, "name": "Terms of Service", "item": "{{ request.build_absolute_uri }}"}
+  ]
+}
+</script>
+{% endblock %}
 
 {% block content %}
 

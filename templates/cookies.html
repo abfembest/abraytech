@@ -1,7 +1,33 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Cookie Policy | Abraytech{% endblock %}
+{% block title %}Cookie Policy | {{ site_config.school_short_name|default:"Abraytech" }}{% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="How {{ site_config.school_name|default:'Abraytech' }} uses cookies across this site.">
+<meta name="keywords" content="{{ site_config.school_short_name|default:'Abraytech' }} cookie policy, cookies">
+<meta name="robots" content="index, follow">
+{% endblock %}
+
+{% block og_tags %}
+<meta property="og:type" content="website">
+<meta property="og:title" content="Cookie Policy | {{ site_config.school_short_name|default:'Abraytech' }}">
+<meta property="og:description" content="How {{ site_config.school_name|default:'Abraytech' }} uses cookies across this site.">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'eduweb:index' %}"},
+    {"@type": "ListItem", "position": 2, "name": "Cookie Policy", "item": "{{ request.build_absolute_uri }}"}
+  ]
+}
+</script>
+{% endblock %}
 
 {% block content %}
 

@@ -1,7 +1,12 @@
 {% extends 'base.html' %}
 {% load static humanize %}
 
-{% block title %}Order {{ order.order_number }} | Abraytech Store{% endblock %}
+{% block title %}Order {{ order.order_number }} | {{ site_config.school_short_name|default:"Abraytech" }} Store{% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="Order confirmation for order {{ order.order_number }} at {{ site_config.school_short_name|default:'Abraytech' }} Store.">
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
 
 {% block content %}
 

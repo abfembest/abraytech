@@ -18,15 +18,23 @@
 {% if site_config.og_image %}<meta property="og:image" content="{{ site_config.og_image.url }}">{% endif %}
 {% endblock %}
 
+{% block twitter_tags %}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="About {{ site_config.school_short_name|default:'Abraytech' }} — {{ site_config.school_name|default:'Abraytech' }}">
+<meta name="twitter:description" content="A technology company delivering software development, cybersecurity, AI, IT consulting and training.">
+{% if site_config.og_image %}<meta name="twitter:image" content="{{ site_config.og_image.url }}">{% endif %}
+{% endblock %}
+
 {% block structured_data %}
+{# Organization/WebSite identity is already emitted globally in base.html — this page adds only its own AboutPage type, referencing that organization rather than repeating it. #}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "{{ site_config.school_name|default:'Abraytech'|escapejs }}",
-  "alternateName": "{{ site_config.school_short_name|default:'Abraytech'|escapejs }}",
+  "@type": "AboutPage",
+  "name": "About {{ site_config.school_short_name|default:'Abraytech'|escapejs }}",
   "description": "A technology company delivering software development, cybersecurity, AI, IT consulting and training.",
-  "url": "{{ request.build_absolute_uri }}"
+  "url": "{{ request.build_absolute_uri }}",
+  "about": {"@id": "{{ request.scheme }}://{{ request.get_host }}/#organization"}
 }
 </script>
 {% endblock %}

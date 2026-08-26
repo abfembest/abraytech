@@ -1,11 +1,39 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Campus Life at MIU - Student Experience | Modern International University{% endblock %}
+{% block title %}Campus Life | {{ site_config.school_short_name|default:"Abraytech" }}{% endblock %}
 
-{% block extra_css %}
-<meta name="description" content="Experience vibrant campus life at MIU. Discover student organizations, athletics, housing, dining, events, and activities that make MIU a great place to learn and grow.">
-<meta name="keywords" content="campus life, student life, student organizations, campus events, MIU campus, student activities, college experience">
+{% block meta_tags %}
+<meta name="description" content="Experience campus life at {{ site_config.school_name|default:'Abraytech' }} — student organizations, events, and activities.">
+<meta name="keywords" content="campus life, student life, {{ site_config.school_short_name|default:'Abraytech' }} campus">
+<meta name="robots" content="index, follow">
+{% endblock %}
+
+{% block og_tags %}
+<meta property="og:type" content="website">
+<meta property="og:title" content="Campus Life | {{ site_config.school_short_name|default:'Abraytech' }}">
+<meta property="og:description" content="Experience campus life at {{ site_config.school_name|default:'Abraytech' }}.">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+{% if site_config.og_image %}<meta property="og:image" content="{{ site_config.og_image.url }}">{% endif %}
+{% endblock %}
+
+{% block twitter_tags %}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Campus Life | {{ site_config.school_short_name|default:'Abraytech' }}">
+<meta name="twitter:description" content="Experience campus life at {{ site_config.school_name|default:'Abraytech' }}.">
+{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'eduweb:index' %}"},
+    {"@type": "ListItem", "position": 2, "name": "Campus Life", "item": "{{ request.build_absolute_uri }}"}
+  ]
+}
+</script>
 {% endblock %}
 
 {% block content %}

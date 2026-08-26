@@ -3,6 +3,11 @@
 
 {% block title %}{% if blocked_reason %}Application Closed{% else %}Sign Up{% endif %} - {{ program.name }} - {{ site_config.school_short_name|default:"Abraytech" }}{% endblock %}
 
+{% block meta_tags %}
+<meta name="description" content="Create your {{ site_config.school_name|default:'Abraytech' }} account to apply.">
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
 {% block content %}
 {% if blocked_reason %}
 <div class="bg-soft py-16 lg:py-20 px-4 min-h-screen flex items-center">
@@ -13,9 +18,9 @@
                 <i data-lucide="alert-triangle" class="w-8 h-8 text-brandblue"></i>
             </div>
 
-            <h3 class="text-3xl font-bold font-sora text-navy mb-4">
+            <h1 class="text-3xl font-bold font-sora text-navy mb-4">
                 Application Closed
-            </h3>
+            </h1>
 
             <p class="text-base text-slate-600 leading-relaxed max-w-lg mx-auto mb-10">
                 {% if blocked_reason == 'no_intake' %}
@@ -57,9 +62,9 @@
                 <!-- Right Side - Sign Up -->
                 <div class="lg:col-span-3 p-6 lg:p-8">
 
-                    <h3 class="text-2xl font-bold font-sora text-navy mb-2 text-center">
+                    <h1 class="text-2xl font-bold font-sora text-navy mb-2 text-center">
                         Create Your Account
-                    </h3>
+                    </h1>
                     <p class="text-sm text-gray-500 text-center mb-6">
                         Applying to <strong class="text-navy">{{ program.name }}</strong>
                     </p>
@@ -119,9 +124,9 @@
                                     Password
                                 </label>
                                 <div class="input-group">
-                                    <i data-lucide="lock" class="icon w-5 h-5"></i>
+                                    <i data-lucide="lock" class="icon w-5 h-5" aria-hidden="true"></i>
                                     {{ signup_form.password1 }}
-                                    <i data-lucide="eye" data-target="id_password1"
+                                    <i data-lucide="eye" data-target="id_password1" role="button" tabindex="0" aria-label="Show password"
                                        class="password-toggle absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 cursor-pointer text-slate-400 hover:text-brandblue transition-colors"></i>
                                 </div>
                                 <div class="error-message text-red-600 text-sm mt-1" id="password1_error">
@@ -139,9 +144,9 @@
                                     Confirm Password
                                 </label>
                                 <div class="input-group">
-                                    <i data-lucide="lock" class="icon w-5 h-5"></i>
+                                    <i data-lucide="lock" class="icon w-5 h-5" aria-hidden="true"></i>
                                     {{ signup_form.password2 }}
-                                    <i data-lucide="eye" data-target="id_password2"
+                                    <i data-lucide="eye" data-target="id_password2" role="button" tabindex="0" aria-label="Show password"
                                        class="password-toggle absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 cursor-pointer text-slate-400 hover:text-brandblue transition-colors"></i>
                                 </div>
                                 <div class="error-message text-red-600 text-sm mt-1" id="password2_error">
@@ -238,8 +243,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 const isPassword = input.type === 'password';
                 input.type = isPassword ? 'text' : 'password';
                 toggle.setAttribute('data-lucide', isPassword ? 'eye-off' : 'eye');
+                toggle.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
                 safeLucideIcons();
             }
+        }
+    });
+
+    // Keyboard support for the password-toggle (role="button", not a real
+    // <button>) — click-only would leave keyboard/screen-reader users unable
+    // to reveal the password.
+    document.body.addEventListener('keydown', function(e) {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        const toggle = e.target.classList.contains('password-toggle') ? e.target : null;
+        if (toggle) {
+            e.preventDefault();
+            toggle.click();
         }
     });
 

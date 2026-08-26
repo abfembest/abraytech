@@ -3,6 +3,11 @@
 
 {% block title %}Complete Your Application Payments - {{ site_config.school_name|default:"Abraytech" }}{% endblock %}
 
+{% block meta_tags %}
+<meta name="description" content="Complete your application payment with {{ site_config.school_name|default:'Abraytech' }}.">
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
 {% block content %}
 <div class="bg-soft min-h-screen">
     <div class="container mx-auto px-4 py-8 max-w-6xl">

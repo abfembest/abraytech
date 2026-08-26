@@ -1,10 +1,57 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Services | Abraytech{% endblock %}
+{% block title %}Services | {{ site_config.school_short_name|default:"Abraytech" }}{% endblock %}
 
-{% block extra_css %}
-<meta name="description" content="Abraytech technology services: software development, cybersecurity, AI & data, and IT consulting.">
+{% block meta_tags %}
+<meta name="description" content="{{ site_config.school_short_name|default:'Abraytech' }} technology services: software development, cybersecurity, AI &amp; data, and IT consulting.">
+<meta name="keywords" content="software development, cybersecurity, AI, IT consulting, technology services, {{ site_config.school_short_name|default:'Abraytech' }}">
+<meta name="robots" content="index, follow">
+{% endblock %}
+
+{% block og_tags %}
+<meta property="og:type" content="website">
+<meta property="og:title" content="Services | {{ site_config.school_short_name|default:'Abraytech' }}">
+<meta property="og:description" content="{{ site_config.school_short_name|default:'Abraytech' }} technology services: software development, cybersecurity, AI &amp; data, and IT consulting.">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+{% if site_config.og_image %}<meta property="og:image" content="{{ site_config.og_image.url }}">{% endif %}
+{% endblock %}
+
+{% block twitter_tags %}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Services | {{ site_config.school_short_name|default:'Abraytech' }}">
+<meta name="twitter:description" content="Software development, cybersecurity, AI &amp; data, and IT consulting.">
+{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'eduweb:index' %}"},
+    {"@type": "ListItem", "position": 2, "name": "Services", "item": "{{ request.build_absolute_uri }}"}
+  ]
+}
+</script>
+{% if services %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Services",
+  "url": "{{ request.build_absolute_uri }}",
+  "mainEntity": {
+    "@type": "ItemList",
+    "itemListElement": [
+      {% for service in services %}
+      {"@type": "ListItem", "position": {{ forloop.counter }}, "name": "{{ service.title|escapejs }}", "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'eduweb:service_detail' service.slug %}"}{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }
+}
+</script>
+{% endif %}
 {% endblock %}
 
 {% block content %}

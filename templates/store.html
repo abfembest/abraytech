@@ -1,10 +1,61 @@
 {% extends 'base.html' %}
 {% load static humanize %}
 
-{% block title %}Store | Abraytech{% endblock %}
+{% block title %}{% if active_category %}{{ active_category|title }} – {% endif %}Store | {{ site_config.school_short_name|default:"Abraytech" }}{% endblock %}
 
-{% block extra_css %}
-<meta name="description" content="Products and tools from Abraytech.">
+{% block meta_tags %}
+<meta name="description" content="Shop products and tools from {{ site_config.school_short_name|default:'Abraytech' }} — technology hardware, software, and training resources.">
+<meta name="keywords" content="{{ site_config.school_short_name|default:'Abraytech' }} store, buy technology products, {{ site_config.school_short_name|default:'Abraytech' }} shop">
+<meta name="robots" content="{% if query %}noindex, follow{% else %}index, follow{% endif %}">
+{% endblock %}
+
+{% block og_tags %}
+<meta property="og:type" content="website">
+<meta property="og:title" content="Store | {{ site_config.school_short_name|default:'Abraytech' }}">
+<meta property="og:description" content="Shop products and tools from {{ site_config.school_short_name|default:'Abraytech' }}.">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+{% if site_config.og_image %}<meta property="og:image" content="{{ site_config.og_image.url }}">{% endif %}
+{% endblock %}
+
+{% block twitter_tags %}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Store | {{ site_config.school_short_name|default:'Abraytech' }}">
+<meta name="twitter:description" content="Shop products and tools from {{ site_config.school_short_name|default:'Abraytech' }}.">
+{% endblock %}
+
+{% block canonical %}
+{# Search/pagination params make near-duplicate listings — canonicalize to the plain (or category-filtered) list, not every query-string combination. #}
+<link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{% url 'store:store_list' %}{% if active_category %}?category={{ active_category }}{% endif %}">
+{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'eduweb:index' %}"},
+    {"@type": "ListItem", "position": 2, "name": "Store", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'store:store_list' %}"}
+  ]
+}
+</script>
+{% if products %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "itemListElement": [
+    {% for product in products %}
+    {
+      "@type": "ListItem",
+      "position": {{ forloop.counter }},
+      "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'store:product_detail' product.slug %}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endif %}
 {% endblock %}
 
 {% block content %}

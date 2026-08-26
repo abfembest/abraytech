@@ -1,7 +1,12 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}My Orders | Abraytech Store{% endblock %}
+{% block title %}My Orders | {{ site_config.school_short_name|default:"Abraytech" }} Store{% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="View your order history at {{ site_config.school_short_name|default:'Abraytech' }} Store.">
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
 
 {% block extra_css %}
 {% if is_customer %}

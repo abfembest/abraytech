@@ -116,6 +116,7 @@ TEMPLATES = [
                 "apps.eduweb.views.application_status_context",
                 "apps.eduweb.context.navigation_data",
                 'apps.eduweb.context.site_config_context',
+                'apps.eduweb.context.organization_jsonld',
                 "apps.eduweb.context.student_counts",
                 'apps.eduweb.context.admin_counts',
                 'apps.eduweb.context.instructor_counts',

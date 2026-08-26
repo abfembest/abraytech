@@ -1,7 +1,63 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Careers | Abraytech{% endblock %}
+{% block title %}Careers | {{ site_config.school_short_name|default:"Abraytech" }}{% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="Open roles at {{ site_config.school_short_name|default:'Abraytech' }} — join a team working across software development, cybersecurity, AI, and technology training.">
+<meta name="keywords" content="{{ site_config.school_short_name|default:'Abraytech' }} careers, jobs, hiring, tech jobs Nigeria">
+<meta name="robots" content="index, follow">
+{% endblock %}
+
+{% block og_tags %}
+<meta property="og:type" content="website">
+<meta property="og:title" content="Careers at {{ site_config.school_short_name|default:'Abraytech' }}">
+<meta property="og:description" content="Open roles at {{ site_config.school_short_name|default:'Abraytech' }} — join a team working across software development, cybersecurity, AI, and technology training.">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+{% if site_config.og_image %}<meta property="og:image" content="{{ site_config.og_image.url }}">{% endif %}
+{% endblock %}
+
+{% block twitter_tags %}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Careers at {{ site_config.school_short_name|default:'Abraytech' }}">
+<meta name="twitter:description" content="Open roles at {{ site_config.school_short_name|default:'Abraytech' }}.">
+{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'eduweb:index' %}"},
+    {"@type": "ListItem", "position": 2, "name": "Careers", "item": "{{ request.build_absolute_uri }}"}
+  ]
+}
+</script>
+{% for job in jobs %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "JobPosting",
+  "title": "{{ job.title|escapejs }}",
+  "description": "{{ job.description|default:job.title|striptags|escapejs }}",
+  "datePosted": "{{ job.posted_at|date:'Y-m-d' }}",
+  {% if job.closes_at %}"validThrough": "{{ job.closes_at|date:'Y-m-d' }}",{% endif %}
+  "employmentType": "{% if job.employment_type == 'full_time' %}FULL_TIME{% elif job.employment_type == 'part_time' %}PART_TIME{% elif job.employment_type == 'contract' %}CONTRACTOR{% elif job.employment_type == 'internship' %}INTERN{% else %}OTHER{% endif %}",
+  "hiringOrganization": {
+    "@type": "Organization",
+    "name": "{{ site_config.school_name|default:'Abraytech'|escapejs }}",
+    "sameAs": "{{ request.scheme }}://{{ request.get_host }}/"
+  }{% if job.location %},
+  "jobLocationType": "{% if job.employment_type == 'remote' %}TELECOMMUTE{% else %}ONSITE{% endif %}",
+  "jobLocation": {
+    "@type": "Place",
+    "address": {"@type": "PostalAddress", "addressLocality": "{{ job.location|escapejs }}"}
+  }{% endif %}
+}
+</script>
+{% endfor %}
+{% endblock %}
 
 {% block content %}
 

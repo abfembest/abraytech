@@ -5,23 +5,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="keywords"
-        content="{{ site_config.meta_keywords|default:'Abraytech, software development, cybersecurity, AI, IT consulting, technology training' }}">
-    <meta property="og:title"
-        content="{{ site_config.school_name|default:'Abraytech' }} – Technology Services, Training &amp; Products">
-    <meta property="og:description"
-        content="{{ site_config.meta_description|default:'Software development, cybersecurity, AI, IT consulting, and technology training from Abraytech.' }}">
-    <meta name="twitter:title"
-        content="{{ site_config.school_name|default:'Abraytech' }} ({{ site_config.school_short_name|default:'Abraytech' }})">
-    <meta name="twitter:description"
-        content="{{ site_config.meta_description|default:'Software development, cybersecurity, AI, IT consulting, and technology training from Abraytech.' }}">
-
-    <!-- Dynamic Meta Tags - Allow child templates to override -->
+    <!-- Dynamic Meta Tags - Allow child templates to override. Description/
+         keywords/robots live ONLY here — og:title/og:description/twitter:*
+         are set once, in the og_tags/twitter_tags blocks below, not
+         duplicated up here too (two <meta property="og:title"> tags on one
+         page is undefined behavior for crawlers, so don't reintroduce that). -->
     {% block meta_tags %}
     <meta name="description"
-        content="Abraytech — technology services, training, and products. Software development, cybersecurity, AI & data, and IT consulting.">
+        content="{{ site_config.meta_description|default:'Abraytech — technology services, training, and products. Software development, cybersecurity, AI & data, and IT consulting.' }}">
     <meta name="keywords"
-        content="software development, cybersecurity, AI, IT consulting, technology training, Abraytech">
+        content="{{ site_config.meta_keywords|default:'software development, cybersecurity, AI, IT consulting, technology training, Abraytech' }}">
+    <meta name="robots" content="index, follow">
     {% endblock %}
 
     <meta name="author" content="{{ site_config.school_name|default:'Abraytech' }}">
@@ -97,7 +91,17 @@
     <script src="{% static 'vendor/htmx/htmx.min.js' %}"></script>
 
 
-    <!-- Structured Data -->
+    <!-- Structured Data: Organization/WebSite is site-wide identity — always
+         present, on every page, independent of whatever a child template's
+         structured_data block adds (Product/Article/Course/FAQPage/etc.),
+         so overriding that block on a page never removes the base identity
+         markup. This is also what AI assistants/search "Knowledge Panel"
+         style features key off of to recognize the organization. -->
+    <script type="application/ld+json">{{ organization_jsonld|safe }}</script>
+    <script type="application/ld+json">{{ website_jsonld|safe }}</script>
+
+    <!-- Structured Data — page-specific additions (Product, Article, Course,
+         FAQPage, BreadcrumbList, etc.) -->
     {% block structured_data %}{% endblock %}
 
     {% block extra_css %}{% endblock %}

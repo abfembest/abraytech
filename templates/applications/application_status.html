@@ -3,6 +3,11 @@
 
 {% block title %}Application Status - {{ site_config.school_name|default:"Abraytech" }}{% endblock %}
 
+{% block meta_tags %}
+<meta name="description" content="Track your application status with {{ site_config.school_name|default:'Abraytech' }}.">
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
 {% block content %}
 <style>
     select option:disabled {

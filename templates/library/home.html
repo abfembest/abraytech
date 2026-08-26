@@ -5,6 +5,30 @@
 {% block meta_description %}Explore the {{ site_config.school_name }} digital library — theological books, periodicals, Bible commentaries and scholarly references.{% endblock %}
 {% block og_title %}Digital Library – {{ site_config.school_name }}{% endblock %}
 {% block og_description %}Explore our curated collection of theological books, periodicals, Bible commentaries, and scholarly references.{% endblock %}
+{% block twitter_title %}Digital Library – {{ site_config.school_name }}{% endblock %}
+{% block twitter_description %}Explore our curated collection of theological books, periodicals, Bible commentaries, and scholarly references.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Digital Library",
+  "url": "{{ request.build_absolute_uri }}",
+  "description": "Digital library of theological books, periodicals, and references at {{ site_config.school_name|escapejs }}."
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'eduweb:index' %}"},
+    {"@type": "ListItem", "position": 2, "name": "Library", "item": "{{ request.build_absolute_uri }}"}
+  ]
+}
+</script>
+{% endblock %}
 
 {% block content %}
 

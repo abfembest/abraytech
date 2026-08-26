@@ -5,6 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="{% block meta_description %}{{ site_config.tagline|default:'Digital Library — theological books, periodicals and references.' }}{% endblock %}">
+  {% block keywords %}<meta name="keywords" content="digital library, {{ site_config.school_name|default:'theological' }} library, books, periodicals, references">{% endblock %}
+  {% block robots %}<meta name="robots" content="index, follow">{% endblock %}
   <meta name="theme-color" content="{{ site_config.theme_color|default:'#840384' }}">
 
   {# Open Graph #}
@@ -35,6 +37,8 @@
 
   {# Main compiled CSS (Tailwind + library design tokens) #}
   <link rel="stylesheet" href="{% static 'css/library.css' %}">
+
+  {% block structured_data %}{% endblock %}
 
   {% block extra_head %}{% endblock %}
 </head>

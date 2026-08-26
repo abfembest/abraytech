@@ -3,6 +3,11 @@
 
 {% block title %}Sign In - {{ site_config.school_short_name|default:"Abraytech" }}{% endblock %}
 
+{% block meta_tags %}
+<meta name="description" content="Sign in to your {{ site_config.school_name|default:'Abraytech' }} account.">
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
 {% block content %}
 <div class="bg-soft py-10 lg:py-12 px-4">
 
@@ -11,9 +16,9 @@
                 <!-- Login Form -->
                 <div class="p-6 lg:p-7">
 
-                    <h3 class="text-2xl font-sora font-bold text-navy mb-6 text-center">
+                    <h1 class="text-2xl font-sora font-bold text-navy mb-6 text-center">
                         Welcome Back!
-                    </h3>
+                    </h1>
 
                     <form id="loginFormElement" method="POST" class="space-y-4">
                         {% csrf_token %}
@@ -21,11 +26,14 @@
 
                         <!-- Username/Email -->
                         <div class="mb-4">
-                            <label for="login_username" class="block text-sm font-semibold text-slate-700 mb-2">
+                            {# Django's default auto_id for a bare form field is id_<fieldname> —
+                               "login_username" doesn't exist, so this label was never actually
+                               associated with the input (breaks click-to-focus and screen readers). #}
+                            <label for="id_username" class="block text-sm font-semibold text-slate-700 mb-2">
                                 Username or Email
                             </label>
                             <div class="input-group">
-                                <i data-lucide="user" class="icon w-5 h-5"></i>
+                                <i data-lucide="user" class="icon w-5 h-5" aria-hidden="true"></i>
                                 {{ login_form.username }}
                             </div>
                             <div class="error-message text-red-600 text-sm mt-1" id="login_username_error"></div>
@@ -33,13 +41,13 @@
 
                         <!-- Password -->
                         <div class="mb-4">
-                            <label for="login_password" class="block text-sm font-semibold text-slate-700 mb-2">
+                            <label for="id_password" class="block text-sm font-semibold text-slate-700 mb-2">
                                 Password
                             </label>
                             <div class="input-group">
-                                <i data-lucide="lock" class="icon w-5 h-5"></i>
+                                <i data-lucide="lock" class="icon w-5 h-5" aria-hidden="true"></i>
                                 {{ login_form.password }}
-                                <i data-lucide="eye" data-target="id_password"
+                                <i data-lucide="eye" data-target="id_password" role="button" tabindex="0" aria-label="Show password"
                                    class="password-toggle absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 cursor-pointer text-slate-400 hover:text-brandblue transition-colors"></i>
                             </div>
                             <div class="error-message text-red-600 text-sm mt-1" id="login_password_error"></div>
@@ -135,8 +143,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Update the icon
                 toggle.setAttribute('data-lucide', isPassword ? 'eye-off' : 'eye');
+                toggle.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
                 safeLucideIcons();
             }
+        }
+    });
+
+    // Keyboard support for the password-toggle (role="button", not a real
+    // <button>) — click-only would leave keyboard/screen-reader users unable
+    // to reveal the password.
+    document.body.addEventListener('keydown', function(e) {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        const toggle = e.target.classList.contains('password-toggle') ? e.target : null;
+        if (toggle) {
+            e.preventDefault();
+            toggle.click();
         }
     });
 

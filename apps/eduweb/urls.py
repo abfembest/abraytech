@@ -1,12 +1,18 @@
 from django.urls import path
 from . import views
 from . import paystack
+from . import seo_views
 from django.conf import settings
 from django.conf.urls.static import static
 
 app_name = 'eduweb'
 
 urlpatterns = [
+    # Search-engine / AI-crawler discovery — see apps/eduweb/seo_views.py
+    path('robots.txt', seo_views.robots_txt, name='robots_txt'),
+    path('sitemap.xml', seo_views.sitemap_xml, name='sitemap_xml'),
+    path('llms.txt', seo_views.llms_txt, name='llms_txt'),
+
     path('contact', views.contact, name='contact'),
     path('activities/', views.activities, name='activities'),
     path('my-profile/', views.profile, name='profile'),

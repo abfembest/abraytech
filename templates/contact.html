@@ -18,6 +18,12 @@
 {% if site_config.og_image %}<meta property="og:image" content="{{ site_config.og_image.url }}">{% endif %}
 {% endblock %}
 
+{% block twitter_tags %}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Contact {{ site_config.school_short_name|default:'Abraytech' }} — We're Here to Help">
+<meta name="twitter:description" content="Reach out to {{ site_config.school_name|default:'Abraytech' }} for admissions, programmes, or any enquiry.">
+{% endblock %}
+
 {% block structured_data %}
 <script type="application/ld+json">
 {

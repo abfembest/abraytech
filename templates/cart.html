@@ -1,7 +1,12 @@
 {% extends 'base.html' %}
 {% load static humanize %}
 
-{% block title %}Your Cart | Abraytech Store{% endblock %}
+{% block title %}Your Cart | {{ site_config.school_short_name|default:"Abraytech" }} Store{% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="Your shopping cart at {{ site_config.school_short_name|default:'Abraytech' }} Store.">
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
 
 {% block content %}
 

@@ -1,10 +1,40 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ project.title }} | Abraytech{% endblock %}
+{% block title %}{{ project.title }} | {{ site_config.school_short_name|default:"Abraytech" }} Projects{% endblock %}
 
-{% block extra_css %}
-<meta name="description" content="{{ project.summary }}">
+{% block meta_tags %}
+<meta name="description" content="{{ project.summary|truncatechars:160 }}">
+<meta name="keywords" content="{{ project.title }}{% if project.industry %}, {{ project.industry.title }}{% endif %}{% if project.service %}, {{ project.service.title }}{% endif %}, {{ site_config.school_short_name|default:'Abraytech' }} case study">
+<meta name="robots" content="index, follow">
+{% endblock %}
+
+{% block og_tags %}
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ project.title }} | {{ site_config.school_short_name|default:'Abraytech' }}">
+<meta property="og:description" content="{{ project.summary|truncatechars:200 }}">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+{% if site_config.og_image %}<meta property="og:image" content="{{ site_config.og_image.url }}">{% endif %}
+{% endblock %}
+
+{% block twitter_tags %}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ project.title }} | {{ site_config.school_short_name|default:'Abraytech' }}">
+<meta name="twitter:description" content="{{ project.summary|truncatechars:200 }}">
+{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'eduweb:index' %}"},
+    {"@type": "ListItem", "position": 2, "name": "Projects", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'eduweb:projects_list' %}"},
+    {"@type": "ListItem", "position": 3, "name": "{{ project.title|escapejs }}", "item": "{{ request.build_absolute_uri }}"}
+  ]
+}
+</script>
 {% endblock %}
 
 {% block content %}
