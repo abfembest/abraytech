@@ -6301,6 +6301,7 @@ class UserProfile(models.Model):
         # ('qa', 'QA Reviewer'),
         ('finance', 'Finance'),
         ('customer', 'Customer'),
+        ('marketer', 'Marketer'),
     ]
     
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')

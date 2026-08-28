@@ -1,0 +1,35 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Messages — Abraytech Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+    {% if is_marketing_admin %}
+    <a href="{% url 'marketing:chat_list' %}" class="hover:text-primary-600 transition-colors">
+      <i class="fas fa-arrow-left text-xs mr-1"></i>Messages
+    </a>
+    <i class="fas fa-chevron-right text-xs"></i>
+    <span class="text-gray-800 font-medium">{{ channel_marketer.get_full_name|default:channel_marketer.username }}</span>
+    {% else %}
+    <span class="text-gray-800 font-medium">Messages</span>
+    {% endif %}
+  </nav>
+
+  <div class="flex items-center justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800 font-display">
+        {% if is_marketing_admin %}{{ channel_marketer.get_full_name|default:channel_marketer.username }}{% else %}Messages{% endif %}
+      </h1>
+      <p class="text-gray-500 mt-1 text-sm">General chat — not tied to a specific lead.</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+    {% include 'marketing/_chat_panel.html' %}
+  </div>
+
+</div>
+{% endblock %}

@@ -1531,6 +1531,38 @@
 
                     {% endif %}{# /finance menu block #}
 
+                    {% if request.user.is_superuser or request.user.profile.role == 'admin' or request.user.profile.role == 'marketer' %}
+                    <div class="border-t border-white/10 my-4"></div>
+                    <div class="sidebar-section-label py-1 px-4 text-base uppercase font-bold text-white/50 tracking-widest">Marketing</div>
+                    <a href="{% url 'marketing:dashboard' %}"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1
+                              {% if request.resolver_match.url_name == 'dashboard' and 'marketing' in request.path %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-bullhorn w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Dashboard</span>
+                        </div>
+                    </a>
+                    <a href="{% url 'marketing:lead_list' %}"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1
+                              {% if request.resolver_match.url_name == 'lead_list' or request.resolver_match.url_name == 'lead_detail' %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-address-card w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">{% if request.user.is_superuser or request.user.profile.role == 'admin' %}All Leads{% else %}My Leads{% endif %}</span>
+                        </div>
+                    </a>
+                    <a href="{% url 'marketing:chat_list' %}"
+                       class="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1
+                              {% if request.resolver_match.url_name == 'chat' or request.resolver_match.url_name == 'chat_list' %}bg-white/20{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-comments w-5 text-center" aria-hidden="true"></i>
+                            <span class="ml-3 text-[17px] font-semibold">Messages</span>
+                        </div>
+                        {% if marketing_unread_count %}
+                        <span class="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5">{{ marketing_unread_count }}</span>
+                        {% endif %}
+                    </a>
+                    {% endif %}{# /marketing menu block #}
+
                     {% comment %} {% if request.user.is_superuser or request.user.profile.role == 'qa' %}
                     <!-- QA REVIEWER MENU (for future implementation) -->
                     <a href="{% url 'qa:dashboard' %}" class="flex items-center py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1">

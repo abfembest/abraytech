@@ -26,9 +26,11 @@
 
                         <!-- Username/Email -->
                         <div class="mb-4">
-                            {# Django's default auto_id for a bare form field is id_<fieldname> —
-                               "login_username" doesn't exist, so this label was never actually
-                               associated with the input (breaks click-to-focus and screen readers). #}
+                            {% comment %}
+                            Django's default auto_id for a bare form field is id_<fieldname> —
+                            "login_username" doesn't exist, so this label was never actually
+                            associated with the input (breaks click-to-focus and screen readers).
+                            {% endcomment %}
                             <label for="id_username" class="block text-sm font-semibold text-slate-700 mb-2">
                                 Username or Email
                             </label>

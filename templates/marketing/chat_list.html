@@ -1,0 +1,54 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block title %}Messages — Abraytech Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+
+  <div class="mb-8">
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Messages</h1>
+    <p class="text-gray-500 mt-1">Every open conversation — general chat and per-lead — most recent first.</p>
+  </div>
+
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="divide-y divide-gray-100">
+      {% for row in rows %}
+      {% if row.lead %}
+      <a href="{% url 'marketing:lead_detail' row.lead.pk %}" class="flex items-center justify-between p-5 hover:bg-gray-50 transition-colors">
+      {% else %}
+      <a href="{% url 'marketing:chat' %}?marketer={{ row.marketer.pk }}" class="flex items-center justify-between p-5 hover:bg-gray-50 transition-colors">
+      {% endif %}
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="w-10 h-10 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-semibold shrink-0">
+            {{ row.marketer.get_full_name|default:row.marketer.username|slice:":1"|upper }}
+          </span>
+          <div class="min-w-0">
+            <p class="font-medium text-gray-800">
+              {{ row.marketer.get_full_name|default:row.marketer.username }}
+              <span class="text-gray-400 font-normal">— {% if row.lead %}{{ row.lead.name }}{% else %}General{% endif %}</span>
+            </p>
+            {% if row.last_message %}
+            <p class="text-xs text-gray-400 truncate max-w-xs">{{ row.last_message.body|truncatechars:60 }}</p>
+            {% else %}
+            <p class="text-xs text-gray-400">No messages yet</p>
+            {% endif %}
+          </div>
+        </div>
+        <div class="flex items-center gap-3 shrink-0">
+          {% if row.last_message %}
+          <span class="text-xs text-gray-400">{{ row.last_message.created_at|date:"M d" }}</span>
+          {% endif %}
+          {% if row.unread_count %}
+          <span class="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5">{{ row.unread_count }}</span>
+          {% endif %}
+        </div>
+      </a>
+      {% empty %}
+      <p class="p-5 text-sm text-gray-400">No marketer accounts yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

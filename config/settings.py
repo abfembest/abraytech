@@ -79,6 +79,7 @@ INSTALLED_APPS = [
     "apps.melbac",
     'apps.library',
     'apps.store',
+    'apps.marketing',
 
     "django.contrib.humanize",
     'apps.chatbot',
@@ -123,6 +124,7 @@ TEMPLATES = [
                 'apps.eduweb.context.permissions_context',
                 'apps.support.context_processors.support_context',
                 'apps.store.context_processors.cart_context',
+                'apps.marketing.context_processors.marketing_context',
             ],
         },
     },

@@ -367,6 +367,8 @@ def _redirect_authenticated_user(request):
         return redirect('finance:dashboard')
     elif role == 'support':
         return redirect('support:dashboard')
+    elif role == 'marketer':
+        return redirect('marketing:dashboard')
     else:
         return redirect('eduweb:apply')
 
@@ -784,6 +786,8 @@ def otp_verify(request):
             redirect_url = reverse('finance:dashboard')
         elif role == 'support':
             redirect_url = reverse('support:dashboard')
+        elif role == 'marketer':
+            redirect_url = reverse('marketing:dashboard')
         else:
             redirect_url = reverse('eduweb:apply')
 
@@ -954,6 +958,8 @@ def custom_404(request, exception=None):
             return redirect('finance:dashboard')
         if role == 'support':
             return redirect('support:dashboard')
+        if role == 'marketer':
+            return redirect('marketing:dashboard')
         # admin role, is_staff, is_superuser, or any other/unrecognised
         # role — same fallback the sidebar's own "Home" link uses.
         return redirect('management:dashboard')

@@ -1,0 +1,202 @@
+{% extends 'management/base.html' %}
+{% load static marketing_extras %}
+
+{% block title %}{% if is_marketing_admin %}All Leads{% else %}My Leads{% endif %} — Abraytech Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-full">
+
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">{% if is_marketing_admin %}All Leads{% else %}My Leads{% endif %}</h1>
+      <p class="text-gray-500 mt-1">{{ leads.count }} lead{{ leads.count|pluralize }} recorded</p>
+    </div>
+    <button type="button" id="addLeadBtn" class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm shadow-sm">
+      <i class="fas fa-plus" aria-hidden="true"></i>Add Lead
+    </button>
+  </div>
+
+  {# Filters #}
+  <form method="get" class="flex flex-wrap items-center gap-3 mb-5">
+    <select name="status" onchange="this.form.submit()" class="px-4 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
+      <option value="">All Statuses</option>
+      {% for value, label in status_choices %}
+      <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    {% if is_marketing_admin and marketers %}
+    <select name="marketer" onchange="this.form.submit()" class="px-4 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
+      <option value="">All Marketers</option>
+      {% for m in marketers %}
+      <option value="{{ m.pk }}" {% if selected_marketer == m.pk|stringformat:"s" %}selected{% endif %}>{{ m.get_full_name|default:m.username }}</option>
+      {% endfor %}
+    </select>
+    {% endif %}
+    {% if selected_status or selected_marketer %}
+    <a href="{% url 'marketing:lead_list' %}" class="text-sm text-gray-500 hover:text-gray-700">Clear filters</a>
+    {% endif %}
+  </form>
+
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="overflow-x-auto p-5">
+      <table id="leadsDataTable" class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wide">
+          <tr>
+            <th class="py-3 px-5 text-left font-semibold">Name</th>
+            <th class="py-3 px-5 text-left font-semibold">Organization</th>
+            {% if is_marketing_admin %}<th class="py-3 px-5 text-left font-semibold">Marketer</th>{% endif %}
+            <th class="py-3 px-5 text-left font-semibold">Source</th>
+            <th class="py-3 px-5 text-left font-semibold">Status</th>
+            <th class="py-3 px-5 text-left font-semibold">Recorded</th>
+            <th class="py-3 px-5 text-left font-semibold">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for lead in leads %}
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="py-4 px-5 font-medium text-gray-800">{{ lead.name }}</td>
+            <td class="py-4 px-5 text-gray-600">{{ lead.organization|default:"—" }}</td>
+            {% if is_marketing_admin %}<td class="py-4 px-5 text-gray-600">{{ lead.marketer.get_full_name|default:lead.marketer.username }}</td>{% endif %}
+            <td class="py-4 px-5 text-gray-600">{{ lead.get_source_display }}</td>
+            <td class="py-4 px-5">
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium {{ lead.status|status_pill_class }}">{{ lead.get_status_display }}</span>
+            </td>
+            <td class="py-4 px-5 text-gray-500">{{ lead.created_at|date:"M d, Y" }}</td>
+            <td class="py-4 px-5">
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="leadModal.openForEdit('{{ lead.pk }}')"
+                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Edit">
+                  <i class="fas fa-edit text-sm" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="js-open-chat-modal p-1.5 text-primary-600 hover:bg-primary-50 rounded transition-colors" title="Chat"
+                        data-lead-id="{{ lead.pk }}" data-lead-name="{{ lead.name }}">
+                  <i class="fas fa-comments text-sm" aria-hidden="true"></i>
+                </button>
+                <a href="{% url 'marketing:lead_detail' lead.pk %}" class="p-1.5 text-gray-500 hover:bg-gray-100 rounded transition-colors" title="Details">
+                  <i class="fas fa-eye text-sm" aria-hidden="true"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {# Create/Edit modal #}
+  <div id="leadCreateModal" class="fixed inset-0 z-50 hidden items-stretch sm:items-center justify-center sm:p-3" style="background: rgba(15,23,42,.55);">
+    <div class="bg-white sm:rounded-xl shadow-2xl w-full sm:max-w-lg h-full sm:h-auto sm:max-h-[97vh] flex flex-col">
+      <div class="px-4 sm:px-5 py-2.5 border-b border-gray-100 flex items-center justify-between shrink-0">
+        <h2 class="text-base font-semibold text-gray-800 font-display" id="leadModalTitle">New Lead</h2>
+        <button type="button" data-modal-close class="text-gray-400 hover:text-gray-600 p-1 -m-1" aria-label="Close">
+          <i class="fas fa-times text-lg" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="px-4 sm:px-5 py-3 overflow-y-auto overflow-x-hidden flex-1 min-h-0" id="leadModalBody">
+        <form method="post" action="{% url 'marketing:lead_create' %}" id="leadModalForm">
+          {% csrf_token %}
+          {% include 'marketing/_lead_form_fields.html' %}
+        </form>
+      </div>
+      <div class="px-4 sm:px-5 py-2.5 border-t border-gray-100 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 shrink-0">
+        <button type="button" data-modal-close class="w-full sm:w-auto px-5 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-medium">Cancel</button>
+        <button type="submit" form="leadModalForm" id="leadModalSubmitBtn"
+                class="w-full sm:w-auto px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium shadow-sm disabled:opacity-60 disabled:cursor-not-allowed">
+          <i class="fas fa-save mr-1.5" aria-hidden="true"></i><span id="leadModalSubmitLabel">Create Lead</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  {# Chat modal — one shared panel, re-scoped to whichever row was clicked #}
+  <div id="leadChatModal" class="fixed inset-0 z-50 hidden items-stretch sm:items-center justify-center sm:p-3" style="background: rgba(15,23,42,.55);">
+    <div class="bg-white sm:rounded-xl shadow-2xl w-full sm:max-w-lg h-full sm:h-auto sm:max-h-[97vh] flex flex-col">
+      <div class="px-4 sm:px-5 py-2.5 border-b border-gray-100 flex items-center justify-between shrink-0">
+        <h2 class="text-base font-semibold text-gray-800 font-display" id="leadChatModalTitle">Chat</h2>
+        <button type="button" id="leadChatModalCloseBtn" class="text-gray-400 hover:text-gray-600 p-1 -m-1" aria-label="Close">
+          <i class="fas fa-times text-lg" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="px-4 sm:px-5 py-3 flex-1 min-h-0">
+        {% include 'marketing/_chat_panel.html' %}
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  try {
+    $('#leadsDataTable').DataTable({
+      pageLength: 10,
+      order: [[{% if is_marketing_admin %}5{% else %}4{% endif %}, 'desc']],
+      columns: [null, null, {% if is_marketing_admin %}null, {% endif %}null, null, null, { orderable: false, searchable: false }],
+      dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4"lf>rt<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-4 pt-4 border-t"ip>',
+      language: {
+        search: '_INPUT_',
+        searchPlaceholder: 'Search leads…',
+        lengthMenu: 'Show _MENU_',
+        info: '_START_–_END_ of _TOTAL_',
+        paginate: { previous: '<i class="fas fa-chevron-left"></i>', next: '<i class="fas fa-chevron-right"></i>' },
+        emptyTable: 'No leads recorded yet',
+      },
+    });
+  } catch (e) {}
+});
+
+var leadModal = createAjaxModal({
+  modalId: 'leadCreateModal',
+  bodyId: 'leadModalBody',
+  formId: 'leadModalForm',
+  titleId: 'leadModalTitle',
+  submitBtnId: 'leadModalSubmitBtn',
+  submitLabelId: 'leadModalSubmitLabel',
+  fieldsPartialId: 'leadFormFieldsPartial',
+  createUrl: '{% url "marketing:lead_create" %}',
+  editUrlTemplate: '{% url "marketing:lead_edit" 0 %}',
+  createTitle: 'New Lead',
+  createLabel: 'Create Lead',
+  editTitle: 'Edit Lead',
+  editLabel: 'Save Changes',
+});
+
+document.getElementById('addLeadBtn').addEventListener('click', function () {
+  leadModal.openForCreate();
+});
+
+(function () {
+  var chatModal = document.getElementById('leadChatModal');
+  var chatTitle = document.getElementById('leadChatModalTitle');
+  var chatPanel = chatModal.querySelector('.marketing-chat-panel');
+
+  function openChatModal() {
+    chatModal.classList.remove('hidden');
+    chatModal.classList.add('flex');
+    document.body.classList.add('overflow-hidden');
+  }
+  function closeChatModal() {
+    chatModal.classList.add('hidden');
+    chatModal.classList.remove('flex');
+    document.body.classList.remove('overflow-hidden');
+    if (chatPanel._marketingChat) chatPanel._marketingChat.stop();
+  }
+
+  document.querySelectorAll('.js-open-chat-modal').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      chatTitle.textContent = btn.getAttribute('data-lead-name') + ' — Chat';
+      openChatModal();
+      if (chatPanel._marketingChat) {
+        chatPanel._marketingChat.start({ leadId: btn.getAttribute('data-lead-id') });
+      }
+    });
+  });
+
+  document.getElementById('leadChatModalCloseBtn').addEventListener('click', closeChatModal);
+  chatModal.addEventListener('click', function (e) { if (e.target === chatModal) closeChatModal(); });
+})();
+</script>
+{% endblock %}

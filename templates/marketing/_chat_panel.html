@@ -1,0 +1,138 @@
+{% load static %}
+{% comment %}
+Reusable chat panel — included on lead_detail.html (static, autostart),
+chat.html (static, autostart), and once inside lead_list.html's per-row
+chat modal (dynamic — JS calls .start({leadId}) / .stop() as the modal
+opens/closes for a different row). See apps/marketing/views.py::
+chat_messages / chat_send for the two endpoints this polls/posts to.
+{% endcomment %}
+<div class="marketing-chat-panel"
+     data-lead-id="{{ lead.pk|default:'' }}"
+     data-marketer-id="{{ channel_marketer.pk|default:'' }}"
+     data-autostart="{% if lead or channel_marketer %}true{% else %}false{% endif %}"
+     data-messages-url="{% url 'marketing:chat_messages' %}"
+     data-send-url="{% url 'marketing:chat_send' %}">
+  <div class="chat-messages-list bg-gray-50 rounded-lg border border-gray-200 p-3 mb-3" style="height:320px;overflow-y:auto;"></div>
+  <form class="chat-reply-form flex items-center gap-2">
+    {% csrf_token %}
+    <input type="text" class="chat-reply-input flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" placeholder="Write a message…" autocomplete="off" maxlength="2000">
+    <button type="submit" class="px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium shrink-0">
+      <i class="fas fa-paper-plane" aria-hidden="true"></i>
+    </button>
+  </form>
+</div>
+
+<script>
+(function () {
+  function escapeHtml(s) {
+    var d = document.createElement('div');
+    d.textContent = s == null ? '' : s;
+    return d.innerHTML;
+  }
+
+  function initMarketingChatPanel(panel) {
+    var listEl = panel.querySelector('.chat-messages-list');
+    var form = panel.querySelector('.chat-reply-form');
+    var input = panel.querySelector('.chat-reply-input');
+    var messagesUrl = panel.getAttribute('data-messages-url');
+    var sendUrl = panel.getAttribute('data-send-url');
+    var csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+    var lastId = 0;
+    var pollTimer = null;
+
+    function scopeParams() {
+      var p = new URLSearchParams();
+      if (panel.dataset.leadId) p.set('lead', panel.dataset.leadId);
+      else if (panel.dataset.marketerId) p.set('marketer', panel.dataset.marketerId);
+      return p;
+    }
+
+    function renderMessage(m) {
+      var wrap = document.createElement('div');
+      wrap.className = 'flex mb-2 ' + (m.is_mine ? 'justify-end' : 'justify-start');
+      wrap.innerHTML =
+        '<div class="max-w-[75%] rounded-lg px-3 py-2 text-sm ' +
+        (m.is_mine ? 'bg-primary-600 text-white' : 'bg-white border border-gray-200 text-gray-800') + '">' +
+        '<p class="whitespace-pre-wrap break-words">' + escapeHtml(m.body) + '</p>' +
+        '<p class="text-[10px] mt-1 ' + (m.is_mine ? 'text-white/70' : 'text-gray-400') + '">' +
+        (m.is_mine ? 'You' : escapeHtml(m.sender_name)) + ' &middot; ' + escapeHtml(m.created_at) + '</p>' +
+        '</div>';
+      listEl.appendChild(wrap);
+    }
+
+    function poll() {
+      if (document.visibilityState === 'hidden') return;
+      var p = scopeParams();
+      p.set('after', lastId);
+      fetch(messagesUrl + '?' + p.toString())
+        .then(function (r) { return r.ok ? r.json() : { messages: [] }; })
+        .then(function (data) {
+          var msgs = data.messages || [];
+          if (!msgs.length) return;
+          msgs.forEach(function (m) {
+            renderMessage(m);
+            if (m.id > lastId) lastId = m.id;
+          });
+          listEl.scrollTop = listEl.scrollHeight;
+        })
+        .catch(function () {});
+    }
+
+    function reset() {
+      listEl.innerHTML = '';
+      lastId = 0;
+      poll();
+    }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var body = input.value.trim();
+      if (!body) return;
+      var fd = new FormData();
+      if (panel.dataset.leadId) fd.set('lead', panel.dataset.leadId);
+      else if (panel.dataset.marketerId) fd.set('marketer', panel.dataset.marketerId);
+      fd.set('body', body);
+      fd.set('csrfmiddlewaretoken', csrfToken);
+      input.value = '';
+      fetch(sendUrl, { method: 'POST', body: fd })
+        .then(function (r) { return r.json(); })
+        .then(function (m) {
+          if (m && m.id) {
+            renderMessage(m);
+            if (m.id > lastId) lastId = m.id;
+            listEl.scrollTop = listEl.scrollHeight;
+          } else if (window.Swal) {
+            Swal.fire({ icon: 'error', title: 'Could not send', text: (m && m.error) || 'Please try again.' });
+          }
+        })
+        .catch(function () {
+          if (window.Swal) Swal.fire({ icon: 'error', title: 'Could not send', text: 'Please try again.' });
+        });
+    });
+
+    var api = {
+      start: function (opts) {
+        if (opts) {
+          panel.dataset.leadId = opts.leadId || '';
+          panel.dataset.marketerId = opts.marketerId || '';
+        }
+        reset();
+        if (pollTimer) clearInterval(pollTimer);
+        pollTimer = setInterval(poll, 4000);
+      },
+      stop: function () {
+        if (pollTimer) clearInterval(pollTimer);
+        pollTimer = null;
+      },
+    };
+    panel._marketingChat = api;
+    if (panel.getAttribute('data-autostart') === 'true') api.start();
+    return api;
+  }
+
+  document.querySelectorAll('.marketing-chat-panel').forEach(function (panel) {
+    if (!panel._marketingChat) initMarketingChatPanel(panel);
+  });
+  window.initMarketingChatPanel = initMarketingChatPanel;
+})();
+</script>

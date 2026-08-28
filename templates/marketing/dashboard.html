@@ -1,0 +1,93 @@
+{% extends 'management/base.html' %}
+{% load static marketing_extras %}
+
+{% block title %}Marketing Dashboard — Abraytech Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-full">
+
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Marketing</h1>
+      <p class="text-gray-500 mt-1">{% if is_marketing_admin %}Leads recorded across every marketer{% else %}Your recorded leads{% endif %}</p>
+    </div>
+    <div class="flex items-center gap-2">
+      {% if is_marketing_admin %}
+      <a href="{% url 'management:users_list' %}?open_modal=create"
+         class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm">
+        <i class="fas fa-user-plus" aria-hidden="true"></i>Add Marketer
+      </a>
+      {% endif %}
+      <a href="{% url 'marketing:lead_list' %}"
+         class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm shadow-sm">
+        <i class="fas fa-address-card" aria-hidden="true"></i>{% if is_marketing_admin %}All Leads{% else %}My Leads{% endif %}
+      </a>
+    </div>
+  </div>
+
+  {# Stats #}
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mb-8">
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="text-2xl font-bold text-primary-700">{{ total_leads }}</div>
+      <div class="text-sm text-gray-500">Total Leads</div>
+    </div>
+    {% for value, label, count in status_counts %}
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="text-2xl font-bold text-gray-800">{{ count }}</div>
+      <div class="text-sm text-gray-500">{{ label }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if unread_message_count %}
+  <a href="{% url 'marketing:chat_list' %}" class="block mb-8 p-4 bg-primary-50 border border-primary-200 rounded-xl flex items-center gap-3 hover:bg-primary-100 transition-colors">
+    <i class="fas fa-comments text-primary-600" aria-hidden="true"></i>
+    <span class="text-sm font-medium text-primary-800">You have {{ unread_message_count }} unread message{{ unread_message_count|pluralize }}.</span>
+  </a>
+  {% endif %}
+
+  <div class="grid lg:grid-cols-2 gap-6">
+    {# Recent Leads #}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="p-5 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800">Recent Leads</h2>
+      </div>
+      <div class="divide-y divide-gray-100">
+        {% for lead in recent_leads %}
+        <a href="{% url 'marketing:lead_detail' lead.pk %}" class="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
+          <div>
+            <p class="font-medium text-gray-800">{{ lead.name }}</p>
+            <p class="text-xs text-gray-400">{% if is_marketing_admin %}{{ lead.marketer.get_full_name|default:lead.marketer.username }} &middot; {% endif %}{{ lead.created_at|date:"M d, Y" }}</p>
+          </div>
+          <span class="text-xs font-medium px-2.5 py-1 rounded-full {{ lead.status|status_pill_class }}">{{ lead.get_status_display }}</span>
+        </a>
+        {% empty %}
+        <p class="p-5 text-sm text-gray-400">No leads recorded yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    {# Recent Activity #}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="p-5 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800">Recent Activity</h2>
+      </div>
+      <div class="divide-y divide-gray-100">
+        {% for activity in recent_activities %}
+        <div class="p-4">
+          <p class="text-sm text-gray-700">
+            <span class="font-medium">{{ activity.marketer.get_full_name|default:activity.marketer.username|default:"—" }}</span>
+            on <a href="{% url 'marketing:lead_detail' activity.lead_id %}" class="text-primary-600 hover:underline">{{ activity.lead.name }}</a>
+          </p>
+          <p class="text-xs text-gray-500 mt-1">{{ activity.note }}</p>
+          <p class="text-xs text-gray-400 mt-1">{{ activity.created_at|date:"M d, Y H:i" }}</p>
+        </div>
+        {% empty %}
+        <p class="p-5 text-sm text-gray-400">No activity yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -644,7 +644,10 @@ class UserCreateForm(forms.ModelForm):
         })
     )
     role = forms.ChoiceField(
-        choices=UserProfile.ROLE_CHOICES,
+        # Students and store customers are never created here — students
+        # come through the public admission/application flow
+        # (eduweb:apply), customers through store checkout/self-registration.
+        choices=[c for c in UserProfile.ROLE_CHOICES if c[0] not in ('student', 'customer')],
         widget=forms.Select(attrs={
             'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-md',
         })

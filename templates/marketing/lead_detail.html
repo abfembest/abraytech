@@ -1,0 +1,151 @@
+{% extends 'management/base.html' %}
+{% load static marketing_extras %}
+
+{% block title %}{{ lead.name }} — Marketing — Abraytech Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+    <a href="{% url 'marketing:lead_list' %}" class="hover:text-primary-600 transition-colors">
+      <i class="fas fa-arrow-left text-xs mr-1"></i>{% if is_marketing_admin %}All Leads{% else %}My Leads{% endif %}
+    </a>
+    <i class="fas fa-chevron-right text-xs"></i>
+    <span class="text-gray-800 font-medium">{{ lead.name }}</span>
+  </nav>
+
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800 font-display">{{ lead.name }}</h1>
+      <p class="text-gray-500 mt-1">{{ lead.organization|default:"No organization on file" }}</p>
+    </div>
+    <span class="text-xs font-medium px-3 py-1.5 rounded-full self-start {{ lead.status|status_pill_class }}">{{ lead.get_status_display }}</span>
+  </div>
+
+  <div class="grid lg:grid-cols-3 gap-6">
+
+    <div class="lg:col-span-1 space-y-6">
+      {# Details #}
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+          <h2 class="font-semibold text-gray-800">Details</h2>
+          <button type="button" onclick="leadModal.openForEdit('{{ lead.pk }}')" class="text-primary-600 hover:text-primary-700 text-sm font-medium">
+            <i class="fas fa-edit mr-1" aria-hidden="true"></i>Edit
+          </button>
+        </div>
+        <dl class="p-5 space-y-3 text-sm">
+          {% if is_marketing_admin %}
+          <div><dt class="text-gray-400">Marketer</dt><dd class="text-gray-800">{{ lead.marketer.get_full_name|default:lead.marketer.username }}</dd></div>
+          {% endif %}
+          <div><dt class="text-gray-400">Email</dt><dd class="text-gray-800">{{ lead.email|default:"—" }}</dd></div>
+          <div><dt class="text-gray-400">Phone</dt><dd class="text-gray-800">{{ lead.phone|default:"—" }}</dd></div>
+          <div><dt class="text-gray-400">Source</dt><dd class="text-gray-800">{{ lead.get_source_display }}</dd></div>
+          <div><dt class="text-gray-400">Recorded</dt><dd class="text-gray-800">{{ lead.created_at|date:"M d, Y" }}</dd></div>
+          {% if lead.notes %}<div><dt class="text-gray-400">Notes</dt><dd class="text-gray-800 whitespace-pre-wrap">{{ lead.notes }}</dd></div>{% endif %}
+        </dl>
+      </div>
+
+      {# Change status #}
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+        <h2 class="font-semibold text-gray-800 mb-3">Change Status</h2>
+        <form method="post" class="flex items-center gap-2">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="change_status">
+          <select name="status" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+            {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if lead.status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium shrink-0">Save</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="lg:col-span-2 space-y-6">
+      {# Chat #}
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+        <h2 class="font-semibold text-gray-800 mb-3">
+          <i class="fas fa-comments text-primary-500 mr-1" aria-hidden="true"></i>Chat about this lead
+        </h2>
+        {% include 'marketing/_chat_panel.html' with lead=lead %}
+      </div>
+
+      {# Activity timeline #}
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-100">
+          <h2 class="font-semibold text-gray-800">Activity</h2>
+        </div>
+        <div class="p-5">
+          <form method="post" class="flex items-start gap-2 mb-5">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_note">
+            <textarea name="note" rows="2" required placeholder="Add a note about this lead…"
+                      class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm resize-none"></textarea>
+            <button type="submit" class="px-4 py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-900 text-sm font-medium shrink-0">Add Note</button>
+          </form>
+          <div class="space-y-4">
+            {% for activity in activities %}
+            <div class="flex gap-3">
+              <div class="w-2 h-2 rounded-full bg-primary-400 mt-2 shrink-0"></div>
+              <div>
+                <p class="text-sm text-gray-700">{{ activity.note }}</p>
+                <p class="text-xs text-gray-400 mt-0.5">
+                  {{ activity.marketer.get_full_name|default:activity.marketer.username|default:"—" }} &middot; {{ activity.created_at|date:"M d, Y H:i" }}
+                </p>
+              </div>
+            </div>
+            {% empty %}
+            <p class="text-sm text-gray-400">No activity recorded yet.</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Edit modal #}
+  <div id="leadEditModal" class="fixed inset-0 z-50 hidden items-stretch sm:items-center justify-center sm:p-3" style="background: rgba(15,23,42,.55);">
+    <div class="bg-white sm:rounded-xl shadow-2xl w-full sm:max-w-lg h-full sm:h-auto sm:max-h-[97vh] flex flex-col">
+      <div class="px-4 sm:px-5 py-2.5 border-b border-gray-100 flex items-center justify-between shrink-0">
+        <h2 class="text-base font-semibold text-gray-800 font-display" id="leadEditModalTitle">Edit Lead</h2>
+        <button type="button" data-modal-close class="text-gray-400 hover:text-gray-600 p-1 -m-1" aria-label="Close">
+          <i class="fas fa-times text-lg" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="px-4 sm:px-5 py-3 overflow-y-auto overflow-x-hidden flex-1 min-h-0" id="leadEditModalBody">
+        <form method="post" action="{% url 'marketing:lead_edit' lead.pk %}" id="leadEditModalForm">
+          {% csrf_token %}
+        </form>
+      </div>
+      <div class="px-4 sm:px-5 py-2.5 border-t border-gray-100 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 shrink-0">
+        <button type="button" data-modal-close class="w-full sm:w-auto px-5 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-medium">Cancel</button>
+        <button type="submit" form="leadEditModalForm" id="leadEditModalSubmitBtn"
+                class="w-full sm:w-auto px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium shadow-sm disabled:opacity-60 disabled:cursor-not-allowed">
+          <i class="fas fa-save mr-1.5" aria-hidden="true"></i><span id="leadEditModalSubmitLabel">Save Changes</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+var leadModal = createAjaxModal({
+  modalId: 'leadEditModal',
+  bodyId: 'leadEditModalBody',
+  formId: 'leadEditModalForm',
+  titleId: 'leadEditModalTitle',
+  submitBtnId: 'leadEditModalSubmitBtn',
+  submitLabelId: 'leadEditModalSubmitLabel',
+  fieldsPartialId: 'leadFormFieldsPartial',
+  createUrl: '{% url "marketing:lead_edit" lead.pk %}',
+  editUrlTemplate: '{% url "marketing:lead_edit" 0 %}',
+  createTitle: 'Edit Lead',
+  createLabel: 'Save Changes',
+  editTitle: 'Edit Lead',
+  editLabel: 'Save Changes',
+});
+</script>
+{% endblock %}

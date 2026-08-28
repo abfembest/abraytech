@@ -68,10 +68,17 @@ def check_for_auth(view_func):
         
         elif role == 'finance':
             messages.info(
-                request, 
+                request,
                 'Finance users should use the finance dashboard.'
             )
             return redirect('finance:dashboard')
+
+        elif role == 'marketer':
+            messages.info(
+                request,
+                'Marketer users should use the marketing dashboard.'
+            )
+            return redirect('marketing:dashboard')
 
         elif role == 'student':
             application = (
@@ -79,10 +86,10 @@ def check_for_auth(view_func):
                 .filter(user=request.user)
                 .first()
             )
-            
+
             if application and application.can_access_student_portal():
                 return redirect('students:dashboard')
-            
+
             if application:
                 messages.info(
                     request,
@@ -91,7 +98,7 @@ def check_for_auth(view_func):
                 return redirect('eduweb:application_status')
             else:
                 messages.info(
-                    request, 
+                    request,
                     'Complete your application to get started.'
                 )
                 return redirect('eduweb:apply')
