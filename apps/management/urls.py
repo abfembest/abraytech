@@ -194,6 +194,12 @@ urlpatterns = [
     path('site-config/milestones/<int:pk>/edit/', views.site_milestone_edit, name='site_milestone_edit'),
     path('site-config/milestones/<int:pk>/delete/', views.site_milestone_delete, name='site_milestone_delete'),
 
+    # Services (consultation topics / homepage service cards)
+    path('site-config/services/', views.services_list, name='services_list'),
+    path('site-config/services/create/', views.service_create, name='service_create'),
+    path('site-config/services/<int:pk>/edit/', views.service_edit, name='service_edit'),
+    path('site-config/services/<int:pk>/delete/', views.service_delete, name='service_delete'),
+
     # Testimonials
     path('site-config/testimonials/', views.testimonials_list, name='testimonials_list'),
     path('site-config/testimonials/create/', views.testimonial_create, name='testimonial_create'),
@@ -233,6 +239,14 @@ urlpatterns = [
     path('orders/returns/<int:item_id>/receive/', views.return_item_mark_received, name='return_item_mark_received'),
     path('orders/returns/<int:item_id>/refund/', views.return_item_refund, name='return_item_refund'),
     path('orders/<str:order_number>/', views.order_detail, name='order_detail'),
+
+    # Consultation Booking — topic pricing/length, time slots, bookings.
+    path('consultation/', views.consultation_slots_list, name='consultation_slots_list'),
+    path('consultation/pricing/', views.consultation_pricing_update, name='consultation_pricing_update'),
+    path('consultation/slots/generate/', views.consultation_slot_generate, name='consultation_slot_generate'),
+    path('consultation/slots/<int:pk>/delete/', views.consultation_slot_delete, name='consultation_slot_delete'),
+    path('consultation/slots/bulk-delete/', views.consultation_slots_bulk_delete, name='consultation_slots_bulk_delete'),
+    path('consultation/bookings/', views.consultation_bookings_list, name='consultation_bookings_list'),
 
     # Institution Members
     path('site-config/members/', views.institution_members_list, name='institution_members_list'),

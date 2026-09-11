@@ -28,6 +28,7 @@ from apps.eduweb.models import (
     PaymentGateway,
     Program,
     Review,
+    Service,
     SiteConfig,
     SiteHistoryMilestone,
     SocialPost,
@@ -1067,6 +1068,20 @@ class SiteHistoryMilestoneForm(forms.ModelForm):
             'year':          forms.NumberInput(attrs={**_SC_I, 'placeholder': 'e.g. 1995'}),
             'title':         forms.TextInput(attrs={**_SC_I, 'placeholder': "e.g. 'Founding'"}),
             'description':   forms.Textarea(attrs={**_SC_T, 'rows': 3}),
+        }
+
+
+class ServiceForm(forms.ModelForm):
+    """Slug is auto-generated from the title (Service.save()) — not exposed
+    here, same reasoning as leaving it off the public-facing content forms."""
+    class Meta:
+        model = Service
+        fields = ['title', 'summary', 'description', 'icon', 'is_active']
+        widgets = {
+            'title':       forms.TextInput(attrs=_SC_I),
+            'summary':     forms.TextInput(attrs={**_SC_I, 'placeholder': 'Short teaser shown on homepage service cards'}),
+            'description': forms.Textarea(attrs={**_SC_T, 'rows': 6}),
+            'icon':        forms.TextInput(attrs={**_SC_I, 'placeholder': "Lucide icon name, e.g. 'code-2' — see lucide.dev/icons"}),
         }
 
 

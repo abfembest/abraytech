@@ -3953,6 +3953,7 @@ class Notification(models.Model):
         ('certificate', 'Certificate'),
         ('payroll', 'Payroll'),
         ('account', 'Account'),
+        ('consultation', 'Consultation Booking'),
         ('system', 'System'),
     ]
     
@@ -4502,6 +4503,7 @@ class Service(models.Model):
     description = models.TextField(blank=True, help_text="Full body copy for the service's detail page")
     icon = models.CharField(max_length=50, default='settings', help_text="Lucide icon name (see https://lucide.dev/icons)")
     is_active = models.BooleanField(default=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -5434,6 +5436,7 @@ class StaffPermissionsMatrix(models.Model):
         ('security_audit',   'Security & Audit'),
         ('store_products',   'Store Products'),
         ('store_orders',     'Store Orders'),
+        ('consultation',     'Consultation Booking'),
         ('instructor_courses',        'My Courses'),
         ('instructor_assessments',    'Assessments'),
         ('instructor_analytics',     'Analytics'),
@@ -5468,6 +5471,7 @@ class StaffPermissionsMatrix(models.Model):
         'security_audit':  {'can_view': True},
         'store_products':  {'can_view': True, 'can_create': True, 'can_edit': True, 'can_delete': True},
         'store_orders':    {'can_view': True, 'can_edit': True},
+        'consultation':    {'can_view': True, 'can_create': True, 'can_edit': True, 'can_delete': True},
         'support_config':  {'can_view': True, 'can_create': True, 'can_edit': True},
         # Deliberately its own module rather than riding on 'user_management':
         # a staff member can be granted the user list (user_management) without

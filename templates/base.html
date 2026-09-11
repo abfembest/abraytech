@@ -12,20 +12,20 @@
          page is undefined behavior for crawlers, so don't reintroduce that). -->
     {% block meta_tags %}
     <meta name="description"
-        content="{{ site_config.meta_description|default:'Abraytech — technology services, training, and products. Software development, cybersecurity, AI & data, and IT consulting.' }}">
+        content="{{ site_config.meta_description|default:'AbrayTech — technology services, training, and products. Software development, cybersecurity, AI & data, and IT consulting.' }}">
     <meta name="keywords"
-        content="{{ site_config.meta_keywords|default:'software development, cybersecurity, AI, IT consulting, technology training, Abraytech' }}">
+        content="{{ site_config.meta_keywords|default:'software development, cybersecurity, AI, IT consulting, technology training, AbrayTech' }}">
     <meta name="robots" content="index, follow">
     {% endblock %}
 
-    <meta name="author" content="{{ site_config.school_name|default:'Abraytech' }}">
+    <meta name="author" content="{{ site_config.school_name|default:'AbrayTech' }}">
     <meta name="theme-color" content="{{ site_config.theme_color|default:'#06b6d4' }}">
 
     <!-- Open Graph / Social Media Meta Tags -->
     {% block og_tags %}
     <meta property="og:type" content="website">
     <meta property="og:title"
-        content="{{ site_config.school_short_name|default:'Abraytech' }} – {{ site_config.school_name|default:'Abraytech' }}">
+        content="{{ site_config.school_short_name|default:'AbrayTech' }} – {{ site_config.school_name|default:'AbrayTech' }}">
     <meta property="og:description"
         content="{{ site_config.meta_description|default:'Software development, cybersecurity, AI, IT consulting, and technology training.' }}">
     {% if site_config.og_image %}
@@ -38,7 +38,7 @@
     {% block twitter_tags %}
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title"
-        content="{{ site_config.school_short_name|default:'Abraytech' }} – {{ site_config.school_name|default:'Abraytech' }}">
+        content="{{ site_config.school_short_name|default:'AbrayTech' }} – {{ site_config.school_name|default:'AbrayTech' }}">
     <meta name="twitter:description"
         content="{{ site_config.meta_description|default:'Software development, cybersecurity, AI, IT consulting, and technology training.' }}">
     {% if site_config.og_image %}
@@ -46,7 +46,7 @@
     {% endif %}
     {% endblock %}
 
-    <title>{% block title %}Abraytech – Technology Services, Training &amp; Products{% endblock %}</title>
+    <title>{% block title %}AbrayTech – Technology Services, Training &amp; Products{% endblock %}</title>
 
     <!-- Favicon -->
     {% if site_config.favicon %}
@@ -124,15 +124,15 @@
                      Home link) points at the store for them instead. -->
                 <a href="{% if user.profile.role == 'customer' %}{% url 'store:store_list' %}{% else %}{% url 'eduweb:index' %}{% endif %}"
                    class="flex items-center gap-2.5 shrink-0 focus:outline-none focus:ring-2 focus:ring-brandblue focus:ring-offset-2 rounded-lg"
-                   aria-label="{{ site_config.school_name|default:'Abraytech' }} Home">
+                   aria-label="{{ site_config.school_name|default:'AbrayTech' }} Home">
                     {% if site_config.logo %}
                     <img src="{{ site_config.logo.url }}"
-                         alt="{{ site_config.school_short_name|default:'Abraytech' }} Logo"
+                         alt="{{ site_config.school_short_name|default:'AbrayTech' }} Logo"
                          class="h-10 lg:h-12 w-auto max-w-logo object-contain"
                          loading="lazy">
                     {% else %}
-                    <span class="w-10 h-10 lg:w-11 lg:h-11 rounded-xl brand-gradient flex items-center justify-center text-white font-sora font-bold text-base shadow-brand">{{ site_config.school_short_name|default:"Abraytech"|slice:":1" }}</span>
-                    <span class="font-sora font-bold text-xl lg:text-2xl text-navy tracking-tight">{{ site_config.school_short_name|default:"Abraytech" }}</span>
+                    <span class="w-10 h-10 lg:w-11 lg:h-11 rounded-xl brand-gradient flex items-center justify-center text-white font-sora font-bold text-sm lg:text-base tracking-tight shadow-brand">AT</span>
+                    <span class="font-sora font-bold text-xl lg:text-2xl text-navy tracking-tight">{{ site_config.school_short_name|default:"AbrayTech" }}</span>
                     {% endif %}
                 </a>
 
@@ -267,7 +267,7 @@
                     {% endif %}
                     {% else %}
                     <a href="{% url 'eduweb:auth_page' %}" class="hidden lg:inline-flex items-center px-5 py-2.5 rounded-full bg-soft text-nav font-semibold text-navy hover:bg-ice transition-colors">Log in</a>
-                    <a href="{% url 'eduweb:consultation_booking' %}" class="hidden sm:inline-flex items-center gap-2 px-6 py-3 rounded-full text-nav font-semibold text-white brand-gradient shadow-brand hover:opacity-95 hover:shadow-lg transition">
+                    <a href="{% url 'consultation:book_consultation' %}" class="hidden sm:inline-flex items-center gap-2 px-6 py-3 rounded-full text-nav font-semibold text-white brand-gradient shadow-brand hover:opacity-95 hover:shadow-lg transition">
                         Book Consultation
                     </a>
                     {% endif %}
@@ -362,7 +362,7 @@
             {% endif %}
             {% else %}
             <a href="{% url 'eduweb:auth_page' %}" class="block text-center py-2.5 rounded-lg border border-borderblue text-navy font-medium text-sm">Log in</a>
-            <a href="{% url 'eduweb:consultation_booking' %}" class="block text-center py-2.5 rounded-lg brand-gradient text-white font-semibold text-sm">Book Consultation</a>
+            <a href="{% url 'consultation:book_consultation' %}" class="block text-center py-2.5 rounded-lg brand-gradient text-white font-semibold text-sm">Book Consultation</a>
             {% endif %}
         </div>
     </aside>
@@ -395,12 +395,12 @@
 
                 <!-- Brand -->
                 <div class="lg:col-span-2">
-                    <a href="{% url 'eduweb:index' %}" class="flex items-center gap-2" aria-label="{{ site_config.school_name|default:'Abraytech' }} Home">
+                    <a href="{% url 'eduweb:index' %}" class="flex items-center gap-2" aria-label="{{ site_config.school_name|default:'AbrayTech' }} Home">
                         {% if site_config.logo %}
-                        <img src="{{ site_config.logo.url }}" alt="{{ site_config.school_short_name|default:'Abraytech' }} Logo" class="h-10 w-auto max-w-logo object-contain">
+                        <img src="{{ site_config.logo.url }}" alt="{{ site_config.school_short_name|default:'AbrayTech' }} Logo" class="h-10 w-auto max-w-logo object-contain">
                         {% else %}
-                        <span class="w-9 h-9 rounded-lg brand-gradient flex items-center justify-center text-white font-sora font-bold text-sm">{{ site_config.school_short_name|default:"Abraytech"|slice:":1" }}</span>
-                        <span class="font-sora font-bold text-xl text-white">{{ site_config.school_short_name|default:"Abraytech" }}</span>
+                        <span class="w-9 h-9 rounded-lg brand-gradient flex items-center justify-center text-white font-sora font-bold text-xs tracking-tight">AT</span>
+                        <span class="font-sora font-bold text-xl text-white">{{ site_config.school_short_name|default:"AbrayTech" }}</span>
                         {% endif %}
                     </a>
                     <p class="mt-4 text-sm text-white/50 max-w-xs">
@@ -466,7 +466,7 @@
                         {% if not user.is_authenticated or user.profile.role == 'customer' %}
                         <li><a href="{% url 'store:store_list' %}" class="hover:text-white transition-colors">Store</a></li>
                         {% endif %}
-                        <li><a href="{% url 'eduweb:consultation_booking' %}" class="hover:text-white transition-colors">Consultation</a></li>
+                        <li><a href="{% url 'consultation:book_consultation' %}" class="hover:text-white transition-colors">Consultation</a></li>
                         <li><a href="{% url 'eduweb:projects_list' %}" class="hover:text-white transition-colors">Projects</a></li>
                     </ul>
                 </div>
@@ -499,7 +499,7 @@
             </div>
 
             <div class="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/40">
-                <p>&copy; {% now "Y" %} {{ site_config.school_name|default:"Abraytech" }}. All rights reserved.</p>
+                <p>&copy; {% now "Y" %} {{ site_config.school_name|default:"AbrayTech" }}. All rights reserved.</p>
                 <div class="flex gap-5">
                     <a href="{% url 'eduweb:privacy' %}" class="hover:text-white transition-colors">Privacy</a>
                     <a href="{% url 'eduweb:terms' %}" class="hover:text-white transition-colors">Terms</a>

@@ -1,0 +1,125 @@
+{% extends 'management/base.html' %}
+{% load static %}
+{% block title %}{% if service %}Edit{% else %}New{% endif %} Service — Abraytech Admin{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto">
+
+  {# ── Breadcrumb ── #}
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+    <a href="{% url 'management:services_list' %}" class="hover:text-primary-600 transition-colors">
+      <i class="fas fa-arrow-left text-xs mr-1"></i>Services
+    </a>
+    <i class="fas fa-chevron-right text-xs"></i>
+    <span class="text-gray-800 font-medium">
+      {% if service %}Edit: {{ service.title }}{% else %}New Service{% endif %}
+    </span>
+  </nav>
+
+  {# ── Page title ── #}
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-gray-800 font-display">
+      {% if service %}<i class="fas fa-briefcase text-primary-500 mr-2"></i>Edit Service
+      {% else %}<i class="fas fa-plus-circle text-primary-500 mr-2"></i>New Service{% endif %}
+    </h1>
+    <p class="text-gray-500 mt-1 text-sm">Shown on the homepage service cards, its own detail page, and the consultation booking topic list.</p>
+  </div>
+
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 flex items-start gap-2">
+      <i class="fas fa-exclamation-circle mt-0.5 flex-shrink-0"></i>
+      <div>{% for error in form.non_field_errors %}{{ error }}{% endfor %}</div>
+    </div>
+    {% endif %}
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+        <i class="fas fa-briefcase text-primary-500"></i>
+        <h2 class="font-semibold text-gray-800">Details</h2>
+      </div>
+      <div class="p-6 space-y-5">
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">
+            Title <span class="text-red-500">*</span>
+          </label>
+          {{ form.title }}
+          {% if form.title.errors %}
+          <p class="text-xs text-red-500 mt-1 flex items-center gap-1">
+            <i class="fas fa-exclamation-circle"></i>{{ form.title.errors.0 }}
+          </p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">
+            Short Summary <span class="text-red-500">*</span>
+          </label>
+          {{ form.summary }}
+          {% if form.summary.errors %}
+          <p class="text-xs text-red-500 mt-1 flex items-center gap-1">
+            <i class="fas fa-exclamation-circle"></i>{{ form.summary.errors.0 }}
+          </p>
+          {% endif %}
+          <p class="text-xs text-gray-400 mt-1.5">Shown on the homepage service card.</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">
+            Full Description <span class="text-gray-400 font-normal">(optional)</span>
+          </label>
+          {{ form.description }}
+          <p class="text-xs text-gray-400 mt-1.5">Body copy for the service's own detail page.</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">
+            Icon
+          </label>
+          {{ form.icon }}
+          {% if form.icon.errors %}
+          <p class="text-xs text-red-500 mt-1 flex items-center gap-1">
+            <i class="fas fa-exclamation-circle"></i>{{ form.icon.errors.0 }}
+          </p>
+          {% endif %}
+        </div>
+
+        <div class="pt-1 border-t border-gray-100">
+          <div class="flex items-center gap-3 pt-4">
+            {{ form.is_active }}
+            <div>
+              <label class="text-sm font-medium text-gray-700">Active</label>
+              <p class="text-xs text-gray-400">Visible on the homepage and the consultation booking page</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    {% if service %}
+    <div class="bg-sky-50 border border-sky-200 rounded-xl p-4 text-sm text-sky-800 flex items-start gap-2">
+      <i class="fas fa-info-circle mt-0.5 flex-shrink-0"></i>
+      <span>To let visitors book a paid or free consultation on this topic, set its length(s) and price on the
+        <a href="{% url 'management:consultation_slots_list' %}" class="underline font-medium">Consultation Pricing</a> page.</span>
+    </div>
+    {% endif %}
+
+    {# ── Actions ── #}
+    <div class="flex flex-col sm:flex-row justify-end gap-3">
+      <a href="{% url 'management:services_list' %}"
+         class="px-5 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-medium text-center transition-colors">
+        Cancel
+      </a>
+      <button type="submit"
+              class="px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium shadow-sm inline-flex items-center justify-center gap-2 transition-colors">
+        <i class="fas fa-save"></i>
+        {% if service %}Save Changes{% else %}Create Service{% endif %}
+      </button>
+    </div>
+  </form>
+
+</div>
+{% endblock %}

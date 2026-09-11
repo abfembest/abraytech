@@ -12,74 +12,156 @@
         "what's up",
         "howdy",
         "greetings",
-        "nice to meet you"
+        "nice to meet you",
+        "is anyone there"
       ],
       "responses": [
-        "Hello! I'm your MIU Student Life Assistant. How can I help you today?",
-        "Hi there! How can I assist you with your student life questions?",
-        "Greetings! What would you like to know about MIU?"
+        "Hello! I'm AbrayTech's virtual assistant. I can help with our services, training programs, the store, or booking a consultation — what would you like to know?",
+        "Hi there! Ask me about AbrayTech's services, courses, the store, or how to book a consultation.",
+        "Hey! Welcome to AbrayTech. How can I help you today?"
       ]
     },
 
     {
-      "intent": "about_miu",
+      "intent": "about_abraytech",
       "patterns": [
-        "what is miu",
-        "tell me about miu",
-        "about miu",
-        "what does miu stand for",
-        "information about miu",
-        "describe miu",
-        "what kind of university is miu",
-        "miu overview",
-        "explain miu to me",
-        "what is melchisedec international university",
-        "history of miu",
-        "when was miu founded",
-        "what is miu known for",
-        "miu background"
+        "what is abraytech",
+        "tell me about abraytech",
+        "about abraytech",
+        "what does abraytech do",
+        "information about abraytech",
+        "describe abraytech",
+        "what kind of company is abraytech",
+        "abraytech overview",
+        "explain abraytech to me",
+        "who are you",
+        "what is this company",
+        "what does abraytech stand for"
       ],
       "responses": [
-        "Melchisedec International University (MIU) is a global higher education institution offering undergraduate and postgraduate programs across various disciplines. MIU focuses on flexible learning, innovation, academic excellence, and preparing students for successful global careers."
+        "AbrayTech is a technology company offering software development, cybersecurity, AI & data engineering, cloud/DevOps, and IT consulting services — alongside a hands-on training academy, a tech store, and a digital library. We work with businesses across finance, healthcare, e-commerce, education, logistics, and government."
       ]
     },
 
     {
-      "intent": "miu_location",
+      "intent": "what_we_do",
       "patterns": [
-        "where is miu located",
-        "miu location",
-        "where is melchisedec international university",
-        "what country is miu in",
-        "miu address",
-        "where can i find miu",
-        "does miu have a physical campus",
-        "how do i get to miu",
-        "where is the university based",
-        "location of miu campus",
-        "location"
+        "what do you do",
+        "what services do you offer",
+        "list your services",
+        "what can abraytech help me with",
+        "your services",
+        "services offered",
+        "what kind of work do you do",
+        "what solutions do you provide",
+        "tell me what abraytech offers",
+        "what is abraytech known for"
       ],
       "responses": [
-        "MIU operates as an international institution serving students globally. You can find official campus and contact location details on the MIU website under the Contact or About section."
+        "Here's what we do:\n\n• Custom Software Development\n• Cybersecurity & Penetration Testing\n• AI & Data Engineering\n• Cloud Migration & DevOps\n• IT Consulting & Strategy\n• Mobile App Development\n• Managed IT Support\n• Security Audits & Compliance (SOC 2, ISO 27001)\n• Data Analytics & Business Intelligence\n• Technical Training & Upskilling\n\nWant details on any of these, or to book a consultation?"
       ]
     },
 
     {
-      "intent": "accreditation",
+      "intent": "industries_served",
       "patterns": [
-        "is miu accredited",
-        "miu accreditation status",
-        "is miu recognized",
-        "is miu a legitimate university",
-        "who accredits miu",
-        "is miu approved",
-        "is miu recognized internationally",
-        "accreditation information",
-        "is miu degree valid",
-        "is miu certificate recognized"
+        "what industries do you serve",
+        "which sectors do you work with",
+        "do you work with healthcare companies",
+        "do you work with financial services",
+        "industries abraytech serves",
+        "who are your clients",
+        "what kind of businesses do you work with",
+        "sectors you support"
       ],
       "responses": [
-        "Accreditation and recognition details can be found on MIU's official website. It is recommended to verify accreditation status directly through official accreditation bodies and the university's published information."
+        "We build for teams across Financial Services, Healthcare, E-commerce & Retail, Education, Logistics & Supply Chain, and Government & Public Sector — with security and compliance built in for regulated industries."
+      ]
+    },
+
+    {
+      "intent": "consultation_booking",
+      "patterns": [
+        "how do i book a consultation",
+        "book a consultation",
+        "can i talk to someone",
+        "schedule a call",
+        "free consultation",
+        "how much does a consultation cost",
+        "is the consultation free",
+        "book a call with abraytech",
+        "talk to an expert",
+        "get a quote",
+        "discuss my project",
+        "speak to someone about my project"
+      ],
+      "responses": [
+        "You can book a consultation on our Consultation page — pick a topic (like a free discovery call or a paid strategy session), then an available time slot. Some topics are free, others have a fee shown up front before you confirm; paid ones are handled securely through Paystack. Head to the 'Book a Consultation' link in the menu to get started."
+      ]
+    },
+
+    {
+      "intent": "training_programs",
+      "patterns": [
+        "what training programs do you offer",
+        "do you have courses",
+        "tell me about your academy",
+        "list of training programs",
+        "software engineering course",
+        "cybersecurity training",
+        "data science program",
+        "cloud engineering course",
+        "can i learn to code with abraytech",
+        "do you teach programming",
+        "bootcamp",
+        "upskilling programs",
+        "what can i study at abraytech"
+      ],
+      "responses": [
+        "AbrayTech runs a hands-on technical training academy with 5 programs:\n\n• Full-Stack Software Engineering (Certificate)\n• Backend Engineering with Python & Django (Diploma)\n• Cybersecurity Analyst Program (Diploma)\n• Data Science & Machine Learning (Diploma)\n• Cloud & DevOps Engineering (Certificate)\n\nEach program is made up of several practical courses. Which one are you interested in?"
+      ]
+    },
+
+    {
+      "intent": "courses",
+      "patterns": [
+        "what courses are in the software engineering program",
+        "what will i learn",
+        "course list",
+        "what's covered in the cybersecurity program",
+        "what topics do you teach",
+        "curriculum",
+        "what subjects are taught",
+        "modules in the data science program",
+        "what does the cloud program cover"
+      ],
+      "responses": [
+        "Each program is broken into focused courses — for example, Full-Stack Software Engineering covers Web Fundamentals, JavaScript & React, Backend APIs with Node.js, and Git/Testing/Deployment. The Cybersecurity Analyst Program covers Networking Fundamentals, Ethical Hacking & Pentesting, Security Operations & SIEM, and Governance, Risk & Compliance. Ask about a specific program and I can point you to what it covers, or check the Programs page for the full breakdown."
+      ]
+    },
+
+    {
+      "intent": "how_to_enroll",
+      "patterns": [
+        "how do i apply",
+        "application process",
+        "admission requirements",
+        "how do i enroll",
+        "how to register for a program",
+        "how can i join a course",
+        "steps to apply",
+        "online application",
+        "where do i submit my application",
+        "how to sign up for training",
+        "tell me about admissions",
+        "how do i apply for a program",
+        "how do i apply for the data science program",
+        "how do i apply for the cybersecurity program",
+        "apply for the software engineering program",
+        "apply for a course"
+      ],
+      "responses": [
+        "To join a training program: create an account, choose a program, and submit an application. Once approved, you pay the certificate/tuition fees shown for that program and get access to your courses, lessons and assignments through the student portal. Look for 'Apply Now' on any program page to start."
       ]
     },
 
@@ -87,162 +169,110 @@
       "intent": "tuition_fees",
       "patterns": [
         "how much is tuition",
-        "miu tuition fees",
-        "cost of studying at miu",
-        "how much does miu cost",
         "program fees",
-        "price of degree",
-        "tuition per semester",
+        "cost of training",
+        "how much does a course cost",
+        "price of the program",
         "payment structure",
         "how much do i pay",
-        "what are the fees"
+        "what are the fees",
+        "certificate fee",
+        "installment payment",
+        "how much is the cybersecurity program",
+        "how much is the data science program",
+        "how much is the software engineering program",
+        "price of the cloud program",
+        "how much for the cybersecurity course"
       ],
       "responses": [
-        "Tuition fees vary depending on the program and level of study. For detailed and up-to-date tuition information, please visit the official MIU website or contact the admissions office."
+        "Fees vary by program — each one lists a certificate fee plus tuition, payable in installments. Exact amounts are shown on that program's page once you're logged in and applying. Payments are processed securely (Stripe for tuition, Paystack for store/consultation payments)."
       ]
     },
 
     {
-      "intent": "admissions",
+      "intent": "store",
       "patterns": [
-        "how do i apply",
-        "application process",
-        "admission requirements",
-        "application deadline",
-        "when is the deadline",
-        "what do i need to apply",
-        "how to get admitted",
-        "transfer requirements",
-        "international admission",
-        "scholarship requirements",
-        "application fee",
-        "do you need letters of recommendation",
-        "personal statement",
-        "transcripts",
-        "admissions",
-        "admision",
-        "requirement",
-        "how can i register",
-        "apply for admission",
-        "steps to apply",
-        "online application",
-        "where do i submit application",
-        "how to enroll",
-        "tell me about admissions"
+        "do you sell hardware",
+        "tech store",
+        "buy a laptop",
+        "do you sell laptops",
+        "what products do you sell",
+        "shop",
+        "buy networking equipment",
+        "do you sell phones",
+        "store categories",
+        "accessories store",
+        "where can i buy tech gear"
       ],
       "responses": [
-        "Our admission process is simple:\n\n1. Complete the online application\n2. Submit official transcripts\n3. Provide 2 letters of recommendation\n4. Write a personal statement\n5. Pay the application fee\n\nDeadlines vary by program. Would you like specific details for a particular program?"
+        "Yes — our store sells laptops, monitors, networking gear, peripherals, storage, smartphones, power & charging accessories, bags, and apparel. Check out the Store link in the menu, add items to your cart, and check out securely via Paystack."
       ]
     },
 
     {
-      "intent": "international_students",
+      "intent": "digital_library",
       "patterns": [
-        "international students",
-        "can international students apply",
-        "visa requirements",
-        "visa requirement",
-        "do you accept foreign students",
-        "study from abroad",
-        "global students",
-        "overseas applicants",
-        "can i apply from another country"
+        "do you have a library",
+        "digital library",
+        "download resources",
+        "study materials",
+        "ebooks",
+        "learning resources",
+        "where can i find reading materials",
+        "reference materials"
       ],
       "responses": [
-        "MIU welcomes international students from around the world. Admission requirements for international applicants may include academic credentials and identification documents. Please check the admissions page for detailed guidance."
+        "Our digital library has downloadable resources — guides, references and study material — organized by category. You'll find it under the Library link in the menu."
       ]
     },
 
     {
-      "intent": "online_learning",
+      "intent": "blog",
       "patterns": [
-        "is miu online",
-        "do you offer online classes",
-        "distance learning",
-        "can i study remotely",
-        "virtual learning",
-        "online degree programs",
-        "e-learning options",
-        "study from home",
-        "remote education"
+        "do you have a blog",
+        "latest articles",
+        "tech articles",
+        "read your blog",
+        "insights",
+        "company news",
+        "recent posts"
       ],
       "responses": [
-        "MIU offers flexible learning options including online and distance education programs, allowing students to study from various locations worldwide."
+        "Yes, our blog covers software development, security, AI and industry insights — you'll find it under the Blog link in the menu."
       ]
     },
 
     {
       "intent": "contact_information",
       "patterns": [
-        "contact miu",
-        "miu email",
-        "miu phone number",
-        "how can i contact the university",
+        "contact abraytech",
+        "abraytech email",
+        "abraytech phone number",
+        "how can i contact you",
         "customer service",
         "support email",
-        "call miu",
-        "how do i reach miu",
-        "tell me about support"
+        "call abraytech",
+        "how do i reach you",
+        "get in touch"
       ],
       "responses": [
-        "You can find official contact details including email addresses and phone numbers on the MIU website under the Contact section."
+        "You can reach us through the Contact page, or book a consultation directly if you'd like to talk through a specific project or question."
       ]
     },
 
     {
-      "intent": "mission_vision",
+      "intent": "payment_methods",
       "patterns": [
-        "miu mission",
-        "miu vision",
-        "what is the mission of miu",
-        "university goals",
-        "core values of miu",
-        "what does miu believe in",
-        "educational philosophy",
-        "vision statement"
+        "how do i pay",
+        "payment methods",
+        "do you accept card payments",
+        "is payment secure",
+        "what payment gateway do you use",
+        "can i pay with paystack",
+        "how is my payment processed"
       ],
       "responses": [
-        "MIU's mission focuses on delivering accessible, high-quality education that empowers students to achieve personal and professional success in a global environment."
-      ]
-    },
-
-    {
-      "intent": "programs",
-      "patterns": [
-        "what programs do you offer",
-        "tell me about courses",
-        "what majors are available",
-        "list of academic programs",
-        "business programs",
-        "computer science courses",
-        "data science degree",
-        "engineering majors",
-        "health sciences programs",
-        "graduate programs",
-        "undergraduate degrees"
-      ],
-      "responses": [
-        "MIU offers a wide range of programs including:\n\n• Business Administration (MBA, BBA)\n• Computer Science (BS, MS)\n• Data Science (MS)\n• Engineering (Civil, Mechanical, Electrical)\n• Health Sciences (Nursing, Public Health)\n\nWhich program are you interested in?"
-      ]
-    },
-
-    {
-      "intent": "campus_life",
-      "patterns": [
-        "campus life",
-        "student activities",
-        "clubs and organizations",
-        "what is there to do on campus",
-        "student clubs",
-        "online library",
-        "career services",
-        "academic counseling",
-        "student support services",
-        "events on campus",
-        "sports and recreation"
-      ],
-      "responses": [
-        "MIU offers a vibrant virtual campus experience with:\n\n• 24/7 online library access\n• Virtual student clubs\n• Career services (resume workshops and job fairs)\n• Academic counseling\n• Weekly virtual events and webinars\n\nWhat aspect of campus life would you like to explore?"
+        "Store purchases and paid consultations are processed securely through Paystack; training program tuition is processed through Stripe. Card details are handled directly by the payment provider — we never see or store your card number."
       ]
     },
 
@@ -252,17 +282,15 @@
         "i need help",
         "technical support",
         "help desk",
-        "tutoring services",
-        "writing center",
-        "career counseling",
-        "academic advising",
-        "student services",
-        "mental health resources",
-        "financial aid help",
-        "registration assistance"
+        "i have an issue with my account",
+        "student support",
+        "i can't log in",
+        "my payment didn't go through",
+        "who do i contact for help",
+        "something isn't working"
       ],
       "responses": [
-        "We provide comprehensive student support including technical help desk, academic advising, tutoring services, writing support, career counseling, and wellness resources. How can we assist you today?"
+        "Sorry you're having trouble. For account or payment issues, please reach out through the Contact page with details of what happened, and our team will follow up."
       ]
     },
 
@@ -270,7 +298,7 @@
       "intent": "fallback",
       "patterns": [],
       "responses": [
-        "I'm sorry, I didn't quite understand that. Please ask about programs, admissions, tuition, campus life, or student support."
+        "I'm sorry, I didn't quite understand that. You can ask me about our services, training programs, the store, the library, booking a consultation, or getting in touch."
       ]
     }
   ]

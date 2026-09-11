@@ -65,8 +65,7 @@ urlpatterns = [
 
     # Store routes moved to apps/store/urls.py
 
-    # Consultation booking
-    path('consultation/', views.consultation_booking, name='consultation_booking'),
+    # Consultation booking moved to apps/consultation/urls.py
 
     # Newsletter (AJAX)
     path('newsletter/subscribe/', views.newsletter_subscribe, name='newsletter_subscribe'),

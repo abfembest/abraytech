@@ -41,6 +41,7 @@ urlpatterns = [
     path('library/', include('apps.library.urls')),
     path('store/', include('apps.store.urls')),
     path('marketing/', include('apps.marketing.urls')),
+    path('consultation/', include('apps.consultation.urls', namespace='consultation')),
 
     path('support/', include('apps.support.urls', namespace='support')),
 

@@ -148,7 +148,7 @@ def start_session(request):
     session = ChatSession.objects.create(first_name=first_name, email=email)
 
     # Add a welcome message from bot
-    welcome = "Welcome! I'm your Student Life Assistant. How can I help you today?"
+    welcome = "Welcome! I'm AbrayTech's virtual assistant. How can I help you today?"
     ChatMessage.objects.create(session=session, sender='bot', content=welcome)
 
     return JsonResponse({

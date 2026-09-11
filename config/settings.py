@@ -80,6 +80,7 @@ INSTALLED_APPS = [
     'apps.library',
     'apps.store',
     'apps.marketing',
+    'apps.consultation',
 
     "django.contrib.humanize",
     'apps.chatbot',
@@ -284,8 +285,8 @@ STRIPE_PUBLIC_KEY = config("STRIPE_PUBLIC_KEY", default="")
 STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET", default="")
 
 # --------------------------------------------------
-# PAYSTACK PAYMENT SETTINGS (store checkout only — Stripe above stays the
-# application/course-fee gateway)
+# PAYSTACK PAYMENT SETTINGS (store checkout + consultation booking — Stripe
+# above stays the application/course-fee gateway, used only behind login)
 # --------------------------------------------------
 
 PAYSTACK_SECRET_KEY = config("PAYSTACK_SECRET_KEY", default="")

@@ -78,7 +78,7 @@ _STATIC_URLS = [
     ("eduweb:services_list", "monthly", "0.8"),
     ("eduweb:industries_list", "monthly", "0.6"),
     ("eduweb:projects_list", "monthly", "0.7"),
-    ("eduweb:consultation_booking", "monthly", "0.6"),
+    ("consultation:book_consultation", "monthly", "0.6"),
     ("eduweb:team", "monthly", "0.5"),
     ("eduweb:faq", "monthly", "0.6"),
     ("eduweb:careers", "weekly", "0.6"),

@@ -1,0 +1,282 @@
+{% extends 'management/base.html' %}
+{% load humanize %}
+{% block title %}Consultation Booking — Abraytech Admin{% endblock %}
+{% block content %}
+<div class="max-w-full">
+
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+    <span class="text-gray-400">Consultation</span>
+    <i class="fas fa-chevron-right text-xs"></i>
+    <span class="text-gray-800 font-medium">Slots &amp; Pricing</span>
+  </nav>
+
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Consultation Booking</h1>
+      <p class="text-gray-500 mt-1 text-sm">Set what each topic costs, open up call times, and see who's booked.</p>
+    </div>
+    <div class="flex items-center gap-2 flex-shrink-0">
+      <a href="{% url 'management:services_list' %}"
+         class="px-4 py-2.5 bg-white border border-gray-200 shadow-sm text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition flex items-center gap-2">
+        <i class="fas fa-briefcase"></i> Manage Topics
+      </a>
+      <a href="{% url 'management:consultation_bookings_list' %}"
+         class="px-4 py-2.5 bg-white border border-gray-200 shadow-sm text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition flex items-center gap-2">
+        <i class="fas fa-calendar-check"></i> View Bookings
+      </a>
+    </div>
+  </div>
+
+  {# ── Topic pricing & length ── #}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+    <div class="px-5 pt-5">
+      <h2 class="text-lg font-bold text-gray-800">Topic Pricing &amp; Length</h2>
+      <p class="text-gray-500 text-sm mt-0.5">
+        A topic can offer 30 min and 1hr side by side — tick a length to offer it, leave its price blank for a free
+        consultation. Untick a length to stop offering it (past bookings on it are kept).
+      </p>
+    </div>
+    <form method="post" action="{% url 'management:consultation_pricing_update' %}" class="p-5">
+      {% csrf_token %}
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wide">
+            <tr>
+              <th class="py-3 px-4 text-left font-semibold">Topic</th>
+              <th class="py-3 px-4 text-left font-semibold">30 Minutes</th>
+              <th class="py-3 px-4 text-left font-semibold">1 Hour</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            {% for row in pricing_rows %}
+            <tr class="hover:bg-gray-50 transition-colors">
+              <td class="py-2.5 px-4 font-medium text-gray-800 align-top">
+                <div class="pt-2">{{ row.service.title }}</div>
+              </td>
+              {% for length in row.lengths %}
+              <td class="py-2.5 px-4">
+                <label class="flex items-center gap-2 mb-1.5 text-xs font-semibold text-gray-600">
+                  <input type="checkbox" name="enable_{{ row.service.pk }}_{{ length.duration }}"
+                         {% if length.enabled %}checked{% endif %} {% if not can_edit %}disabled{% endif %}
+                         class="rounded border-gray-300">
+                  Offer this length
+                </label>
+                <input type="number" min="0" step="0.01" name="price_{{ row.service.pk }}_{{ length.duration }}"
+                       value="{{ length.option.price|default_if_none:'' }}" placeholder="Free"
+                       {% if not can_edit %}disabled{% endif %}
+                       class="w-32 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none">
+              </td>
+              {% endfor %}
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="py-6 px-4 text-center text-gray-400">
+              No services yet — <a href="{% url 'management:service_create' %}" class="text-primary-600 font-medium hover:underline">add one</a> first.
+            </td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if can_edit and pricing_rows %}
+      <div class="mt-4">
+        <button type="submit" class="px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition focus:outline-none focus:ring-2 focus:ring-primary-500">
+          Save Pricing
+        </button>
+      </div>
+      {% endif %}
+    </form>
+  </div>
+
+  {% if can_edit %}
+  {# ── Generate slots ── #}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
+    <h2 class="text-lg font-bold text-gray-800 mb-1">Open Up Time</h2>
+    <p class="text-gray-500 text-sm mb-4">Fills a working window with slots at the interval you choose. Existing slots at the same time are skipped, not duplicated — safe to re-run.</p>
+    <form method="post" action="{% url 'management:consultation_slot_generate' %}" class="flex flex-wrap items-end gap-3">
+      {% csrf_token %}
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 mb-1">Day</label>
+        <input type="date" name="date" required class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 mb-1">Window start</label>
+        <input type="time" name="start_time" value="09:00" required class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 mb-1">Window end</label>
+        <input type="time" name="end_time" value="17:00" required class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 mb-1">Slot length</label>
+        <select name="interval_minutes" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:outline-none">
+          <option value="30">30 minutes</option>
+          <option value="60">1 hour</option>
+        </select>
+      </div>
+      <button type="submit" class="px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition focus:outline-none focus:ring-2 focus:ring-primary-500">
+        <i class="fas fa-bolt mr-1"></i> Generate Slots
+      </button>
+    </form>
+  </div>
+  {% endif %}
+
+  {# ── Upcoming slots ── #}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-5 pt-5 flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h2 class="text-lg font-bold text-gray-800">Upcoming Times</h2>
+        <p class="text-gray-500 text-sm mt-0.5">{{ slot_rows|length }} slot{{ slot_rows|length|pluralize }} from today onward.</p>
+      </div>
+      {% if can_delete %}
+      <button type="button" id="bulkDeleteBtn" disabled
+              class="px-3.5 py-2 bg-red-50 text-red-600 text-sm font-semibold rounded-lg opacity-50 cursor-not-allowed transition hover:bg-red-100 hover:opacity-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-50">
+        <i class="fas fa-trash mr-1"></i> Delete Selected (<span id="bulkDeleteCount">0</span>)
+      </button>
+      {% endif %}
+    </div>
+    <div class="overflow-x-auto p-5">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wide">
+          <tr>
+            {% if can_delete %}
+            <th class="py-3 px-4 text-left font-semibold w-10">
+              <input type="checkbox" id="selectAllSlots" class="rounded border-gray-300">
+            </th>
+            {% endif %}
+            <th class="py-3 px-4 text-left font-semibold">Date</th>
+            <th class="py-3 px-4 text-left font-semibold">Time</th>
+            <th class="py-3 px-4 text-left font-semibold">Length</th>
+            <th class="py-3 px-4 text-left font-semibold">Status</th>
+            {% if can_delete %}<th class="py-3 px-4 text-left font-semibold">Actions</th>{% endif %}
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for row in slot_rows %}
+          <tr class="hover:bg-gray-50 transition-colors">
+            {% if can_delete %}
+            <td class="py-2.5 px-4">
+              {% if not row.booking %}
+              <input type="checkbox" class="slot-checkbox rounded border-gray-300" value="{{ row.slot.pk }}">
+              {% endif %}
+            </td>
+            {% endif %}
+            <td class="py-2.5 px-4 whitespace-nowrap">{{ row.slot.date|date:"D, d M Y" }}</td>
+            <td class="py-2.5 px-4 whitespace-nowrap font-mono text-xs">{{ row.slot.start_time|time:"g:i A" }}&ndash;{{ row.slot.end_time|time:"g:i A" }}</td>
+            <td class="py-2.5 px-4 whitespace-nowrap">{{ row.slot.duration_minutes }} min</td>
+            <td class="py-2.5 px-4">
+              <span class="px-2.5 py-1 rounded-full text-xs font-semibold
+                {% if row.status == 'Open' %}bg-emerald-50 text-emerald-700
+                {% elif row.status == 'Held' %}bg-amber-50 text-amber-700
+                {% else %}bg-gray-100 text-gray-600{% endif %}">
+                {{ row.status }}{% if row.booking %} &middot; {{ row.booking.name }}{% endif %}
+              </span>
+            </td>
+            {% if can_delete %}
+            <td class="py-2.5 px-4">
+              {% if not row.booking %}
+              <button type="button" class="text-red-500 hover:text-red-700 text-sm js-delete-slot"
+                      data-url="{% url 'management:consultation_slot_delete' row.slot.pk %}"
+                      data-label="{{ row.slot }}" title="Delete slot">
+                <i class="fas fa-trash"></i>
+              </button>
+              {% endif %}
+            </td>
+            {% endif %}
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="py-6 px-4 text-center text-gray-400">No open times yet — generate some above.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% if can_delete %}
+  <form id="slotDeleteForm" method="post" action="{% url 'management:consultation_slot_delete' 0 %}" class="hidden">
+    {% csrf_token %}
+  </form>
+  <form id="slotBulkDeleteForm" method="post" action="{% url 'management:consultation_slots_bulk_delete' %}" class="hidden">
+    {% csrf_token %}
+    <div id="slotBulkDeleteIds"></div>
+  </form>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var selectAll = document.getElementById('selectAllSlots');
+  var bulkBtn = document.getElementById('bulkDeleteBtn');
+  var bulkCount = document.getElementById('bulkDeleteCount');
+  if (!bulkBtn) return;
+
+  function checkboxes() { return Array.from(document.querySelectorAll('.slot-checkbox')); }
+
+  function refreshBulkButton() {
+    var checked = checkboxes().filter(function (c) { return c.checked; });
+    bulkCount.textContent = checked.length;
+    bulkBtn.disabled = checked.length === 0;
+  }
+
+  if (selectAll) {
+    selectAll.addEventListener('change', function () {
+      checkboxes().forEach(function (c) { c.checked = selectAll.checked; });
+      refreshBulkButton();
+    });
+  }
+  document.addEventListener('change', function (e) {
+    if (e.target.classList.contains('slot-checkbox')) refreshBulkButton();
+  });
+
+  document.addEventListener('click', function (e) {
+    var delBtn = e.target.closest('.js-delete-slot');
+    if (delBtn) {
+      Swal.fire({
+        title: 'Remove this time slot?',
+        html: `<strong>${delBtn.dataset.label}</strong> will no longer be bookable.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+      }).then(function (r) {
+        if (!r.isConfirmed) return;
+        var form = document.getElementById('slotDeleteForm');
+        form.action = delBtn.dataset.url;
+        form.submit();
+      });
+      return;
+    }
+  });
+
+  bulkBtn.addEventListener('click', function () {
+    var checked = checkboxes().filter(function (c) { return c.checked; });
+    if (!checked.length) return;
+    Swal.fire({
+      title: `Remove ${checked.length} time slot${checked.length === 1 ? '' : 's'}?`,
+      text: "Any slot with an active booking will be skipped.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Delete',
+      cancelButtonText: 'Cancel',
+    }).then(function (r) {
+      if (!r.isConfirmed) return;
+      var container = document.getElementById('slotBulkDeleteIds');
+      container.innerHTML = '';
+      checked.forEach(function (c) {
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'slot_ids';
+        input.value = c.value;
+        container.appendChild(input);
+      });
+      document.getElementById('slotBulkDeleteForm').submit();
+    });
+  });
+})();
+</script>
+{% endblock %}

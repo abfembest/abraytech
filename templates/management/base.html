@@ -932,6 +932,15 @@
                     </div>
                     {% endif %}{# /store #}
 
+                    <!-- Consultation Booking -->
+                    {% if permissions.consultation.can_view or request.user.is_superuser %}
+                    <a href="{% url 'management:consultation_slots_list' %}"
+                       class="flex items-center py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1 {% if 'management/consultation' in request.path %}bg-white/20{% endif %}">
+                        <i class="fas fa-calendar-check w-5 text-center" aria-hidden="true"></i>
+                        <span class="ml-3 text-[17px] font-semibold">Consultation</span>
+                    </a>
+                    {% endif %}
+
                     <!-- Site Content -->
                     {% if permissions.site_content.can_view %}
                     <div class="mb-1">
@@ -958,6 +967,10 @@
                             <a href="{% url 'management:site_milestones_list' %}"
                                class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'milestones' in request.path %}bg-white/20{% endif %}">
                                 <i class="fas fa-clock mr-2" aria-hidden="true"></i>History Timeline
+                            </a>
+                            <a href="{% url 'management:services_list' %}"
+                               class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'site-config/services' in request.path %}bg-white/20{% endif %}">
+                                <i class="fas fa-briefcase mr-2" aria-hidden="true"></i>Services
                             </a>
                             <a href="{% url 'management:testimonials_list' %}"
                                class="block py-2 px-4 rounded-lg hover:bg-white/10 transition-all text-[15px] font-medium {% if 'testimonials' in request.path %}bg-white/20{% endif %}">
