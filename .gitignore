@@ -20,6 +20,10 @@ __pycache__/
 *.env
 venv/
 
+# Server-maintained per-environment config (ALLOWED_HOSTS, CSRF_TRUSTED_ORIGINS,
+# INSTALLED_APPS, etc.) — edited directly on deployment targets, not synced via git.
+config/settings.py
+
 
 # ---------------------------
 # BACKUPS
