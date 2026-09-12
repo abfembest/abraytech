@@ -1,3 +1,4 @@
+import datetime
 import json
 import time
 import uuid
@@ -16,22 +17,26 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from apps.eduweb.decorators import check_for_auth
-from apps.eduweb.models import Notification
+from apps.eduweb.models import Notification, Service
 from apps.eduweb.views import generate_captcha
 
 from . import services
 from .emailservices import send_booking_confirmation_email, send_staff_booking_notification
-from .models import ConsultationBooking, ConsultationOption, ConsultationSlot, bulk_blocking_bookings
+from .models import ConsultationBooking, ConsultationDayWindow, ConsultationOption
 
 import logging
 
 logger = logging.getLogger(__name__)
 
+# Candidate start times are offered every 30 minutes within a free gap —
+# fine-grained enough to be useful, coarse enough to keep the picker short.
+TIME_STEP_MINUTES = 30
+
 
 class _SlotUnavailable(Exception):
     """Raised inside the booking transaction.atomic() block to abort and
-    roll back cleanly when the fresh, lock-protected re-check finds the slot
-    (or anything overlapping it) already taken — see book_consultation."""
+    roll back cleanly when the fresh, lock-protected re-check finds the
+    requested time no longer fits — see book_consultation."""
 
 
 def _notify_admins_new_booking(booking):
@@ -44,9 +49,9 @@ def _notify_admins_new_booking(booking):
     except Exception:
         link = ''
     title = 'New consultation booking'
-    when = f"{booking.slot.date:%d %b}, {booking.slot.start_time:%I:%M %p}"
+    when = f"{booking.day_window.date:%d %b}, {booking.start_time:%I:%M %p}"
     amount = f"₦{booking.amount:,.0f}" if booking.amount else 'Free'
-    message = f"{booking.name} booked {booking.service.title} — {when} ({amount})"
+    message = f"{booking.name} booked {booking.topic.title} — {when} ({amount})"
     for admin_user in User.objects.filter(profile__role='admin'):
         try:
             Notification.objects.create(
@@ -65,21 +70,55 @@ def _confirm_booking(booking):
     send_staff_booking_notification(booking)
 
 
-def _available_slots_payload():
-    candidates = list(ConsultationSlot.objects.filter(is_active=True, date__gte=timezone.localdate()))
-    blocking = bulk_blocking_bookings(candidates)
-    now = timezone.now()
-    available = [
-        s for s in candidates
-        if s.is_active and s.start_datetime > now and blocking.get(s.pk) is None
-    ]
+def _candidate_times(gaps):
+    """Every TIME_STEP_MINUTES-aligned start time inside a list of (start,
+    end) gaps — duration-agnostic; fit against a chosen duration is
+    validated separately once the visitor has picked one."""
+    times = []
+    for gap_start, gap_end in gaps:
+        cursor = gap_start.hour * 60 + gap_start.minute
+        end = gap_end.hour * 60 + gap_end.minute
+        while cursor < end:
+            times.append(f"{cursor // 60:02d}:{cursor % 60:02d}")
+            cursor += TIME_STEP_MINUTES
+    return times
+
+
+def _bookable_days_payload():
+    """{date_iso: {label, gaps: [[start,end],...], times: [...]}} for every
+    day within the booking horizon that's actually open — small by
+    construction (at most BOOKING_HORIZON_DAYS+1 days), so no batching
+    helper is needed the way the old per-slot picker required."""
+    days = ConsultationDayWindow.objects.filter(
+        is_active=True, date__gte=timezone.localdate(),
+    ).order_by('date')
+
+    payload = {}
+    for day in days:
+        if not day.is_bookable:
+            continue
+        gaps = day.free_gaps()
+        if not gaps:
+            continue
+        payload[day.date.isoformat()] = {
+            'label': f"{day.date:%a, %d %b %Y}",
+            'gaps': [[g[0].strftime('%H:%M'), g[1].strftime('%H:%M')] for g in gaps],
+            'times': _candidate_times(gaps),
+        }
+    return payload
+
+
+def _duration_options_payload():
+    options = ConsultationOption.objects.filter(is_active=True).order_by('duration_minutes')
     return [
         {
-            'id': s.pk,
-            'label': str(s),
-            'duration': s.duration_minutes,
+            'id': o.pk,
+            'duration': o.duration_minutes,
+            'label': o.get_duration_minutes_display(),
+            'price_label': 'Free' if o.is_free else f"₦{o.price:,.0f}",
+            'is_free': o.is_free,
         }
-        for s in available
+        for o in options
     ]
 
 
@@ -89,33 +128,9 @@ def _available_slots_payload():
 # guard the old eduweb.views.consultation_booking used.
 # =============================================================================
 
-def _bookable_options():
-    """Every active (topic, length) combination, grouped for the picker:
-    the distinct list of topics that have at least one, plus a
-    service_id -> [option, ...] map for the JS to populate the length
-    dropdown once a topic is chosen."""
-    options_qs = ConsultationOption.objects.filter(
-        is_active=True, service__is_active=True,
-    ).select_related('service').order_by('service__title', 'duration_minutes')
-
-    services_seen = {}
-    options_by_service = {}
-    for option in options_qs:
-        services_seen.setdefault(option.service_id, option.service)
-        options_by_service.setdefault(option.service_id, []).append({
-            'id': option.pk,
-            'duration': option.duration_minutes,
-            'label': f"{option.get_duration_minutes_display()} — "
-                     f"{'Free' if option.is_free else f'₦{option.price:,.0f}'}",
-        })
-
-    topics = sorted(services_seen.values(), key=lambda s: s.title)
-    return topics, options_by_service
-
-
 @check_for_auth
 def book_consultation(request):
-    topics, options_by_service = _bookable_options()
+    topics = Service.objects.filter(is_active=True)
 
     if request.method == 'POST':
         session_answer = request.session.get('consultation_captcha_answer')
@@ -136,11 +151,13 @@ def book_consultation(request):
         phone = request.POST.get('phone', '').strip()
         company = request.POST.get('company', '').strip()
         message_text = request.POST.get('message', '').strip()
+        topic_id = request.POST.get('topic_id')
+        date_str = request.POST.get('date', '').strip()
+        start_time_str = request.POST.get('start_time', '').strip()
         option_id = request.POST.get('option_id')
-        slot_id = request.POST.get('slot_id')
 
-        if not name or not email or not option_id or not slot_id:
-            messages.error(request, 'Please choose a topic, a length, a time, and provide your name and email.')
+        if not name or not email or not topic_id or not date_str or not start_time_str or not option_id:
+            messages.error(request, 'Please choose a topic, a date, a time, and a length, and provide your name and email.')
             return redirect('consultation:book_consultation')
 
         try:
@@ -149,22 +166,23 @@ def book_consultation(request):
             messages.error(request, 'Please enter a valid email address.')
             return redirect('consultation:book_consultation')
 
-        if not (option_id.isdigit() and slot_id.isdigit()):
-            # Only reachable via a hand-crafted POST (the real <select>s
-            # only ever submit numeric ids) — fail the same clean way as a
-            # missing field rather than letting a non-numeric pk blow up as
-            # an unhandled 500 from the ORM.
-            messages.error(request, 'That topic/time selection looks invalid. Please pick again.')
+        if not (topic_id.isdigit() and option_id.isdigit()):
+            messages.error(request, 'That selection looks invalid. Please pick again.')
             return redirect('consultation:book_consultation')
 
-        option = get_object_or_404(
-            ConsultationOption.objects.select_related('service'),
-            pk=option_id, is_active=True, service__is_active=True,
-        )
-        slot = get_object_or_404(ConsultationSlot, pk=slot_id, is_active=True)
+        try:
+            booking_date = datetime.date.fromisoformat(date_str)
+            booking_start = datetime.datetime.strptime(start_time_str, '%H:%M').time()
+        except ValueError:
+            messages.error(request, 'That date/time looks invalid. Please pick again.')
+            return redirect('consultation:book_consultation')
 
-        if slot.duration_minutes != option.duration_minutes:
-            messages.error(request, "That time doesn't match the length you picked. Please pick again.")
+        topic = get_object_or_404(Service, pk=topic_id, is_active=True)
+        option = get_object_or_404(ConsultationOption, pk=option_id, is_active=True)
+        day_window = ConsultationDayWindow.objects.filter(date=booking_date, is_active=True).first()
+
+        if day_window is None or not day_window.is_bookable:
+            messages.error(request, "That day isn't open for booking. Please pick another.")
             return redirect('consultation:book_consultation')
 
         is_free = option.is_free
@@ -173,35 +191,37 @@ def book_consultation(request):
 
         # A handful of quick retries absorbs SQLite's "database is locked"
         # under simultaneous writers (see the locking note below) — that
-        # error means the lock was contended, not that the slot is actually
+        # error means the lock was contended, not that the time is actually
         # taken, so retrying is the honest response; only _SlotUnavailable/
         # IntegrityError mean someone genuinely got there first.
         for attempt in range(5):
             try:
                 with transaction.atomic():
-                    # Force the write-lock before re-checking availability,
-                    # not after: a plain read-then-create lets two requests
-                    # for *different but overlapping* slots (e.g. a 1hr slot
-                    # and the 30-min slot inside it) both pass the "is it
-                    # free?" check before either has committed, since
-                    # neither slot row alone is covered by the DB
-                    # uniqueness constraint below. Updating every slot in
-                    # the overlap group here is the first write in the
-                    # transaction, so it's what actually claims the lock —
-                    # a concurrent request for any overlapping slot blocks
-                    # on this exact statement until this transaction
-                    # commits or rolls back, instead of racing past the
-                    # same stale read.
-                    overlap_ids = slot.overlapping_slot_ids()
-                    ConsultationSlot.objects.filter(pk__in=overlap_ids).update(is_active=F('is_active'))
+                    # Force the write-lock before re-checking fit, not
+                    # after: a plain read-then-create lets two requests for
+                    # *different but overlapping* times on the same day both
+                    # pass the "does this fit?" check before either has
+                    # committed. Touching this day's own row here is the
+                    # first write in the transaction, so it's what actually
+                    # claims the lock — a concurrent request for any
+                    # overlapping time on this same day blocks on this exact
+                    # statement until this transaction commits or rolls
+                    # back, instead of racing past the same stale read.
+                    ConsultationDayWindow.objects.filter(pk=day_window.pk).update(is_active=F('is_active'))
 
-                    slot.refresh_from_db()
-                    if not slot.is_available:
+                    day_window.refresh_from_db()
+                    if not day_window.fits(booking_start, option.duration_minutes):
                         raise _SlotUnavailable()
 
+                    end_minutes = booking_start.hour * 60 + booking_start.minute + option.duration_minutes
+                    booking_end = datetime.time(end_minutes // 60, end_minutes % 60)
+
                     booking = ConsultationBooking.objects.create(
-                        slot=slot,
+                        day_window=day_window,
+                        start_time=booking_start,
+                        end_time=booking_end,
                         option=option,
+                        topic=topic,
                         name=name,
                         email=email,
                         phone=phone,
@@ -225,7 +245,7 @@ def book_consultation(request):
                     time.sleep(0.1 * (attempt + 1))
 
         if db_busy or booking is None:
-            logger.warning('Consultation booking gave up after repeated "database is locked" retries for slot %s', slot.pk)
+            logger.warning('Consultation booking gave up after repeated "database is locked" retries for day %s', day_window.pk)
             messages.error(request, "We're a little busy right now — please try booking again in a moment.")
             return redirect('consultation:book_consultation')
 
@@ -250,10 +270,15 @@ def book_consultation(request):
     captcha_question, captcha_answer = generate_captcha()
     request.session['consultation_captcha_answer'] = captcha_answer
 
+    days_payload = _bookable_days_payload()
+    durations_payload = _duration_options_payload()
+
     return render(request, 'consultation.html', {
         'topics': topics,
-        'options_by_service': options_by_service,
-        'slots': _available_slots_payload(),
+        'days_payload': days_payload,
+        'durations_payload': durations_payload,
+        'has_days': bool(days_payload),
+        'has_durations': bool(durations_payload),
         'captcha_question': captcha_question,
     })
 

@@ -934,7 +934,7 @@
 
                     <!-- Consultation Booking -->
                     {% if permissions.consultation.can_view or request.user.is_superuser %}
-                    <a href="{% url 'management:consultation_slots_list' %}"
+                    <a href="{% url 'management:consultation_days_list' %}"
                        class="flex items-center py-3 px-4 rounded-lg hover:bg-white/10 transition-all mb-1 {% if 'management/consultation' in request.path %}bg-white/20{% endif %}">
                         <i class="fas fa-calendar-check w-5 text-center" aria-hidden="true"></i>
                         <span class="ml-3 text-[17px] font-semibold">Consultation</span>

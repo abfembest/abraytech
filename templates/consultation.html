@@ -42,7 +42,9 @@
     /* Select2 restyled to match this page's native inputs (border-borderblue,
        rounded-lg, focus:ring-ice/brandblue) rather than Select2's stock look. */
     #consService + .select2-container .select2-selection--single,
-    #consSlot + .select2-container .select2-selection--single {
+    #consDate + .select2-container .select2-selection--single,
+    #consTime + .select2-container .select2-selection--single,
+    #consDuration + .select2-container .select2-selection--single {
         border: 1px solid #D7EAFE !important;
         border-radius: 0.5rem !important;
         height: 46px !important;
@@ -62,18 +64,24 @@
         box-shadow: 0 0 0 4px #EAF6FF !important;
     }
     #consService + .select2-container .select2-selection__rendered,
-    #consSlot + .select2-container .select2-selection__rendered {
+    #consDate + .select2-container .select2-selection__rendered,
+    #consTime + .select2-container .select2-selection__rendered,
+    #consDuration + .select2-container .select2-selection__rendered {
         color: #0F172A !important;
         font-size: .875rem !important;
         line-height: 1 !important;
         padding: 0 !important;
     }
     #consService + .select2-container .select2-selection__placeholder,
-    #consSlot + .select2-container .select2-selection__placeholder {
+    #consDate + .select2-container .select2-selection__placeholder,
+    #consTime + .select2-container .select2-selection__placeholder,
+    #consDuration + .select2-container .select2-selection__placeholder {
         color: #94A3B8 !important;
     }
     #consService + .select2-container .select2-selection__arrow,
-    #consSlot + .select2-container .select2-selection__arrow {
+    #consDate + .select2-container .select2-selection__arrow,
+    #consTime + .select2-container .select2-selection__arrow,
+    #consDuration + .select2-container .select2-selection__arrow {
         height: 44px !important;
         top: 0 !important;
         right: 10px !important;
@@ -164,6 +172,11 @@
                 <i data-lucide="alert-circle" class="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0 text-amber-600"></i>
                 <span class="text-xs sm:text-sm font-medium text-amber-800">No consultation topics are open for booking right now. Please check back soon.</span>
             </div>
+            {% elif not has_days or not has_durations %}
+            <div class="p-3 sm:p-4 rounded-xl flex items-start gap-3 bg-amber-50 border border-amber-200">
+                <i data-lucide="alert-circle" class="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0 text-amber-600"></i>
+                <span class="text-xs sm:text-sm font-medium text-amber-800">No consultation times are open for booking right now. Please check back soon.</span>
+            </div>
             {% endif %}
 
             <form method="POST" action="{% url 'consultation:book_consultation' %}" class="space-y-4 sm:space-y-5">
@@ -197,7 +210,7 @@
 
                 <div>
                     <label for="consService" class="block text-sm font-semibold text-slate-700 mb-1.5">What would you like to discuss? *</label>
-                    <select id="consService" required
+                    <select id="consService" name="topic_id" required
                             class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-borderblue rounded-lg text-sm focus:border-brandblue focus:ring-4 focus:ring-ice transition-all outline-none bg-white">
                         <option value="">Select a topic&hellip;</option>
                         {% for topic in topics %}
@@ -207,17 +220,32 @@
                 </div>
 
                 <div>
-                    <label for="consSlot" class="block text-sm font-semibold text-slate-700 mb-1.5">Available Time *</label>
-                    <select id="consSlot" required disabled
-                            class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-borderblue rounded-lg text-sm focus:border-brandblue focus:ring-4 focus:ring-ice transition-all outline-none bg-white disabled:bg-gray-50 disabled:text-slate-400">
-                        <option value="">Choose a topic first&hellip;</option>
+                    <label for="consDate" class="block text-sm font-semibold text-slate-700 mb-1.5">Date *</label>
+                    <select id="consDate" name="date" required
+                            class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-borderblue rounded-lg text-sm focus:border-brandblue focus:ring-4 focus:ring-ice transition-all outline-none bg-white">
+                        <option value="">Select a date&hellip;</option>
                     </select>
-                    <input type="hidden" id="consSlotId" name="slot_id">
-                    <input type="hidden" id="consOptionId" name="option_id">
+                </div>
+
+                <div class="grid sm:grid-cols-2 gap-4 sm:gap-5">
+                    <div>
+                        <label for="consTime" class="block text-sm font-semibold text-slate-700 mb-1.5">Available Time *</label>
+                        <select id="consTime" name="start_time" required disabled
+                                class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-borderblue rounded-lg text-sm focus:border-brandblue focus:ring-4 focus:ring-ice transition-all outline-none bg-white disabled:bg-gray-50 disabled:text-slate-400">
+                            <option value="">Choose a date first&hellip;</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="consDuration" class="block text-sm font-semibold text-slate-700 mb-1.5">Call Length *</label>
+                        <select id="consDuration" name="option_id" required
+                                class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-borderblue rounded-lg text-sm focus:border-brandblue focus:ring-4 focus:ring-ice transition-all outline-none bg-white">
+                            <option value="">Select a length&hellip;</option>
+                        </select>
+                    </div>
                 </div>
                 <p id="consPriceNote" class="text-xs text-slate-500" aria-live="polite"></p>
-                {{ slots|json_script:"consultation-slots-data" }}
-                {{ options_by_service|json_script:"consultation-options-data" }}
+                {{ days_payload|json_script:"consultation-days-data" }}
+                {{ durations_payload|json_script:"consultation-durations-data" }}
 
                 <div>
                     <label for="consMessage" class="block text-sm font-semibold text-slate-700 mb-1.5">Tell us about your project</label>
@@ -267,85 +295,138 @@
 <script src="{% static 'vendor/select2/select2.min.js' %}"></script>
 <script>
 (function () {
-    var slotsDataEl = document.getElementById('consultation-slots-data');
-    var optionsDataEl = document.getElementById('consultation-options-data');
-    var allSlots = slotsDataEl ? JSON.parse(slotsDataEl.textContent) : [];
-    var optionsByService = optionsDataEl ? JSON.parse(optionsDataEl.textContent) : {};
+    var daysDataEl = document.getElementById('consultation-days-data');
+    var durationsDataEl = document.getElementById('consultation-durations-data');
+    var daysData = daysDataEl ? JSON.parse(daysDataEl.textContent) : {};
+    var durationsData = durationsDataEl ? JSON.parse(durationsDataEl.textContent) : [];
 
-    var $service = $('#consService');
-    var $slot = $('#consSlot');
-    var slotSelect = $slot.get(0);
-    var slotIdInput = document.getElementById('consSlotId');
-    var optionIdInput = document.getElementById('consOptionId');
+    var $date = $('#consDate');
+    var $time = $('#consTime');
+    var $duration = $('#consDuration');
+    var dateSelect = $date.get(0);
+    var timeSelect = $time.get(0);
+    var durationSelect = $duration.get(0);
     var priceNote = document.getElementById('consPriceNote');
+    var submitBtn = document.querySelector('#consService').closest('form').querySelector('button[type="submit"]');
 
-    $service.select2({ width: '100%', placeholder: 'Select a topic…', minimumResultsForSearch: 6 });
-    $slot.select2({ width: '100%', placeholder: 'Choose a topic first…', minimumResultsForSearch: 6 });
+    $('#consService').select2({ width: '100%', placeholder: 'Select a topic…', minimumResultsForSearch: 6 });
+    $date.select2({ width: '100%', placeholder: 'Select a date…', minimumResultsForSearch: 6 });
+    $duration.select2({ width: '100%', placeholder: 'Select a length…', minimumResultsForSearch: 6 });
+    // $time's select2 instance is created by reinitTimeSelect2() below, since
+    // its placeholder text changes with each refreshTimes() state.
 
-    function refreshSlots() {
-        var serviceId = $service.val();
-        slotSelect.innerHTML = '';
-        slotIdInput.value = '';
-        optionIdInput.value = '';
-        priceNote.textContent = '';
+    // Dates and durations are both known up front — populate them on load;
+    // only the time list depends on which date is picked.
+    Object.keys(daysData).sort().forEach(function (dateIso) {
+        dateSelect.appendChild(new Option(daysData[dateIso].label, dateIso));
+    });
+    $date.trigger('change.select2');
 
-        if (!serviceId) {
-            $slot.prop('disabled', true);
-            slotSelect.appendChild(new Option('Choose a topic first…', ''));
-            $slot.trigger('change.select2');
-            return;
-        }
+    durationsData.forEach(function (d) {
+        var el = new Option(d.label + ' — ' + d.price_label, d.id);
+        el.dataset.duration = d.duration;
+        el.dataset.free = d.is_free ? '1' : '0';
+        durationSelect.appendChild(el);
+    });
+    $duration.trigger('change.select2');
 
-        var opts = optionsByService[serviceId] || [];
-        // Map each duration this topic offers to its option (price/length),
-        // so picking a time is enough — the length no longer needs its own step.
-        var optionByDuration = {};
-        opts.forEach(function (o) { optionByDuration[o.duration] = o; });
-
-        var matching = allSlots
-            .filter(function (s) { return optionByDuration.hasOwnProperty(s.duration); })
-            .map(function (s) {
-                var o = optionByDuration[s.duration];
-                return { id: s.id, optionId: o.id, isFree: o.label.indexOf('Free') !== -1,
-                         label: s.label + ' · ' + o.label };
-            });
-
-        if (!matching.length) {
-            $slot.prop('disabled', true);
-            slotSelect.appendChild(new Option('No open times for this topic right now', ''));
-            $slot.trigger('change.select2');
-            return;
-        }
-
-        $slot.prop('disabled', false);
-        slotSelect.appendChild(new Option('Choose a time…', ''));
-        matching.forEach(function (s) {
-            var el = new Option(s.label, s.id);
-            el.dataset.optionId = s.optionId;
-            el.dataset.free = s.isFree ? '1' : '0';
-            slotSelect.appendChild(el);
-        });
-        $slot.trigger('change.select2');
+    function timeToMinutes(hhmm) {
+        var parts = hhmm.split(':');
+        return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
     }
 
-    function onSlotChange() {
-        var opt = slotSelect.options[slotSelect.selectedIndex];
-        if (!opt || !opt.value) {
-            slotIdInput.value = '';
-            optionIdInput.value = '';
-            priceNote.textContent = '';
+    function formatTime12h(hhmm) {
+        var parts = hhmm.split(':');
+        var hour = parseInt(parts[0], 10);
+        var minute = parts[1];
+        var period = hour >= 12 ? 'PM' : 'AM';
+        var hour12 = hour % 12 || 12;
+        return hour12 + ':' + minute + ' ' + period;
+    }
+
+    // Select2 caches its own option list at init time and doesn't notice
+    // options swapped in later via raw DOM writes — trigger('change') alone
+    // leaves the old label on screen, so the widget has to be rebuilt.
+    function reinitTimeSelect2(placeholder) {
+        if ($time.data('select2')) {
+            $time.select2('destroy');
+        }
+        $time.select2({ width: '100%', placeholder: placeholder, minimumResultsForSearch: 6 });
+    }
+
+    function refreshTimes() {
+        var dateIso = $date.val();
+        timeSelect.innerHTML = '';
+
+        if (!dateIso || !daysData[dateIso]) {
+            $time.prop('disabled', true);
+            timeSelect.appendChild(new Option('Choose a date first…', ''));
+            reinitTimeSelect2('Choose a date first…');
+            validateFit();
             return;
         }
-        slotIdInput.value = opt.value;
-        optionIdInput.value = opt.dataset.optionId;
-        priceNote.textContent = opt.dataset.free === '1'
+
+        var times = daysData[dateIso].times;
+        if (!times.length) {
+            $time.prop('disabled', true);
+            timeSelect.appendChild(new Option('No open times that day', ''));
+            reinitTimeSelect2('No open times that day');
+            validateFit();
+            return;
+        }
+
+        $time.prop('disabled', false);
+        timeSelect.appendChild(new Option('Choose a time…', ''));
+        times.forEach(function (t) {
+            timeSelect.appendChild(new Option(formatTime12h(t), t));
+        });
+        reinitTimeSelect2('Choose a time…');
+        validateFit();
+    }
+
+    // A time picked before a length still fits *some* free stretch, but
+    // maybe not one long enough for the length eventually chosen — this is
+    // the authoritative-on-the-client check for that, mirroring the
+    // server-side ConsultationDayWindow.fits() the view re-verifies before
+    // ever creating a booking.
+    function validateFit() {
+        var dateIso = $date.val();
+        var timeVal = $time.val();
+        var durationOpt = durationSelect.options[durationSelect.selectedIndex];
+        var durationMinutes = durationOpt ? parseInt(durationOpt.dataset.duration || '0', 10) : 0;
+
+        if (!dateIso || !timeVal || !durationOpt || !durationOpt.value) {
+            priceNote.textContent = '';
+            priceNote.classList.remove('text-red-600');
+            if (submitBtn) submitBtn.disabled = false;
+            return;
+        }
+
+        var gaps = (daysData[dateIso] && daysData[dateIso].gaps) || [];
+        var start = timeToMinutes(timeVal);
+        var end = start + durationMinutes;
+        var fits = gaps.some(function (g) {
+            return start >= timeToMinutes(g[0]) && end <= timeToMinutes(g[1]);
+        });
+
+        if (!fits) {
+            priceNote.textContent = "That length doesn't fit starting at this time — pick a shorter length or another time.";
+            priceNote.classList.add('text-red-600');
+            if (submitBtn) submitBtn.disabled = true;
+            return;
+        }
+
+        priceNote.classList.remove('text-red-600');
+        if (submitBtn) submitBtn.disabled = false;
+        priceNote.textContent = durationOpt.dataset.free === '1'
             ? 'This is a free consultation — no payment needed.'
             : 'Payment is required to confirm this booking — you’ll be redirected to secure checkout after submitting.';
     }
 
-    $service.on('change', refreshSlots);
-    $slot.on('change', onSlotChange);
-    refreshSlots();
+    $date.on('change', refreshTimes);
+    $time.on('change', validateFit);
+    $duration.on('change', validateFit);
+    refreshTimes();
 })();
 </script>
 {% endblock %}

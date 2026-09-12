@@ -102,8 +102,8 @@
     {% if service %}
     <div class="bg-sky-50 border border-sky-200 rounded-xl p-4 text-sm text-sky-800 flex items-start gap-2">
       <i class="fas fa-info-circle mt-0.5 flex-shrink-0"></i>
-      <span>To let visitors book a paid or free consultation on this topic, set its length(s) and price on the
-        <a href="{% url 'management:consultation_slots_list' %}" class="underline font-medium">Consultation Pricing</a> page.</span>
+      <span>This topic will appear on the consultation booking page once it's active. Call length and pricing are
+        set once for everyone on the <a href="{% url 'management:consultation_days_list' %}" class="underline font-medium">Consultation</a> page, not per topic.</span>
     </div>
     {% endif %}
 

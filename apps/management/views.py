@@ -87,7 +87,13 @@ from apps.store.emailservices import (
     send_return_item_rejected_email,
 )
 from apps.store.models import Product, ProductCategory, ProductSpecification, MediaAsset, ProductImage, Order, OrderItem, ReturnItem
-from apps.consultation.models import ConsultationBooking, ConsultationOption, ConsultationSlot, bulk_blocking_bookings
+from apps.consultation.models import (
+    ACTIVE_BOOKING_STATUSES,
+    BOOKING_HORIZON_DAYS,
+    ConsultationBooking,
+    ConsultationDayWindow,
+    ConsultationOption,
+)
 from apps.eduweb.models import Service
 
 # Forms
@@ -7909,11 +7915,10 @@ def service_edit(request, pk):
 def service_delete(request, pk):
     service = get_object_or_404(Service, pk=pk)
     if request.method == 'POST':
-        if service.consultation_options.exists():
+        if service.consultation_bookings.exists():
             messages.error(
                 request,
-                f'"{service.title}" has consultation pricing/options set up — remove those on the '
-                f'Consultation page first, then delete the service.'
+                f'"{service.title}" has consultation bookings against it, so it can\'t be deleted.'
             )
         else:
             try:
@@ -7930,55 +7935,43 @@ def service_delete(request, pk):
 
 
 # =============================================================================
-# CONSULTATION BOOKING — topic pricing/length (ConsultationOption), time-slot
-# management, and the bookings list for apps/consultation. Slots carry no
-# price of their own; a slot is just "we are free to take a call then." A
-# topic can offer 30 min and 1hr side by side, each priced separately — see
-# apps.consultation.models.ConsultationOption.
+# CONSULTATION BOOKING — global duration pricing (ConsultationOption, no
+# longer tied to a topic), the admin-opened days table (ConsultationDayWindow
+# — one row per day actually offered, no bulk generator), and the bookings
+# list for apps/consultation.
 # =============================================================================
 
 @login_required(login_url='eduweb:auth_page')
 @user_passes_test(is_admin)
-def consultation_slots_list(request):
+def consultation_days_list(request):
     if not _has_permission(request, 'consultation', 'can_view'):
         messages.error(request, 'You do not have permission to view consultation booking.')
         return redirect('management:dashboard')
 
-    upcoming = list(ConsultationSlot.objects.filter(
+    days = list(ConsultationDayWindow.objects.filter(
         date__gte=timezone.localdate()
-    ).order_by('date', 'start_time'))
+    ).order_by('date'))
 
-    blocking = bulk_blocking_bookings(upcoming)
-    slot_rows = []
-    for slot in upcoming:
-        booking = blocking.get(slot.pk)
-        slot_rows.append({
-            'slot': slot,
-            'status': 'Held' if booking and booking.status == 'pending_payment'
-                      else 'Booked' if booking else 'Open',
-            'booking': booking,
-        })
+    day_rows = []
+    for day in days:
+        booked_count = day.bookings.filter(status__in=ACTIVE_BOOKING_STATUSES).count()
+        day_rows.append({'day': day, 'booked_count': booked_count})
 
-    existing_options = {
-        (o.service_id, o.duration_minutes): o
-        for o in ConsultationOption.objects.all()
-    }
-    pricing_rows = []
-    for service in Service.objects.all().order_by('title'):
-        lengths = []
-        for duration, label in ConsultationOption.DURATION_CHOICES:
-            option = existing_options.get((service.pk, duration))
-            lengths.append({
-                'duration': duration,
-                'label': label,
-                'option': option,
-                'enabled': bool(option and option.is_active),
-            })
-        pricing_rows.append({'service': service, 'lengths': lengths})
+    existing = {o.duration_minutes: o for o in ConsultationOption.objects.all()}
+    pricing_rows = [
+        {
+            'duration': duration,
+            'label': label,
+            'option': existing.get(duration),
+            'enabled': bool(existing.get(duration) and existing[duration].is_active),
+        }
+        for duration, label in ConsultationOption.DURATION_CHOICES
+    ]
 
-    return render(request, 'management/consultation/slots.html', {
+    return render(request, 'management/consultation/days.html', {
         'pricing_rows': pricing_rows,
-        'slot_rows': slot_rows,
+        'day_rows': day_rows,
+        'horizon_days': BOOKING_HORIZON_DAYS,
         'can_edit': _has_permission(request, 'consultation', 'can_edit'),
         'can_delete': _has_permission(request, 'consultation', 'can_delete'),
     })
@@ -7990,170 +7983,141 @@ def consultation_slots_list(request):
 def consultation_pricing_update(request):
     if not _has_permission(request, 'consultation', 'can_edit'):
         messages.error(request, 'You do not have permission to update consultation pricing.')
-        return redirect('management:consultation_slots_list')
+        return redirect('management:consultation_days_list')
 
     updated = 0
-    for service in Service.objects.all():
-        for duration, _label in ConsultationOption.DURATION_CHOICES:
-            field_key = f'{service.pk}_{duration}'
-            enabled = request.POST.get(f'enable_{field_key}') == 'on'
-            price_raw = request.POST.get(f'price_{field_key}', '').strip()
+    for duration, label in ConsultationOption.DURATION_CHOICES:
+        enabled = request.POST.get(f'enable_{duration}') == 'on'
+        price_raw = request.POST.get(f'price_{duration}', '').strip()
 
-            new_price = None
-            if price_raw:
-                try:
-                    new_price = Decimal(price_raw)
-                except InvalidOperation:
-                    messages.error(request, f'Ignored an invalid price for "{service.title}" ({duration} min).')
-                    continue
-                if new_price < 0:
-                    messages.error(request, f'Ignored a negative price for "{service.title}" ({duration} min).')
-                    continue
-
-            option = ConsultationOption.objects.filter(service=service, duration_minutes=duration).first()
-
-            if not enabled:
-                if option and option.is_active:
-                    option.is_active = False
-                    option.save(update_fields=['is_active'])
-                    updated += 1
+        new_price = None
+        if price_raw:
+            try:
+                new_price = Decimal(price_raw)
+            except InvalidOperation:
+                messages.error(request, f'Ignored an invalid price for {label}.')
+                continue
+            if new_price < 0:
+                messages.error(request, f'Ignored a negative price for {label}.')
                 continue
 
-            if option:
-                if option.price != new_price or not option.is_active:
-                    option.price = new_price
-                    option.is_active = True
-                    option.save(update_fields=['price', 'is_active'])
-                    updated += 1
-            else:
-                ConsultationOption.objects.create(
-                    service=service, duration_minutes=duration, price=new_price, is_active=True,
-                )
+        option = ConsultationOption.objects.filter(duration_minutes=duration).first()
+
+        if not enabled:
+            if option and option.is_active:
+                option.is_active = False
+                option.save(update_fields=['is_active'])
                 updated += 1
+            continue
+
+        if option:
+            if option.price != new_price or not option.is_active:
+                option.price = new_price
+                option.is_active = True
+                option.save(update_fields=['price', 'is_active'])
+                updated += 1
+        else:
+            ConsultationOption.objects.create(duration_minutes=duration, price=new_price, is_active=True)
+            updated += 1
 
     if updated:
         AuditLog.objects.create(
             user=request.user, action='update', model_name='ConsultationOption',
             object_id='bulk', description=f'Updated consultation pricing ({updated} change(s)).'
         )
-        messages.success(request, f'Updated pricing for {updated} topic length(s).')
+        messages.success(request, f'Updated pricing for {updated} length(s).')
     else:
         messages.info(request, 'No pricing changes to save.')
-    return redirect('management:consultation_slots_list')
+    return redirect('management:consultation_days_list')
 
 
 @login_required(login_url='eduweb:auth_page')
 @user_passes_test(is_admin)
 @require_POST
-def consultation_slot_generate(request):
+def consultation_day_create(request):
     if not _has_permission(request, 'consultation', 'can_create'):
-        messages.error(request, 'You do not have permission to open new consultation times.')
-        return redirect('management:consultation_slots_list')
+        messages.error(request, 'You do not have permission to open new consultation days.')
+        return redirect('management:consultation_days_list')
 
-    raw_date = request.POST.get('date', '')
-    raw_start = request.POST.get('start_time', '')
-    raw_end = request.POST.get('end_time', '')
-    interval = request.POST.get('interval_minutes', '30')
+    day_date = parse_date(request.POST.get('date', ''))
+    start = parse_time(request.POST.get('start_time', ''))
+    end = parse_time(request.POST.get('end_time', ''))
 
-    slot_date = parse_date(raw_date)
-    start = parse_time(raw_start)
-    end = parse_time(raw_end)
+    if not (day_date and start and end) or start >= end:
+        messages.error(request, 'Please provide a valid day and a start/end time, with the end after the start.')
+        return redirect('management:consultation_days_list')
+
+    if day_date < timezone.localdate():
+        messages.error(request, "That day is in the past.")
+        return redirect('management:consultation_days_list')
+
     try:
-        interval = int(interval)
-    except ValueError:
-        interval = 0
+        ConsultationDayWindow.objects.create(date=day_date, start_time=start, end_time=end)
+    except IntegrityError:
+        messages.error(request, f"{day_date:%d %b %Y} is already open — edit or delete that entry first.")
+        return redirect('management:consultation_days_list')
 
-    if not (slot_date and start and end) or interval <= 0 or start >= end:
-        messages.error(request, 'Please provide a valid day, start/end time, and a positive interval.')
-        return redirect('management:consultation_slots_list')
-
-    now = timezone.localtime()
-    created = 0
-    skipped = 0
-    past = 0
-    cursor = datetime.combine(slot_date, start)
-    day_end = datetime.combine(slot_date, end)
-    step = timedelta(minutes=interval)
-
-    while cursor + step <= day_end:
-        if timezone.make_aware(cursor) <= now:
-            past += 1
-        else:
-            _, was_created = ConsultationSlot.objects.get_or_create(
-                date=slot_date, start_time=cursor.time(), end_time=(cursor + step).time(),
-            )
-            created += 1 if was_created else 0
-            skipped += 0 if was_created else 1
-        cursor += step
-
-    if created:
-        AuditLog.objects.create(
-            user=request.user, action='create', model_name='ConsultationSlot',
-            object_id='bulk', description=f'Generated {created} slot(s) for {slot_date:%d %b %Y}.'
-        )
-        messages.success(request, f'Generated {created} slot(s) for {slot_date:%d %b %Y}.')
-    if skipped:
-        messages.info(request, f'Skipped {skipped} slot(s) that already existed at that time.')
-    if past:
-        messages.info(request, f'Skipped {past} slot(s) that were already in the past.')
-    if not created and not skipped and not past:
-        messages.warning(request, "That window didn't fit any whole slots at that interval.")
-    return redirect('management:consultation_slots_list')
-
-
-@login_required(login_url='eduweb:auth_page')
-@user_passes_test(is_admin)
-@require_POST
-def consultation_slot_delete(request, pk):
-    if not _has_permission(request, 'consultation', 'can_delete'):
-        messages.error(request, 'You do not have permission to remove consultation times.')
-        return redirect('management:consultation_slots_list')
-
-    slot = get_object_or_404(ConsultationSlot, pk=pk)
-    if slot.active_booking is not None:
-        messages.error(request, "Can't delete a slot with an active booking on it — cancel the booking first.")
-        return redirect('management:consultation_slots_list')
-
-    label = str(slot)
-    slot.delete()
     AuditLog.objects.create(
-        user=request.user, action='delete', model_name='ConsultationSlot',
-        object_id=str(pk), description=f'Removed consultation slot: {label}.'
+        user=request.user, action='create', model_name='ConsultationDayWindow',
+        object_id=str(day_date), description=f'Opened {day_date:%d %b %Y} ({start:%I:%M %p}–{end:%I:%M %p}) for consultations.'
     )
-    messages.success(request, 'Slot removed.')
-    return redirect('management:consultation_slots_list')
+    messages.success(request, f'{day_date:%d %b %Y} is now open for booking.')
+    return redirect('management:consultation_days_list')
 
 
 @login_required(login_url='eduweb:auth_page')
 @user_passes_test(is_admin)
 @require_POST
-def consultation_slots_bulk_delete(request):
+def consultation_day_delete(request, pk):
     if not _has_permission(request, 'consultation', 'can_delete'):
-        messages.error(request, 'You do not have permission to remove consultation times.')
-        return redirect('management:consultation_slots_list')
+        messages.error(request, 'You do not have permission to remove consultation days.')
+        return redirect('management:consultation_days_list')
 
-    ids = request.POST.getlist('slot_ids')
+    day = get_object_or_404(ConsultationDayWindow, pk=pk)
+    if day.bookings.filter(status__in=ACTIVE_BOOKING_STATUSES).exists():
+        messages.error(request, "Can't remove a day with active bookings on it — those need to be resolved first.")
+        return redirect('management:consultation_days_list')
+
+    label = str(day)
+    day.delete()
+    AuditLog.objects.create(
+        user=request.user, action='delete', model_name='ConsultationDayWindow',
+        object_id=str(pk), description=f'Closed consultation day: {label}.'
+    )
+    messages.success(request, 'Day removed.')
+    return redirect('management:consultation_days_list')
+
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+@require_POST
+def consultation_days_bulk_delete(request):
+    if not _has_permission(request, 'consultation', 'can_delete'):
+        messages.error(request, 'You do not have permission to remove consultation days.')
+        return redirect('management:consultation_days_list')
+
+    ids = request.POST.getlist('day_ids')
     if not ids:
-        messages.warning(request, 'No slots were selected.')
-        return redirect('management:consultation_slots_list')
+        messages.warning(request, 'No days were selected.')
+        return redirect('management:consultation_days_list')
 
-    slots = ConsultationSlot.objects.filter(pk__in=ids)
-    deletable = [s for s in slots if s.active_booking is None]
+    days = ConsultationDayWindow.objects.filter(pk__in=ids)
+    deletable = [d for d in days if not d.bookings.filter(status__in=ACTIVE_BOOKING_STATUSES).exists()]
     blocked_count = len(ids) - len(deletable)
 
     deleted_count = len(deletable)
-    for s in deletable:
-        s.delete()
+    for d in deletable:
+        d.delete()
 
     if deleted_count:
         AuditLog.objects.create(
-            user=request.user, action='delete', model_name='ConsultationSlot',
-            object_id='bulk', description=f'Removed {deleted_count} consultation slot(s).'
+            user=request.user, action='delete', model_name='ConsultationDayWindow',
+            object_id='bulk', description=f'Removed {deleted_count} consultation day(s).'
         )
-        messages.success(request, f'Removed {deleted_count} slot(s).')
+        messages.success(request, f'Removed {deleted_count} day(s).')
     if blocked_count:
-        messages.error(request, f"Skipped {blocked_count} slot(s) with an active booking — cancel those bookings first.")
-    return redirect('management:consultation_slots_list')
+        messages.error(request, f"Skipped {blocked_count} day(s) with active bookings — those need to be resolved first.")
+    return redirect('management:consultation_days_list')
 
 
 @login_required(login_url='eduweb:auth_page')
@@ -8163,7 +8127,7 @@ def consultation_bookings_list(request):
         messages.error(request, 'You do not have permission to view consultation bookings.')
         return redirect('management:dashboard')
 
-    qs = ConsultationBooking.objects.select_related('slot', 'option__service').order_by('-created_at')
+    qs = ConsultationBooking.objects.select_related('day_window', 'option', 'topic').order_by('-created_at')
 
     status = request.GET.get('status', '').strip()
     if status:

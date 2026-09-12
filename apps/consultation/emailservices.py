@@ -36,8 +36,7 @@ def _site():
 
 
 def _when(booking):
-    slot = booking.slot
-    return f"{slot.date:%A, %d %B %Y}, {slot.start_time:%I:%M %p}–{slot.end_time:%I:%M %p}"
+    return f"{booking.day_window.date:%A, %d %B %Y}, {booking.start_time:%I:%M %p}–{booking.end_time:%I:%M %p}"
 
 
 def _amount_line(booking):
@@ -117,7 +116,7 @@ def send_booking_confirmation_email(booking):
     raises."""
     try:
         site = _site()
-        subject = f"Consultation Confirmed — {booking.service.title}"
+        subject = f"Consultation Confirmed — {booking.topic.title}"
         when = _when(booking)
         amount_line = _amount_line(booking)
         first_name = booking.name.split(' ')[0]
@@ -128,7 +127,7 @@ def send_booking_confirmation_email(booking):
             Thanks for booking with {site.school_short_name} — your consultation is confirmed. Here's a summary for your records:
         </p>
         <table role="presentation" style="width:100%; border-collapse:collapse; background:#F4FAFF; border-radius:10px; padding:4px 16px;">
-            {_detail_row('Topic', booking.service.title)}
+            {_detail_row('Topic', booking.topic.title)}
             {_detail_row('When', when)}
             {_detail_row('Amount', amount_line, is_last=True)}
         </table>
@@ -143,7 +142,7 @@ def send_booking_confirmation_email(booking):
         """
 
         html_content = _email_shell(
-            preheader=f"Your {booking.service.title} consultation is confirmed for {when}.",
+            preheader=f"Your {booking.topic.title} consultation is confirmed for {when}.",
             eyebrow='Consultation Booking',
             heading='You’re Confirmed!',
             body_html=body_html,
@@ -155,7 +154,7 @@ def send_booking_confirmation_email(booking):
             f"You're Confirmed!\n\n"
             f"Hi {first_name},\n\n"
             f"Thanks for booking with {site.school_short_name} — your consultation is confirmed.\n\n"
-            f"Topic: {booking.service.title}\n"
+            f"Topic: {booking.topic.title}\n"
             f"When: {when}\n"
             f"Amount: {amount_line}\n\n"
             f"We'll be in touch shortly with the call link and any details we need from you beforehand.\n\n"
@@ -185,7 +184,7 @@ def send_staff_booking_notification(booking):
     try:
         when = _when(booking)
         amount_line = _amount_line(booking)
-        subject = f"New consultation booking — {booking.service.title}"
+        subject = f"New consultation booking — {booking.topic.title}"
         bookings_url = f"{SITE_URL}/management/consultation/bookings/"
         mailto = f"mailto:{booking.email}"
 
@@ -195,7 +194,7 @@ def send_staff_booking_notification(booking):
         </p>
         <table role="presentation" style="width:100%; border-collapse:collapse; background:#F4FAFF; border-radius:10px; padding:4px 16px;">
             {_detail_row('Name', f'{booking.name} &mdash; <a href="{mailto}" style="color:#0B5CFF; text-decoration:none;">{booking.email}</a>')}
-            {_detail_row('Topic', booking.service.title)}
+            {_detail_row('Topic', booking.topic.title)}
             {_detail_row('When', when)}
             {_detail_row('Amount', amount_line)}
             {_detail_row('Phone', booking.phone or '—')}
@@ -205,7 +204,7 @@ def send_staff_booking_notification(booking):
         """
 
         html_content = _email_shell(
-            preheader=f"{booking.name} booked {booking.service.title} — {when}.",
+            preheader=f"{booking.name} booked {booking.topic.title} — {when}.",
             eyebrow='Staff Alert',
             heading='New Consultation Booking',
             body_html=body_html,
@@ -216,7 +215,7 @@ def send_staff_booking_notification(booking):
         text_content = (
             f"New Consultation Booking\n\n"
             f"Name: {booking.name} ({booking.email})\n"
-            f"Topic: {booking.service.title}\n"
+            f"Topic: {booking.topic.title}\n"
             f"When: {when}\n"
             f"Amount: {amount_line}\n"
             f"Phone: {booking.phone or '-'}\n"

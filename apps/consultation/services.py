@@ -42,7 +42,7 @@ def initialize_transaction(booking, request):
             'callback_url': request.build_absolute_uri(reverse('consultation:booking_callback')),
             'metadata': {
                 'booking_id': booking.id,
-                'service': booking.service.title,
+                'topic': booking.topic.title,
             },
         },
         timeout=15,

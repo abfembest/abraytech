@@ -541,14 +541,20 @@
   }
 
   /* ── SweetAlert2 toast (window.showToast, base.html) ──
-     A long unbroken string (e.g. a long email address in "A 6-digit code
-     has been sent to ...") has no spaces to wrap at, so the toast grows
-     past the viewport width and forces a horizontal scrollbar on mobile.
-     SweetAlert2 injects its own default styles at runtime, so !important
-     is needed to reliably win — same pattern already used for Select2
-     overrides elsewhere in this file. */
+     SweetAlert2 sizes a toast to its content by default, which is right
+     for short messages but meant longer ones (validation errors etc.)
+     were being squeezed into the same narrow box as a one-liner. The
+     max-width here is a ceiling for genuinely long messages to grow into,
+     not a fixed width — short toasts still size down naturally. The
+     viewport clamp still guards mobile: a long *unbroken* string (e.g. an
+     email address with no spaces to wrap at) can't force a horizontal
+     scrollbar. SweetAlert2 injects its own default styles at runtime, so
+     !important is needed to reliably win — same pattern already used for
+     Select2 overrides elsewhere in this file. */
   .swal2-toast {
-    max-width: min(24rem, calc(100vw - 2rem)) !important;
+    width: auto !important;
+    min-width: 20rem !important;
+    max-width: min(30rem, calc(100vw - 2rem)) !important;
   }
 
   .swal2-toast .swal2-title,

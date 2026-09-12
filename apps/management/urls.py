@@ -241,11 +241,11 @@ urlpatterns = [
     path('orders/<str:order_number>/', views.order_detail, name='order_detail'),
 
     # Consultation Booking — topic pricing/length, time slots, bookings.
-    path('consultation/', views.consultation_slots_list, name='consultation_slots_list'),
+    path('consultation/', views.consultation_days_list, name='consultation_days_list'),
     path('consultation/pricing/', views.consultation_pricing_update, name='consultation_pricing_update'),
-    path('consultation/slots/generate/', views.consultation_slot_generate, name='consultation_slot_generate'),
-    path('consultation/slots/<int:pk>/delete/', views.consultation_slot_delete, name='consultation_slot_delete'),
-    path('consultation/slots/bulk-delete/', views.consultation_slots_bulk_delete, name='consultation_slots_bulk_delete'),
+    path('consultation/days/create/', views.consultation_day_create, name='consultation_day_create'),
+    path('consultation/days/<int:pk>/delete/', views.consultation_day_delete, name='consultation_day_delete'),
+    path('consultation/days/bulk-delete/', views.consultation_days_bulk_delete, name='consultation_days_bulk_delete'),
     path('consultation/bookings/', views.consultation_bookings_list, name='consultation_bookings_list'),
 
     # Institution Members
