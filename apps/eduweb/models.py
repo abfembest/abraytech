@@ -5003,8 +5003,13 @@ class SiteConfig(models.Model):
 
     @classmethod
     def get(cls):
-        """Fetch the single site config. Use this in all views."""
-        return cls.objects.first()
+        """Fetch the single site config. Use this in all views.
+
+        Self-heals if the singleton row is missing (e.g. a fresh production
+        DB where `seed_data` was never run) instead of returning None and
+        crashing every caller that accesses an attribute on the result.
+        """
+        return cls.objects.first() or cls.objects.create()
 
 class SiteHistoryMilestone(models.Model):
     """
