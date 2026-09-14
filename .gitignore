@@ -30,6 +30,7 @@ config/settings.py
 # ---------------------------
 *.sql
 *.dump
+*.bak
 2_db.sqlite3
 
 # ---------------------------
@@ -62,6 +63,7 @@ media/*
 # SOURCE DOCUMENTS — not app source, don't publish
 # ---------------------------
 *.pdf
+*.docx
 
 # ---------------------------
 # DJANGO MIGRATIONS — not tracked; keep package markers only
@@ -72,7 +74,7 @@ media/*
 # ---------------------------
 # DATABASE
 # ---------------------------
-*.sqlite3
+*.sqlite3*
 
 # ---------------------------
 # WELL-KNOWN
