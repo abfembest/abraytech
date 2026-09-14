@@ -61,14 +61,18 @@
 {% block content %}
 
 <section class="relative overflow-hidden bg-navy py-10 lg:py-12">
-    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
+    <div class="absolute inset-0 z-0" aria-hidden="true">
+        <img src="{% static 'images/hero/store-open.jpg' %}"
+             alt="" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-navy/95"></div>
+    </div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="flex flex-wrap items-start justify-between gap-6">
             <div class="max-w-3xl">
                 <nav class="flex mb-6" aria-label="Breadcrumb">
                     <ol class="inline-flex items-center space-x-2 text-sm">
                         <li><a href="{% url 'eduweb:index' %}" class="text-white/60 hover:text-white transition-colors">Home</a></li>
-                        <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+                        <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40" aria-hidden="true"></i></li>
                         <li><span class="text-white/80 font-medium">Store</span></li>
                     </ol>
                 </nav>
@@ -79,7 +83,7 @@
             </div>
             {% if not user.is_authenticated %}
             <button type="button" id="storeLoginBtn" class="btn-brand-dark shrink-0">
-                <i data-lucide="log-in" class="w-4 h-4"></i> Log In
+                <i data-lucide="log-in" class="w-4 h-4" aria-hidden="true"></i> Log In
             </button>
             {% endif %}
         </div>
@@ -95,7 +99,7 @@
         <div class="flex items-center justify-between p-6 pb-0">
             <h2 class="text-h4-brand text-navy">Log In</h2>
             <button type="button" id="storeLoginModalCloseBtn" class="w-9 h-9 inline-flex items-center justify-center rounded-lg hover:bg-soft" aria-label="Close">
-                <i data-lucide="x" class="w-5 h-5 text-navy"></i>
+                <i data-lucide="x" class="w-5 h-5 text-navy" aria-hidden="true"></i>
             </button>
         </div>
         <div class="p-6">
@@ -122,17 +126,17 @@
         <form method="get" action="{% url 'store:store_list' %}" class="max-w-md">
             {% if active_category %}<input type="hidden" name="category" value="{{ active_category }}">{% endif %}
             <div class="relative">
-                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true"></i>
                 <input type="search" id="productSearchInput" name="q" value="{{ query|default:'' }}" placeholder="Search products..." class="input-brand pl-9" autocomplete="off">
             </div>
         </form>
         <div class="flex flex-wrap items-center gap-2" role="tablist" aria-label="Filter by category">
             <a href="{% url 'store:store_list' %}" class="pill {% if not active_category %}pill-cyan{% else %}pill-light{% endif %}">
-                <i data-lucide="grid" class="w-3.5 h-3.5"></i> All Products
+                <i data-lucide="grid" class="w-3.5 h-3.5" aria-hidden="true"></i> All Products
             </a>
             {% for category in categories %}
             <a href="{% url 'store:store_list' %}?category={{ category.slug }}" class="pill {% if active_category == category.slug %}pill-cyan{% else %}pill-light{% endif %}">
-                {% if category.icon %}<i data-lucide="{{ category.icon }}" class="w-3.5 h-3.5"></i>{% endif %}
+                {% if category.icon %}<i data-lucide="{{ category.icon }}" class="w-3.5 h-3.5" aria-hidden="true"></i>{% endif %}
                 {{ category.title }}
             </a>
             {% endfor %}

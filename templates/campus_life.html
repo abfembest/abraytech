@@ -40,21 +40,24 @@
 
 <!-- ===== HERO ===== -->
 <section class="relative overflow-hidden bg-navy py-20 lg:py-28">
-    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
-
+    <div class="absolute inset-0 z-0" aria-hidden="true">
+        <img src="{% static 'images/hero/campus-graduation.jpg' %}"
+             alt="" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-navy/95"></div>
+    </div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="max-w-4xl">
             <nav class="flex mb-8 text-sm" aria-label="Breadcrumb">
                 <ol class="inline-flex items-center space-x-2">
                     <li><a href="{% url 'eduweb:index' %}" class="text-white/60 hover:text-white transition-colors">Home</a></li>
-                    <li><i data-lucide="chevron-right" class="w-4 h-4 text-white/40"></i></li>
+                    <li><i data-lucide="chevron-right" class="w-4 h-4 text-white/40" aria-hidden="true"></i></li>
                     <li><span class="text-white font-medium">Campus Life</span></li>
                 </ol>
             </nav>
 
             <div class="flex items-center gap-4 mb-6">
                 <div class="w-16 h-16 brand-gradient rounded-2xl flex items-center justify-center shadow-brand flex-shrink-0">
-                    <i data-lucide="heart" class="w-8 h-8 text-white"></i>
+                    <i data-lucide="heart" class="w-8 h-8 text-white" aria-hidden="true"></i>
                 </div>
                 <div>
                     <p class="text-sky text-sm font-medium mb-1">Student Experience</p>
@@ -75,28 +78,28 @@
         <div class="grid md:grid-cols-4 gap-8">
             <div class="bg-white rounded-2xl p-6 shadow-card text-center hover:-translate-y-1 hover:shadow-brand transition-all duration-300">
                 <div class="w-14 h-14 brand-gradient rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="users" class="w-7 h-7 text-white"></i>
+                    <i data-lucide="users" class="w-7 h-7 text-white" aria-hidden="true"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-2 font-sora">200+</h3>
                 <p class="text-gray-600">Student Organizations</p>
             </div>
             <div class="bg-white rounded-2xl p-6 shadow-card text-center hover:-translate-y-1 hover:shadow-brand transition-all duration-300">
                 <div class="w-14 h-14 brand-gradient rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="trophy" class="w-7 h-7 text-white"></i>
+                    <i data-lucide="trophy" class="w-7 h-7 text-white" aria-hidden="true"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-2 font-sora">25</h3>
                 <p class="text-gray-600">NCAA Sports Teams</p>
             </div>
             <div class="bg-white rounded-2xl p-6 shadow-card text-center hover:-translate-y-1 hover:shadow-brand transition-all duration-300">
                 <div class="w-14 h-14 brand-gradient rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="calendar" class="w-7 h-7 text-white"></i>
+                    <i data-lucide="calendar" class="w-7 h-7 text-white" aria-hidden="true"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-2 font-sora">500+</h3>
                 <p class="text-gray-600">Annual Events</p>
             </div>
             <div class="bg-white rounded-2xl p-6 shadow-card text-center hover:-translate-y-1 hover:shadow-brand transition-all duration-300">
                 <div class="w-14 h-14 brand-gradient rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="globe" class="w-7 h-7 text-white"></i>
+                    <i data-lucide="globe" class="w-7 h-7 text-white" aria-hidden="true"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-2 font-sora">85+</h3>
                 <p class="text-gray-600">Countries Represented</p>
@@ -110,7 +113,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
             <div class="inline-flex items-center gap-2 bg-ice text-brandblue px-4 py-2 rounded-full text-sm font-semibold mb-4 border border-borderblue">
-                <i data-lucide="users" class="w-4 h-4"></i>
+                <i data-lucide="users" class="w-4 h-4" aria-hidden="true"></i>
                 Get Involved
             </div>
             <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-navy mb-4 font-sora">Student Organizations</h2>
@@ -123,7 +126,7 @@
         <div class="max-w-6xl mx-auto grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div class="bg-blue-50 rounded-2xl p-6 border border-blue-100 text-center hover:shadow-xl transition-shadow duration-300">
                 <div class="w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="book-open" class="w-7 h-7 text-white"></i>
+                    <i data-lucide="book-open" class="w-7 h-7 text-white" aria-hidden="true"></i>
                 </div>
                 <h3 class="text-lg font-bold text-gray-900 mb-2 font-sora">Academic Clubs</h3>
                 <p class="text-sm text-gray-600 mb-4">45+ clubs related to majors and academic interests</p>
@@ -132,7 +135,7 @@
 
             <div class="bg-ice rounded-2xl p-6 border border-borderblue text-center hover:shadow-xl transition-shadow duration-300">
                 <div class="w-14 h-14 brand-gradient rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="globe" class="w-7 h-7 text-white"></i>
+                    <i data-lucide="globe" class="w-7 h-7 text-white" aria-hidden="true"></i>
                 </div>
                 <h3 class="text-lg font-bold text-gray-900 mb-2 font-sora">Cultural Groups</h3>
                 <p class="text-sm text-gray-600 mb-4">30+ organizations celebrating diversity</p>
@@ -141,7 +144,7 @@
 
             <div class="bg-green-50 rounded-2xl p-6 border border-green-100 text-center hover:shadow-xl transition-shadow duration-300">
                 <div class="w-14 h-14 bg-green-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="hand-heart" class="w-7 h-7 text-white"></i>
+                    <i data-lucide="hand-heart" class="w-7 h-7 text-white" aria-hidden="true"></i>
                 </div>
                 <h3 class="text-lg font-bold text-gray-900 mb-2 font-sora">Service & Volunteering</h3>
                 <p class="text-sm text-gray-600 mb-4">25+ organizations giving back</p>
@@ -150,7 +153,7 @@
 
             <div class="bg-orange-50 rounded-2xl p-6 border border-orange-100 text-center hover:shadow-xl transition-shadow duration-300">
                 <div class="w-14 h-14 bg-orange-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="palette" class="w-7 h-7 text-white"></i>
+                    <i data-lucide="palette" class="w-7 h-7 text-white" aria-hidden="true"></i>
                 </div>
                 <h3 class="text-lg font-bold text-gray-900 mb-2 font-sora">Arts & Media</h3>
                 <p class="text-sm text-gray-600 mb-4">20+ creative and performing arts groups</p>
@@ -165,7 +168,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
             <div class="inline-flex items-center gap-2 bg-ice text-brandblue px-4 py-2 rounded-full text-sm font-semibold mb-4 border border-borderblue">
-                <i data-lucide="trophy" class="w-4 h-4"></i>
+                <i data-lucide="trophy" class="w-4 h-4" aria-hidden="true"></i>
                 Stay Active
             </div>
             <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-navy mb-4 font-sora">Athletics & Recreation</h2>
@@ -180,41 +183,41 @@
             <div class="bg-white rounded-2xl p-8 shadow-lg border border-borderblue">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="w-12 h-12 bg-navy rounded-xl flex items-center justify-center">
-                        <i data-lucide="trophy" class="w-6 h-6 text-white"></i>
+                        <i data-lucide="trophy" class="w-6 h-6 text-white" aria-hidden="true"></i>
                     </div>
                     <h3 class="text-2xl font-bold text-gray-900 font-sora">Varsity Sports</h3>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div class="flex items-center gap-2">
-                        <i data-lucide="check" class="w-4 h-4 text-brandblue"></i>
+                        <i data-lucide="check" class="w-4 h-4 text-brandblue" aria-hidden="true"></i>
                         <span class="text-sm text-gray-700">Basketball</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <i data-lucide="check" class="w-4 h-4 text-brandblue"></i>
+                        <i data-lucide="check" class="w-4 h-4 text-brandblue" aria-hidden="true"></i>
                         <span class="text-sm text-gray-700">Soccer</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <i data-lucide="check" class="w-4 h-4 text-brandblue"></i>
+                        <i data-lucide="check" class="w-4 h-4 text-brandblue" aria-hidden="true"></i>
                         <span class="text-sm text-gray-700">Swimming</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <i data-lucide="check" class="w-4 h-4 text-brandblue"></i>
+                        <i data-lucide="check" class="w-4 h-4 text-brandblue" aria-hidden="true"></i>
                         <span class="text-sm text-gray-700">Track & Field</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <i data-lucide="check" class="w-4 h-4 text-brandblue"></i>
+                        <i data-lucide="check" class="w-4 h-4 text-brandblue" aria-hidden="true"></i>
                         <span class="text-sm text-gray-700">Volleyball</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <i data-lucide="check" class="w-4 h-4 text-brandblue"></i>
+                        <i data-lucide="check" class="w-4 h-4 text-brandblue" aria-hidden="true"></i>
                         <span class="text-sm text-gray-700">Tennis</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <i data-lucide="check" class="w-4 h-4 text-brandblue"></i>
+                        <i data-lucide="check" class="w-4 h-4 text-brandblue" aria-hidden="true"></i>
                         <span class="text-sm text-gray-700">Baseball</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <i data-lucide="check" class="w-4 h-4 text-brandblue"></i>
+                        <i data-lucide="check" class="w-4 h-4 text-brandblue" aria-hidden="true"></i>
                         <span class="text-sm text-gray-700">Softball</span>
                     </div>
                 </div>
@@ -224,29 +227,29 @@
             <div class="bg-white rounded-2xl p-8 shadow-lg border border-borderblue">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="w-12 h-12 bg-brandblue rounded-xl flex items-center justify-center">
-                        <i data-lucide="dumbbell" class="w-6 h-6 text-white"></i>
+                        <i data-lucide="dumbbell" class="w-6 h-6 text-white" aria-hidden="true"></i>
                     </div>
                     <h3 class="text-2xl font-bold text-gray-900 font-sora">Recreation Center</h3>
                 </div>
                 <ul class="space-y-3">
                     <li class="flex items-start gap-2 text-gray-700">
-                        <i data-lucide="check-circle" class="w-5 h-5 text-brandblue mt-0.5"></i>
+                        <i data-lucide="check-circle" class="w-5 h-5 text-brandblue mt-0.5" aria-hidden="true"></i>
                         <span>50,000 sq ft fitness center</span>
                     </li>
                     <li class="flex items-start gap-2 text-gray-700">
-                        <i data-lucide="check-circle" class="w-5 h-5 text-brandblue mt-0.5"></i>
+                        <i data-lucide="check-circle" class="w-5 h-5 text-brandblue mt-0.5" aria-hidden="true"></i>
                         <span>Olympic-size swimming pool</span>
                     </li>
                     <li class="flex items-start gap-2 text-gray-700">
-                        <i data-lucide="check-circle" class="w-5 h-5 text-brandblue mt-0.5"></i>
+                        <i data-lucide="check-circle" class="w-5 h-5 text-brandblue mt-0.5" aria-hidden="true"></i>
                         <span>Indoor & outdoor courts</span>
                     </li>
                     <li class="flex items-start gap-2 text-gray-700">
-                        <i data-lucide="check-circle" class="w-5 h-5 text-brandblue mt-0.5"></i>
+                        <i data-lucide="check-circle" class="w-5 h-5 text-brandblue mt-0.5" aria-hidden="true"></i>
                         <span>Rock climbing wall</span>
                     </li>
                     <li class="flex items-start gap-2 text-gray-700">
-                        <i data-lucide="check-circle" class="w-5 h-5 text-brandblue mt-0.5"></i>
+                        <i data-lucide="check-circle" class="w-5 h-5 text-brandblue mt-0.5" aria-hidden="true"></i>
                         <span>Group fitness classes</span>
                     </li>
                 </ul>
@@ -260,7 +263,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
             <div class="inline-flex items-center gap-2 bg-ice text-brandblue px-4 py-2 rounded-full text-sm font-semibold mb-4 border border-borderblue">
-                <i data-lucide="home" class="w-4 h-4"></i>
+                <i data-lucide="home" class="w-4 h-4" aria-hidden="true"></i>
                 Live & Dine
             </div>
             <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-navy mb-4 font-sora">Housing & Dining</h2>
@@ -274,7 +277,7 @@
             <!-- Residence Halls -->
             <div class="bg-ice rounded-2xl p-8 border border-borderblue hover:shadow-xl transition-shadow">
                 <div class="w-14 h-14 brand-gradient rounded-xl flex items-center justify-center mb-6">
-                    <i data-lucide="home" class="w-7 h-7 text-white"></i>
+                    <i data-lucide="home" class="w-7 h-7 text-white" aria-hidden="true"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-3 font-sora">Residence Halls</h3>
                 <ul class="space-y-2 mb-6">
@@ -285,14 +288,14 @@
                 </ul>
                 <a href="#" class="inline-flex items-center gap-2 text-brandblue font-semibold hover:gap-3 transition-all">
                     Explore Housing
-                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
                 </a>
             </div>
 
             <!-- Apartments -->
             <div class="bg-blue-50 rounded-2xl p-8 border border-blue-100 hover:shadow-xl transition-shadow">
                 <div class="w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center mb-6">
-                    <i data-lucide="building" class="w-7 h-7 text-white"></i>
+                    <i data-lucide="building" class="w-7 h-7 text-white" aria-hidden="true"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-3 font-sora">Campus Apartments</h3>
                 <ul class="space-y-2 mb-6">
@@ -303,14 +306,14 @@
                 </ul>
                 <a href="#" class="inline-flex items-center gap-2 text-blue-600 font-semibold hover:gap-3 transition-all">
                     View Apartments
-                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
                 </a>
             </div>
 
             <!-- Dining -->
             <div class="bg-green-50 rounded-2xl p-8 border border-green-100 hover:shadow-xl transition-shadow">
                 <div class="w-14 h-14 bg-green-600 rounded-xl flex items-center justify-center mb-6">
-                    <i data-lucide="utensils" class="w-7 h-7 text-white"></i>
+                    <i data-lucide="utensils" class="w-7 h-7 text-white" aria-hidden="true"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-3 font-sora">Dining Options</h3>
                 <ul class="space-y-2 mb-6">
@@ -321,7 +324,7 @@
                 </ul>
                 <a href="#" class="inline-flex items-center gap-2 text-green-600 font-semibold hover:gap-3 transition-all">
                     See Dining
-                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
                 </a>
             </div>
         </div>
@@ -333,7 +336,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
             <div class="inline-flex items-center gap-2 bg-ice text-brandblue px-4 py-2 rounded-full text-sm font-semibold mb-4 border border-borderblue">
-                <i data-lucide="sparkles" class="w-4 h-4"></i>
+                <i data-lucide="sparkles" class="w-4 h-4" aria-hidden="true"></i>
                 Make Memories
             </div>
             <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-navy mb-4 font-sora">Events & Traditions</h2>
@@ -346,26 +349,26 @@
         <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-6">
             <div class="bg-white rounded-2xl p-6 shadow-lg border border-borderblue hover:shadow-xl transition-shadow">
                 <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3 font-sora">
-                    <i data-lucide="star" class="w-6 h-6 text-amber-500"></i>
+                    <i data-lucide="star" class="w-6 h-6 text-amber-500" aria-hidden="true"></i>
                     Annual Events
                 </h3>
                 <ul class="space-y-3">
                     <li class="flex items-start gap-2 text-gray-700">
-                        <i data-lucide="calendar" class="w-5 h-5 text-brandblue mt-0.5"></i>
+                        <i data-lucide="calendar" class="w-5 h-5 text-brandblue mt-0.5" aria-hidden="true"></i>
                         <div>
                             <span class="font-semibold">Homecoming Week</span>
                             <p class="text-sm text-gray-600">Alumni reunions, parade, and football game</p>
                         </div>
                     </li>
                     <li class="flex items-start gap-2 text-gray-700">
-                        <i data-lucide="calendar" class="w-5 h-5 text-brandblue mt-0.5"></i>
+                        <i data-lucide="calendar" class="w-5 h-5 text-brandblue mt-0.5" aria-hidden="true"></i>
                         <div>
                             <span class="font-semibold">Spring Festival</span>
                             <p class="text-sm text-gray-600">Live music, food trucks, and activities</p>
                         </div>
                     </li>
                     <li class="flex items-start gap-2 text-gray-700">
-                        <i data-lucide="calendar" class="w-5 h-5 text-brandblue mt-0.5"></i>
+                        <i data-lucide="calendar" class="w-5 h-5 text-brandblue mt-0.5" aria-hidden="true"></i>
                         <div>
                             <span class="font-semibold">Culture Night</span>
                             <p class="text-sm text-gray-600">Celebrating diversity through performances</p>
@@ -376,26 +379,26 @@
 
             <div class="bg-white rounded-2xl p-6 shadow-lg border border-borderblue hover:shadow-xl transition-shadow">
                 <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3 font-sora">
-                    <i data-lucide="sparkles" class="w-6 h-6 text-sky"></i>
+                    <i data-lucide="sparkles" class="w-6 h-6 text-sky" aria-hidden="true"></i>
                     Campus Traditions
                 </h3>
                 <ul class="space-y-3">
                     <li class="flex items-start gap-2 text-gray-700">
-                        <i data-lucide="heart" class="w-5 h-5 text-brandblue mt-0.5"></i>
+                        <i data-lucide="heart" class="w-5 h-5 text-brandblue mt-0.5" aria-hidden="true"></i>
                         <div>
                             <span class="font-semibold">Midnight Breakfast</span>
                             <p class="text-sm text-gray-600">Faculty serve students before finals</p>
                         </div>
                     </li>
                     <li class="flex items-start gap-2 text-gray-700">
-                        <i data-lucide="heart" class="w-5 h-5 text-brandblue mt-0.5"></i>
+                        <i data-lucide="heart" class="w-5 h-5 text-brandblue mt-0.5" aria-hidden="true"></i>
                         <div>
                             <span class="font-semibold">Senior Week</span>
                             <p class="text-sm text-gray-600">Special events for graduating class</p>
                         </div>
                     </li>
                     <li class="flex items-start gap-2 text-gray-700">
-                        <i data-lucide="heart" class="w-5 h-5 text-brandblue mt-0.5"></i>
+                        <i data-lucide="heart" class="w-5 h-5 text-brandblue mt-0.5" aria-hidden="true"></i>
                         <div>
                             <span class="font-semibold">Ring Ceremony</span>
                             <p class="text-sm text-gray-600">Juniors receive their class rings</p>
@@ -418,11 +421,11 @@
         <div class="flex flex-wrap justify-center gap-6">
             <a href="{% url 'eduweb:all_programs' %}" class="px-8 py-4 bg-white text-navy rounded-xl font-semibold hover:bg-ice transition-all duration-300 shadow-brand inline-flex items-center gap-2">
                 Apply Now
-                <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                <i data-lucide="arrow-right" class="w-5 h-5" aria-hidden="true"></i>
             </a>
             <a href="#" class="px-8 py-4 border-2 border-white/30 text-white rounded-xl font-semibold hover:bg-white hover:text-navy transition-all duration-300 inline-flex items-center gap-2">
                 Schedule a Campus Tour
-                <i data-lucide="map" class="w-5 h-5"></i>
+                <i data-lucide="map" class="w-5 h-5" aria-hidden="true"></i>
             </a>
         </div>
     </div>

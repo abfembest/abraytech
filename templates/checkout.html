@@ -11,14 +11,13 @@
 {% block content %}
 
 <section class="relative overflow-hidden bg-navy py-20 lg:py-28">
-    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <nav class="flex mb-6" aria-label="Breadcrumb">
             <ol class="inline-flex items-center space-x-2 text-sm">
                 <li><a href="{% url 'eduweb:index' %}" class="text-white/60 hover:text-white transition-colors">Home</a></li>
-                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40" aria-hidden="true"></i></li>
                 <li><a href="{% url 'store:store_list' %}" class="text-white/60 hover:text-white transition-colors">Store</a></li>
-                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40" aria-hidden="true"></i></li>
                 <li><span class="text-white/80 font-medium">Checkout</span></li>
             </ol>
         </nav>
@@ -42,7 +41,7 @@
                             <img src="{{ image.asset.file.url }}" alt="{{ item.product.title }}" loading="lazy">
                             {% else %}
                             <div class="w-full h-full flex items-center justify-center">
-                                <i data-lucide="package" class="w-5 h-5 text-brandblue/50"></i>
+                                <i data-lucide="package" class="w-5 h-5 text-brandblue/50" aria-hidden="true"></i>
                             </div>
                             {% endif %}
                             {% endwith %}
@@ -71,7 +70,7 @@
                     {% csrf_token %}
                     {% include '_checkout_delivery_fields.html' %}
                     <button type="submit" class="btn-brand btn-brand-lg w-full">
-                        <i data-lucide="credit-card" class="w-5 h-5"></i> Pay with Paystack
+                        <i data-lucide="credit-card" class="w-5 h-5" aria-hidden="true"></i> Pay with Paystack
                     </button>
                 </form>
 

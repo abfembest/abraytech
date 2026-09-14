@@ -21,14 +21,13 @@
 {% block content %}
 
 <section class="relative overflow-hidden bg-navy py-20 lg:py-28">
-    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <nav class="flex mb-6" aria-label="Breadcrumb">
             <ol class="inline-flex items-center space-x-2 text-sm">
                 <li><a href="{% url 'eduweb:index' %}" class="text-white/60 hover:text-white transition-colors">Home</a></li>
-                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40" aria-hidden="true"></i></li>
                 <li><a href="{% url 'store:store_list' %}" class="text-white/60 hover:text-white transition-colors">Store</a></li>
-                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40" aria-hidden="true"></i></li>
                 <li><span class="text-white/80 font-medium">My Orders</span></li>
             </ol>
         </nav>
@@ -133,7 +132,7 @@
     function thumbHtml(imageUrl, sizeClass) {
         var inner = imageUrl
             ? '<img src="' + imageUrl + '" alt="">'
-            : '<div class="w-full h-full flex items-center justify-center"><i data-lucide="package" class="w-3.5 h-3.5 text-brandblue/50"></i></div>';
+            : '<div class="w-full h-full flex items-center justify-center"><i data-lucide="package" class="w-3.5 h-3.5 text-brandblue/50" aria-hidden="true"></i></div>';
         return '<span class="' + sizeClass + '">' + inner + '</span>';
     }
 
@@ -173,7 +172,7 @@
                 ? '<p class="text-xs text-slate-500 mb-2">Your previous refund request was declined.</p>' : '';
             refundSection = '<div class="mt-2 pt-2 border-t border-borderblue">' + declinedNote +
                 '<button type="button" class="js-request-refund-btn btn-brand-outline btn-brand-sm" data-order-number="' + order.order_number + '">' +
-                '<i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Request Cancellation / Refund</button></div>';
+                '<i data-lucide="rotate-ccw" class="w-3.5 h-3.5" aria-hidden="true"></i> Request Cancellation / Refund</button></div>';
         }
         */
 
@@ -182,7 +181,7 @@
             returnSection = '<div class="mt-2 pt-2 border-t border-borderblue flex items-center justify-between gap-2 flex-wrap">' +
                 '<span class="text-xs text-slate-500">Returnable until ' + order.return_window_expires_at + '</span>' +
                 '<a href="' + orderReturnUrlTemplate.replace('PLACEHOLDER', order.order_number) + '" class="btn-brand-outline btn-brand-sm">' +
-                '<i data-lucide="undo-2" class="w-3.5 h-3.5"></i> Return Item(s)</a></div>';
+                '<i data-lucide="undo-2" class="w-3.5 h-3.5" aria-hidden="true"></i> Return Item(s)</a></div>';
         }
 
         return '<div class="px-4 py-3 bg-soft rounded-lg text-sm text-slate-600">' + rows + delivery + returnSection + '</div>';
@@ -194,7 +193,7 @@
         columns: [
             {
                 className: 'details-control text-center', orderable: false, data: null, defaultContent: '',
-                render: function () { return '<i data-lucide="chevron-right" class="w-4 h-4 inline-block transition-transform"></i>'; },
+                render: function () { return '<i data-lucide="chevron-right" class="w-4 h-4 inline-block transition-transform" aria-hidden="true"></i>'; },
             },
             { data: 'order_number', render: function (d) { return '<span class="font-semibold text-navy">' + d + '</span>'; } },
             { data: 'created_at' },

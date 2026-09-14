@@ -125,18 +125,22 @@
 {% block content %}
 
 <section class="relative overflow-hidden bg-navy py-12 lg:py-16">
-    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
+    <div class="absolute inset-0 z-0" aria-hidden="true">
+        <img src="{% static 'images/hero/contact-consult.jpg' %}"
+             alt="" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-navy/95"></div>
+    </div>
     <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <nav class="mb-6" aria-label="Breadcrumb">
             <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
                 <li><a href="{% url 'eduweb:index' %}" class="text-white/60 hover:text-white transition-colors">Home</a></li>
-                <li aria-hidden="true"><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+                <li aria-hidden="true"><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40" aria-hidden="true"></i></li>
                 <li><span class="text-white/80 font-medium">Book a Consultation</span></li>
             </ol>
         </nav>
         {% comment %}
         <span class="inline-flex items-center gap-2 text-xs font-semibold text-sky bg-white/5 border border-white/10 px-3 py-1.5 rounded-full uppercase tracking-wider">
-            <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+            <i data-lucide="calendar" class="w-3.5 h-3.5" aria-hidden="true"></i>
             <span>Free Initial Consultation</span>
         </span>
         {% endcomment %}
@@ -160,7 +164,7 @@
                     {% if message.tags == 'success' %}bg-emerald-50 border border-emerald-200
                     {% else %}bg-red-50 border border-red-200{% endif %}">
                     <i data-lucide="{% if message.tags == 'success' %}check-circle{% else %}alert-circle{% endif %}"
-                       class="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0 {% if message.tags == 'success' %}text-emerald-600{% else %}text-red-600{% endif %}"></i>
+                       class="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0 {% if message.tags == 'success' %}text-emerald-600{% else %}text-red-600{% endif %}" aria-hidden="true"></i>
                     <span class="text-xs sm:text-sm font-medium {% if message.tags == 'success' %}text-emerald-800{% else %}text-red-800{% endif %}">{{ message }}</span>
                 </div>
                 {% endfor %}
@@ -169,12 +173,12 @@
 
             {% if not topics %}
             <div class="p-3 sm:p-4 rounded-xl flex items-start gap-3 bg-amber-50 border border-amber-200">
-                <i data-lucide="alert-circle" class="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0 text-amber-600"></i>
+                <i data-lucide="alert-circle" class="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0 text-amber-600" aria-hidden="true"></i>
                 <span class="text-xs sm:text-sm font-medium text-amber-800">No consultation topics are open for booking right now. Please check back soon.</span>
             </div>
             {% elif not has_days or not has_durations %}
             <div class="p-3 sm:p-4 rounded-xl flex items-start gap-3 bg-amber-50 border border-amber-200">
-                <i data-lucide="alert-circle" class="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0 text-amber-600"></i>
+                <i data-lucide="alert-circle" class="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0 text-amber-600" aria-hidden="true"></i>
                 <span class="text-xs sm:text-sm font-medium text-amber-800">No consultation times are open for booking right now. Please check back soon.</span>
             </div>
             {% endif %}
@@ -282,7 +286,7 @@
 
                 <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 sm:py-4 rounded-lg brand-gradient text-white font-semibold shadow-brand hover:opacity-95 transition">
                     Request Consultation
-                    <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                    <i data-lucide="arrow-right" class="w-5 h-5" aria-hidden="true"></i>
                 </button>
             </form>
         </div>

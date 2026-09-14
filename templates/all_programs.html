@@ -50,11 +50,13 @@
 {% block content %}
 
 <!-- ═══ HERO ══════════════════════════════════════ -->
-<header role="banner" aria-label="Programs directory"
+<section aria-label="Programs directory"
         class="relative overflow-hidden bg-navy py-12 lg:py-10">
-
-  <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
-
+  <div class="absolute inset-0 z-0" aria-hidden="true">
+    <img src="{% static 'images/hero/campus-graduation.jpg' %}"
+         alt="" class="w-full h-full object-cover">
+    <div class="absolute inset-0 bg-navy/95"></div>
+  </div>
   <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 pb-10 sm:pb-12">
     <div class="max-w-2xl mx-auto text-center">
 
@@ -90,7 +92,7 @@
 
     </div>
   </div>
-</header>
+</section>
 
 <!-- ═══ TOOLBAR ═══════════════════════════════════ -->
 <div id="toolbar" role="toolbar" aria-label="Listing controls"

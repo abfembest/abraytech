@@ -57,7 +57,7 @@
         <div class="reveal w-full max-w-lg lg:max-w-[calc(44%_-_3.75rem)] xl:max-w-[calc(38%_-_5.25rem)]">
             {% comment %}
             <span class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-brandblue bg-ice rounded-full uppercase tracking-wider border border-borderblue">
-                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Technology · Innovation · Digital Excellence
+                <i data-lucide="sparkles" class="w-3.5 h-3.5" aria-hidden="true"></i> Technology · Innovation · Digital Excellence
             </span>
             {% endcomment %}
 
@@ -71,7 +71,7 @@
 
             <div class="mt-9 flex flex-wrap gap-4">
                 <a href="{% url 'consultation:book_consultation' %}" class="inline-flex items-center gap-2 px-7 py-3.5 rounded-lg text-white font-semibold brand-gradient shadow-brand hover:opacity-95 transition">
-                    Start a Project <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    Start a Project <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
                 </a>
                 <a href="{% url 'eduweb:services_list' %}" class="inline-flex items-center gap-2 px-7 py-3.5 rounded-lg border border-borderblue text-navy font-semibold bg-white hover:bg-ice transition">
                     Explore Services
@@ -79,8 +79,8 @@
             </div>
 
             <div class="mt-10 flex flex-wrap items-center gap-6 text-sm text-slate-500">
-                <div class="flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4 text-electric"></i> Security-first delivery</div>
-                <div class="flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4 text-electric"></i> Agile engineering teams</div>
+                <div class="flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4 text-electric" aria-hidden="true"></i> Security-first delivery</div>
+                <div class="flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4 text-electric" aria-hidden="true"></i> Agile engineering teams</div>
             </div>
         </div>
     </div>
@@ -131,10 +131,10 @@
             </div>
             <div class="hidden sm:flex items-center gap-2">
                 <button type="button" id="socialPrev" class="w-11 h-11 rounded-full border border-borderblue flex items-center justify-center text-navy hover:bg-ice transition" aria-label="Scroll left">
-                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                    <i data-lucide="chevron-left" class="w-5 h-5" aria-hidden="true"></i>
                 </button>
                 <button type="button" id="socialNext" class="w-11 h-11 rounded-full border border-borderblue flex items-center justify-center text-navy hover:bg-ice transition" aria-label="Scroll right">
-                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                    <i data-lucide="chevron-right" class="w-5 h-5" aria-hidden="true"></i>
                 </button>
             </div>
         </div>
@@ -180,11 +180,11 @@
             {% for program in featured_programs|slice:":4" %}
             <a href="{% url 'eduweb:program_detail' program.slug %}" class="reveal bg-white rounded-2xl p-6 border border-borderblue hover:shadow-brand hover:-translate-y-1 transition block">
                 <div class="w-12 h-12 rounded-xl bg-ice flex items-center justify-center text-brandblue">
-                    <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+                    <i data-lucide="graduation-cap" class="w-6 h-6" aria-hidden="true"></i>
                 </div>
                 <h3 class="mt-4 font-sora font-semibold text-lg text-navy">{{ program.name }}</h3>
                 <p class="mt-2 text-sm text-slate-600 line-clamp-3">{{ program.overview|default:program.description|truncatewords:18 }}</p>
-                <span class="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brandblue">Learn more <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></span>
+                <span class="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brandblue">Learn more <i data-lucide="arrow-right" class="w-3.5 h-3.5" aria-hidden="true"></i></span>
             </a>
             {% endfor %}
         </div>
@@ -192,7 +192,7 @@
             <a href="{% url 'eduweb:all_programs' %}"
             class="inline-flex items-center gap-2 border border-borderblue bg-white text-navy px-8 py-4 rounded-lg font-semibold text-base lg:text-lg hover:bg-ice transition-all shadow-card focus:outline-none focus:ring-2 focus:ring-brandblue focus:ring-offset-2">
                 View All Courses
-                <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                <i data-lucide="arrow-right" class="w-5 h-5" aria-hidden="true"></i>
             </a>
         </div>
     </div>
@@ -204,25 +204,25 @@
     {% comment %}<p class="text-center text-xs font-semibold uppercase tracking-widest text-slate-400 mb-5">Engineered with technologies built for scale</p>{% endcomment %}
     <div class="max-w-7xl mx-auto overflow-hidden">
         <div class="flex gap-14 marquee-track w-max text-slate-400 text-2xl items-center">
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="code-2" class="w-4 h-4"></i> Python</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="layers" class="w-4 h-4"></i> Django</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="braces" class="w-4 h-4"></i> JavaScript</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="database" class="w-4 h-4"></i> PostgreSQL</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="container" class="w-4 h-4"></i> Docker</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="terminal" class="w-4 h-4"></i> Linux</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="cloud" class="w-4 h-4"></i> Cloud</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="git-branch" class="w-4 h-4"></i> Git</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="bot" class="w-4 h-4"></i> AI / ML</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="code-2" class="w-4 h-4" aria-hidden="true"></i> Python</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="layers" class="w-4 h-4" aria-hidden="true"></i> Django</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="braces" class="w-4 h-4" aria-hidden="true"></i> JavaScript</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="database" class="w-4 h-4" aria-hidden="true"></i> PostgreSQL</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="container" class="w-4 h-4" aria-hidden="true"></i> Docker</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="terminal" class="w-4 h-4" aria-hidden="true"></i> Linux</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="cloud" class="w-4 h-4" aria-hidden="true"></i> Cloud</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="git-branch" class="w-4 h-4" aria-hidden="true"></i> Git</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="bot" class="w-4 h-4" aria-hidden="true"></i> AI / ML</span>
             <!-- duplicated for a seamless marquee loop -->
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="code-2" class="w-4 h-4"></i> Python</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="layers" class="w-4 h-4"></i> Django</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="braces" class="w-4 h-4"></i> JavaScript</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="database" class="w-4 h-4"></i> PostgreSQL</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="container" class="w-4 h-4"></i> Docker</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="terminal" class="w-4 h-4"></i> Linux</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="cloud" class="w-4 h-4"></i> Cloud</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="git-branch" class="w-4 h-4"></i> Git</span>
-            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="bot" class="w-4 h-4"></i> AI / ML</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="code-2" class="w-4 h-4" aria-hidden="true"></i> Python</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="layers" class="w-4 h-4" aria-hidden="true"></i> Django</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="braces" class="w-4 h-4" aria-hidden="true"></i> JavaScript</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="database" class="w-4 h-4" aria-hidden="true"></i> PostgreSQL</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="container" class="w-4 h-4" aria-hidden="true"></i> Docker</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="terminal" class="w-4 h-4" aria-hidden="true"></i> Linux</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="cloud" class="w-4 h-4" aria-hidden="true"></i> Cloud</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="git-branch" class="w-4 h-4" aria-hidden="true"></i> Git</span>
+            <span class="flex items-center gap-2 text-sm font-semibold text-slate-500"><i data-lucide="bot" class="w-4 h-4" aria-hidden="true"></i> AI / ML</span>
         </div>
     </div>
 </section>
@@ -236,7 +236,7 @@
                 {% comment %}<span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Our work</span>{% endcomment %}
                 <h2 id="projects-heading" class="mt-3 text-3xl sm:text-4xl font-sora font-bold text-navy max-w-lg">Featured Projects</h2>
             </div>
-            <a href="{% url 'eduweb:projects_list' %}" class="inline-flex items-center gap-1 text-sm font-semibold text-brandblue">View project repository <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+            <a href="{% url 'eduweb:projects_list' %}" class="inline-flex items-center gap-1 text-sm font-semibold text-brandblue">View project repository <i data-lucide="arrow-right" class="w-3.5 h-3.5" aria-hidden="true"></i></a>
         </div>
         <div class="mt-10 grid md:grid-cols-3 gap-6">
             {% for project in featured_projects %}
@@ -247,7 +247,7 @@
                 </div>
                 {% else %}
                 <div class="h-40 brand-gradient flex items-center justify-center">
-                    <i data-lucide="folder-code" class="w-8 h-8 text-white/80"></i>
+                    <i data-lucide="folder-code" class="w-8 h-8 text-white/80" aria-hidden="true"></i>
                 </div>
                 {% endif %}
                 <div class="p-5">
@@ -272,7 +272,7 @@
                 <h2 id="store-heading" class="mt-3 text-3xl sm:text-4xl font-sora font-bold text-navy max-w-lg">From the Store</h2>
                 <p class="mt-2 text-slate-600 max-w-xl">Ready-made tools and products built by our engineering team.</p>
             </div>
-            <a href="{% url 'store:store_list' %}" class="inline-flex items-center gap-1 text-sm font-semibold text-brandblue">Visit the store <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+            <a href="{% url 'store:store_list' %}" class="inline-flex items-center gap-1 text-sm font-semibold text-brandblue">Visit the store <i data-lucide="arrow-right" class="w-3.5 h-3.5" aria-hidden="true"></i></a>
         </div>
         <div class="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for product in store_products %}
@@ -283,7 +283,7 @@
                     <img src="{{ image.asset.file.url }}" alt="{{ product.title }}" loading="lazy">
                     {% else %}
                     <div class="w-full h-full flex items-center justify-center">
-                        <i data-lucide="package" class="w-8 h-8 text-brandblue/50"></i>
+                        <i data-lucide="package" class="w-8 h-8 text-brandblue/50" aria-hidden="true"></i>
                     </div>
                     {% endif %}
                     {% endwith %}
@@ -334,15 +334,15 @@
             <h2 class="mt-3 text-3xl font-sora font-bold text-navy">A single partner across the technology lifecycle</h2>
             <div class="mt-8 space-y-6">
                 <div class="flex gap-4">
-                    <div class="w-10 h-10 rounded-lg bg-ice text-brandblue flex items-center justify-center shrink-0"><i data-lucide="layers" class="w-5 h-5"></i></div>
+                    <div class="w-10 h-10 rounded-lg bg-ice text-brandblue flex items-center justify-center shrink-0"><i data-lucide="layers" class="w-5 h-5" aria-hidden="true"></i></div>
                     <div><h3 class="font-semibold text-navy">End-to-end capability</h3><p class="text-sm text-slate-600 mt-1">Software, security, AI, data and training under one roof — no hand-offs between vendors.</p></div>
                 </div>
                 <div class="flex gap-4">
-                    <div class="w-10 h-10 rounded-lg bg-ice text-brandblue flex items-center justify-center shrink-0"><i data-lucide="shield-check" class="w-5 h-5"></i></div>
+                    <div class="w-10 h-10 rounded-lg bg-ice text-brandblue flex items-center justify-center shrink-0"><i data-lucide="shield-check" class="w-5 h-5" aria-hidden="true"></i></div>
                     <div><h3 class="font-semibold text-navy">Security by default</h3><p class="text-sm text-slate-600 mt-1">Every engagement is built with security architecture in mind, not bolted on afterward.</p></div>
                 </div>
                 <div class="flex gap-4">
-                    <div class="w-10 h-10 rounded-lg bg-ice text-brandblue flex items-center justify-center shrink-0"><i data-lucide="users" class="w-5 h-5"></i></div>
+                    <div class="w-10 h-10 rounded-lg bg-ice text-brandblue flex items-center justify-center shrink-0"><i data-lucide="users" class="w-5 h-5" aria-hidden="true"></i></div>
                     <div><h3 class="font-semibold text-navy">Human, responsive teams</h3><p class="text-sm text-slate-600 mt-1">Direct access to engineers and consultants — not a ticketing black box.</p></div>
                 </div>
             </div>
@@ -368,18 +368,18 @@
     <div class="absolute inset-0 opacity-20 dot-grid-sky"></div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative grid lg:grid-cols-2 gap-14 items-center">
         <div class="reveal">
-            <span class="inline-flex items-center gap-2 text-xs font-semibold text-sky bg-white/5 border border-white/10 px-3 py-1.5 rounded-full uppercase tracking-wider"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Cybersecurity</span>
+            <span class="inline-flex items-center gap-2 text-xs font-semibold text-sky bg-white/5 border border-white/10 px-3 py-1.5 rounded-full uppercase tracking-wider"><i data-lucide="shield-check" class="w-3.5 h-3.5" aria-hidden="true"></i> Cybersecurity</span>
             <h2 class="mt-5 text-3xl sm:text-4xl font-sora font-bold text-white">Protect what powers your business.</h2>
             <p class="mt-5 text-white/70 leading-relaxed">From vulnerability assessments to 24/7 monitoring and incident response, {{ site_config.school_short_name|default:"Abraytech" }} helps you manage risk with a security architecture built for your business, not a generic checklist.</p>
             <ul class="mt-6 grid sm:grid-cols-2 gap-3 text-sm text-white/80">
-                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-sky"></i> Vulnerability assessment</li>
-                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-sky"></i> Penetration testing</li>
-                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-sky"></i> Threat intelligence</li>
-                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-sky"></i> Incident response</li>
-                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-sky"></i> Security monitoring</li>
-                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-sky"></i> Compliance support</li>
+                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-sky" aria-hidden="true"></i> Vulnerability assessment</li>
+                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-sky" aria-hidden="true"></i> Penetration testing</li>
+                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-sky" aria-hidden="true"></i> Threat intelligence</li>
+                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-sky" aria-hidden="true"></i> Incident response</li>
+                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-sky" aria-hidden="true"></i> Security monitoring</li>
+                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-sky" aria-hidden="true"></i> Compliance support</li>
             </ul>
-            <a href="{% url 'consultation:book_consultation' %}" class="mt-8 inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-white text-navy font-semibold hover:bg-ice transition">Request Security Consultation <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+            <a href="{% url 'consultation:book_consultation' %}" class="mt-8 inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-white text-navy font-semibold hover:bg-ice transition">Request Security Consultation <i data-lucide="arrow-right" class="w-3.5 h-3.5" aria-hidden="true"></i></a>
         </div>
         <div class="reveal reveal-delay-md">
             <div class="rounded-2xl border border-white/10 bg-white/5 p-6">
@@ -422,18 +422,18 @@
             </div>
         </div>
         <div class="reveal order-1 lg:order-2">
-            <span class="inline-flex items-center gap-2 text-xs font-semibold text-brandblue bg-ice px-3 py-1.5 rounded-full uppercase tracking-wider border border-borderblue"><i data-lucide="brain" class="w-3.5 h-3.5"></i> AI &amp; Machine Learning</span>
+            <span class="inline-flex items-center gap-2 text-xs font-semibold text-brandblue bg-ice px-3 py-1.5 rounded-full uppercase tracking-wider border border-borderblue"><i data-lucide="brain" class="w-3.5 h-3.5" aria-hidden="true"></i> AI &amp; Machine Learning</span>
             <h2 class="mt-5 text-3xl sm:text-4xl font-sora font-bold text-navy">Turn data into intelligent decisions.</h2>
             <p class="mt-5 text-slate-600 leading-relaxed">{{ site_config.school_short_name|default:"Abraytech" }} designs and integrates machine learning, predictive analytics and automation directly into your existing workflows — practical AI, not hype.</p>
             <ul class="mt-6 grid sm:grid-cols-2 gap-3 text-sm text-slate-700">
-                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-brandblue"></i> Predictive analytics</li>
-                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-brandblue"></i> Natural language processing</li>
-                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-brandblue"></i> Intelligent chatbots</li>
-                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-brandblue"></i> Computer vision</li>
-                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-brandblue"></i> Recommendation systems</li>
-                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-brandblue"></i> AI strategy &amp; consulting</li>
+                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-brandblue" aria-hidden="true"></i> Predictive analytics</li>
+                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-brandblue" aria-hidden="true"></i> Natural language processing</li>
+                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-brandblue" aria-hidden="true"></i> Intelligent chatbots</li>
+                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-brandblue" aria-hidden="true"></i> Computer vision</li>
+                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-brandblue" aria-hidden="true"></i> Recommendation systems</li>
+                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-brandblue" aria-hidden="true"></i> AI strategy &amp; consulting</li>
             </ul>
-            <a href="{% url 'eduweb:services_list' %}" class="mt-8 inline-flex items-center gap-2 px-6 py-3 rounded-lg brand-gradient text-white font-semibold hover:opacity-95 transition">Explore AI Services <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+            <a href="{% url 'eduweb:services_list' %}" class="mt-8 inline-flex items-center gap-2 px-6 py-3 rounded-lg brand-gradient text-white font-semibold hover:opacity-95 transition">Explore AI Services <i data-lucide="arrow-right" class="w-3.5 h-3.5" aria-hidden="true"></i></a>
         </div>
     </div>
 </section>
@@ -450,7 +450,7 @@
         <div class="mt-10 flex flex-wrap justify-center gap-4">
             {% for industry in industries %}
             <div class="reveal text-center bg-white rounded-xl p-5 border border-borderblue w-36 sm:w-40">
-                <i data-lucide="{{ industry.icon }}" class="w-6 h-6 text-brandblue mx-auto"></i>
+                <i data-lucide="{{ industry.icon }}" class="w-6 h-6 text-brandblue mx-auto" aria-hidden="true"></i>
                 <div class="mt-2 text-sm font-medium text-navy">{{ industry.title }}</div>
             </div>
             {% endfor %}
@@ -475,21 +475,21 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-14 items-center">
         <div class="reveal">
             <span class="inline-flex items-center gap-2 text-xs font-semibold text-brandblue bg-ice px-3 py-1.5 rounded-full uppercase tracking-wider border border-borderblue">
-                <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i> {{ site_config.school_short_name|default:"Abraytech" }} Academy
+                <i data-lucide="graduation-cap" class="w-3.5 h-3.5" aria-hidden="true"></i> {{ site_config.school_short_name|default:"Abraytech" }} Academy
             </span>
             <h2 class="mt-5 text-3xl sm:text-4xl font-sora font-bold text-navy">Training the tech leaders of tomorrow.</h2>
             <p class="mt-5 text-slate-600 leading-relaxed">
                 {{ site_config.school_short_name|default:"Abraytech" }} isn't only a delivery platform — it's a learning environment. Alongside the software, security and AI work we ship for clients, we train the next generation of engineers, analysts and technology leaders on real systems, with practitioners who build the same platforms they teach.
             </p>
             <ul class="mt-6 space-y-3 text-sm text-slate-700">
-                <li class="flex items-start gap-3"><i data-lucide="check" class="w-4 h-4 text-brandblue mt-1"></i> Practitioner-led mentorship from our own engineering and security teams</li>
-                <li class="flex items-start gap-3"><i data-lucide="check" class="w-4 h-4 text-brandblue mt-1"></i> Hands-on exposure to live projects, not just theory</li>
-                <li class="flex items-start gap-3"><i data-lucide="check" class="w-4 h-4 text-brandblue mt-1"></i> Structured pathways across software, cybersecurity, AI and data</li>
-                <li class="flex items-start gap-3"><i data-lucide="check" class="w-4 h-4 text-brandblue mt-1"></i> A pipeline into {{ site_config.school_short_name|default:"Abraytech" }} teams and partner organizations</li>
+                <li class="flex items-start gap-3"><i data-lucide="check" class="w-4 h-4 text-brandblue mt-1" aria-hidden="true"></i> Practitioner-led mentorship from our own engineering and security teams</li>
+                <li class="flex items-start gap-3"><i data-lucide="check" class="w-4 h-4 text-brandblue mt-1" aria-hidden="true"></i> Hands-on exposure to live projects, not just theory</li>
+                <li class="flex items-start gap-3"><i data-lucide="check" class="w-4 h-4 text-brandblue mt-1" aria-hidden="true"></i> Structured pathways across software, cybersecurity, AI and data</li>
+                <li class="flex items-start gap-3"><i data-lucide="check" class="w-4 h-4 text-brandblue mt-1" aria-hidden="true"></i> A pipeline into {{ site_config.school_short_name|default:"Abraytech" }} teams and partner organizations</li>
             </ul>
             <div class="mt-8 flex flex-wrap gap-4">
                 <a href="{% url 'eduweb:all_programs' %}" class="inline-flex items-center gap-2 px-6 py-3 rounded-lg brand-gradient text-white font-semibold hover:opacity-95 transition">
-                    Explore Training Programs <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    Explore Training Programs <i data-lucide="arrow-right" class="w-3.5 h-3.5" aria-hidden="true"></i>
                 </a>
                 <a href="#training-tracks" class="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-borderblue text-navy font-semibold hover:bg-ice transition">
                     About {{ site_config.school_short_name|default:"Abraytech" }} Academy
@@ -509,7 +509,7 @@
                     <li class="flex items-center gap-4">
                         <a href="{% url 'eduweb:program_detail' program.slug %}" class="flex items-center gap-4 flex-1 group">
                             <span class="w-8 h-8 rounded-full brand-gradient text-white text-xs font-bold flex items-center justify-center shrink-0">
-                                <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i>
+                                <i data-lucide="graduation-cap" class="w-3.5 h-3.5" aria-hidden="true"></i>
                             </span>
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center justify-between text-sm gap-2">
@@ -517,7 +517,7 @@
                                     <span class="text-sky text-xs shrink-0">{{ program.get_degree_level_display }}</span>
                                 </div>
                                 {% if program.department.faculty %}
-                                <div class="text-white/40 text-xs mt-1">{{ program.department.faculty.name }}</div>
+                                <div class="text-white/60 text-xs mt-1">{{ program.department.faculty.name }}</div>
                                 {% endif %}
                             </div>
                         </a>
@@ -530,13 +530,13 @@
                 <div class="grid grid-cols-3 gap-3 mt-6">
                     {% for faculty in faculties|slice:":3" %}
                     <a href="{% url 'eduweb:all_programs' %}#faculty-{{ faculty.slug }}" class="rounded-lg bg-white/5 p-3 text-center hover:bg-white/10 transition-colors block">
-                        <i data-lucide="{{ faculty.icon }}" class="w-4 h-4 text-sky mx-auto"></i>
+                        <i data-lucide="{{ faculty.icon }}" class="w-4 h-4 text-sky mx-auto" aria-hidden="true"></i>
                         <div class="text-micro text-white/50 mt-1 truncate">{{ faculty.name }}</div>
                     </a>
                     {% empty %}
-                    <div class="rounded-lg bg-white/5 p-3 text-center"><i data-lucide="code-2" class="w-4 h-4 text-sky mx-auto"></i><div class="text-micro text-white/50 mt-1">Software</div></div>
-                    <div class="rounded-lg bg-white/5 p-3 text-center"><i data-lucide="shield-check" class="w-4 h-4 text-sky mx-auto"></i><div class="text-micro text-white/50 mt-1">Security</div></div>
-                    <div class="rounded-lg bg-white/5 p-3 text-center"><i data-lucide="brain" class="w-4 h-4 text-sky mx-auto"></i><div class="text-micro text-white/50 mt-1">AI &amp; Data</div></div>
+                    <div class="rounded-lg bg-white/5 p-3 text-center"><i data-lucide="code-2" class="w-4 h-4 text-sky mx-auto" aria-hidden="true"></i><div class="text-micro text-white/50 mt-1">Software</div></div>
+                    <div class="rounded-lg bg-white/5 p-3 text-center"><i data-lucide="shield-check" class="w-4 h-4 text-sky mx-auto" aria-hidden="true"></i><div class="text-micro text-white/50 mt-1">Security</div></div>
+                    <div class="rounded-lg bg-white/5 p-3 text-center"><i data-lucide="brain" class="w-4 h-4 text-sky mx-auto" aria-hidden="true"></i><div class="text-micro text-white/50 mt-1">AI &amp; Data</div></div>
                     {% endfor %}
                 </div>
             </div>
@@ -586,7 +586,7 @@
             <a href="{% url 'eduweb:all_programs' %}"
                class="inline-flex items-center gap-2 border border-borderblue bg-white text-navy px-8 py-4 rounded-lg font-semibold text-base lg:text-lg hover:bg-ice transition-all shadow-card focus:outline-none focus:ring-2 focus:ring-brandblue focus:ring-offset-2">
                 View All Programs
-                <i data-lucide="grid-3x3" class="w-5 h-5"></i>
+                <i data-lucide="grid-3x3" class="w-5 h-5" aria-hidden="true"></i>
             </a>
         </div>
     </div>
@@ -704,7 +704,7 @@
         <div class="reveal mt-6 pt-6 border-t border-white/10 flex flex-wrap items-center gap-2">
             <i data-lucide="users" class="w-4 h-4 text-sky" aria-hidden="true"></i>
             <span class="text-white/60 text-xs">Our team is here to help you through the process</span>
-            <span class="mx-2 text-white/20">|</span>
+            <span class="mx-2 text-white/20" aria-hidden="true">|</span>
             <i data-lucide="shield-check" class="w-4 h-4 text-sky" aria-hidden="true"></i>
             <span class="text-white/60 text-xs">Secure &amp; confidential process</span>
         </div>
@@ -721,7 +721,7 @@
                 {% comment %}<span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Knowledge centre</span>{% endcomment %}
                 <h2 class="mt-3 text-3xl sm:text-4xl font-sora font-bold text-navy">From the blog</h2>
             </div>
-            <a href="{% url 'eduweb:blog' %}" class="inline-flex items-center gap-1 text-sm font-semibold text-brandblue">Visit the blog <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+            <a href="{% url 'eduweb:blog' %}" class="inline-flex items-center gap-1 text-sm font-semibold text-brandblue">Visit the blog <i data-lucide="arrow-right" class="w-3.5 h-3.5" aria-hidden="true"></i></a>
         </div>
         <div class="mt-10 grid md:grid-cols-3 gap-6">
             {% for post in recent_posts|slice:":3" %}
@@ -731,7 +731,7 @@
                     <img src="{{ post.featured_image.url }}" alt="{{ post.featured_image_alt|default:post.title }}" class="w-full h-full object-cover" loading="lazy">
                 </div>
                 {% else %}
-                <div class="h-36 brand-gradient flex items-center justify-center"><i data-lucide="file-text" class="w-8 h-8 text-white/80"></i></div>
+                <div class="h-36 brand-gradient flex items-center justify-center"><i data-lucide="file-text" class="w-8 h-8 text-white/80" aria-hidden="true"></i></div>
                 {% endif %}
                 <div class="p-5">
                     {% if post.category %}<span class="text-xs font-semibold text-brandblue uppercase">{{ post.category.name }}</span>{% endif %}
@@ -755,7 +755,7 @@
         <h2 class="text-3xl sm:text-4xl font-sora font-bold text-navy">Have a technology challenge?</h2>
         <p class="mt-4 text-lg text-slate-600">Tell us what you're building or what's at risk — we'll help you plan the right next step.</p>
         <div class="mt-8 flex flex-wrap gap-4 justify-center">
-            <a href="{% url 'consultation:book_consultation' %}" class="inline-flex items-center gap-2 px-8 py-3.5 rounded-lg text-white font-semibold brand-gradient shadow-brand hover:opacity-95 transition">Book a Consultation <i data-lucide="arrow-right" class="w-4 h-4"></i></a>
+            <a href="{% url 'consultation:book_consultation' %}" class="inline-flex items-center gap-2 px-8 py-3.5 rounded-lg text-white font-semibold brand-gradient shadow-brand hover:opacity-95 transition">Book a Consultation <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i></a>
             <a href="#contact" class="inline-flex items-center gap-2 px-8 py-3.5 rounded-lg text-navy font-semibold border border-borderblue hover:bg-ice transition">Contact Us</a>
         </div>
     </div>
@@ -799,7 +799,7 @@
             <div class="reveal bg-white rounded-2xl border border-borderblue shadow-card p-6 sm:p-8 lg:p-10">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="w-12 h-12 rounded-xl bg-ice flex items-center justify-center text-brandblue">
-                        <i data-lucide="send" class="w-6 h-6"></i>
+                        <i data-lucide="send" class="w-6 h-6" aria-hidden="true"></i>
                     </div>
                     <h3 class="text-xl lg:text-2xl font-sora font-semibold text-navy">Send a Message</h3>
                 </div>
@@ -808,7 +808,7 @@
                 <div class="mb-6">
                     {% for message in messages %}
                     <div class="p-4 rounded-xl {% if message.tags == 'success' %}bg-emerald-50 border border-emerald-200{% else %}bg-red-50 border border-red-200{% endif %} flex items-start gap-3">
-                        <i data-lucide="{% if message.tags == 'success' %}check-circle{% else %}alert-circle{% endif %}" class="w-5 h-5 mt-0.5 flex-shrink-0 {% if message.tags == 'success' %}text-emerald-600{% else %}text-red-600{% endif %}"></i>
+                        <i data-lucide="{% if message.tags == 'success' %}check-circle{% else %}alert-circle{% endif %}" class="w-5 h-5 mt-0.5 flex-shrink-0 {% if message.tags == 'success' %}text-emerald-600{% else %}text-red-600{% endif %}" aria-hidden="true"></i>
                         <span class="{% if message.tags == 'success' %}text-emerald-800{% else %}text-red-800{% endif %} text-sm">{{ message }}</span>
                     </div>
                     {% endfor %}
@@ -860,7 +860,7 @@
                     <div class="bg-ice border border-borderblue rounded-xl p-4">
                         <label for="contactCaptcha" class="block text-sm font-semibold text-slate-700 mb-2">
                             <span class="flex items-center gap-2">
-                                <i data-lucide="shield-check" class="w-4 h-4 text-brandblue"></i>
+                                <i data-lucide="shield-check" class="w-4 h-4 text-brandblue" aria-hidden="true"></i>
                                 Bot Check <span class="text-red-500">*</span>
                             </span>
                         </label>
@@ -873,7 +873,7 @@
                     </div>
 
                     <button type="submit" class="w-full brand-gradient text-white py-4 rounded-lg font-semibold shadow-brand hover:opacity-95 transition-all flex items-center justify-center gap-2 group focus:outline-none focus:ring-2 focus:ring-brandblue focus:ring-offset-2">
-                        <i data-lucide="send" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+                        <i data-lucide="send" class="w-5 h-5 group-hover:translate-x-1 transition-transform" aria-hidden="true"></i>
                         Send Message
                     </button>
                 </form>
@@ -887,7 +887,7 @@
             <div class="space-y-6">
                 <div class="flex items-center gap-3 mb-4 reveal">
                     <div class="w-12 h-12 rounded-xl bg-ice flex items-center justify-center text-brandblue">
-                        <i data-lucide="info" class="w-6 h-6"></i>
+                        <i data-lucide="info" class="w-6 h-6" aria-hidden="true"></i>
                     </div>
                     <h3 class="text-xl lg:text-2xl font-sora font-semibold text-navy">Contact Information</h3>
                 </div>
@@ -896,7 +896,7 @@
                 <div class="reveal bg-white rounded-2xl border border-borderblue p-6 hover:shadow-card transition-all group">
                     <div class="flex items-start gap-4">
                         <div class="w-12 h-12 rounded-xl bg-ice flex items-center justify-center flex-shrink-0 text-brandblue group-hover:scale-110 transition-transform">
-                            <i data-lucide="map-pin" class="w-6 h-6"></i>
+                            <i data-lucide="map-pin" class="w-6 h-6" aria-hidden="true"></i>
                         </div>
                         <div>
                             <h4 class="font-semibold text-lg text-navy mb-2">Main Campus</h4>
@@ -910,7 +910,7 @@
                 <div class="reveal bg-white rounded-2xl border border-borderblue p-6 hover:shadow-card transition-all group">
                     <div class="flex items-start gap-4">
                         <div class="w-12 h-12 rounded-xl bg-ice flex items-center justify-center flex-shrink-0 text-brandblue group-hover:scale-110 transition-transform">
-                            <i data-lucide="mail" class="w-6 h-6"></i>
+                            <i data-lucide="mail" class="w-6 h-6" aria-hidden="true"></i>
                         </div>
                         <div>
                             <h4 class="font-semibold text-lg text-navy mb-2">Email Us</h4>
@@ -937,7 +937,7 @@
                 <div class="reveal bg-white rounded-2xl border border-borderblue p-6 hover:shadow-card transition-all group">
                     <div class="flex items-start gap-4">
                         <div class="w-12 h-12 rounded-xl bg-ice flex items-center justify-center flex-shrink-0 text-brandblue group-hover:scale-110 transition-transform">
-                            <i data-lucide="phone" class="w-6 h-6"></i>
+                            <i data-lucide="phone" class="w-6 h-6" aria-hidden="true"></i>
                         </div>
                         <div>
                             <h4 class="font-semibold text-lg text-navy mb-2">Call Us</h4>
@@ -967,7 +967,7 @@
                 <div class="reveal bg-white rounded-2xl border border-borderblue p-6 hover:shadow-card transition-all group">
                     <div class="flex items-start gap-4">
                         <div class="w-12 h-12 rounded-xl bg-ice flex items-center justify-center flex-shrink-0 text-brandblue group-hover:scale-110 transition-transform">
-                            <i data-lucide="clock" class="w-6 h-6"></i>
+                            <i data-lucide="clock" class="w-6 h-6" aria-hidden="true"></i>
                         </div>
                         <div>
                             <h4 class="font-semibold text-lg text-navy mb-2">Office Hours</h4>
@@ -1002,7 +1002,7 @@
                 <div class="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-auto sm:max-w-sm bg-navy/95 backdrop-blur-md text-white p-5 sm:p-6 rounded-xl shadow-2xl">
                     <div class="flex items-start gap-3">
                         <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
-                            <i data-lucide="map-pin" class="w-5 h-5 text-navy"></i>
+                            <i data-lucide="map-pin" class="w-5 h-5 text-navy" aria-hidden="true"></i>
                         </div>
                         <div>
                             <h4 class="font-semibold text-lg mb-1">{{ site_config.school_short_name|default:"Abraytech" }}</h4>
@@ -1017,7 +1017,7 @@
             {% if site_config.address_usa %}
             <div class="reveal bg-white rounded-2xl border border-borderblue p-6">
                 <div class="flex items-start gap-3">
-                    <i data-lucide="map-pin" class="w-5 h-5 mt-0.5 flex-shrink-0 text-brandblue"></i>
+                    <i data-lucide="map-pin" class="w-5 h-5 mt-0.5 flex-shrink-0 text-brandblue" aria-hidden="true"></i>
                     <p class="text-slate-700 text-sm leading-relaxed">{{ site_config.address_usa|linebreaksbr }}</p>
                 </div>
             </div>
@@ -1025,7 +1025,7 @@
             {% if site_config.address_nigeria %}
             <div class="reveal bg-white rounded-2xl border border-borderblue p-6">
                 <div class="flex items-start gap-3">
-                    <i data-lucide="map-pin" class="w-5 h-5 mt-0.5 flex-shrink-0 text-brandblue"></i>
+                    <i data-lucide="map-pin" class="w-5 h-5 mt-0.5 flex-shrink-0 text-brandblue" aria-hidden="true"></i>
                     <p class="text-slate-700 text-sm leading-relaxed">{{ site_config.address_nigeria|linebreaksbr }}</p>
                 </div>
             </div>

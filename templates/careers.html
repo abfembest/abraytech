@@ -62,19 +62,23 @@
 {% block content %}
 
 <section class="relative overflow-hidden bg-navy py-20 lg:py-28">
-    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
+    <div class="absolute inset-0 z-0" aria-hidden="true">
+        <img src="{% static 'images/hero/team-collab.jpg' %}"
+             alt="" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-navy/95"></div>
+    </div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="max-w-3xl">
             <nav class="flex mb-6" aria-label="Breadcrumb">
                 <ol class="inline-flex items-center space-x-2 text-sm">
                     <li><a href="{% url 'eduweb:index' %}" class="text-white/60 hover:text-white transition-colors">Home</a></li>
-                    <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+                    <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40" aria-hidden="true"></i></li>
                     <li><span class="text-white/80 font-medium">Careers</span></li>
                 </ol>
             </nav>
             {% comment %}
             <span class="inline-flex items-center gap-2 text-xs font-semibold text-sky bg-white/5 border border-white/10 px-3 py-1.5 rounded-full uppercase tracking-wider">
-                <i data-lucide="briefcase" class="w-3.5 h-3.5"></i> Careers
+                <i data-lucide="briefcase" class="w-3.5 h-3.5" aria-hidden="true"></i> Careers
             </span>
             {% endcomment %}
             <h1 class="mt-5 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-white">Careers at Abraytech</h1>
@@ -96,15 +100,15 @@
                     <span class="inline-flex items-center text-xs font-semibold text-brandblue bg-ice px-2.5 py-1 rounded-full">{{ job.get_employment_type_display }}</span>
                 </div>
                 <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500 mb-3">
-                    {% if job.department %}<span class="flex items-center gap-1"><i data-lucide="briefcase" class="w-3.5 h-3.5"></i>{{ job.department }}</span>{% endif %}
-                    {% if job.location %}<span class="flex items-center gap-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>{{ job.location }}</span>{% endif %}
+                    {% if job.department %}<span class="flex items-center gap-1"><i data-lucide="briefcase" class="w-3.5 h-3.5" aria-hidden="true"></i>{{ job.department }}</span>{% endif %}
+                    {% if job.location %}<span class="flex items-center gap-1"><i data-lucide="map-pin" class="w-3.5 h-3.5" aria-hidden="true"></i>{{ job.location }}</span>{% endif %}
                 </div>
                 {% if job.description %}
                 <p class="text-sm text-slate-600">{{ job.description|truncatewords:40 }}</p>
                 {% endif %}
                 <a href="{% url 'eduweb:contact' %}" class="inline-flex items-center gap-2 mt-4 text-brandblue font-semibold text-sm hover:text-electric transition-colors">
                     Apply for this role
-                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
                 </a>
             </div>
             {% endfor %}
@@ -117,7 +121,7 @@
         <div class="text-center mt-10">
             <a href="{% url 'eduweb:contact' %}" class="inline-flex items-center gap-2 px-8 py-4 rounded-lg brand-gradient text-white font-semibold shadow-brand hover:opacity-95 transition">
                 Get in Touch
-                <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                <i data-lucide="arrow-right" class="w-5 h-5" aria-hidden="true"></i>
             </a>
         </div>
     </div>

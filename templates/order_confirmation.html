@@ -11,14 +11,13 @@
 {% block content %}
 
 <section class="relative overflow-hidden bg-navy py-20 lg:py-28">
-    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <nav class="flex mb-6" aria-label="Breadcrumb">
             <ol class="inline-flex items-center space-x-2 text-sm">
                 <li><a href="{% url 'eduweb:index' %}" class="text-white/60 hover:text-white transition-colors">Home</a></li>
-                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40" aria-hidden="true"></i></li>
                 <li><a href="{% url 'store:store_list' %}" class="text-white/60 hover:text-white transition-colors">Store</a></li>
-                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+                <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40" aria-hidden="true"></i></li>
                 <li><span class="text-white/80 font-medium">Order {{ order.order_number }}</span></li>
             </ol>
         </nav>
@@ -33,12 +32,12 @@
 
         {% if verified %}
         <div class="alert-brand alert-brand-success mb-8">
-            <i data-lucide="check-circle" class="w-5 h-5 shrink-0"></i>
+            <i data-lucide="check-circle" class="w-5 h-5 shrink-0" aria-hidden="true"></i>
             <p>Thank you! We&rsquo;ve received your order and will be in touch to arrange fulfillment.</p>
         </div>
         {% else %}
         <div class="alert-brand alert-brand-error mb-8">
-            <i data-lucide="alert-circle" class="w-5 h-5 shrink-0"></i>
+            <i data-lucide="alert-circle" class="w-5 h-5 shrink-0" aria-hidden="true"></i>
             <p>We couldn&rsquo;t confirm payment for this order. If you were charged, contact us with your order number below &mdash; otherwise, please try again.</p>
         </div>
         {% endif %}
@@ -84,11 +83,11 @@
         <div class="mt-8 text-center">
             {% if verified %}
             <a href="{% url 'store:store_list' %}" class="btn-brand">
-                Continue Shopping <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                Continue Shopping <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
             </a>
             {% else %}
             <a href="{% url 'store:cart_view' %}" class="btn-brand">
-                Back to Cart <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                Back to Cart <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
             </a>
             {% endif %}
         </div>

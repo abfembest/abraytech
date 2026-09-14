@@ -49,14 +49,15 @@
 {% endblock %}
 
 {% block content %}
-<main id="main-content">
-
 <!-- ═══════════════════════════════════════════════════════
      HERO
 ═══════════════════════════════════════════════════════ -->
 <section class="relative overflow-hidden bg-navy py-20 lg:py-28" aria-labelledby="contact-hero-heading">
-  <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
-
+  <div class="absolute inset-0 z-0" aria-hidden="true">
+    <img src="{% static 'images/hero/contact-consult.jpg' %}"
+         alt="" class="w-full h-full object-cover">
+    <div class="absolute inset-0 bg-navy/95"></div>
+  </div>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
     <div class="max-w-3xl">
 
@@ -70,7 +71,7 @@
             </a>
             <meta itemprop="position" content="1">
           </li>
-          <li aria-hidden="true"><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+          <li aria-hidden="true"><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40" aria-hidden="true"></i></li>
           <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" aria-current="page">
             <span itemprop="name" class="text-white/80 font-medium">Contact</span>
             <meta itemprop="position" content="2">
@@ -80,7 +81,7 @@
 
       {% comment %}
       <span class="inline-flex items-center gap-2 text-xs font-semibold text-sky bg-white/5 border border-white/10 px-3 py-1.5 rounded-full uppercase tracking-wider">
-        <i data-lucide="mail" class="w-3.5 h-3.5"></i> Get In Touch
+        <i data-lucide="mail" class="w-3.5 h-3.5" aria-hidden="true"></i> Get In Touch
       </span>
       {% endcomment %}
 
@@ -156,7 +157,7 @@
         <!-- Card header -->
         <div class="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-ice flex items-center justify-center flex-shrink-0 text-brandblue" aria-hidden="true">
-            <i data-lucide="send" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+            <i data-lucide="send" class="w-5 h-5 sm:w-6 sm:h-6" aria-hidden="true"></i>
           </div>
           <div>
             <h2 id="contact-form-heading"
@@ -336,7 +337,7 @@
         <!-- Section header -->
         <div class="flex items-center gap-3 sm:gap-4 mb-2 sm:mb-4 reveal">
           <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-ice flex items-center justify-center flex-shrink-0 text-brandblue" aria-hidden="true">
-            <i data-lucide="info" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+            <i data-lucide="info" class="w-5 h-5 sm:w-6 sm:h-6" aria-hidden="true"></i>
           </div>
           <h3 class="text-lg sm:text-xl lg:text-2xl font-sora font-semibold text-navy">
             Contact Information
@@ -347,7 +348,7 @@
         <address class="reveal not-italic bg-white rounded-2xl p-5 sm:p-6 border border-borderblue hover:shadow-card transition-all group">
           <div class="flex items-start gap-3 sm:gap-4">
             <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-ice flex items-center justify-center flex-shrink-0 text-brandblue group-hover:scale-110 transition-transform" aria-hidden="true">
-              <i data-lucide="map-pin" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+              <i data-lucide="map-pin" class="w-5 h-5 sm:w-6 sm:h-6" aria-hidden="true"></i>
             </div>
             <div>
               <h4 class="font-bold text-base sm:text-lg text-navy mb-1.5 sm:mb-2 font-sora">USA Campus</h4>
@@ -366,7 +367,7 @@
         <address class="reveal not-italic bg-white rounded-2xl p-5 sm:p-6 border border-borderblue hover:shadow-card transition-all group">
           <div class="flex items-start gap-3 sm:gap-4">
             <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-ice flex items-center justify-center flex-shrink-0 text-brandblue group-hover:scale-110 transition-transform" aria-hidden="true">
-              <i data-lucide="map-pin" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+              <i data-lucide="map-pin" class="w-5 h-5 sm:w-6 sm:h-6" aria-hidden="true"></i>
             </div>
             <div>
               <h4 class="font-bold text-base sm:text-lg text-navy mb-1.5 sm:mb-2 font-sora">Nigeria Campus</h4>
@@ -386,7 +387,7 @@
         <div class="reveal bg-white rounded-2xl p-5 sm:p-6 border border-borderblue hover:shadow-card transition-all group">
           <div class="flex items-start gap-3 sm:gap-4">
             <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-ice flex items-center justify-center flex-shrink-0 text-brandblue group-hover:scale-110 transition-transform" aria-hidden="true">
-              <i data-lucide="mail" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+              <i data-lucide="mail" class="w-5 h-5 sm:w-6 sm:h-6" aria-hidden="true"></i>
             </div>
             <div class="min-w-0">
               <h4 class="font-bold text-base sm:text-lg text-navy mb-1.5 sm:mb-2 font-sora">Email Us</h4>
@@ -426,7 +427,7 @@
         <div class="reveal bg-white rounded-2xl p-5 sm:p-6 border border-borderblue hover:shadow-card transition-all group">
           <div class="flex items-start gap-3 sm:gap-4">
             <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-ice flex items-center justify-center flex-shrink-0 text-brandblue group-hover:scale-110 transition-transform" aria-hidden="true">
-              <i data-lucide="mail" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+              <i data-lucide="mail" class="w-5 h-5 sm:w-6 sm:h-6" aria-hidden="true"></i>
             </div>
             <div>
               <h4 class="font-bold text-base sm:text-lg text-navy mb-1.5 sm:mb-2 font-sora">Email Us</h4>
@@ -442,7 +443,7 @@
         <div class="reveal bg-white rounded-2xl p-5 sm:p-6 border border-borderblue hover:shadow-card transition-all group">
           <div class="flex items-start gap-3 sm:gap-4">
             <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-ice flex items-center justify-center flex-shrink-0 text-brandblue group-hover:scale-110 transition-transform" aria-hidden="true">
-              <i data-lucide="phone" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+              <i data-lucide="phone" class="w-5 h-5 sm:w-6 sm:h-6" aria-hidden="true"></i>
             </div>
             <div>
               <h4 class="font-bold text-base sm:text-lg text-navy mb-1.5 sm:mb-2 font-sora">Call Us</h4>
@@ -494,7 +495,7 @@
         <div class="reveal bg-white rounded-2xl p-5 sm:p-6 border border-borderblue hover:shadow-card transition-all group">
           <div class="flex items-start gap-3 sm:gap-4">
             <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-ice flex items-center justify-center flex-shrink-0 text-brandblue group-hover:scale-110 transition-transform" aria-hidden="true">
-              <i data-lucide="clock" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+              <i data-lucide="clock" class="w-5 h-5 sm:w-6 sm:h-6" aria-hidden="true"></i>
             </div>
             <div>
               <h4 class="font-bold text-base sm:text-lg text-navy mb-1.5 sm:mb-2 font-sora">Office Hours</h4>
@@ -593,7 +594,6 @@
 </section>
 {% endif %}
 
-</main>
 {% endblock %}
 
 

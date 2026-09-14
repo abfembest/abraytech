@@ -60,19 +60,23 @@
 
 <!-- ===== HERO ===== -->
 <section class="relative overflow-hidden bg-navy py-20 lg:py-28">
-    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
+    <div class="absolute inset-0 z-0" aria-hidden="true">
+        <img src="{% static 'images/hero/faq-office.jpg' %}"
+             alt="" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-navy/95"></div>
+    </div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="max-w-3xl">
             <nav class="flex mb-6" aria-label="Breadcrumb">
                 <ol class="inline-flex items-center space-x-2 text-sm">
                     <li><a href="{% url 'eduweb:index' %}" class="text-white/60 hover:text-white transition-colors">Home</a></li>
-                    <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+                    <li><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40" aria-hidden="true"></i></li>
                     <li><span class="text-white/80 font-medium">FAQ</span></li>
                 </ol>
             </nav>
             {% comment %}
             <span class="inline-flex items-center gap-2 text-xs font-semibold text-sky bg-white/5 border border-white/10 px-3 py-1.5 rounded-full uppercase tracking-wider">
-                <i data-lucide="help-circle" class="w-3.5 h-3.5"></i> FAQ
+                <i data-lucide="help-circle" class="w-3.5 h-3.5" aria-hidden="true"></i> FAQ
             </span>
             {% endcomment %}
             <h1 class="mt-5 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-white">Frequently Asked Questions</h1>

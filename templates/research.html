@@ -40,21 +40,24 @@
 
 <!-- Hero Section -->
 <section class="relative overflow-hidden bg-navy py-20 lg:py-28">
-    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
-
+    <div class="absolute inset-0 z-0" aria-hidden="true">
+        <img src="{% static 'images/hero/circuit-research.jpg' %}"
+             alt="" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-navy/95"></div>
+    </div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="max-w-4xl">
             <nav class="flex mb-8 text-sm" aria-label="Breadcrumb">
                 <ol class="inline-flex items-center space-x-2">
                     <li><a href="{% url 'eduweb:index' %}" class="text-white/60 hover:text-white transition-colors">Home</a></li>
-                    <li><i data-lucide="chevron-right" class="w-4 h-4 text-white/40"></i></li>
+                    <li><i data-lucide="chevron-right" class="w-4 h-4 text-white/40" aria-hidden="true"></i></li>
                     <li><span class="text-white font-medium">Research</span></li>
                 </ol>
             </nav>
 
             <div class="flex items-center gap-4 mb-6">
                 <div class="w-16 h-16 brand-gradient rounded-2xl flex items-center justify-center shadow-brand">
-                    <i data-lucide="flask-conical" class="w-8 h-8 text-white"></i>
+                    <i data-lucide="flask-conical" class="w-8 h-8 text-white" aria-hidden="true"></i>
                 </div>
                 <div>
                     <p class="text-sky text-sm font-medium mb-1">Discovery & Innovation</p>
@@ -75,28 +78,28 @@
         <div class="grid md:grid-cols-4 gap-8">
             <div class="bg-white rounded-2xl p-6 shadow-card text-center hover:-translate-y-1 hover:shadow-brand transition-all duration-300">
                 <div class="w-14 h-14 brand-gradient rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="dollar-sign" class="w-7 h-7 text-white"></i>
+                    <i data-lucide="dollar-sign" class="w-7 h-7 text-white" aria-hidden="true"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-2">$45M+</h3>
                 <p class="text-gray-600">Annual Research Funding</p>
             </div>
             <div class="bg-white rounded-2xl p-6 shadow-card text-center hover:-translate-y-1 hover:shadow-brand transition-all duration-300">
                 <div class="w-14 h-14 brand-gradient rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="file-text" class="w-7 h-7 text-white"></i>
+                    <i data-lucide="file-text" class="w-7 h-7 text-white" aria-hidden="true"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-2">1,200+</h3>
                 <p class="text-gray-600">Publications Annually</p>
             </div>
             <div class="bg-white rounded-2xl p-6 shadow-card text-center hover:-translate-y-1 hover:shadow-brand transition-all duration-300">
                 <div class="w-14 h-14 brand-gradient rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="building" class="w-7 h-7 text-white"></i>
+                    <i data-lucide="building" class="w-7 h-7 text-white" aria-hidden="true"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-2">35+</h3>
                 <p class="text-gray-600">Research Centers</p>
             </div>
             <div class="bg-white rounded-2xl p-6 shadow-card text-center hover:-translate-y-1 hover:shadow-brand transition-all duration-300">
                 <div class="w-14 h-14 brand-gradient rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="users" class="w-7 h-7 text-white"></i>
+                    <i data-lucide="users" class="w-7 h-7 text-white" aria-hidden="true"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-2">500+</h3>
                 <p class="text-gray-600">Active Researchers</p>
@@ -120,78 +123,78 @@
             <!-- Artificial Intelligence -->
             <div class="bg-ice rounded-2xl p-8 border border-borderblue hover:shadow-xl transition-shadow duration-300">
                 <div class="w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center mb-6">
-                    <i data-lucide="brain" class="w-7 h-7 text-white"></i>
+                    <i data-lucide="brain" class="w-7 h-7 text-white" aria-hidden="true"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-3">Artificial Intelligence</h3>
                 <p class="text-gray-700 mb-4">Machine learning, neural networks, natural language processing, and computer vision applications.</p>
                 <a href="#" class="inline-flex items-center gap-2 text-navy font-semibold hover:gap-3 transition-all">
                     Learn More
-                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
                 </a>
             </div>
 
             <!-- Biotechnology -->
             <div class="bg-green-50 rounded-2xl p-8 border border-green-100 hover:shadow-xl transition-shadow duration-300">
                 <div class="w-14 h-14 bg-green-600 rounded-xl flex items-center justify-center mb-6">
-                    <i data-lucide="dna" class="w-7 h-7 text-white"></i>
+                    <i data-lucide="dna" class="w-7 h-7 text-white" aria-hidden="true"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-3">Biotechnology</h3>
                 <p class="text-gray-700 mb-4">Genetic engineering, drug development, biomedical devices, and regenerative medicine.</p>
                 <a href="#" class="inline-flex items-center gap-2 text-green-700 font-semibold hover:gap-3 transition-all">
                     Learn More
-                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
                 </a>
             </div>
 
             <!-- Climate Science -->
             <div class="bg-teal-50 rounded-2xl p-8 border border-teal-100 hover:shadow-xl transition-shadow duration-300">
                 <div class="w-14 h-14 bg-teal-600 rounded-xl flex items-center justify-center mb-6">
-                    <i data-lucide="cloud-rain" class="w-7 h-7 text-white"></i>
+                    <i data-lucide="cloud-rain" class="w-7 h-7 text-white" aria-hidden="true"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-3">Climate Science</h3>
                 <p class="text-gray-700 mb-4">Environmental monitoring, renewable energy, sustainability, and climate change mitigation.</p>
                 <a href="#" class="inline-flex items-center gap-2 text-teal-700 font-semibold hover:gap-3 transition-all">
                     Learn More
-                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
                 </a>
             </div>
 
             <!-- Quantum Computing -->
             <div class="bg-violet-50 rounded-2xl p-8 border border-violet-100 hover:shadow-xl transition-shadow duration-300">
                 <div class="w-14 h-14 bg-violet-600 rounded-xl flex items-center justify-center mb-6">
-                    <i data-lucide="atom" class="w-7 h-7 text-white"></i>
+                    <i data-lucide="atom" class="w-7 h-7 text-white" aria-hidden="true"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-3">Quantum Computing</h3>
                 <p class="text-gray-700 mb-4">Quantum algorithms, cryptography, quantum sensing, and computational physics.</p>
                 <a href="#" class="inline-flex items-center gap-2 text-violet-700 font-semibold hover:gap-3 transition-all">
                     Learn More
-                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
                 </a>
             </div>
 
             <!-- Neuroscience -->
             <div class="bg-rose-50 rounded-2xl p-8 border border-rose-100 hover:shadow-xl transition-shadow duration-300">
                 <div class="w-14 h-14 bg-rose-600 rounded-xl flex items-center justify-center mb-6">
-                    <i data-lucide="activity" class="w-7 h-7 text-white"></i>
+                    <i data-lucide="activity" class="w-7 h-7 text-white" aria-hidden="true"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-3">Neuroscience</h3>
                 <p class="text-gray-700 mb-4">Brain mapping, cognitive science, neurological disorders, and brain-computer interfaces.</p>
                 <a href="#" class="inline-flex items-center gap-2 text-rose-700 font-semibold hover:gap-3 transition-all">
                     Learn More
-                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
                 </a>
             </div>
 
             <!-- Materials Science -->
             <div class="bg-orange-50 rounded-2xl p-8 border border-orange-100 hover:shadow-xl transition-shadow duration-300">
                 <div class="w-14 h-14 bg-orange-600 rounded-xl flex items-center justify-center mb-6">
-                    <i data-lucide="gem" class="w-7 h-7 text-white"></i>
+                    <i data-lucide="gem" class="w-7 h-7 text-white" aria-hidden="true"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-3">Materials Science</h3>
                 <p class="text-gray-700 mb-4">Nanomaterials, advanced composites, smart materials, and energy storage solutions.</p>
                 <a href="#" class="inline-flex items-center gap-2 text-orange-700 font-semibold hover:gap-3 transition-all">
                     Learn More
-                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
                 </a>
             </div>
         </div>
@@ -222,21 +225,21 @@
                         <p class="text-gray-700 mb-4">Developing advanced machine learning models for early detection of cancer and cardiovascular diseases using medical imaging and patient data.</p>
                         <div class="flex items-center gap-4 text-sm text-gray-600 mb-4">
                             <div class="flex items-center gap-2">
-                                <i data-lucide="user" class="w-4 h-4"></i>
+                                <i data-lucide="user" class="w-4 h-4" aria-hidden="true"></i>
                                 <span>Dr. Sarah Johnson</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <i data-lucide="calendar" class="w-4 h-4"></i>
+                                <i data-lucide="calendar" class="w-4 h-4" aria-hidden="true"></i>
                                 <span>2023-2026</span>
                             </div>
                         </div>
                         <a href="#" class="inline-flex items-center gap-2 text-navy font-semibold hover:gap-3 transition-all">
                             Read More
-                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                            <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
                         </a>
                     </div>
                     <div class="w-full md:w-48 h-48 bg-blue-100 rounded-xl flex items-center justify-center">
-                        <i data-lucide="microscope" class="w-20 h-20 text-blue-600"></i>
+                        <i data-lucide="microscope" class="w-20 h-20 text-blue-600" aria-hidden="true"></i>
                     </div>
                 </div>
             </div>
@@ -253,21 +256,21 @@
                         <p class="text-gray-700 mb-4">Creating innovative battery technologies for efficient solar energy storage, making renewable energy more accessible and reliable for communities worldwide.</p>
                         <div class="flex items-center gap-4 text-sm text-gray-600 mb-4">
                             <div class="flex items-center gap-2">
-                                <i data-lucide="user" class="w-4 h-4"></i>
+                                <i data-lucide="user" class="w-4 h-4" aria-hidden="true"></i>
                                 <span>Dr. Michael Chen</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <i data-lucide="calendar" class="w-4 h-4"></i>
+                                <i data-lucide="calendar" class="w-4 h-4" aria-hidden="true"></i>
                                 <span>2024-2027</span>
                             </div>
                         </div>
                         <a href="#" class="inline-flex items-center gap-2 text-green-700 font-semibold hover:gap-3 transition-all">
                             Read More
-                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                            <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
                         </a>
                     </div>
                     <div class="w-full md:w-48 h-48 bg-green-100 rounded-xl flex items-center justify-center">
-                        <i data-lucide="zap" class="w-20 h-20 text-green-600"></i>
+                        <i data-lucide="zap" class="w-20 h-20 text-green-600" aria-hidden="true"></i>
                     </div>
                 </div>
             </div>
@@ -284,21 +287,21 @@
                         <p class="text-gray-700 mb-4">Pioneering quantum key distribution systems to create unhackable communication networks for government and financial institutions.</p>
                         <div class="flex items-center gap-4 text-sm text-gray-600 mb-4">
                             <div class="flex items-center gap-2">
-                                <i data-lucide="user" class="w-4 h-4"></i>
+                                <i data-lucide="user" class="w-4 h-4" aria-hidden="true"></i>
                                 <span>Dr. Elena Rodriguez</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <i data-lucide="calendar" class="w-4 h-4"></i>
+                                <i data-lucide="calendar" class="w-4 h-4" aria-hidden="true"></i>
                                 <span>2024-2028</span>
                             </div>
                         </div>
                         <a href="#" class="inline-flex items-center gap-2 text-brandblue font-semibold hover:gap-3 transition-all">
                             Read More
-                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                            <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
                         </a>
                     </div>
                     <div class="w-full md:w-48 h-48 bg-ice rounded-xl flex items-center justify-center">
-                        <i data-lucide="shield" class="w-20 h-20 text-brandblue"></i>
+                        <i data-lucide="shield" class="w-20 h-20 text-brandblue" aria-hidden="true"></i>
                     </div>
                 </div>
             </div>
@@ -356,11 +359,11 @@
         <div class="flex flex-wrap justify-center gap-6">
             <a href="{% url 'eduweb:all_programs' %}" class="px-8 py-4 bg-white text-navy rounded-xl font-semibold hover:bg-ice transition-all duration-300 shadow-brand inline-flex items-center gap-2">
                 Apply for Research Programs
-                <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                <i data-lucide="arrow-right" class="w-5 h-5" aria-hidden="true"></i>
             </a>
             <a href="#contact" class="px-8 py-4 border-2 border-white/30 text-white rounded-xl font-semibold hover:bg-white hover:text-navy transition-all duration-300 inline-flex items-center gap-2">
                 Contact Research Office
-                <i data-lucide="mail" class="w-5 h-5"></i>
+                <i data-lucide="mail" class="w-5 h-5" aria-hidden="true"></i>
             </a>
         </div>
     </div>
