@@ -373,7 +373,7 @@ CYBERSECURITY_ANALYST = {
                 ("Module 4: Security Alert Investigation", ["investigation scenarios: brute-force login, impossible travel, suspicious PowerShell, malware execution, privilege escalation, suspicious DNS activity, data exfiltration indicators"]),
             ],
             "capstone_title": "SOC Monitoring & Security Operations Centre",
-            "capstone_desc": "Learners build a small SOC (endpoints → log collection → SIEM → detection rules → security alerts → analyst investigation → incident response) and deliver SOC architecture, SIEM deployment, log sources, detection rules, an alert dashboard, incident tickets, investigation reports, MITRE ATT&CK mapping, and a SOC analyst report. Final scenario: detect, triage, investigate, classify, escalate, and document a series of simulated security alerts.",
+            "capstone_desc": "Learners build a small SOC (endpoints, log collection, SIEM, detection rules, security alerts, analyst investigation, and incident response) and deliver SOC architecture, SIEM deployment, log sources, detection rules, an alert dashboard, incident tickets, investigation reports, MITRE ATT&CK mapping, and a SOC analyst report. Final scenario: detect, triage, investigate, classify, escalate, and document a series of simulated security alerts.",
         },
         {
             "title": "Month 5: Incident Response & Digital Forensics",
@@ -714,7 +714,7 @@ AI_MACHINE_LEARNING = {
         "Takes learners from foundational Python and data skills to the "
         "development, evaluation, deployment, and maintenance of real-world "
         "artificial intelligence and machine learning solutions, following a "
-        "learn → experiment → build → evaluate → deploy approach with "
+        "learn, experiment, build, evaluate, deploy approach with "
         "progressively more advanced projects leading to a final AI solution."
     ),
     "description": (
