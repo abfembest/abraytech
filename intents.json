@@ -16,7 +16,7 @@
         "is anyone there"
       ],
       "responses": [
-        "Hello! I'm AbrayTech's virtual assistant. I can help with our services, training programs, the store, or booking a consultation — what would you like to know?",
+        "Hello! I'm AbrayTech's virtual assistant. I can help with our services, training programs, the store, or booking a consultation. What would you like to know?",
         "Hi there! Ask me about AbrayTech's services, courses, the store, or how to book a consultation.",
         "Hey! Welcome to AbrayTech. How can I help you today?"
       ]
@@ -39,7 +39,7 @@
         "what does abraytech stand for"
       ],
       "responses": [
-        "AbrayTech is a technology company offering software development, cybersecurity, AI & data engineering, cloud/DevOps, and IT consulting services — alongside a hands-on training academy, a tech store, and a digital library. We work with businesses across finance, healthcare, e-commerce, education, logistics, and government."
+        "AbrayTech is a technology solutions and education company that helps businesses, institutions, and individuals make effective use of technology. We combine software development, cybersecurity, AI and data analytics, and IT consulting through our services, plus AbrayTech Academy for technology training, alongside a tech store and a digital library."
       ]
     },
 
@@ -58,24 +58,29 @@
         "what is abraytech known for"
       ],
       "responses": [
-        "Here's what we do:\n\n• Custom Software Development\n• Cybersecurity & Penetration Testing\n• AI & Data Engineering\n• Cloud Migration & DevOps\n• IT Consulting & Strategy\n• Mobile App Development\n• Managed IT Support\n• Security Audits & Compliance (SOC 2, ISO 27001)\n• Data Analytics & Business Intelligence\n• Technical Training & Upskilling\n\nWant details on any of these, or to book a consultation?"
+        "Here's what we do:\n\n• Custom Software Development\n• Cybersecurity Services\n• AI & Machine Learning\n• Data Analytics & Business Intelligence\n• IT Consulting & Digital Transformation\n• IT Support & Infrastructure\n\nWe also build our own digital products (DigitalMedics, DigitalCampus, DigitalHotels, DigitalPharmacy, DigitalSale) and run AbrayTech Academy for technology training. Want details on any of these, or to book a consultation?"
       ]
     },
 
     {
-      "intent": "industries_served",
+      "intent": "digital_solutions",
       "patterns": [
-        "what industries do you serve",
-        "which sectors do you work with",
-        "do you work with healthcare companies",
-        "do you work with financial services",
-        "industries abraytech serves",
-        "who are your clients",
-        "what kind of businesses do you work with",
-        "sectors you support"
+        "what is digitalmedics",
+        "what is digitalcampus",
+        "what is digitalhotels",
+        "what is digitalpharmacy",
+        "what is digitalsale",
+        "digital solutions",
+        "what products do you build",
+        "your digital products",
+        "what software products does abraytech build",
+        "tell me about your applications",
+        "your application ecosystem",
+        "do you have your own software products",
+        "what apps has abraytech built"
       ],
       "responses": [
-        "We build for teams across Financial Services, Healthcare, E-commerce & Retail, Education, Logistics & Supply Chain, and Government & Public Sector — with security and compliance built in for regulated industries."
+        "AbrayTech builds its own digital products across different industries:\n\n• DigitalMedics: Electronic Medical Records and healthcare management\n• DigitalCampus: intelligent learning management and computer-based testing\n• DigitalHotels: hotel and lounge management\n• DigitalPharmacy: pharmacy and chemist management\n• DigitalSale: business management and point-of-sale\n\nYou can see these under our Projects page. Want details on a specific one?"
       ]
     },
 
@@ -96,7 +101,7 @@
         "speak to someone about my project"
       ],
       "responses": [
-        "You can book a consultation on our Consultation page — pick a topic (like a free discovery call or a paid strategy session), then an available time slot. Some topics are free, others have a fee shown up front before you confirm; paid ones are handled securely through Paystack. Head to the 'Book a Consultation' link in the menu to get started."
+        "You can book a consultation on our Consultation page. Choose a topic, software, cybersecurity, AI & data, or IT and digital transformation, then pick an available time slot. Some topics are free, others have a fee shown up front before you confirm; paid ones are handled securely through Paystack. Head to the 'Book a Consultation' link in the menu to get started."
       ]
     },
 
@@ -107,10 +112,14 @@
         "do you have courses",
         "tell me about your academy",
         "list of training programs",
-        "software engineering course",
-        "cybersecurity training",
-        "data science program",
-        "cloud engineering course",
+        "python software development program",
+        "cybersecurity analyst program",
+        "cybersecurity governance risk and compliance",
+        "grc program",
+        "data analytics program",
+        "mobile app development program",
+        "react native course",
+        "ai and machine learning program",
         "can i learn to code with abraytech",
         "do you teach programming",
         "bootcamp",
@@ -118,25 +127,26 @@
         "what can i study at abraytech"
       ],
       "responses": [
-        "AbrayTech runs a hands-on technical training academy with 5 programs:\n\n• Full-Stack Software Engineering (Certificate)\n• Backend Engineering with Python & Django (Diploma)\n• Cybersecurity Analyst Program (Diploma)\n• Data Science & Machine Learning (Diploma)\n• Cloud & DevOps Engineering (Certificate)\n\nEach program is made up of several practical courses. Which one are you interested in?"
+        "AbrayTech Academy runs 6 professional training programmes:\n\n• Python Software Development & Programming (7 months)\n• Cybersecurity Analyst Professional Programme (7 months)\n• Data Analytics Professional Programme (7 months)\n• Mobile App Development Using React Native (8 months)\n• AI & Machine Learning Using Python (8 months)\n• Cybersecurity Governance, Risk & Compliance (8 months)\n\nEach programme is broken into monthly courses with a capstone project every month. Which one are you interested in?"
       ]
     },
 
     {
       "intent": "courses",
       "patterns": [
-        "what courses are in the software engineering program",
+        "what courses are in the python program",
         "what will i learn",
         "course list",
         "what's covered in the cybersecurity program",
         "what topics do you teach",
         "curriculum",
         "what subjects are taught",
-        "modules in the data science program",
-        "what does the cloud program cover"
+        "modules in the data analytics program",
+        "what does the mobile app program cover",
+        "what does the grc program cover"
       ],
       "responses": [
-        "Each program is broken into focused courses — for example, Full-Stack Software Engineering covers Web Fundamentals, JavaScript & React, Backend APIs with Node.js, and Git/Testing/Deployment. The Cybersecurity Analyst Program covers Networking Fundamentals, Ethical Hacking & Pentesting, Security Operations & SIEM, and Governance, Risk & Compliance. Ask about a specific program and I can point you to what it covers, or check the Programs page for the full breakdown."
+        "Each programme is broken into monthly courses with a capstone project. For example, Python Software Development & Programming moves from Python fundamentals through object-oriented programming and Git, then Django web development, before finishing with security, DevOps, and an AI-powered business intelligence capstone. The Cybersecurity Analyst Professional Programme covers IT and cybersecurity foundations, security operations, and threat intelligence, before finishing with SOC monitoring, incident response, and an enterprise cyber-defence capstone. Ask about a specific programme and I can point you to what it covers, or check the Programs page for the full breakdown."
       ]
     },
 
@@ -185,7 +195,7 @@
         "how much for the cybersecurity course"
       ],
       "responses": [
-        "Fees vary by program — each one lists a certificate fee plus tuition, payable in installments. Exact amounts are shown on that program's page once you're logged in and applying. Payments are processed securely (Stripe for tuition, Paystack for store/consultation payments)."
+        "Fees vary by programme. Each one lists a certificate fee plus tuition, payable in installments. Exact amounts are shown on that programme's page once you're logged in and applying. Payments are processed securely (Stripe for tuition, Paystack for store/consultation payments)."
       ]
     },
 
@@ -205,7 +215,7 @@
         "where can i buy tech gear"
       ],
       "responses": [
-        "Yes — our store sells laptops, monitors, networking gear, peripherals, storage, smartphones, power & charging accessories, bags, and apparel. Check out the Store link in the menu, add items to your cart, and check out securely via Paystack."
+        "Yes, our store sells laptops, monitors, networking gear, peripherals, storage, smartphones, power & charging accessories, bags, and apparel. Check out the Store link in the menu, add items to your cart, and check out securely via Paystack."
       ]
     },
 
@@ -222,7 +232,7 @@
         "reference materials"
       ],
       "responses": [
-        "Our digital library has downloadable resources — guides, references and study material — organized by category. You'll find it under the Library link in the menu."
+        "Our digital library has downloadable resources: guides, references and study material, organized by category. You'll find it under the Library link in the menu."
       ]
     },
 
@@ -238,7 +248,7 @@
         "recent posts"
       ],
       "responses": [
-        "Yes, our blog covers software development, security, AI and industry insights — you'll find it under the Blog link in the menu."
+        "Yes, our blog covers software development, security, AI and industry insights. You'll find it under the Blog link in the menu."
       ]
     },
 
@@ -272,7 +282,7 @@
         "how is my payment processed"
       ],
       "responses": [
-        "Store purchases and paid consultations are processed securely through Paystack; training program tuition is processed through Stripe. Card details are handled directly by the payment provider — we never see or store your card number."
+        "Store purchases and paid consultations are processed securely through Paystack; training program tuition is processed through Stripe. Card details are handled directly by the payment provider, and we never see or store your card number."
       ]
     },
 
@@ -300,6 +310,27 @@
       "responses": [
         "I'm sorry, I didn't quite understand that. You can ask me about our services, training programs, the store, the library, booking a consultation, or getting in touch."
       ]
+    }
+  ],
+
+  "_disabled_intents_note": "train_model.py only reads the 'intents' key above, so anything under '_disabled_intents' below is inert (not trained, no IntentResponse row). Move an entry back into 'intents' to re-enable it.",
+  "_disabled_intents": [
+    {
+      "intent": "industries_served",
+      "patterns": [
+        "what industries do you serve",
+        "which sectors do you work with",
+        "do you work with healthcare companies",
+        "do you work with financial services",
+        "industries abraytech serves",
+        "who are your clients",
+        "what kind of businesses do you work with",
+        "sectors you support"
+      ],
+      "responses": [
+        "We build for teams across Financial Services, Healthcare, E-commerce & Retail, Education, Logistics & Supply Chain, and Government & Public Sector, with security and compliance built in for regulated industries."
+      ],
+      "_disabled_reason": "No Industry rows exist in the database (that page isn't covered by the Website Content Development document), so this response would be fabricated. Re-enable once real Industry data is seeded."
     }
   ]
 }

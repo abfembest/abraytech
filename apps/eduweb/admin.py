@@ -138,6 +138,33 @@ class SiteConfigAdmin(admin.ModelAdmin):
             ),
             'classes': ('collapse',),
         }),
+        ('🏠 Homepage — Hero', {
+            'description': 'Homepage hero heading, subheading, CTA button labels, and the highlight strip under the buttons.',
+            'fields': (
+                'home_hero_heading', 'home_hero_subheading',
+                'home_hero_cta_primary_label', 'home_hero_cta_secondary_label',
+                'home_hero_highlights',
+            ),
+        }),
+        ('🏠 Homepage — About / Why Us / Process', {
+            'description': (
+                'JSON list fields (Why Us items, process steps) each take a list of '
+                '{"title": "...", "description": "..."} objects, e.g. '
+                '[{"title": "Discover", "description": "Understand your goals."}].'
+            ),
+            'fields': (
+                'home_about_heading',
+                'home_why_us_heading', 'home_why_us_items',
+                'home_process_heading', 'home_process_steps',
+            ),
+        }),
+        ('🏠 Homepage — Newsletter & Apply', {
+            'description': 'The newsletter strip and the "How to Apply" section near the bottom of the homepage.',
+            'fields': (
+                'home_newsletter_heading', 'home_newsletter_subheading',
+                'home_apply_heading', 'home_apply_subheading', 'home_apply_steps',
+            ),
+        }),
         ('About Page', {
             'fields': ('about_mission', 'about_vision', 'about_values'),
         }),

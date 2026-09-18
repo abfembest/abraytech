@@ -4994,6 +4994,63 @@ class SiteConfig(models.Model):
         help_text="1 USD = how many NGN. Used when the manual override above is checked, or as the fallback if the live FX rate lookup (open.er-api.com) is unreachable."
     )
 
+    # =========================================================================
+    # HOMEPAGE COPY: index.html sections that used to be hardcoded template
+    # text (hero, "Why us", process, newsletter, apply steps). Each field has
+    # the same wording as the old hardcoded copy as its Django default, so
+    # existing installs render identically until someone edits these via
+    # admin or a seed command.
+    # =========================================================================
+    home_hero_heading = models.CharField(
+        max_length=200, blank=True,
+        default='Building Digital Solutions for a Smarter Future.',
+        help_text="Homepage hero <h1>"
+    )
+    home_hero_subheading = models.TextField(
+        blank=True,
+        default='Delivers software, cybersecurity, AI, data and digital transformation solutions that help businesses innovate, operate securely and grow.',
+        help_text="Homepage hero paragraph, shown right under the heading"
+    )
+    home_hero_cta_primary_label = models.CharField(max_length=50, blank=True, default='Start a Project')
+    home_hero_cta_secondary_label = models.CharField(max_length=50, blank=True, default='Explore Services')
+    home_hero_highlights = models.JSONField(
+        default=list, blank=True,
+        help_text='List of short highlight strings shown under the hero CTAs, e.g. ["Security-first delivery", "Agile engineering teams"]'
+    )
+
+    home_about_heading = models.CharField(
+        max_length=200, blank=True, default='A technology partner, not just a vendor',
+        help_text="Heading for the homepage About/intro section"
+    )
+
+    home_why_us_heading = models.CharField(
+        max_length=200, blank=True, default='A single partner across the technology lifecycle',
+    )
+    home_why_us_items = models.JSONField(
+        default=list, blank=True,
+        help_text='List of {"title": ..., "description": ...} objects for the "Why us" section'
+    )
+
+    home_process_heading = models.CharField(max_length=200, blank=True, default='Our process')
+    home_process_steps = models.JSONField(
+        default=list, blank=True,
+        help_text='List of {"title": ..., "description": ...} objects for the "How we work" steps'
+    )
+
+    home_newsletter_heading = models.CharField(max_length=200, blank=True, default='Stay ahead of the curve')
+    home_newsletter_subheading = models.CharField(
+        max_length=300, blank=True, default='Occasional insights on software, security and AI. No spam.',
+    )
+
+    home_apply_heading = models.CharField(max_length=200, blank=True, default='How to Apply')
+    home_apply_subheading = models.CharField(
+        max_length=300, blank=True, default='A simple, transparent process to get you enrolled in a training track.',
+    )
+    home_apply_steps = models.JSONField(
+        default=list, blank=True,
+        help_text='List of {"title": ..., "description": ...} objects for the "How to Apply" steps'
+    )
+
     class Meta:
         verbose_name        = 'Site Configuration'
         verbose_name_plural = 'Site Configuration'

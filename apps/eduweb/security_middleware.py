@@ -80,8 +80,12 @@ def _load_permissions(user) -> dict:
     }
 
     # Superuser bypass — full access on every known module, unconditionally.
+    # Sourced from the static MODULE_CHOICES list (same as the non-superuser
+    # path below), not from live StaffPermissionsMatrix rows — otherwise a
+    # superuser gets an empty permissions dict whenever that table is empty
+    # (e.g. a fresh database with no rows seeded yet).
     if user.is_superuser:
-        modules = StaffPermissionsMatrix.objects.values_list('module', flat=True).distinct()
+        modules = [m[0] for m in StaffPermissionsMatrix.MODULE_CHOICES]
         return {m: full.copy() for m in modules}
 
     # Initialize all known modules with False permissions
@@ -103,7 +107,23 @@ def _load_permissions(user) -> dict:
         for mod in StaffPermissionsMatrix.ADMIN_PORTAL_MODULES:
             permissions[mod] = full.copy()
 
-    # Step 1: role defaults
+    # Step 1a: hardcoded role defaults — applied first so a role still gets
+    # its intended access even when StaffPermissionsMatrix has no rows for
+    # it yet (e.g. a fresh database). Mirrors the precedence documented on
+    # StaffPermissionsMatrix.user_can_view_any(): user override, else role
+    # row, else ROLE_DEFAULT_PERMISSIONS.
+    for module, actions in StaffPermissionsMatrix.ROLE_DEFAULT_PERMISSIONS.get(role, {}).items():
+        permissions[module] = {
+            'can_view':    actions.get('can_view', False),
+            'can_create':  actions.get('can_create', False),
+            'can_edit':    actions.get('can_edit', False),
+            'can_delete':  actions.get('can_delete', False),
+            'can_approve': actions.get('can_approve', False),
+            'can_export':  actions.get('can_export', False),
+        }
+
+    # Step 1b: role rows actually stored in the database override the
+    # hardcoded defaults above.
     for row in StaffPermissionsMatrix.objects.filter(role=role, user__isnull=True):
         permissions[row.module] = {
             'can_view':    row.can_view,
