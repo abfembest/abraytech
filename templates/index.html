@@ -180,7 +180,7 @@
         <div class="text-center max-w-2xl lg:max-w-4xl mx-auto reveal mb-12">
             <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">AbrayTech Academy</span>
             <h2 id="services-heading" class="mt-3 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-navy lg:whitespace-nowrap">Acquire Advanced Tech skills</h2>
-            <p class="mt-4 text-slate-600">From first line of code to production security, {{ site_config.school_short_name|default:"Abraytech" }} covers the full technology lifecycle.</p>
+            <p class="mt-4 text-slate-600">{{ site_config.school_short_name|default:"Abraytech" }} develops future-ready technology experts through practical learning, professional skills development, and real-world experience</p>
         </div>
         <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {% for program in featured_programs|slice:":4" %}
