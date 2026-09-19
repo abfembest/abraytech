@@ -54,7 +54,7 @@
     </div>
 
     <div class="w-full px-4 sm:px-6 lg:pl-20 xl:pl-28 2xl:pl-32 lg:pr-8 relative z-10 flex items-center py-20 lg:py-28 hero-min-h">
-        <div class="reveal w-full max-w-lg lg:max-w-[calc(44%_-_3.75rem)] xl:max-w-[calc(38%_-_5.25rem)]">
+        <div class="reveal w-full max-w-lg lg:max-w-[calc(48%_-_3rem)] xl:max-w-[calc(42%_-_4rem)]">
             {% comment %}
             <span class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-brandblue bg-ice rounded-full uppercase tracking-wider border border-borderblue">
                 <i data-lucide="sparkles" class="w-3.5 h-3.5" aria-hidden="true"></i> Technology · Innovation · Digital Excellence
@@ -98,7 +98,7 @@
         <div class="grid lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16 items-center">
             <div class="reveal">
                 {% comment %}<span class="text-xs font-semibold uppercase tracking-widest text-brandblue">Who we are</span>{% endcomment %}
-                <h2 id="about-heading" class="mt-3 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-sora font-bold text-navy">
+                <h2 id="about-heading" class="mt-3 text-2xl sm:text-3xl lg:text-4xl font-sora font-bold text-navy text-balance">
                     {{ site_config.home_about_heading|default:"A technology partner, not just a vendor" }}
                 </h2>
                 <p class="mt-5 text-slate-600 text-base lg:text-lg leading-relaxed">
@@ -177,9 +177,9 @@
 {% if featured_programs %}
 <section id="services" class="section-py {% cycle hbg %}" aria-labelledby="services-heading">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center max-w-2xl mx-auto reveal mb-12">
+        <div class="text-center max-w-2xl lg:max-w-4xl mx-auto reveal mb-12">
             <span class="text-xs font-semibold uppercase tracking-widest text-brandblue">AbrayTech Academy</span>
-            <h2 id="services-heading" class="mt-3 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-navy">Acquire Advanced Tech skills</h2>
+            <h2 id="services-heading" class="mt-3 text-3xl sm:text-4xl lg:text-5xl font-sora font-bold text-navy lg:whitespace-nowrap">Acquire Advanced Tech skills</h2>
             <p class="mt-4 text-slate-600">From first line of code to production security, {{ site_config.school_short_name|default:"Abraytech" }} covers the full technology lifecycle.</p>
         </div>
         <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -247,9 +247,9 @@
         <div class="mt-10 grid md:grid-cols-3 gap-6">
             {% for project in featured_projects %}
             <a href="{% url 'eduweb:project_detail' project.slug %}" class="reveal rounded-2xl border border-borderblue overflow-hidden hover:shadow-brand transition group block">
-                {% if project.cover_image %}
+                {% if project.display_image %}
                 <div class="h-40 bg-gray-100 overflow-hidden">
-                    <img src="{{ project.cover_image.url }}" alt="{{ project.title }}" class="w-full h-full object-cover" loading="lazy">
+                    <img src="{{ project.display_image.url }}" alt="{{ project.title }}" class="w-full h-full object-cover" loading="lazy">
                 </div>
                 {% else %}
                 <div class="h-40 brand-gradient flex items-center justify-center">
@@ -599,8 +599,6 @@
                     <i data-lucide="arrow-right" class="w-4 h-4 ml-2 group-hover/link:translate-x-1 transition-transform" aria-hidden="true"></i>
                 </a>
             </article>
-            {% empty %}
-            <p class="col-span-3 text-center text-slate-400 py-10">Programs coming soon.</p>
             {% endfor %}
         </div>
         <div class="text-center mt-12">

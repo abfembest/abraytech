@@ -1,0 +1,137 @@
+{% extends 'management/base.html' %}
+{% load static %}
+{% block title %}Projects — Abraytech Admin{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto">
+
+  {# ── Breadcrumb ── #}
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+    <span class="text-gray-400">Site Content</span>
+    <i class="fas fa-chevron-right text-xs"></i>
+    <span class="text-gray-800 font-medium">Projects</span>
+  </nav>
+
+  {# ── Page header ── #}
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Projects</h1>
+      <p class="text-gray-500 mt-1 text-sm">Case studies shown in the Projects/Portfolio grid and each project's own detail page.</p>
+    </div>
+    <div class="flex items-center gap-2 flex-shrink-0">
+      {% if permissions.site_content.can_create %}
+      <a href="{% url 'management:project_create' %}"
+         class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium shadow-sm transition-colors">
+        <i class="fas fa-plus"></i> Add Project
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ── Stats strip ── #}
+  <div class="grid grid-cols-2 gap-4 mb-8">
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="text-2xl font-bold text-primary-600">{{ projects|length }}</div>
+      <div class="text-xs text-gray-500 mt-0.5">Total Projects</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="text-2xl font-bold text-green-600">{{ active_count }}</div>
+      <div class="text-xs text-gray-500 mt-0.5">Visible on Site</div>
+    </div>
+  </div>
+
+  {# ── List ── #}
+  <div class="space-y-3">
+    {% for p in projects %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+      <div class="flex flex-col sm:flex-row sm:items-center gap-4 p-5">
+
+        <div class="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 flex items-center justify-center">
+          {% if p.cover_image %}
+          <img src="{{ p.cover_image.url }}" alt="{{ p.title }}" class="w-full h-full object-cover">
+          {% else %}
+          <i class="fas fa-diagram-project text-gray-300 text-xl" aria-hidden="true"></i>
+          {% endif %}
+        </div>
+
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-2 mb-1">
+            <h3 class="font-semibold text-gray-800">{{ p.title }}</h3>
+            {% if p.is_featured %}
+            <span class="text-xs bg-secondary-100 text-secondary-700 px-2 py-0.5 rounded-full font-medium">Featured</span>
+            {% endif %}
+            {% if p.is_active %}
+            <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Active</span>
+            {% else %}
+            <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">Hidden</span>
+            {% endif %}
+          </div>
+          <p class="text-sm text-gray-500 line-clamp-2 leading-relaxed">{{ p.summary }}</p>
+          <p class="text-xs text-gray-400 mt-1">
+            {{ p.gallery_images.count }} gallery image{{ p.gallery_images.count|pluralize }}
+            {% if p.industry %} · {{ p.industry.title }}{% endif %}
+            {% if p.client_name %} · {{ p.client_name }}{% endif %}
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2 flex-shrink-0">
+          {% if permissions.site_content.can_edit %}
+          <a href="{% url 'management:project_edit' p.pk %}"
+             class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
+            <i class="fas fa-edit"></i>
+          </a>
+          {% endif %}
+          {% if permissions.site_content.can_delete %}
+          <button type="button"
+                  onclick="confirmDelete('{% url 'management:project_delete' p.pk %}', '{{ p.title|escapejs }}')"
+                  class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+
+    {% empty %}
+    <div class="bg-white rounded-xl p-16 text-center shadow-sm border border-gray-200">
+      <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-diagram-project text-3xl text-gray-300"></i>
+      </div>
+      <p class="font-semibold text-gray-600 mb-1">No projects yet</p>
+      <p class="text-sm text-gray-400 mb-4">Add a case study — it'll show up in the Projects grid and get its own detail page.</p>
+      {% if permissions.site_content.can_create %}
+      <a href="{% url 'management:project_create' %}"
+         class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium shadow-sm transition-colors">
+        <i class="fas fa-plus"></i> Add First Project
+      </a>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<form id="deleteForm" method="post" action="" style="display:none;">{% csrf_token %}</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(url, title) {
+  Swal.fire({
+    title: 'Delete Project?',
+    html: `Delete <strong>${title}</strong>? This also removes all of its gallery images.`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Delete',
+    cancelButtonText: 'Cancel',
+  }).then(r => {
+    if (r.isConfirmed) {
+      document.getElementById('deleteForm').action = url;
+      document.getElementById('deleteForm').submit();
+    }
+  });
+}
+</script>
+{% endblock %}

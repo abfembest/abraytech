@@ -982,7 +982,7 @@ def index(request):
     request.session['contact_captcha_answer'] = captcha_answer
     current_host = request.get_host().split(':')[0].lower()
 
-    active_projects = Project.objects.filter(is_active=True)
+    active_projects = Project.objects.filter(is_active=True).prefetch_related('gallery_images')
     featured_projects = active_projects.filter(is_featured=True)[:3]
     if not featured_projects:
         featured_projects = active_projects.order_by('-created_at')[:3]
@@ -1095,10 +1095,45 @@ def all_programs(request):
 
 @check_for_auth
 def contact(request):
+    from .models import Service, SiteConfig
+
+    site_config = SiteConfig.get()
     captcha_question, captcha_answer = generate_captcha()
     request.session['contact_captcha_answer'] = captcha_answer
+
+    def filled(*pairs):
+        """(label, value) for each SiteConfig field in `pairs` that has a value."""
+        return [(label, getattr(site_config, field)) for label, field in pairs if getattr(site_config, field)]
+
+    phones = filled(
+        ('Admissions', 'phone_admissions'), ('General', 'phone_general'), ('International', 'phone_international'),
+    ) or filled(
+        ('', 'phone_primary'), ('', 'phone_secondary'),
+        ('Nigeria', 'phone_ng_primary'), ('Nigeria', 'phone_ng_secondary'),
+    )
+    emails = filled(
+        ('Admissions', 'email_admissions'), ('General', 'email_info'), ('International', 'email_international'),
+    ) or filled(('', 'email'))
+    addresses = filled(('USA', 'address_usa'), ('Nigeria', 'address_nigeria'))
+    office_hours = filled(
+        ('', 'office_hours_weekday'), ('', 'office_hours_saturday'), ('', 'office_hours_sunday'),
+    )
+    social_links = filled(
+        ('Facebook', 'facebook'), ('Instagram', 'instagram'), ('YouTube', 'youtube'),
+        ('TikTok', 'tiktok'), ('X', 'twitter'), ('LinkedIn', 'linkedin'),
+    )
+
     return render(request, 'contact.html', {
         'captcha_question': captcha_question,
+        'phones': phones,
+        'emails': emails,
+        'addresses': addresses,
+        'office_hours': office_hours,
+        'social_links': social_links,
+        'topics': list(Service.objects.filter(is_active=True).values_list('title', flat=True)),
+        'has_contact_info': bool(
+            phones or emails or addresses or office_hours or social_links or site_config.whatsapp
+        ),
     })
 
 @check_for_auth
@@ -1213,29 +1248,40 @@ def campus_life(request):
 
 @check_for_auth
 def admission_requirement(request):
-    degree_level_labels = dict(DEGREE_LEVEL_CHOICES)
-    active_degree_levels = [
-        degree_level_labels.get(level, level)
-        for level in (
-            Program.objects
-            .filter(is_active=True)
-            .exclude(degree_level='')
-            .order_by('degree_level')
-            .values_list('degree_level', flat=True)
-            .distinct()
-        )
-    ]
+    from apps.support.models import FAQ
+    from .models import CourseIntake
 
-    programs = (
+    open_intakes = CourseIntake.objects.filter(
+        is_active=True, application_deadline__gte=timezone.localdate(),
+    ).order_by('start_date')
+    programs = list(
         Program.objects
         .filter(is_active=True)
         .select_related('department__faculty')
-        .order_by('name')
+        .prefetch_related(Prefetch('intakes', queryset=open_intakes, to_attr='open_intakes'))
+        .order_by('department__faculty__name', 'name')
     )
+    # Requirements every programme shares are shown once; a card lists only
+    # what is specific to that programme.
+    requirement_sets = [program.entry_requirements or [] for program in programs]
+    common_requirements = [
+        requirement for requirement in (requirement_sets[0] if requirement_sets else [])
+        if all(requirement in requirements for requirements in requirement_sets)
+    ]
+    for program in programs:
+        program.extra_requirements = [
+            requirement for requirement in (program.entry_requirements or [])
+            if requirement not in common_requirements
+        ]
+    faqs = FAQ.objects.filter(
+        is_published=True, category__is_active=True, category__name__iexact='Admissions',
+    ).order_by('order')
 
     return render(request, 'admission_requirement.html', {
-        'active_degree_levels': active_degree_levels,
         'programs': programs,
+        'common_requirements': common_requirements,
+        'next_intake': open_intakes.select_related('program').first(),
+        'faqs': faqs,
     })
 
 
@@ -1337,6 +1383,7 @@ def service_detail(request, slug):
     return render(request, 'service_detail.html', {
         'service': service,
         'other_services': Service.objects.filter(is_active=True).exclude(slug=slug),
+        'projects': service.projects.filter(is_active=True).prefetch_related('gallery_images')[:3],
     })
 
 
@@ -1374,7 +1421,7 @@ def industries_list(request):
 def projects_list(request):
     from .models import Project
     return render(request, 'projects.html', {
-        'projects': Project.objects.filter(is_active=True).select_related('industry', 'service'),
+        'projects': Project.objects.filter(is_active=True).select_related('industry', 'service').prefetch_related('gallery_images'),
     })
 
 
@@ -1382,12 +1429,12 @@ def projects_list(request):
 def project_detail(request, slug):
     from .models import Project
     project = get_object_or_404(
-        Project.objects.select_related('industry', 'service'),
+        Project.objects.select_related('industry', 'service').prefetch_related('gallery_images'),
         slug=slug, is_active=True,
     )
     return render(request, 'project_detail.html', {
         'project': project,
-        'other_projects': Project.objects.filter(is_active=True).exclude(slug=slug)[:3],
+        'other_projects': Project.objects.filter(is_active=True).exclude(slug=slug).prefetch_related('gallery_images')[:3],
     })
 
 

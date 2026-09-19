@@ -1,0 +1,208 @@
+{% extends 'management/base.html' %}
+{% load static %}
+{% block title %}{% if project %}Edit{% else %}New{% endif %} Project — Abraytech Admin{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto">
+
+  {# ── Breadcrumb ── #}
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+    <a href="{% url 'management:projects_list' %}" class="hover:text-primary-600 transition-colors">
+      <i class="fas fa-arrow-left text-xs mr-1"></i>Projects
+    </a>
+    <i class="fas fa-chevron-right text-xs"></i>
+    <span class="text-gray-800 font-medium">
+      {% if project %}Edit: {{ project.title }}{% else %}New Project{% endif %}
+    </span>
+  </nav>
+
+  {# ── Page title ── #}
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-gray-800 font-display">
+      {% if project %}<i class="fas fa-diagram-project text-primary-500 mr-2"></i>Edit Project
+      {% else %}<i class="fas fa-plus-circle text-primary-500 mr-2"></i>New Project{% endif %}
+    </h1>
+    <p class="text-gray-500 mt-1 text-sm">Shown in the Projects/Portfolio grid and as its own case-study page.</p>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" class="space-y-6">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 flex items-start gap-2">
+      <i class="fas fa-exclamation-circle mt-0.5 flex-shrink-0"></i>
+      <div>{% for error in form.non_field_errors %}{{ error }}{% endfor %}</div>
+    </div>
+    {% endif %}
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+        <i class="fas fa-info-circle text-primary-500"></i>
+        <h2 class="font-semibold text-gray-800">Overview</h2>
+      </div>
+      <div class="p-6 space-y-5">
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">
+            Title <span class="text-red-500">*</span>
+          </label>
+          {{ form.title }}
+          {% if form.title.errors %}
+          <p class="text-xs text-red-500 mt-1 flex items-center gap-1"><i class="fas fa-exclamation-circle"></i>{{ form.title.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">
+            Short Summary <span class="text-red-500">*</span>
+          </label>
+          {{ form.summary }}
+          {% if form.summary.errors %}
+          <p class="text-xs text-red-500 mt-1 flex items-center gap-1"><i class="fas fa-exclamation-circle"></i>{{ form.summary.errors.0 }}</p>
+          {% endif %}
+          <p class="text-xs text-gray-400 mt-1.5">Shown on the project card in the Projects grid.</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">
+            Client Name <span class="text-gray-400 font-normal">(optional — leave blank if confidential)</span>
+          </label>
+          {{ form.client_name }}
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Industry <span class="text-gray-400 font-normal">(optional)</span></label>
+            {{ form.industry }}
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Service <span class="text-gray-400 font-normal">(optional)</span></label>
+            {{ form.service }}
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Cover Image</label>
+          {% if project.cover_image %}
+          <img src="{{ project.cover_image.url }}" alt="" class="w-full h-40 object-cover rounded-lg mb-2 border border-gray-200">
+          {% endif %}
+          {{ form.cover_image }}
+          {% if form.cover_image.errors %}
+          <p class="text-xs text-red-500 mt-1 flex items-center gap-1"><i class="fas fa-exclamation-circle"></i>{{ form.cover_image.errors.0 }}</p>
+          {% endif %}
+          <p class="text-xs text-gray-400 mt-1.5">Main image on the project card and the top of its detail page.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+        <i class="fas fa-file-lines text-primary-500"></i>
+        <h2 class="font-semibold text-gray-800">Case Study</h2>
+      </div>
+      <div class="p-6 space-y-5">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Challenge <span class="text-gray-400 font-normal">(optional)</span></label>
+          {{ form.challenge }}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Solution <span class="text-gray-400 font-normal">(optional)</span></label>
+          {{ form.solution_text }}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Results <span class="text-gray-400 font-normal">(optional)</span></label>
+          {{ form.results }}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Project URL <span class="text-gray-400 font-normal">(optional)</span></label>
+          {{ form.project_url }}
+          {% if form.project_url.errors %}
+          <p class="text-xs text-red-500 mt-1 flex items-center gap-1"><i class="fas fa-exclamation-circle"></i>{{ form.project_url.errors.0 }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+        <i class="fas fa-toggle-on text-primary-500"></i>
+        <h2 class="font-semibold text-gray-800">Display</h2>
+      </div>
+      <div class="p-6 flex flex-wrap items-center gap-6">
+        <label class="flex items-center gap-2 cursor-pointer">
+          {{ form.is_active }}
+          <span class="text-sm font-medium text-gray-700">Active</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          {{ form.is_featured }}
+          <span class="text-sm font-medium text-gray-700">Featured</span>
+        </label>
+        <div class="flex items-center gap-2">
+          <label class="text-sm font-medium text-gray-700">Order</label>
+          {{ form.order }}
+        </div>
+      </div>
+    </div>
+
+    {# ── Actions ── #}
+    <div class="flex flex-col sm:flex-row justify-end gap-3">
+      <a href="{% url 'management:projects_list' %}"
+         class="px-5 py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-medium text-center transition-colors">
+        Cancel
+      </a>
+      <button type="submit"
+              class="px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium shadow-sm inline-flex items-center justify-center gap-2 transition-colors">
+        <i class="fas fa-save"></i>
+        {% if project %}Save Changes{% else %}Create Project{% endif %}
+      </button>
+    </div>
+  </form>
+
+  {# ── Gallery (only once the project has a pk) ── #}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-6">
+    <div class="px-6 py-4 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+      <i class="fas fa-images text-primary-500"></i>
+      <h2 class="font-semibold text-gray-800">Gallery Images</h2>
+    </div>
+    <div class="p-6">
+      {% if project %}
+
+      <div class="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-4">
+        {% for image in gallery_images %}
+        <div class="relative border border-gray-200 rounded-lg overflow-hidden aspect-square bg-gray-50">
+          <img src="{{ image.image.url }}" alt="{{ image.caption }}" class="w-full h-full object-cover">
+          <form method="post" action="{% url 'management:project_image_delete' project.pk image.pk %}"
+                class="absolute top-1 right-1"
+                onsubmit="return confirm('Remove this image?');">
+            {% csrf_token %}
+            <button type="submit" class="w-6 h-6 flex items-center justify-center bg-gray-900/60 text-red-300 hover:text-red-100 rounded" title="Remove image">
+              <i class="fas fa-trash-alt text-xs" aria-hidden="true"></i>
+            </button>
+          </form>
+        </div>
+        {% empty %}
+        <p class="text-xs text-gray-400 col-span-full">No gallery images yet — add some below.</p>
+        {% endfor %}
+      </div>
+
+      <form method="post" action="{% url 'management:project_image_add' project.pk %}" enctype="multipart/form-data" class="border-t border-gray-100 pt-4">
+        {% csrf_token %}
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Add Images</label>
+        <div class="flex flex-col sm:flex-row gap-2">
+          <input type="file" name="images" multiple accept="image/*"
+                 class="flex-1 text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary-50 file:text-primary-700 file:text-sm file:font-medium hover:file:bg-primary-100">
+          <button type="submit" class="px-5 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 flex-shrink-0">
+            <i class="fas fa-upload mr-1" aria-hidden="true"></i>Upload
+          </button>
+        </div>
+        <p class="text-xs text-gray-400 mt-1.5">Select several files at once to upload them all in one go.</p>
+      </form>
+
+      {% else %}
+      <p class="text-xs text-gray-400">Save the project first, then reopen it here to add gallery images.</p>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

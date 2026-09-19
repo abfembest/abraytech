@@ -56,9 +56,12 @@ from apps.eduweb.models import (
     InstitutionPartner,
     LMSCourse,
     LibraryItem,
+    JobListing,
     Notification,
     PaymentGateway,
     Program,
+    Project,
+    ProjectImage,
     Review,
     SiteConfig,
     SiteHistoryMilestone,
@@ -127,7 +130,10 @@ from apps.management.forms import (
     ProductForm,
     ProductSpecificationFormSet,
     ProductVariantFormSet,
+    JobListingForm,
     ProgramForm,
+    ProjectForm,
+    ProjectImageForm,
     QuickRoleChangeForm,
     ReviewForm,
     SiteConfigAboutForm,
@@ -7932,6 +7938,285 @@ def service_delete(request, pk):
                 logger.exception('service_delete: unexpected error deleting service pk=%s', pk)
                 messages.error(request, 'Something went wrong while deleting this service. Please try again.')
     return redirect('management:services_list')
+
+
+# ── PROJECTS / PORTFOLIO (case studies shown on /projects/ and its own
+# /projects/<slug>/ page) ───────────────────────────────────────────────────
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+def projects_list(request):
+    if not _has_permission(request, 'site_content', 'can_view'):
+        messages.error(request, 'You do not have permission to view projects.')
+        return redirect('management:dashboard')
+
+    projects = list(
+        Project.objects.select_related('industry').prefetch_related('gallery_images')
+    )
+    return render(request, 'management/site_config/projects_list.html', {
+        'projects': projects,
+        'active_count': sum(p.is_active for p in projects),
+    })
+
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+@require_permission('site_content', 'can_create', redirect_to='management:projects_list')
+def project_create(request):
+    if request.method == 'POST':
+        form = ProjectForm(request.POST, request.FILES)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    project = form.save()
+                    AuditLog.objects.create(
+                        user=request.user, action='create',
+                        model_name='Project', object_id=str(project.pk),
+                        description=f'Created project: {project.title}'
+                    )
+            except IntegrityError:
+                logger.exception('project_create: IntegrityError saving project')
+                messages.error(request, 'Could not save this project — please check the details and try again.')
+            except Exception:
+                logger.exception('project_create: unexpected error saving project')
+                messages.error(request, 'Something went wrong while saving this project. Please try again.')
+            else:
+                messages.success(request, 'Project created. Add gallery images from the Edit screen.')
+                return redirect('management:projects_list')
+    else:
+        form = ProjectForm()
+    return render(request, 'management/site_config/project_form.html', {
+        'form': form, 'project': None,
+    })
+
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+def project_edit(request, pk):
+    """Also carries the gallery-image manager (existing ProjectImages + a
+    multi-file "Add Images" upload) — mirrors ProductImage's per-object
+    gallery, only simpler: plain form POSTs instead of AJAX, since a
+    project's gallery doesn't need a cross-project shared asset library the
+    way the store's ProductImage does."""
+    project = get_object_or_404(Project, pk=pk)
+    if request.method == 'POST':
+        if not _has_permission(request, 'site_content', 'can_edit'):
+            messages.error(request, 'You do not have permission to edit projects.')
+            return redirect('management:projects_list')
+
+        form = ProjectForm(request.POST, request.FILES, instance=project)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    form.save()
+                    AuditLog.objects.create(
+                        user=request.user, action='update',
+                        model_name='Project', object_id=str(project.pk),
+                        description=f'Updated project: {project.title}'
+                    )
+            except IntegrityError:
+                logger.exception('project_edit: IntegrityError saving project pk=%s', pk)
+                messages.error(request, 'Could not save this project — please check the details and try again.')
+            else:
+                messages.success(request, 'Project updated.')
+                return redirect('management:project_edit', pk=project.pk)
+    else:
+        form = ProjectForm(instance=project)
+
+    return render(request, 'management/site_config/project_form.html', {
+        'form': form, 'project': project,
+        'gallery_images': project.gallery_images.all(),
+    })
+
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+@require_permission('site_content', 'can_delete', redirect_to='management:projects_list')
+def project_delete(request, pk):
+    project = get_object_or_404(Project, pk=pk)
+    if request.method == 'POST':
+        try:
+            title = project.title
+            image_files = [project.cover_image, *(i.image for i in project.gallery_images.all())]
+            project.delete()
+            for image_file in image_files:
+                if image_file:
+                    image_file.delete(save=False)
+            AuditLog.objects.create(
+                user=request.user, action='delete', model_name='Project', description=f'Deleted project: {title}'
+            )
+            messages.success(request, 'Project deleted.')
+        except Exception:
+            logger.exception('project_delete: unexpected error deleting project pk=%s', pk)
+            messages.error(request, 'Something went wrong while deleting this project. Please try again.')
+    return redirect('management:projects_list')
+
+
+# ── CAREERS / JOB LISTINGS — one page; add/edit happen in modals that POST
+# to the create/edit views below, which always redirect back to the list ────
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+def careers_list(request):
+    if not _has_permission(request, 'site_content', 'can_view'):
+        messages.error(request, 'You do not have permission to view job listings.')
+        return redirect('management:dashboard')
+
+    jobs = list(JobListing.objects.all())
+    return render(request, 'management/site_config/careers_list.html', {
+        'jobs': jobs,
+        'active_count': sum(j.is_active for j in jobs),
+        'form': JobListingForm(),
+        'job_data': {
+            j.pk: {
+                'title': j.title, 'department': j.department, 'location': j.location,
+                'employment_type': j.employment_type, 'description': j.description,
+                'requirements': j.requirements,
+                'closes_at': j.closes_at.isoformat() if j.closes_at else '',
+                'is_active': j.is_active,
+            } for j in jobs
+        },
+    })
+
+
+def _flash_form_errors(request, form):
+    for field, errors in form.errors.items():
+        label = form.fields[field].label if field in form.fields else 'Form'
+        messages.error(request, f'{label or field}: {" ".join(errors)}')
+
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+@require_permission('site_content', 'can_create', redirect_to='management:careers_list')
+def career_create(request):
+    if request.method == 'POST':
+        form = JobListingForm(request.POST)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    job = form.save()
+                    AuditLog.objects.create(
+                        user=request.user, action='create',
+                        model_name='JobListing', object_id=str(job.pk),
+                        description=f'Created job listing: {job.title}'
+                    )
+            except IntegrityError:
+                logger.exception('career_create: IntegrityError saving job listing')
+                messages.error(request, 'Could not save this listing — a role with the same title may already exist.')
+            else:
+                messages.success(request, 'Job listing created.')
+        else:
+            _flash_form_errors(request, form)
+    return redirect('management:careers_list')
+
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+@require_permission('site_content', 'can_edit', redirect_to='management:careers_list')
+def career_edit(request, pk):
+    job = get_object_or_404(JobListing, pk=pk)
+    if request.method == 'POST':
+        form = JobListingForm(request.POST, instance=job)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    form.save()
+                    AuditLog.objects.create(
+                        user=request.user, action='update',
+                        model_name='JobListing', object_id=str(job.pk),
+                        description=f'Updated job listing: {job.title}'
+                    )
+            except IntegrityError:
+                logger.exception('career_edit: IntegrityError saving job listing pk=%s', pk)
+                messages.error(request, 'Could not save this listing — please check the details and try again.')
+            else:
+                messages.success(request, 'Job listing updated.')
+        else:
+            _flash_form_errors(request, form)
+    return redirect('management:careers_list')
+
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+@require_permission('site_content', 'can_delete', redirect_to='management:careers_list')
+def career_delete(request, pk):
+    job = get_object_or_404(JobListing, pk=pk)
+    if request.method == 'POST':
+        try:
+            title = job.title
+            job.delete()
+            AuditLog.objects.create(
+                user=request.user, action='delete', model_name='JobListing',
+                description=f'Deleted job listing: {title}'
+            )
+            messages.success(request, 'Job listing deleted.')
+        except Exception:
+            logger.exception('career_delete: unexpected error deleting job listing pk=%s', pk)
+            messages.error(request, 'Something went wrong while deleting this listing. Please try again.')
+    return redirect('management:careers_list')
+
+
+# ── PROJECT GALLERY IMAGES — plain form POSTs from the project edit page ──
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+@require_POST
+def project_image_add(request, pk):
+    """Accepts every file from a multi-select <input name="images" multiple>
+    and saves one ProjectImage per file, so staff can add a whole batch of
+    gallery photos in a single upload instead of one at a time."""
+    project = get_object_or_404(Project, pk=pk)
+    if not _has_permission(request, 'site_content', 'can_edit'):
+        messages.error(request, 'You do not have permission to edit projects.')
+        return redirect('management:projects_list')
+
+    files = request.FILES.getlist('images')
+    if not files:
+        messages.error(request, 'Choose at least one image to upload.')
+        return redirect('management:project_edit', pk=project.pk)
+
+    next_order = (project.gallery_images.aggregate(Max('order'))['order__max'] or 0) + 1
+    added, errors = 0, []
+    for i, f in enumerate(files):
+        form = ProjectImageForm(data={}, files={'image': f})
+        if form.is_valid():
+            image = form.save(commit=False)
+            image.project = project
+            image.order = next_order + i
+            image.save()
+            added += 1
+        else:
+            errors.append(f'{f.name}: ' + ' '.join(e for errs in form.errors.values() for e in errs))
+
+    if added:
+        AuditLog.objects.create(
+            user=request.user, action='update', model_name='Project', object_id=str(project.pk),
+            description=f'Added {added} gallery image(s) to project: {project.title}'
+        )
+        messages.success(request, f'{added} image(s) added.')
+    if errors:
+        messages.error(request, 'Some images were skipped: ' + '; '.join(errors))
+
+    return redirect('management:project_edit', pk=project.pk)
+
+
+@login_required(login_url='eduweb:auth_page')
+@user_passes_test(is_admin)
+@require_POST
+def project_image_delete(request, pk, image_id):
+    project = get_object_or_404(Project, pk=pk)
+    if not _has_permission(request, 'site_content', 'can_edit'):
+        messages.error(request, 'You do not have permission to edit projects.')
+        return redirect('management:projects_list')
+
+    image = get_object_or_404(ProjectImage, pk=image_id, project=project)
+    image.image.delete(save=False)
+    image.delete()
+    AuditLog.objects.create(
+        user=request.user, action='update', model_name='Project', object_id=str(project.pk),
+        description=f'Removed a gallery image from project: {project.title}'
+    )
+    return redirect('management:project_edit', pk=project.pk)
 
 
 # =============================================================================

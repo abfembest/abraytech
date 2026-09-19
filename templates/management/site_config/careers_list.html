@@ -1,0 +1,220 @@
+{% extends 'management/base.html' %}
+{% load static %}
+{% block title %}Careers — Abraytech Admin{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto">
+
+  {# ── Breadcrumb ── #}
+  <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+    <span class="text-gray-400">Site Content</span>
+    <i class="fas fa-chevron-right text-xs"></i>
+    <span class="text-gray-800 font-medium">Careers</span>
+  </nav>
+
+  {# ── Page header ── #}
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 font-display">Careers</h1>
+      <p class="text-gray-500 mt-1 text-sm">Open roles shown on the public Careers page.</p>
+    </div>
+    <div class="flex items-center gap-2 flex-shrink-0">
+      {% if permissions.site_content.can_create %}
+      <button type="button" onclick="openJobModal()"
+              class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium shadow-sm transition-colors">
+        <i class="fas fa-plus"></i> Add Job Listing
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ── Stats strip ── #}
+  <div class="grid grid-cols-2 gap-4 mb-8">
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="text-2xl font-bold text-primary-600">{{ jobs|length }}</div>
+      <div class="text-xs text-gray-500 mt-0.5">Total Listings</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="text-2xl font-bold text-green-600">{{ active_count }}</div>
+      <div class="text-xs text-gray-500 mt-0.5">Visible on Site</div>
+    </div>
+  </div>
+
+  {# ── List ── #}
+  <div class="space-y-3">
+    {% for j in jobs %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+      <div class="flex flex-col sm:flex-row sm:items-center gap-4 p-5">
+
+        <div class="w-12 h-12 flex-shrink-0 rounded-lg bg-primary-50 flex items-center justify-center">
+          <i class="fas fa-user-tie text-primary-600" aria-hidden="true"></i>
+        </div>
+
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-2 mb-1">
+            <h3 class="font-semibold text-gray-800">{{ j.title }}</h3>
+            <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">{{ j.get_employment_type_display }}</span>
+            {% if j.is_active %}
+            <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Active</span>
+            {% else %}
+            <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">Hidden</span>
+            {% endif %}
+          </div>
+          <p class="text-xs text-gray-400">
+            {% if j.department %}{{ j.department }}{% endif %}
+            {% if j.location %}{% if j.department %} · {% endif %}{{ j.location }}{% endif %}
+            {% if j.closes_at %} · Closes {{ j.closes_at|date:"j M Y" }}{% endif %}
+            · Posted {{ j.posted_at|date:"j M Y" }}
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2 flex-shrink-0">
+          {% if permissions.site_content.can_edit %}
+          <button type="button" onclick="openJobModal({{ j.pk }})"
+                  class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
+            <i class="fas fa-edit"></i>
+          </button>
+          {% endif %}
+          {% if permissions.site_content.can_delete %}
+          <button type="button"
+                  onclick="confirmDelete('{% url 'management:career_delete' j.pk %}', '{{ j.title|escapejs }}')"
+                  class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+
+    {% empty %}
+    <div class="bg-white rounded-xl p-16 text-center shadow-sm border border-gray-200">
+      <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-user-tie text-3xl text-gray-300"></i>
+      </div>
+      <p class="font-semibold text-gray-600 mb-1">No job listings yet</p>
+      <p class="text-sm text-gray-400 mb-4">The public Careers page shows its "no open roles" message until you add one.</p>
+      {% if permissions.site_content.can_create %}
+      <button type="button" onclick="openJobModal()"
+              class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium shadow-sm transition-colors">
+        <i class="fas fa-plus"></i> Add First Listing
+      </button>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+{# ── Add / Edit modal (one form, reused for both) ── #}
+<div id="jobModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/50" role="dialog" aria-modal="true" aria-labelledby="jobModalTitle">
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+      <h2 id="jobModalTitle" class="text-lg font-bold text-gray-800">Add Job Listing</h2>
+      <button type="button" onclick="closeJobModal()" class="p-2 text-gray-400 hover:text-gray-600" aria-label="Close">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <form id="jobForm" method="post" action="{% url 'management:career_create' %}" class="flex flex-col min-h-0">
+      {% csrf_token %}
+      <div class="px-6 py-5 space-y-4 overflow-y-auto">
+        <div>
+          <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Title <span class="text-red-500">*</span></label>
+          {{ form.title }}
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label for="{{ form.department.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+            {{ form.department }}
+          </div>
+          <div>
+            <label for="{{ form.location.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+            {{ form.location }}
+          </div>
+          <div>
+            <label for="{{ form.employment_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Employment type</label>
+            {{ form.employment_type }}
+          </div>
+          <div>
+            <label for="{{ form.closes_at.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Closes on</label>
+            {{ form.closes_at }}
+          </div>
+        </div>
+        <div>
+          <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          {{ form.description }}
+        </div>
+        <div>
+          <label for="{{ form.requirements.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Requirements</label>
+          {{ form.requirements }}
+        </div>
+        <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+          {{ form.is_active }} Visible on the public Careers page
+        </label>
+      </div>
+      <div class="flex justify-end gap-3 px-6 py-4 border-t border-gray-200">
+        <button type="button" onclick="closeJobModal()" class="px-5 py-2.5 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 font-medium transition-colors">Cancel</button>
+        <button type="submit" class="px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium shadow-sm transition-colors">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<form id="deleteForm" method="post" action="" style="display:none;">{% csrf_token %}</form>
+{{ job_data|json_script:"job-data" }}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const JOBS = JSON.parse(document.getElementById('job-data').textContent);
+const jobModal = document.getElementById('jobModal');
+const jobForm = document.getElementById('jobForm');
+const CREATE_URL = "{% url 'management:career_create' %}";
+const EDIT_URL = "{% url 'management:career_edit' 0 %}";
+
+function openJobModal(pk) {
+  jobForm.reset();
+  const job = pk ? JOBS[pk] : null;
+  document.getElementById('jobModalTitle').textContent = job ? 'Edit Job Listing' : 'Add Job Listing';
+  jobForm.action = job ? EDIT_URL.replace('/0/', '/' + pk + '/') : CREATE_URL;
+  if (job) {
+    jobForm.elements['title'].value = job.title;
+    jobForm.elements['department'].value = job.department;
+    jobForm.elements['location'].value = job.location;
+    jobForm.elements['employment_type'].value = job.employment_type;
+    jobForm.elements['description'].value = job.description;
+    jobForm.elements['requirements'].value = job.requirements;
+    jobForm.elements['closes_at'].value = job.closes_at;
+    jobForm.elements['is_active'].checked = job.is_active;
+  }
+  jobModal.classList.remove('hidden');
+  jobModal.classList.add('flex');
+  jobForm.elements['title'].focus();
+}
+
+function closeJobModal() {
+  jobModal.classList.add('hidden');
+  jobModal.classList.remove('flex');
+}
+
+jobModal.addEventListener('click', e => { if (e.target === jobModal) closeJobModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeJobModal(); });
+
+function confirmDelete(url, title) {
+  Swal.fire({
+    title: 'Delete Job Listing?',
+    html: `Delete <strong>${title}</strong>? This can't be undone.`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Delete',
+    cancelButtonText: 'Cancel',
+  }).then(r => {
+    if (r.isConfirmed) {
+      document.getElementById('deleteForm').action = url;
+      document.getElementById('deleteForm').submit();
+    }
+  });
+}
+</script>
+{% endblock %}

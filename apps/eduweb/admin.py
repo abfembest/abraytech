@@ -15,7 +15,7 @@ from .models import (
     Review, SiteConfig, SiteHistoryMilestone, SubscriptionPlan, Subscription, SupportTicket, TicketReply,
     StaffPayroll, StudyGroup, StudyGroupMember, StudyGroupMessage,
     SystemConfiguration, UserProfile, Vendor, BroadcastMessage, ListOfCountry, Testimonial, FeePayment, Exam, ExamQuestion, ExamStatusLog, StudentExamResponse,
-    Service, Industry, SocialPost, Project, JobListing, ConsultationRequest, NewsletterSubscriber,
+    Service, Industry, SocialPost, Project, ProjectImage, JobListing, ConsultationRequest, NewsletterSubscriber,
 )
 
 
@@ -243,6 +243,12 @@ class SocialPostAdmin(admin.ModelAdmin):
 
 
 # ==================== PROJECTS / PORTFOLIO ====================
+class ProjectImageInline(admin.TabularInline):
+    model = ProjectImage
+    extra = 1
+    fields = ('image', 'caption', 'order')
+
+
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     list_display  = ('title', 'client_name', 'industry', 'service', 'is_featured', 'is_active', 'order')
@@ -250,6 +256,7 @@ class ProjectAdmin(admin.ModelAdmin):
     search_fields = ('title', 'client_name', 'summary', 'challenge', 'solution_text', 'results')
     list_editable = ('is_featured', 'is_active', 'order')
     prepopulated_fields = {'slug': ('title',)}
+    inlines = [ProjectImageInline]
     fieldsets = (
         ('Overview', {
             'fields': ('title', 'slug', 'summary', 'client_name', 'cover_image', 'industry', 'service')

@@ -44,12 +44,12 @@
 <!-- ═══════════════════════════════════════════════════════
      HERO
 ═══════════════════════════════════════════════════════ -->
-<section class="relative overflow-hidden bg-navy py-20 lg:py-28" aria-labelledby="about-heading">
+<section class="relative overflow-hidden bg-navy py-12 lg:py-16" aria-labelledby="about-heading">
   <!-- Hero background image + dark overlay (same pattern as program_detail.html) -->
   <div class="absolute inset-0 z-0" aria-hidden="true">
     <img src="{% if site_config.hero_slide_1_image %}{{ site_config.hero_slide_1_image.url }}{% else %}{% static 'images/hero.webp' %}{% endif %}"
          alt="" class="w-full h-full object-cover">
-    <div class="absolute inset-0 bg-navy/95"></div>
+    <div class="absolute inset-0 bg-navy/85"></div>
   </div>
 
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -241,6 +241,7 @@
 <!-- ═══════════════════════════════════════════════════════
      HISTORY TIMELINE
 ═══════════════════════════════════════════════════════ -->
+{% if history_milestones %}
 <section class="py-20 bg-soft" id="our-story" aria-labelledby="history-heading">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
@@ -258,7 +259,6 @@
       </p>
     </div>
 
-    {% if history_milestones %}
     <div class="relative max-w-sm sm:max-w-2xl lg:max-w-4xl mx-auto" role="list" aria-label="Historical milestones">
 
       <!-- Center rail (lg+ only) -->
@@ -313,17 +313,10 @@
       {% endfor %}
 
     </div>
-    {% else %}
-    <div class="max-w-md mx-auto text-center py-10">
-      <div class="w-14 h-14 bg-ice rounded-2xl flex items-center justify-center mx-auto mb-4" aria-hidden="true">
-        <i data-lucide="clock" class="w-7 h-7 text-brandblue"></i>
-      </div>
-      <p class="text-slate-500 text-base">Our story is being written — check back soon for milestones.</p>
-    </div>
-    {% endif %}
 
   </div>
 </section>
+{% endif %}
 
 
 <!-- ═══════════════════════════════════════════════════════
@@ -446,6 +439,7 @@
 <!-- ═══════════════════════════════════════════════════════
      ACCREDITATION · AFFILIATES · PARTNERS
 ═══════════════════════════════════════════════════════ -->
+{% if accreditations_list or affiliations_list or partners_list %}
 <section class="py-20 bg-navy relative overflow-hidden" aria-labelledby="accred-heading">
   <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle,#38BDF8 1px,transparent 1px);background-size:28px 28px;"></div>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -464,10 +458,11 @@
       </p>
     </div>
 
-    <div class="max-w-full lg:max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 lg:gap-6">
+    <div class="max-w-full lg:max-w-5xl mx-auto flex flex-wrap justify-center gap-5 lg:gap-6">
 
+      {% if accreditations_list %}
       <!-- Accreditation -->
-      <div class="bg-white border border-borderblue rounded-2xl shadow-card overflow-hidden">
+      <div class="w-full sm:w-72 lg:w-80 bg-white border border-borderblue rounded-2xl shadow-card overflow-hidden">
         <div class="flex items-center gap-3 px-6 py-5 brand-gradient" role="heading" aria-level="3">
           <div class="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0" aria-hidden="true">
             <i data-lucide="shield-check" class="w-5 h-5 text-white"></i>
@@ -489,14 +484,14 @@
                 {{ item.name }}{% if item.location %}, <span class="text-slate-500">{{ item.location }}</span>{% endif %}
               </span>
             </li>
-            {% empty %}
-            <li class="text-slate-400 text-sm italic">No accreditations listed yet.</li>
             {% endfor %}
         </ul>
       </div>
+      {% endif %}
 
+      {% if affiliations_list %}
       <!-- Affiliations -->
-      <div class="bg-white border border-borderblue rounded-2xl shadow-card overflow-hidden">
+      <div class="w-full sm:w-72 lg:w-80 bg-white border border-borderblue rounded-2xl shadow-card overflow-hidden">
         <div class="flex items-center gap-3 px-6 py-5 bg-navy" role="heading" aria-level="3">
           <div class="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0" aria-hidden="true">
             <i data-lucide="link-2" class="w-5 h-5 text-white"></i>
@@ -518,14 +513,14 @@
                 {{ item.name }}{% if item.location %}, <span class="text-slate-500">{{ item.location }}</span>{% endif %}
               </span>
             </li>
-            {% empty %}
-            <li class="text-slate-400 text-sm italic">No affiliations listed yet.</li>
             {% endfor %}
         </ul>
       </div>
+      {% endif %}
 
+      {% if partners_list %}
       <!-- Partners -->
-      <div class="bg-white border border-borderblue rounded-2xl shadow-card overflow-hidden sm:col-span-2 md:col-span-1">
+      <div class="w-full sm:w-72 lg:w-80 bg-white border border-borderblue rounded-2xl shadow-card overflow-hidden">
         <div class="flex items-center gap-3 px-6 py-5 brand-gradient" role="heading" aria-level="3">
           <div class="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0" aria-hidden="true">
             <i data-lucide="handshake" class="w-5 h-5 text-white"></i>
@@ -547,15 +542,15 @@
                 {{ partner.name }}{% if partner.location %}, <span class="text-slate-500">{{ partner.location }}</span>{% endif %}
               </span>
             </li>
-            {% empty %}
-            <li class="text-slate-400 text-sm italic">No partners listed yet.</li>
             {% endfor %}
         </ul>
       </div>
+      {% endif %}
 
     </div>
   </div>
 </section>
+{% endif %}
 
 
 <!-- ═══════════════════════════════════════════════════════

@@ -4591,7 +4591,7 @@ class Project(models.Model):
     slug = models.SlugField(max_length=220, unique=True, blank=True)
     summary = models.CharField(max_length=300, help_text="Short teaser shown on project cards")
     client_name = models.CharField(max_length=150, blank=True, help_text="Leave blank if the client is confidential")
-    cover_image = models.ImageField(upload_to='projects/covers/', blank=True, null=True)
+    cover_image = models.ImageField(upload_to=upload_path('projects/covers'), blank=True, null=True)
     industry = models.ForeignKey('Industry', on_delete=models.SET_NULL, null=True, blank=True, related_name='projects')
     service = models.ForeignKey('Service', on_delete=models.SET_NULL, null=True, blank=True, related_name='projects')
     challenge = models.TextField(blank=True, help_text="The client's problem")
@@ -4612,10 +4612,55 @@ class Project(models.Model):
     def __str__(self):
         return self.title
 
+    @property
+    def display_image(self):
+        """Image for cards/hero: the cover if set, otherwise the first
+        gallery image, so a project with only gallery photos still shows one.
+        Iterates .all() (not .first()) so a prefetch_related('gallery_images')
+        is reused instead of hitting the DB once per card."""
+        if self.cover_image:
+            return self.cover_image
+        for gallery_image in self.gallery_images.all():
+            return gallery_image.image
+        return None
+
+    @property
+    def showcase_images(self):
+        """Ordered slides for the detail-page carousel and lightbox: the cover
+        (if any) first, then every gallery image. Each item is
+        {'url', 'alt'}; alt doubles as the lightbox caption."""
+        slides = []
+        if self.cover_image:
+            slides.append({'url': self.cover_image.url, 'alt': self.title})
+        for gallery_image in self.gallery_images.all():
+            slides.append({
+                'url': gallery_image.image.url,
+                'alt': gallery_image.caption or self.title,
+            })
+        return slides
+
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.title)
+            self.slug = unique_slug(Project, self.title)
         super().save(*args, **kwargs)
+
+
+class ProjectImage(models.Model):
+    """An additional gallery image for a Project, shown alongside its
+    cover_image on the project's case-study page. Lets a project carry more
+    than one photo instead of just the single cover_image."""
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='gallery_images')
+    image = models.ImageField(upload_to=upload_path('projects/gallery'))
+    caption = models.CharField(max_length=200, blank=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = 'Project Image'
+        verbose_name_plural = 'Project Images'
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return f"{self.project.title} — image #{self.pk}"
 
 
 class JobListing(models.Model):
@@ -4649,7 +4694,7 @@ class JobListing(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.title)
+            self.slug = unique_slug(JobListing, self.title)
         super().save(*args, **kwargs)
 
 

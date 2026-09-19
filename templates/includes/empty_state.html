@@ -1,0 +1,44 @@
+{% comment %}
+Empty state: a large panel with a small interactive illustration. Two
+placeholder cards sit behind an icon card and fan out when the panel is
+hovered (static for touch and reduced-motion users).
+
+Usage:
+  {% url 'consultation:book_consultation' as book_url %}
+  {% include 'includes/empty_state.html' with icon='folder-code' title='Projects are on the way' message='Check back soon.' action_url=book_url action_label='Start a project' %}
+
+Params: icon (Lucide name, default 'inbox'), title, message, action_url + action_label (optional).
+{% endcomment %}
+<div class="mx-auto max-w-3xl px-4" role="status">
+    <div class="group flex flex-col items-center rounded-3xl border border-borderblue bg-white px-6 py-14 text-center shadow-card sm:px-12 sm:py-20">
+
+        <div class="relative size-56" aria-hidden="true">
+            <span class="absolute left-2 top-10 flex h-40 w-32 -rotate-6 flex-col gap-3 rounded-2xl border border-borderblue bg-white p-4 shadow-card transition-transform duration-300 ease-out group-hover:-translate-x-4 group-hover:-rotate-12 motion-reduce:transition-none">
+                <span class="h-12 rounded-lg bg-ice"></span>
+                <span class="h-2.5 w-16 rounded-full bg-borderblue"></span>
+                <span class="h-2.5 w-10 rounded-full bg-borderblue"></span>
+            </span>
+            <span class="absolute right-2 top-10 flex h-40 w-32 rotate-6 flex-col gap-3 rounded-2xl border border-borderblue bg-white p-4 shadow-card transition-transform duration-300 ease-out group-hover:translate-x-4 group-hover:rotate-12 motion-reduce:transition-none">
+                <span class="h-12 rounded-lg bg-ice"></span>
+                <span class="h-2.5 w-16 rounded-full bg-borderblue"></span>
+                <span class="h-2.5 w-10 rounded-full bg-borderblue"></span>
+            </span>
+            <span class="absolute inset-x-0 top-6 mx-auto flex size-32 items-center justify-center rounded-3xl border border-borderblue bg-white shadow-brand transition-transform duration-300 ease-out group-hover:-translate-y-3 motion-reduce:transition-none">
+                <i data-lucide="{{ icon|default:'inbox' }}" class="w-14 h-14 text-brandblue" aria-hidden="true"></i>
+            </span>
+            <span class="absolute right-4 top-2 size-3 rounded-full bg-sky animate-pulse motion-reduce:animate-none"></span>
+            <span class="absolute left-6 top-4 size-2 rounded-full bg-lime-400 animate-pulse motion-reduce:animate-none"></span>
+            <span class="absolute bottom-10 left-1 size-2.5 rounded-full bg-brandblue/40 animate-pulse motion-reduce:animate-none"></span>
+            <span class="absolute inset-x-12 bottom-0 h-4 rounded-full bg-navy/10 blur-sm transition-transform duration-300 ease-out group-hover:scale-90 motion-reduce:transition-none"></span>
+        </div>
+
+        <h3 class="mt-10 font-sora text-2xl font-bold text-navy text-balance sm:text-3xl">{{ title }}</h3>
+        <p class="mt-4 max-w-lg text-base leading-relaxed text-slate-600 text-pretty sm:text-lg">{{ message }}</p>
+        {% if action_url %}
+        <a href="{{ action_url }}" class="btn-brand btn-brand-lg mt-8">
+            {{ action_label }}
+            <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
+        </a>
+        {% endif %}
+    </div>
+</div>

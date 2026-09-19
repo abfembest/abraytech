@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static content_extras %}
 
 {% block title %}{{ program.name }} | {{ faculty.name }} | {{ site_config.school_short_name|default:"Abraytech" }}{% endblock %}
 
@@ -49,7 +49,7 @@
   <div class="absolute inset-0 z-0" aria-hidden="true">
     <img src="{% if program.hero_image %}{{ program.hero_image.url }}{% else %}{% static 'images/hero.webp' %}{% endif %}"
          alt="" class="w-full h-full object-cover">
-    <div class="absolute inset-0 bg-navy/95"></div>
+    <div class="absolute inset-0 bg-navy/85"></div>
   </div>
 
   <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 lg:pt-20 pb-10 sm:pb-12 lg:pb-14">
@@ -73,14 +73,14 @@
         </li>
         <li aria-hidden="true"><i data-lucide="chevron-right" class="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0"></i></li>
         <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-          <a href="#" itemprop="item" class="hover:text-white transition-colors underline-offset-2 hover:underline">
+          <a href="{% url 'eduweb:all_programs' %}#faculty-{{ faculty.slug }}" itemprop="item" class="hover:text-white transition-colors underline-offset-2 hover:underline">
             <span itemprop="name">{{ department.name }}</span>
           </a>
           <meta itemprop="position" content="3">
         </li>
         <li aria-hidden="true"><i data-lucide="chevron-right" class="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0"></i></li>
         <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" aria-current="page">
-          <span itemprop="name" class="text-white truncate max-w-icon-sm xs:max-w-icon-lg sm:max-w-xs inline-block">{{ program.name }}</span>
+          <span itemprop="name" class="text-white truncate max-w-icon-sm sm:max-w-xs inline-block">{{ program.name }}</span>
           <meta itemprop="position" content="4">
         </li>
       </ol>
@@ -143,11 +143,13 @@
             <i data-lucide="send" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
             Apply Now
           </a>
+          {% if courses %}
           <a href="#curriculum"
-             class="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/10 border border-white/20 text-white px-5 sm:px-7 py-3 sm:py-3.5 rounded-xl font-semibold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-white/60">
+             class="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-5 sm:px-7 py-3 sm:py-3.5 rounded-xl font-semibold text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-white/60">
             <i data-lucide="book-open" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>
             View Curriculum
           </a>
+          {% endif %}
         </div>
       </div>
 
@@ -246,11 +248,11 @@
         </h2>
 
         {% if program.description %}
-        <div class="text-gray-600 leading-relaxed space-y-3 sm:space-y-4 text-sm sm:text-base lg:text-lg">
-          <p class="text-justify">{{ program.description|linebreaksbr }}</p>
+        <div class="text-gray-600 leading-relaxed space-y-3 sm:space-y-4 text-sm sm:text-base lg:text-lg text-pretty">
+          {{ program.description|rich_text }}
         </div>
         {% elif program.overview %}
-        <p class="text-gray-600 leading-relaxed text-sm sm:text-base lg:text-lg text-justify">{{ program.overview }}</p>
+        <p class="text-gray-600 leading-relaxed text-sm sm:text-base lg:text-lg text-pretty">{{ program.overview }}</p>
         {% endif %}
 
         <div class="mt-6 sm:mt-8 space-y-3 sm:space-y-4">
@@ -281,7 +283,7 @@
               </div>
               <h3 class="font-sora font-bold text-navy text-sm sm:text-base">Core Courses</h3>
             </div>
-            <ul class="grid grid-cols-1 xs:grid-cols-2 gap-1.5 sm:gap-2" role="list">
+            <ul class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2" role="list">
               {% for course in program.core_courses %}
               <li class="flex items-center gap-2 text-xs sm:text-sm text-gray-700">
                 <span class="w-1.5 h-1.5 bg-brandblue rounded-full flex-shrink-0" aria-hidden="true"></span>
@@ -344,13 +346,13 @@
         {% comment %}<p class="text-brandblue font-semibold text-xs sm:text-sm tracking-widest uppercase mb-2">What You'll Learn</p>{% endcomment %}
         <h2 id="curriculum-heading" class="font-sora text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-navy">Curriculum</h2>
       </div>
-      <span class="text-gray-400 text-xs sm:text-sm" aria-live="polite">
+      <span class="text-slate-500 text-xs sm:text-sm" aria-live="polite">
         {{ courses|length }} course{% if courses|length != 1 %}s{% endif %} total
       </span>
     </div>
 
     <div class="rounded-2xl sm:rounded-3xl border border-borderblue overflow-hidden shadow-sm">
-      <div class="divide-y divide-gray-50 bg-white">
+      <div class="divide-y divide-borderblue bg-white">
         {% for course in courses %}
         {% if course.description or course.learning_outcomes %}
         <details class="curriculum-row course-row group">
@@ -427,10 +429,10 @@
         Learning Outcomes
       </h2>
     </div>
-    <div class="flex flex-wrap justify-center gap-4 sm:gap-5 lg:gap-6">
+    <div class="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-6 xl:grid-cols-4">
       {% for outcome in program.learning_outcomes %}
-      <div class="w-full sm:w-[calc(50%-0.625rem)] lg:w-[calc(33.333%-1rem)] xl:w-[calc(25%-1.125rem)] rounded-2xl sm:rounded-3xl p-5 sm:p-6 lg:p-7 bg-white border border-borderblue hover:border-brandblue hover:shadow-brand transition-all group">
-        <div class="w-9 h-9 sm:w-10 sm:h-10 bg-ice rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-5 group-hover:brand-gradient transition-all" aria-hidden="true">
+      <div class="rounded-2xl sm:rounded-3xl p-5 sm:p-6 lg:p-7 bg-white border border-borderblue hover:border-brandblue hover:shadow-brand transition-all group">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 bg-ice rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-5 transition-colors group-hover:bg-brandblue" aria-hidden="true">
           <span class="font-sora font-bold text-brandblue text-xs sm:text-sm group-hover:text-white transition-colors">{{ forloop.counter }}</span>
         </div>
         <p class="text-gray-700 leading-relaxed text-xs sm:text-sm">{{ outcome }}</p>
@@ -453,9 +455,9 @@
       {% comment %}<p class="text-brandblue font-semibold text-xs sm:text-sm tracking-widest uppercase mb-2">After Graduation</p>{% endcomment %}
       <h2 id="careers-heading" class="font-sora text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-navy">Career Opportunities</h2>
     </div>
-    <div class="flex flex-wrap justify-center gap-3 sm:gap-4 lg:gap-5">
+    <div class="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:gap-5 xl:grid-cols-4">
       {% for path in program.career_paths %}
-      <div class="w-full xs:w-[calc(50%-0.375rem)] sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.833rem)] xl:w-[calc(25%-0.9375rem)] rounded-xl sm:rounded-2xl p-4 sm:p-5 bg-white border border-borderblue flex items-center gap-3 hover:border-brandblue hover:shadow-brand transition-all group">
+      <div class="rounded-xl sm:rounded-2xl p-4 sm:p-5 bg-white border border-borderblue flex items-center gap-3 hover:border-brandblue hover:shadow-brand transition-all group">
         <div class="w-9 h-9 sm:w-10 sm:h-10 bg-ice rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-navy transition-colors" aria-hidden="true">
           <i data-lucide="briefcase" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brandblue group-hover:text-white transition-colors"></i>
         </div>
@@ -499,7 +501,7 @@
             <p class="text-white/70 text-xs sm:text-sm leading-relaxed mb-5 sm:mb-7">
               Take the first step. Apply today and our admissions team will guide you through every stage.
             </p>
-            <div class="flex gap-2 sm:gap-3">
+            <div class="flex flex-wrap gap-2 sm:gap-3">
               <a href="{% url 'eduweb:signup_page' %}?program={{ program.slug }}"
                  class="inline-flex items-center justify-center gap-2 bg-white text-navy hover:bg-ice px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-brand focus:outline-none focus:ring-2 focus:ring-white/60">
                 <i data-lucide="send" class="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true"></i>

@@ -63,7 +63,7 @@
     <div class="absolute inset-0 z-0" aria-hidden="true">
         <img src="{% static 'images/hero/faq-office.jpg' %}"
              alt="" class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-navy/95"></div>
+        <div class="absolute inset-0 bg-navy/85"></div>
     </div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="max-w-3xl">
@@ -105,7 +105,8 @@
             </div>
             {% endfor %}
         {% else %}
-        <p class="text-center text-slate-500">No FAQs published yet &mdash; check back soon.</p>
+        {% url 'eduweb:contact' as contact_url %}
+        {% include 'includes/empty_state.html' with icon='circle-help' title='No FAQs published yet' message='Answers to common questions will appear here. In the meantime, ask us directly.' action_url=contact_url action_label='Contact us' %}
         {% endif %}
     </div>
 </section>

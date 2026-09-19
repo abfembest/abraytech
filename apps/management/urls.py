@@ -200,6 +200,19 @@ urlpatterns = [
     path('site-config/services/<int:pk>/edit/', views.service_edit, name='service_edit'),
     path('site-config/services/<int:pk>/delete/', views.service_delete, name='service_delete'),
 
+    # Projects / Portfolio
+    path('site-config/projects/', views.projects_list, name='projects_list'),
+    path('site-config/projects/create/', views.project_create, name='project_create'),
+    path('site-config/projects/<int:pk>/edit/', views.project_edit, name='project_edit'),
+    path('site-config/projects/<int:pk>/delete/', views.project_delete, name='project_delete'),
+    # Careers / Job listings (single page + modals)
+    path('site-config/careers/', views.careers_list, name='careers_list'),
+    path('site-config/careers/create/', views.career_create, name='career_create'),
+    path('site-config/careers/<int:pk>/edit/', views.career_edit, name='career_edit'),
+    path('site-config/careers/<int:pk>/delete/', views.career_delete, name='career_delete'),
+    path('site-config/projects/<int:pk>/images/add/', views.project_image_add, name='project_image_add'),
+    path('site-config/projects/<int:pk>/images/<int:image_id>/delete/', views.project_image_delete, name='project_image_delete'),
+
     # Testimonials
     path('site-config/testimonials/', views.testimonials_list, name='testimonials_list'),
     path('site-config/testimonials/create/', views.testimonial_create, name='testimonial_create'),

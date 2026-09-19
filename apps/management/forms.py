@@ -26,7 +26,11 @@ from apps.eduweb.models import (
     LMSCourse,
     LibraryItem,
     PaymentGateway,
+    Industry,
+    JobListing,
     Program,
+    Project,
+    ProjectImage,
     Review,
     Service,
     SiteConfig,
@@ -1082,6 +1086,72 @@ class ServiceForm(forms.ModelForm):
             'summary':     forms.TextInput(attrs={**_SC_I, 'placeholder': 'Short teaser shown on homepage service cards'}),
             'description': forms.Textarea(attrs={**_SC_T, 'rows': 6}),
             'icon':        forms.TextInput(attrs={**_SC_I, 'placeholder': "Lucide icon name, e.g. 'code-2' — see lucide.dev/icons"}),
+        }
+
+
+class ProjectForm(forms.ModelForm):
+    """Slug is auto-generated from the title (Project.save()) — not exposed
+    here, same reasoning as ServiceForm. cover_image is the card/hero image;
+    additional gallery photos are managed separately via ProjectImageForm
+    once the project has a pk (see project_edit)."""
+    class Meta:
+        model = Project
+        fields = [
+            'title', 'summary', 'client_name', 'cover_image', 'industry', 'service',
+            'challenge', 'solution_text', 'results', 'project_url',
+            'is_featured', 'is_active', 'order',
+        ]
+        widgets = {
+            'title':         forms.TextInput(attrs=_SC_I),
+            'summary':       forms.Textarea(attrs={**_SC_T, 'rows': 2, 'placeholder': 'Short teaser shown on project cards'}),
+            'client_name':   forms.TextInput(attrs={**_SC_I, 'placeholder': 'Leave blank if the client is confidential'}),
+            'cover_image':   forms.ClearableFileInput(attrs={'class': _SC_I['class'], 'accept': 'image/*'}),
+            'industry':      forms.Select(attrs={**_SC_I, 'class': 'searchable-select ' + _SC_I['class'], 'data-ss-placeholder': 'Select an industry…'}),
+            'service':       forms.Select(attrs={**_SC_I, 'class': 'searchable-select ' + _SC_I['class'], 'data-ss-placeholder': 'Select a service…'}),
+            'challenge':     forms.Textarea(attrs={**_SC_T, 'rows': 4, 'placeholder': "The client's problem"}),
+            'solution_text': forms.Textarea(attrs={**_SC_T, 'rows': 4, 'placeholder': 'What Abraytech built/did'}),
+            'results':       forms.Textarea(attrs={**_SC_T, 'rows': 4, 'placeholder': 'Outcome/impact'}),
+            'project_url':   forms.URLInput(attrs={**_SC_I, 'placeholder': 'Live site/app link, if publicly shareable'}),
+            'order':         forms.NumberInput(attrs={**_SC_I, 'min': '0'}),
+        }
+
+    def clean_cover_image(self):
+        return _validate_upload(self.cleaned_data.get('cover_image'), IMAGE_EXTENSIONS)
+
+
+class ProjectImageForm(forms.ModelForm):
+    """One gallery photo. project_image_add (management/views.py) loops this
+    over every file in a multi-select <input>, so staff can add several
+    images to a project's gallery in one upload."""
+    class Meta:
+        model = ProjectImage
+        fields = ['image', 'caption']
+        widgets = {
+            'image':   forms.ClearableFileInput(attrs={'class': _SC_I['class'], 'accept': 'image/*'}),
+            'caption': forms.TextInput(attrs={**_SC_I, 'placeholder': 'Optional caption'}),
+        }
+
+    def clean_image(self):
+        return _validate_upload(self.cleaned_data.get('image'), IMAGE_EXTENSIONS)
+
+
+class JobListingForm(forms.ModelForm):
+    """Slug is auto-generated from the title (JobListing.save()) — not exposed
+    here. Rendered inside the add/edit modals on the single careers page."""
+    class Meta:
+        model = JobListing
+        fields = [
+            'title', 'department', 'location', 'employment_type',
+            'description', 'requirements', 'closes_at', 'is_active',
+        ]
+        widgets = {
+            'title':           forms.TextInput(attrs=_SC_I),
+            'department':      forms.TextInput(attrs={**_SC_I, 'placeholder': 'e.g. Engineering'}),
+            'location':        forms.TextInput(attrs={**_SC_I, 'placeholder': "e.g. 'Remote' or 'Lagos, Nigeria'"}),
+            'employment_type': forms.Select(attrs=_SC_I),
+            'description':     forms.Textarea(attrs={**_SC_T, 'rows': 5}),
+            'requirements':    forms.Textarea(attrs={**_SC_T, 'rows': 5}),
+            'closes_at':       forms.DateInput(attrs={**_SC_I, 'type': 'date'}, format='%Y-%m-%d'),
         }
 
 

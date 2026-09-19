@@ -99,5 +99,10 @@
 {% endif %}
 
 {% else %}
-<p class="text-center text-slate-500">Our store is being stocked &mdash; check back soon.</p>
+{% if query %}
+{% url 'store:store_list' as store_url %}
+{% include 'includes/empty_state.html' with icon='search-x' title='No products match your search' message='Try a different keyword, or clear the search to see everything.' action_url=store_url action_label='Clear search' %}
+{% else %}
+{% include 'includes/empty_state.html' with icon='shopping-bag' title='The store is being stocked' message='Products will appear here as soon as they are added. Check back soon.' %}
+{% endif %}
 {% endif %}

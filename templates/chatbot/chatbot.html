@@ -24,7 +24,7 @@ MOBILE LAYOUT NOTE:
      aria-label="{{ site_config.school_short_name|default:'Abraytech' }} Chatbot">
     <button id="cbToggle"
             type="button"
-            class="shadow-fab-hover relative w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-accent-400 to-accent-600
+            class="shadow-fab-hover relative w-12 h-12 sm:w-16 sm:h-16 brand-gradient
                    rounded-full flex items-center justify-center
                    shadow-2xl transition-all duration-300
                    hover:scale-110
@@ -34,8 +34,8 @@ MOBILE LAYOUT NOTE:
             aria-controls="cbWindow">
         <i data-lucide="message-circle" class="w-5 h-5 sm:w-8 sm:h-8 text-white pointer-events-none" aria-hidden="true"></i>
         <span id="cbBadge"
-              class="absolute -top-1 -right-1 w-5 h-5 bg-accent-400 rounded-full
-                     flex items-center justify-center text-caption-brand font-bold text-white
+              class="absolute -top-1 -right-1 w-5 h-5 bg-lime-400 ring-2 ring-white rounded-full
+                     flex items-center justify-center text-caption-brand font-bold text-navy
                      opacity-0 scale-0 transition-all duration-300 pointer-events-none"
               aria-live="polite">1</span>
     </button>
@@ -163,7 +163,7 @@ MOBILE LAYOUT NOTE:
                 <input id="cbCaptchaAnswer" type="text" name="captcha"
                        placeholder="Enter the answer" required inputmode="numeric" pattern="[0-9]*" autocomplete="off"
                        class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-xl bg-white
-                              text-gray-800 placeholder-gray-400
+                              text-gray-800 placeholder-slate-500
                               focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
                               transition-all duration-200">
                 <p id="cbCaptchaErr" class="hidden text-caption-brand text-red-500 mt-1 px-1" role="alert"></p>
@@ -222,7 +222,7 @@ MOBILE LAYOUT NOTE:
                 </div>
                 <div>
                     <p id="cbEndTitle" class="text-xs font-semibold text-red-700 leading-tight">End this chat?</p>
-                    <p class="text-xs text-red-600/80 mt-0.5 leading-relaxed">
+                    <p class="text-xs text-red-700 mt-0.5 leading-relaxed">
                         Your conversation will be cleared and the session closed.
                     </p>
                 </div>
@@ -250,7 +250,7 @@ MOBILE LAYOUT NOTE:
     <div id="cbQuickActions"
          class="hidden px-3 py-2 bg-white border-t border-gray-100 shrink-0"
          aria-label="Quick topics">
-        <p class="text-caption-brand text-gray-400 uppercase tracking-wider font-medium mb-1.5">Quick topics</p>
+        <p class="text-caption-brand text-slate-500 uppercase tracking-wider font-medium mb-1.5">Quick topics</p>
         <div class="flex flex-wrap gap-1.5">
             <button type="button" class="cb-topic px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs font-medium text-gray-600 hover:border-primary-400 hover:bg-primary-50 hover:text-primary-700 active:scale-95 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary-400">Programs</button>
             <button type="button" class="cb-topic px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs font-medium text-gray-600 hover:border-primary-400 hover:bg-primary-50 hover:text-primary-700 active:scale-95 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary-400">Admissions</button>
@@ -275,13 +275,13 @@ MOBILE LAYOUT NOTE:
                           autocomplete="off"
                           spellcheck="true"
                           class="w-full bg-gray-50 border border-gray-200 rounded-xl
-                                 px-3 py-2.5 text-sm text-gray-800 placeholder-gray-400
+                                 px-3 py-2.5 text-sm text-gray-800 placeholder-slate-500
                                  focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
                                  transition-all duration-200 resize-none leading-snug max-h-28 overflow-y-auto"
                           aria-label="Message input"></textarea>
                 <div class="flex justify-between items-center mt-0.5 px-0.5 pb-0.5">
-                    <span class="text-caption-brand text-gray-300">Shift+Enter for new line</span>
-                    <span id="cbCharCount" class="text-caption-brand text-gray-300" aria-live="polite">0/500</span>
+                    <span class="text-caption-brand text-slate-500">Shift+Enter for new line</span>
+                    <span id="cbCharCount" class="text-caption-brand text-slate-500" aria-live="polite">0/500</span>
                 </div>
             </div>
             <button type="submit" id="cbSend" disabled
@@ -290,7 +290,8 @@ MOBILE LAYOUT NOTE:
                            hover:shadow-md hover:scale-105 active:scale-95
                            transition-all duration-200
                            focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
-                           disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none"
+                           disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none
+                           disabled:bg-none disabled:bg-slate-200 disabled:text-slate-500"
                     aria-label="Send message">
                 <i data-lucide="send" class="w-4 h-4" aria-hidden="true"></i>
             </button>

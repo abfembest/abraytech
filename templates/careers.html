@@ -65,7 +65,7 @@
     <div class="absolute inset-0 z-0" aria-hidden="true">
         <img src="{% static 'images/hero/team-collab.jpg' %}"
              alt="" class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-navy/95"></div>
+        <div class="absolute inset-0 bg-navy/85"></div>
     </div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="max-w-3xl">
@@ -114,9 +114,7 @@
             {% endfor %}
         </div>
         {% else %}
-        <div class="text-center">
-            <p class="text-slate-600 mb-6"><em>No open roles right now &mdash; check back soon, or reach out and introduce yourself.</em></p>
-        </div>
+        {% include 'includes/empty_state.html' with icon='user-plus' title='No open roles right now' message='Check back soon, or reach out and introduce yourself.' %}
         {% endif %}
         <div class="text-center mt-10">
             <a href="{% url 'eduweb:contact' %}" class="inline-flex items-center gap-2 px-8 py-4 rounded-lg brand-gradient text-white font-semibold shadow-brand hover:opacity-95 transition">

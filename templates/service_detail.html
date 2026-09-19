@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static content_extras %}
 
 {% block title %}{{ service.title }} | {{ site_config.school_short_name|default:"Abraytech" }}{% endblock %}
 
@@ -53,7 +53,7 @@
     <div class="absolute inset-0 z-0" aria-hidden="true">
         <img src="{% static 'images/hero/code-tech.jpg' %}"
              alt="" class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-navy/95"></div>
+        <div class="absolute inset-0 bg-navy/85"></div>
     </div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <nav class="flex mb-6" aria-label="Breadcrumb">
@@ -75,34 +75,98 @@
     </div>
 </section>
 
-<section class="py-20 bg-white">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {% if service.description %}
-        <div class="prose max-w-none text-slate-700 leading-relaxed">
-            {{ service.description|linebreaks }}
-        </div>
-        {% else %}
-        <p class="text-slate-500">Full details for this service are coming soon.</p>
-        {% endif %}
+{# ── Overview: the article on the left, a sticky action + navigation rail on the right ── #}
+<section class="bg-soft py-16 lg:py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid gap-10 lg:grid-cols-3 lg:gap-12">
 
-        <div class="mt-16 text-center">
-            <a href="{% url 'consultation:book_consultation' %}" class="inline-flex items-center gap-2 px-6 py-3 rounded-lg brand-gradient text-white font-semibold shadow-brand hover:opacity-95 transition">
-                Start a Project
-                <i data-lucide="arrow-right" class="w-5 h-5" aria-hidden="true"></i>
-            </a>
+            <div class="lg:col-span-2">
+                {% if service.description %}
+                <article class="rounded-2xl border border-borderblue bg-white p-6 shadow-card sm:p-10">
+                    <h2 class="font-sora text-2xl font-bold text-navy text-balance">About this service</h2>
+                    <div class="mt-6 space-y-4 text-base leading-relaxed text-slate-700 text-pretty">{{ service.description|rich_text }}</div>
+                </article>
+                {% else %}
+                <div class="rounded-2xl border border-borderblue bg-white p-10 text-center shadow-card">
+                    <span class="mx-auto flex size-12 items-center justify-center rounded-full bg-ice text-brandblue">
+                        <i data-lucide="file-text" class="w-6 h-6" aria-hidden="true"></i>
+                    </span>
+                    <h2 class="mt-4 font-sora text-lg font-semibold text-navy">Details coming soon</h2>
+                    <p class="mt-1 text-sm text-slate-600 text-pretty">We're still writing up the full details for this service.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <aside class="space-y-6 lg:sticky lg:top-24 lg:self-start" aria-label="Next steps and other services">
+                <div class="rounded-2xl border border-borderblue bg-white p-6 shadow-card">
+                    <h2 class="font-sora text-lg font-semibold text-navy">Ready to get started?</h2>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-600 text-pretty">Tell us what you're building and we'll show you how we can help.</p>
+                    <a href="{% url 'consultation:book_consultation' %}" class="btn-brand mt-5 w-full">
+                        Start a project
+                        <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
+                    </a>
+                </div>
+
+                {% if other_services %}
+                <nav class="rounded-2xl border border-borderblue bg-white p-6 shadow-card" aria-label="Other services">
+                    <h2 class="font-sora text-lg font-semibold text-navy">Other services</h2>
+                    <ul class="mt-4 space-y-1">
+                        {% for other in other_services %}
+                        <li>
+                            <a href="{% url 'eduweb:service_detail' other.slug %}"
+                               class="group flex min-h-11 items-center gap-3 rounded-lg px-2 py-2 transition-colors duration-150 hover:bg-ice">
+                                <span class="flex size-9 flex-shrink-0 items-center justify-center rounded-lg bg-ice text-brandblue transition-colors duration-150 group-hover:bg-white">
+                                    <i data-lucide="{{ other.icon }}" class="w-4 h-4" aria-hidden="true"></i>
+                                </span>
+                                <span class="flex-1 text-sm font-semibold text-navy">{{ other.title }}</span>
+                                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 transition-transform duration-150 group-hover:translate-x-0.5" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </aside>
+
         </div>
     </div>
 </section>
 
-{% if other_services %}
-<section class="py-16 bg-soft">
+{# ── Work delivered under this service ── #}
+{% if projects %}
+<section class="bg-white py-16 lg:py-20">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-2xl sm:text-3xl font-sora font-bold text-navy mb-8 text-center">Other Services</h2>
-        <div class="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {% for other in other_services %}
-            <a href="{% url 'eduweb:service_detail' other.slug %}" class="reveal bg-white rounded-2xl border border-borderblue p-6 hover:shadow-brand hover:-translate-y-1 transition block">
-                <h3 class="font-sora font-semibold text-lg text-navy">{{ other.title }}</h3>
-                <p class="mt-2 text-sm text-slate-600">{{ other.summary }}</p>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <h2 class="font-sora text-2xl font-bold text-navy text-balance sm:text-3xl">Work in {{ service.title }}</h2>
+                <p class="mt-2 text-slate-600 text-pretty">Projects we've delivered with this service.</p>
+            </div>
+            <a href="{% url 'eduweb:projects_list' %}" class="inline-flex items-center gap-2 font-semibold text-brandblue transition-colors hover:text-navy">
+                View all projects
+                <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
+            </a>
+        </div>
+
+        <div class="mt-8 grid gap-6 md:grid-cols-3">
+            {% for project in projects %}
+            <a href="{% url 'eduweb:project_detail' project.slug %}" class="reveal group block overflow-hidden rounded-2xl border border-borderblue bg-white transition-transform duration-200 ease-out hover:-translate-y-1 hover:shadow-brand motion-reduce:transition-none">
+                {% if project.display_image %}
+                <div class="aspect-video overflow-hidden bg-ice">
+                    <img src="{{ project.display_image.url }}" alt="{{ project.title }}" class="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-105 motion-reduce:transition-none" loading="lazy">
+                </div>
+                {% else %}
+                <div class="aspect-video brand-gradient flex items-center justify-center">
+                    <i data-lucide="folder-code" class="w-10 h-10 text-white/80" aria-hidden="true"></i>
+                </div>
+                {% endif %}
+                <div class="p-6">
+                    <h3 class="font-sora text-lg font-semibold text-navy">{{ project.title }}</h3>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-600 line-clamp-2 text-pretty">{{ project.summary }}</p>
+                    <span class="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brandblue">
+                        View case study
+                        <i data-lucide="arrow-right" class="w-4 h-4 transition-transform duration-200 ease-out group-hover:translate-x-1" aria-hidden="true"></i>
+                    </span>
+                </div>
             </a>
             {% endfor %}
         </div>

@@ -1612,9 +1612,11 @@
 
 /* Faculty header / accordion toggle */
 .fac-hdr {
-  background: #071A3D;
+  background: #1E3A5F;
   cursor: pointer;
+  transition: filter .2s ease;
 }
+.fac-hdr:hover { filter: brightness(1.15); }
 .fac-hdr:focus-visible { outline: 2px solid #38BDF8; outline-offset: -2px; }
 .fac-chevron { transition: transform .2s ease; flex-shrink: 0; }
 .fac-hdr[aria-expanded="true"] .fac-chevron { transform: rotate(180deg); }
@@ -1683,6 +1685,11 @@
 .fac-page-link { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); }
 .dept-dot { background: #0B5CFF; }
 .max-h-sidebar-sticky { max-height: calc(100vh - 8.5rem); }
+
+/* Hide the scrollbar on horizontally scrolling strips (e.g. the program page's
+   sticky section nav) while keeping them scrollable */
+.scrollbar-none { scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
 
 /* signup.html two-column auth panel (branding + form) width cap */
 .max-w-auth-panel { max-width: 64rem; }

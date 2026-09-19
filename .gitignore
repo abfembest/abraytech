@@ -59,6 +59,10 @@ media/*
 *.md
 !README.md
 
+# Local-only notes/logs: every .txt is ignored except the dependency list
+*.txt
+!requirements.txt
+
 # ---------------------------
 # SOURCE DOCUMENTS — not app source, don't publish
 # ---------------------------

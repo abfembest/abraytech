@@ -128,7 +128,7 @@
     <div class="absolute inset-0 z-0" aria-hidden="true">
         <img src="{% static 'images/hero/contact-consult.jpg' %}"
              alt="" class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-navy/95"></div>
+        <div class="absolute inset-0 bg-navy/85"></div>
     </div>
     <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <nav class="mb-6" aria-label="Breadcrumb">
@@ -171,15 +171,20 @@
             </div>
             {% endif %}
 
-            {% if not topics %}
-            <div class="p-3 sm:p-4 rounded-xl flex items-start gap-3 bg-amber-50 border border-amber-200">
-                <i data-lucide="alert-circle" class="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0 text-amber-600" aria-hidden="true"></i>
-                <span class="text-xs sm:text-sm font-medium text-amber-800">No consultation topics are open for booking right now. Please check back soon.</span>
-            </div>
-            {% elif not has_days or not has_durations %}
-            <div class="p-3 sm:p-4 rounded-xl flex items-start gap-3 bg-amber-50 border border-amber-200">
-                <i data-lucide="alert-circle" class="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0 text-amber-600" aria-hidden="true"></i>
-                <span class="text-xs sm:text-sm font-medium text-amber-800">No consultation times are open for booking right now. Please check back soon.</span>
+            {% if not topics or not has_days or not has_durations %}
+            <div class="mb-8 flex items-start gap-4 rounded-xl border border-amber-200 bg-amber-50 p-4 sm:p-5" role="status">
+                <span class="flex size-10 flex-shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                    <i data-lucide="clock" class="w-5 h-5" aria-hidden="true"></i>
+                </span>
+                <div>
+                    {% if not topics %}
+                    <p class="font-semibold text-amber-900">No topics are open for booking</p>
+                    <p class="mt-1 text-sm leading-relaxed text-amber-800 text-pretty">No consultation topics are open for booking right now. Please check back soon.</p>
+                    {% else %}
+                    <p class="font-semibold text-amber-900">No times are open for booking</p>
+                    <p class="mt-1 text-sm leading-relaxed text-amber-800 text-pretty">No consultation times are open for booking right now. Please check back soon.</p>
+                    {% endif %}
+                </div>
             </div>
             {% endif %}
 

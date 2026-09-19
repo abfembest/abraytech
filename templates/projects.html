@@ -60,7 +60,7 @@
     <div class="absolute inset-0 z-0" aria-hidden="true">
         <img src="{% static 'images/hero/code-tech.jpg' %}"
              alt="" class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-navy/95"></div>
+        <div class="absolute inset-0 bg-navy/85"></div>
     </div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="max-w-3xl">
@@ -90,9 +90,9 @@
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for project in projects %}
             <a href="{% url 'eduweb:project_detail' project.slug %}" class="reveal bg-white rounded-2xl border border-borderblue overflow-hidden hover:shadow-brand hover:-translate-y-1 transition block">
-                {% if project.cover_image %}
+                {% if project.display_image %}
                 <div class="aspect-video bg-gray-100 overflow-hidden">
-                    <img src="{{ project.cover_image.url }}" alt="{{ project.title }}" class="w-full h-full object-cover" loading="lazy">
+                    <img src="{{ project.display_image.url }}" alt="{{ project.title }}" class="w-full h-full object-cover" loading="lazy">
                 </div>
                 {% else %}
                 <div class="aspect-video brand-gradient flex items-center justify-center">
@@ -113,7 +113,8 @@
             {% endfor %}
         </div>
         {% else %}
-        <p class="text-center text-slate-500">Our project portfolio is being finalized &mdash; check back soon.</p>
+        {% url 'consultation:book_consultation' as book_url %}
+        {% include 'includes/empty_state.html' with icon='folder-code' title='Projects are on the way' message='Our portfolio is being put together. Check back soon, or tell us about the project you have in mind.' action_url=book_url action_label='Start a project' %}
         {% endif %}
     </div>
 </section>

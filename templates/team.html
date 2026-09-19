@@ -60,7 +60,7 @@
     <div class="absolute inset-0 z-0" aria-hidden="true">
         <img src="{% static 'images/hero/team-collab.jpg' %}"
              alt="" class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-navy/95"></div>
+        <div class="absolute inset-0 bg-navy/85"></div>
     </div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="max-w-3xl">
@@ -111,7 +111,7 @@
             {% endfor %}
         </div>
         {% else %}
-        <p class="text-center text-slate-500">Team profiles are being added &mdash; check back soon.</p>
+        {% include 'includes/empty_state.html' with icon='users' title='Team profiles are being added' message='Meet the people behind our work here soon. Check back shortly.' %}
         {% endif %}
     </div>
 </section>

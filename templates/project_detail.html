@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static content_extras %}
 
 {% block title %}{{ project.title }} | {{ site_config.school_short_name|default:"Abraytech" }} Projects{% endblock %}
 
@@ -43,7 +43,7 @@
     <div class="absolute inset-0 z-0" aria-hidden="true">
         <img src="{% static 'images/hero/code-tech.jpg' %}"
              alt="" class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-navy/95"></div>
+        <div class="absolute inset-0 bg-navy/85"></div>
     </div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <nav class="flex mb-6" aria-label="Breadcrumb">
@@ -66,65 +66,234 @@
     </div>
 </section>
 
-{% if project.cover_image %}
-<div class="bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-10">
-        <img src="{{ project.cover_image.url }}" alt="{{ project.title }}" class="w-full rounded-2xl shadow-2xl object-cover h-hero-media" loading="lazy">
-    </div>
-</div>
-{% endif %}
+{# ── Showcase: crossfade carousel (cover first, then gallery). Click a slide for the full-screen viewer. ── #}
+{% with slides=project.showcase_images %}
+{% if slides %}
+<section class="bg-white py-12 lg:py-16" aria-roledescription="carousel" aria-label="{{ project.title }} gallery">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
-<section class="py-20 bg-white">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid sm:grid-cols-3 gap-8 mb-14">
-            {% if project.challenge %}
-            <div>
-                <h2 class="font-sora font-semibold text-lg text-navy mb-2">Challenge</h2>
-                <p class="text-sm text-slate-600 leading-relaxed">{{ project.challenge }}</p>
-            </div>
+        <div id="carousel" class="relative aspect-video overflow-hidden rounded-2xl border border-borderblue bg-navy shadow-brand">
+            {% for slide in slides %}
+            <button type="button"
+                    data-slide
+                    data-full="{{ slide.url }}"
+                    data-caption="{{ slide.alt }}"
+                    aria-label="Open image {{ forloop.counter }} of {{ slides|length }} full screen"
+                    class="absolute inset-0 block h-full w-full cursor-zoom-in transition-opacity duration-300 ease-out motion-reduce:transition-none {% if forloop.first %}opacity-100{% else %}pointer-events-none opacity-0{% endif %}">
+                <img src="{{ slide.url }}" alt="{{ slide.alt }}"
+                     class="h-full w-full object-cover"
+                     {% if not forloop.first %}loading="lazy"{% endif %}>
+            </button>
+            {% endfor %}
+
+            {% if slides|length > 1 %}
+            <button type="button" data-prev aria-label="Previous image"
+                    class="absolute left-3 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-navy shadow-card transition-transform duration-150 ease-out hover:bg-white active:scale-95">
+                <i data-lucide="chevron-left" class="w-5 h-5" aria-hidden="true"></i>
+            </button>
+            <button type="button" data-next aria-label="Next image"
+                    class="absolute right-3 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-navy shadow-card transition-transform duration-150 ease-out hover:bg-white active:scale-95">
+                <i data-lucide="chevron-right" class="w-5 h-5" aria-hidden="true"></i>
+            </button>
             {% endif %}
-            {% if project.solution_text %}
-            <div>
-                <h2 class="font-sora font-semibold text-lg text-navy mb-2">Solution</h2>
-                <p class="text-sm text-slate-600 leading-relaxed">{{ project.solution_text }}</p>
+
+            <div class="pointer-events-none absolute inset-x-3 bottom-3 flex items-end justify-between">
+                <p class="rounded-full bg-navy/70 px-3 py-1.5 text-xs font-semibold text-white tabular-nums backdrop-blur-sm" aria-live="polite">
+                    <span data-current>1</span> / {{ slides|length }}
+                </p>
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-navy/70 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm">
+                    <i data-lucide="maximize-2" class="w-3.5 h-3.5" aria-hidden="true"></i>
+                    Full screen
+                </span>
             </div>
-            {% endif %}
-            {% if project.results %}
-            <div>
-                <h2 class="font-sora font-semibold text-lg text-navy mb-2">Results</h2>
-                <p class="text-sm text-slate-600 leading-relaxed">{{ project.results }}</p>
-            </div>
-            {% endif %}
         </div>
 
-        {% if not project.challenge and not project.solution_text and not project.results %}
-        <p class="text-slate-500">Full case study details for this project are coming soon.</p>
+        {% if slides|length > 1 %}
+        <ul class="mt-3 flex flex-wrap gap-2" aria-label="Choose an image">
+            {% for slide in slides %}
+            <li>
+                <button type="button" data-thumb="{{ forloop.counter0 }}"
+                        aria-label="Show image {{ forloop.counter }}"
+                        class="block aspect-video w-16 overflow-hidden rounded-md border-2 transition-opacity sm:w-20 duration-200 ease-out hover:opacity-100 {% if forloop.first %}border-brandblue opacity-100{% else %}border-transparent opacity-60{% endif %}">
+                    <img src="{{ slide.url }}" alt="" class="h-full w-full object-cover" loading="lazy">
+                </button>
+            </li>
+            {% endfor %}
+        </ul>
         {% endif %}
+    </div>
+</section>
 
-        <div class="flex flex-wrap items-center gap-4 justify-center mt-10">
-            {% if project.project_url %}
-            <a href="{{ project.project_url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-borderblue bg-white text-navy font-semibold hover:bg-ice transition">
-                Visit Project
-                <i data-lucide="external-link" class="w-4 h-4" aria-hidden="true"></i>
-            </a>
-            {% endif %}
-            <a href="{% url 'consultation:book_consultation' %}" class="inline-flex items-center gap-2 px-6 py-3 rounded-lg brand-gradient text-white font-semibold shadow-brand hover:opacity-95 transition">
-                Start a Similar Project
-                <i data-lucide="arrow-right" class="w-5 h-5" aria-hidden="true"></i>
-            </a>
+{# ── Full-screen viewer ── #}
+<dialog id="lightbox" aria-label="{{ project.title }} images"
+        class="fixed inset-0 m-0 h-full max-h-none w-full max-w-none bg-transparent p-0 opacity-0 transition-opacity duration-200 ease-out backdrop:bg-navy/95 open:flex open:flex-col open:opacity-100 starting:open:opacity-0 motion-reduce:transition-none">
+    <div class="flex items-center justify-between p-4 sm:p-6">
+        <p class="text-sm font-semibold text-white tabular-nums" aria-live="polite">
+            <span data-lb-current>1</span> / {{ slides|length }}
+        </p>
+        <button type="button" data-lb-close aria-label="Close full screen viewer"
+                class="flex size-11 items-center justify-center rounded-full bg-white/10 text-white transition-transform duration-150 ease-out hover:bg-white/20 active:scale-95">
+            <i data-lucide="x" class="w-5 h-5" aria-hidden="true"></i>
+        </button>
+    </div>
+
+    <div class="relative flex min-h-0 flex-1 items-center justify-center px-4 sm:px-20" data-lb-stage>
+        {% if slides|length > 1 %}
+        <button type="button" data-lb-prev aria-label="Previous image"
+                class="absolute left-3 top-1/2 flex size-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-transform duration-150 ease-out hover:bg-white/20 active:scale-95 sm:left-6">
+            <i data-lucide="chevron-left" class="w-6 h-6" aria-hidden="true"></i>
+        </button>
+        <button type="button" data-lb-next aria-label="Next image"
+                class="absolute right-3 top-1/2 flex size-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-transform duration-150 ease-out hover:bg-white/20 active:scale-95 sm:right-6">
+            <i data-lucide="chevron-right" class="w-6 h-6" aria-hidden="true"></i>
+        </button>
+        {% endif %}
+        <img data-lb-image src="" alt="" class="max-h-full max-w-full rounded-lg object-contain shadow-2xl transition-opacity duration-200 ease-out motion-reduce:transition-none">
+    </div>
+
+    <p data-lb-caption class="p-4 text-center text-sm text-white/80 text-pretty sm:p-6"></p>
+</dialog>
+{% endif %}
+{% endwith %}
+
+{# ── Case study: Challenge → Solution → Results, with a sticky details rail ── #}
+<section class="bg-soft py-16 lg:py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid gap-10 lg:grid-cols-3 lg:gap-12">
+
+            <div class="lg:col-span-2">
+                {% if project.challenge or project.solution_text or project.results %}
+                <h2 class="font-sora text-2xl font-bold text-navy text-balance sm:text-3xl">The case study</h2>
+                <p class="mt-2 text-slate-600 text-pretty">What the client needed, what we built, and what changed.</p>
+
+                <ol class="mt-10 space-y-6">
+                    {% if project.challenge %}
+                    <li class="reveal rounded-2xl border border-borderblue bg-white p-6 shadow-card sm:p-8">
+                        <div class="flex items-center gap-3">
+                            <span class="flex size-10 items-center justify-center rounded-lg bg-ice text-brandblue">
+                                <i data-lucide="target" class="w-5 h-5" aria-hidden="true"></i>
+                            </span>
+                            <h3 class="font-sora text-lg font-semibold text-navy">The challenge</h3>
+                        </div>
+                        <div class="mt-4 space-y-4 leading-relaxed text-slate-600 text-pretty">{{ project.challenge|rich_text }}</div>
+                    </li>
+                    {% endif %}
+                    {% if project.solution_text %}
+                    <li class="reveal rounded-2xl border border-borderblue bg-white p-6 shadow-card sm:p-8">
+                        <div class="flex items-center gap-3">
+                            <span class="flex size-10 items-center justify-center rounded-lg bg-ice text-brandblue">
+                                <i data-lucide="wrench" class="w-5 h-5" aria-hidden="true"></i>
+                            </span>
+                            <h3 class="font-sora text-lg font-semibold text-navy">What we built</h3>
+                        </div>
+                        <div class="mt-4 space-y-4 leading-relaxed text-slate-600 text-pretty">{{ project.solution_text|rich_text }}</div>
+                    </li>
+                    {% endif %}
+                    {% if project.results %}
+                    <li class="reveal rounded-2xl border border-borderblue bg-white p-6 shadow-card sm:p-8">
+                        <div class="flex items-center gap-3">
+                            <span class="flex size-10 items-center justify-center rounded-lg bg-ice text-brandblue">
+                                <i data-lucide="trending-up" class="w-5 h-5" aria-hidden="true"></i>
+                            </span>
+                            <h3 class="font-sora text-lg font-semibold text-navy">The results</h3>
+                        </div>
+                        <div class="mt-4 space-y-4 leading-relaxed text-slate-600 text-pretty">{{ project.results|rich_text }}</div>
+                    </li>
+                    {% endif %}
+                </ol>
+                {% else %}
+                <div class="rounded-2xl border border-borderblue bg-white p-10 text-center shadow-card">
+                    <span class="mx-auto flex size-12 items-center justify-center rounded-full bg-ice text-brandblue">
+                        <i data-lucide="file-text" class="w-6 h-6" aria-hidden="true"></i>
+                    </span>
+                    <h2 class="mt-4 font-sora text-lg font-semibold text-navy">Case study coming soon</h2>
+                    <p class="mt-1 text-sm text-slate-600 text-pretty">We're still writing up the full details for this project.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <aside class="lg:sticky lg:top-24 lg:self-start" aria-label="Project details">
+                <div class="rounded-2xl border border-borderblue bg-white p-6 shadow-card">
+                    <h2 class="font-sora text-lg font-semibold text-navy">Project details</h2>
+                    <dl class="mt-5 divide-y divide-borderblue text-sm">
+                        {% if project.client_name %}
+                        <div class="flex items-start justify-between gap-4 py-3 first:pt-0">
+                            <dt class="text-slate-500">Client</dt>
+                            <dd class="text-right font-semibold text-navy">{{ project.client_name }}</dd>
+                        </div>
+                        {% endif %}
+                        {% if project.industry %}
+                        <div class="flex items-start justify-between gap-4 py-3 first:pt-0">
+                            <dt class="text-slate-500">Industry</dt>
+                            <dd class="text-right font-semibold text-navy">{{ project.industry.title }}</dd>
+                        </div>
+                        {% endif %}
+                        {% if project.service %}
+                        <div class="flex items-start justify-between gap-4 py-3 first:pt-0">
+                            <dt class="text-slate-500">Service</dt>
+                            <dd class="text-right font-semibold text-navy">{{ project.service.title }}</dd>
+                        </div>
+                        {% endif %}
+                        <div class="flex items-start justify-between gap-4 py-3 first:pt-0">
+                            <dt class="text-slate-500">Delivered</dt>
+                            <dd class="text-right font-semibold text-navy tabular-nums">{{ project.created_at|date:"F Y" }}</dd>
+                        </div>
+                    </dl>
+
+                    <div class="mt-6 flex flex-col gap-3">
+                        {% if project.project_url %}
+                        <a href="{{ project.project_url }}" target="_blank" rel="noopener" class="btn-brand-outline text-navy">
+                            Visit live project
+                            <i data-lucide="external-link" class="w-4 h-4" aria-hidden="true"></i>
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'consultation:book_consultation' %}" class="btn-brand">
+                            Start a similar project
+                            <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                </div>
+            </aside>
+
         </div>
     </div>
 </section>
 
+{# ── Related work ── #}
 {% if other_projects %}
-<section class="py-16 bg-soft">
+<section class="bg-white py-16 lg:py-20">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-2xl sm:text-3xl font-sora font-bold text-navy mb-8 text-center">More Work</h2>
-        <div class="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <h2 class="font-sora text-2xl font-bold text-navy text-balance sm:text-3xl">More work</h2>
+                <p class="mt-2 text-slate-600 text-pretty">Other projects we've delivered.</p>
+            </div>
+            <a href="{% url 'eduweb:projects_list' %}" class="inline-flex items-center gap-2 font-semibold text-brandblue hover:text-navy transition-colors">
+                View all projects
+                <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
+            </a>
+        </div>
+
+        <div class="mt-8 grid gap-6 md:grid-cols-3">
             {% for other in other_projects %}
-            <a href="{% url 'eduweb:project_detail' other.slug %}" class="reveal bg-white rounded-2xl border border-borderblue p-6 hover:shadow-brand hover:-translate-y-1 transition block">
-                <h3 class="font-sora font-semibold text-lg text-navy">{{ other.title }}</h3>
-                <p class="mt-2 text-sm text-slate-600">{{ other.summary }}</p>
+            <a href="{% url 'eduweb:project_detail' other.slug %}" class="reveal group block overflow-hidden rounded-2xl border border-borderblue bg-white transition-transform duration-200 ease-out hover:-translate-y-1 hover:shadow-brand">
+                {% if other.display_image %}
+                <div class="aspect-video overflow-hidden bg-ice">
+                    <img src="{{ other.display_image.url }}" alt="{{ other.title }}" class="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-105 motion-reduce:transition-none" loading="lazy">
+                </div>
+                {% else %}
+                <div class="aspect-video brand-gradient flex items-center justify-center">
+                    <i data-lucide="folder-code" class="w-10 h-10 text-white/80" aria-hidden="true"></i>
+                </div>
+                {% endif %}
+                <div class="p-6">
+                    <h3 class="font-sora text-lg font-semibold text-navy">{{ other.title }}</h3>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-600 line-clamp-2 text-pretty">{{ other.summary }}</p>
+                    <span class="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brandblue">
+                        View case study
+                        <i data-lucide="arrow-right" class="w-4 h-4 transition-transform duration-200 ease-out group-hover:translate-x-1" aria-hidden="true"></i>
+                    </span>
+                </div>
             </a>
             {% endfor %}
         </div>
@@ -132,4 +301,93 @@
 </section>
 {% endif %}
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(function () {
+    var $carousel = $('#carousel');
+    if (!$carousel.length) { return; }
+
+    var $slides = $carousel.find('[data-slide]');
+    var $thumbs = $('[data-thumb]');
+    var $current = $carousel.find('[data-current]');
+    var total = $slides.length;
+    var index = 0;
+
+    var lightbox = document.getElementById('lightbox');
+    var $lb = $(lightbox);
+    var $lbImage = $lb.find('[data-lb-image]');
+    var $lbCaption = $lb.find('[data-lb-caption]');
+    var $lbCurrent = $lb.find('[data-lb-current]');
+
+    function show(next) {
+        index = (next + total) % total;
+        $slides.each(function (i) {
+            var active = i === index;
+            $(this).toggleClass('opacity-100', active)
+                   .toggleClass('opacity-0 pointer-events-none', !active);
+        });
+        $thumbs.each(function (i) {
+            var active = i === index;
+            $(this).toggleClass('border-brandblue opacity-100', active)
+                   .toggleClass('border-transparent opacity-60', !active)
+                   .attr('aria-current', active ? 'true' : null);
+        });
+        $current.text(index + 1);
+    }
+
+    function showInLightbox(next) {
+        show(next);
+        var $slide = $slides.eq(index);
+        $lbImage.attr({ src: $slide.data('full'), alt: $slide.data('caption') });
+        $lbCaption.text($slide.data('caption'));
+        $lbCurrent.text(index + 1);
+    }
+
+    function openLightbox() {
+        showInLightbox(index);
+        if (typeof lightbox.showModal === 'function') {
+            lightbox.showModal();
+            $('body').addClass('overflow-hidden');
+        }
+    }
+
+    function closeLightbox() {
+        if (lightbox.open) { lightbox.close(); }
+    }
+
+    // Carousel controls
+    $carousel.on('click', '[data-prev]', function () { show(index - 1); });
+    $carousel.on('click', '[data-next]', function () { show(index + 1); });
+    $carousel.on('click', '[data-slide]', openLightbox);
+    $thumbs.on('click', function () { show(parseInt($(this).data('thumb'), 10)); });
+
+    // Swipe on touch screens
+    var touchStartX = null;
+    $carousel.on('touchstart', function (e) {
+        touchStartX = e.originalEvent.touches[0].clientX;
+    });
+    $carousel.on('touchend', function (e) {
+        if (touchStartX === null) { return; }
+        var dx = e.originalEvent.changedTouches[0].clientX - touchStartX;
+        touchStartX = null;
+        if (Math.abs(dx) > 40) { show(index + (dx < 0 ? 1 : -1)); }
+    });
+
+    // Lightbox controls
+    $lb.on('click', '[data-lb-prev]', function () { showInLightbox(index - 1); });
+    $lb.on('click', '[data-lb-next]', function () { showInLightbox(index + 1); });
+    $lb.on('click', '[data-lb-close]', closeLightbox);
+    $lb.on('click', '[data-lb-stage]', function (e) {
+        // Empty space around the image closes the viewer; the image and arrows don't.
+        if (e.target === this) { closeLightbox(); }
+    });
+    $lb.on('close', function () { $('body').removeClass('overflow-hidden'); });
+    $lb.on('keydown', function (e) {
+        if (e.key === 'ArrowLeft') { showInLightbox(index - 1); }
+        if (e.key === 'ArrowRight') { showInLightbox(index + 1); }
+    });
+});
+</script>
 {% endblock %}

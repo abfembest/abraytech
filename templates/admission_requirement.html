@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% load static humanize %}
+{% load static humanize content_extras %}
 
 {% block title %}Admission Requirements | {{ site_config.school_short_name|default:"Abraytech" }}{% endblock %}
 
@@ -31,535 +31,319 @@
 {% endblock %}
 
 {% block content %}
+{% cycle 'bg-soft' 'bg-white' as sectionbg silent %}
 
-<!-- ================= HERO SECTION ================= -->
-<section class="relative overflow-hidden bg-navy text-white py-12 sm:py-16 lg:py-20">
+{# ── Hero ── #}
+<section class="relative overflow-hidden bg-navy py-12 lg:py-16">
     <div class="absolute inset-0 z-0" aria-hidden="true">
-        <img src="{% static 'images/hero/legal-document.jpg' %}"
-             alt="" class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-navy/95"></div>
+        <img src="{% static 'images/hero/legal-document.jpg' %}" alt="" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-navy/85"></div>
     </div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div class="mb-6">
-            <a href="{% url 'eduweb:index' %}" class="inline-flex items-center gap-2 text-sky hover:text-white transition-colors group">
-                <i data-lucide="arrow-left" class="w-5 h-5 group-hover:-translate-x-1 transition-transform" aria-hidden="true"></i>
-                <span class="font-medium">Back to Home</span>
-            </a>
-        </div>
+        <nav class="mb-6" aria-label="Breadcrumb">
+            <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+                <li><a href="{% url 'eduweb:index' %}" class="text-white/60 hover:text-white transition-colors">Home</a></li>
+                <li aria-hidden="true"><i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40"></i></li>
+                <li><span class="text-white/80 font-medium">Admission Requirements</span></li>
+            </ol>
+        </nav>
 
-        <div class="grid lg:grid-cols-3 gap-8 items-start">
+        <div class="grid items-center gap-10 lg:grid-cols-3">
             <div class="lg:col-span-2">
-                {% comment %}
-                <div class="flex flex-wrap gap-2 mb-4">
-                    {% for level in active_degree_levels %}
-                        <span class="{% cycle 'bg-sky text-navy' 'bg-white/10 border border-white/20' %} px-3 py-1 rounded-full text-sm font-semibold">{{ level }}</span>
-                    {% empty %}
-                        <span class="bg-sky text-navy px-3 py-1 rounded-full text-sm font-semibold">Certificate</span>
-                        <span class="bg-white/10 border border-white/20 px-3 py-1 rounded-full text-sm">Diploma</span>
-                    {% endfor %}
-                </div>
-                {% endcomment %}
-
-                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 font-sora">Admission Requirements</h1>
-
-                <p class="text-base sm:text-lg text-white/70 mb-6 leading-relaxed">
-                    Apply to a job-ready training program in software development, cybersecurity, AI &amp; data, or cloud &amp; DevOps. No fixed deadlines, no entrance exams — apply whenever you're ready.
+                <h1 class="font-sora text-3xl sm:text-4xl lg:text-5xl font-bold text-white text-balance">Admission Requirements</h1>
+                <p class="mt-5 max-w-2xl text-lg leading-relaxed text-white/70 text-pretty">
+                    See what each programme asks for, what it costs, and how to apply. Pick a programme when you're ready and start your application.
                 </p>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="flex items-center gap-2">
-                        <i data-lucide="graduation-cap" class="w-5 h-5 text-sky" aria-hidden="true"></i>
-                        <span class="text-sm">Multiple Programs</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <i data-lucide="laptop" class="w-5 h-5 text-sky" aria-hidden="true"></i>
-                        <span class="text-sm">100% Online</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <i data-lucide="infinity" class="w-5 h-5 text-sky" aria-hidden="true"></i>
-                        <span class="text-sm">Self-Paced Access</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <i data-lucide="calendar" class="w-5 h-5 text-sky" aria-hidden="true"></i>
-                        <span class="text-sm">Rolling Admissions</span>
-                    </div>
-                </div>
+                <ul class="mt-8 flex flex-wrap gap-3">
+                    <li class="pill pill-light"><i data-lucide="laptop" class="w-3.5 h-3.5" aria-hidden="true"></i> 100% online</li>
+                    <li class="pill pill-light"><i data-lucide="infinity" class="w-3.5 h-3.5" aria-hidden="true"></i> Self-paced access</li>
+                    <li class="pill pill-light"><i data-lucide="calendar-check" class="w-3.5 h-3.5" aria-hidden="true"></i> No entrance exam</li>
+                </ul>
             </div>
 
-            <div class="bg-white/10 rounded-2xl p-6 border border-white/20 shadow-brand">
-                <h3 class="text-xl font-bold mb-4 flex items-center gap-2 font-sora">
+            <div class="rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur-sm">
+                <h2 class="flex items-center gap-2 font-sora text-lg font-bold text-white">
                     <i data-lucide="info" class="w-5 h-5 text-sky" aria-hidden="true"></i>
-                    Good to Know
-                </h3>
-
-                <div class="space-y-3 mb-6">
-                    <div class="flex flex-wrap justify-between items-center gap-x-2 gap-y-0.5 py-2 border-b border-white/10">
-                        <span class="text-sm text-white/70">Applications</span>
-                        <span class="font-semibold text-sm sm:text-base">Open Year-Round</span>
+                    Good to know
+                </h2>
+                <dl class="mt-4 divide-y divide-white/10 text-sm">
+                    <div class="flex items-center justify-between gap-4 py-3">
+                        <dt class="text-white/70">Programmes</dt>
+                        <dd class="font-semibold text-white tabular-nums">{{ programs|length }}</dd>
                     </div>
-                    <div class="flex flex-wrap justify-between items-center gap-x-2 gap-y-0.5 py-2 border-b border-white/10">
-                        <span class="text-sm text-white/70">Program Fee</span>
-                        <span class="font-semibold text-sm sm:text-base">Varies by program</span>
+                    <div class="flex items-center justify-between gap-4 py-3">
+                        <dt class="text-white/70">Course access</dt>
+                        <dd class="font-semibold text-white">Immediately on acceptance</dd>
                     </div>
-                    <div class="flex flex-wrap justify-between items-center gap-x-2 gap-y-0.5 py-2">
-                        <span class="text-sm text-white/70">Course Access</span>
-                        <span class="font-semibold text-sm sm:text-base">Immediate on acceptance</span>
+                    {% if next_intake %}
+                    <div class="flex items-center justify-between gap-4 py-3">
+                        <dt class="text-white/70">Next intake</dt>
+                        <dd class="text-right font-semibold text-white">{{ next_intake.get_intake_period_display }} {{ next_intake.year }}</dd>
                     </div>
-                </div>
-
-                <a href="{% url 'eduweb:all_programs' %}" class="block w-full brand-gradient text-white py-3 rounded-lg font-bold text-center transition-all shadow-brand hover:opacity-95">
-                    Start Application →
+                    {% endif %}
+                </dl>
+                <a href="#programmes" class="btn-brand mt-5 w-full">
+                    Choose a programme
+                    <i data-lucide="arrow-down" class="w-4 h-4" aria-hidden="true"></i>
                 </a>
             </div>
         </div>
     </div>
 </section>
 
-<!-- ================= ADMISSION TIMELINE ================= -->
-<section class="py-20 bg-soft">
+{# ── How it works: one real sequence, shown once ── #}
+<section class="{% cycle sectionbg %}{{ sectionbg }} py-16 lg:py-20" aria-labelledby="how-heading">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl lg:text-4xl font-bold text-navy mb-4 font-sora">How It Works</h2>
-            <p class="text-gray-600 max-w-2xl mx-auto">Four simple steps from application to your first course</p>
+        <div class="mx-auto max-w-2xl text-center">
+            <h2 id="how-heading" class="font-sora text-3xl font-bold text-navy text-balance sm:text-4xl">How admission works</h2>
+            <p class="mt-3 text-slate-600 text-pretty">Four steps from application to your first lesson.</p>
         </div>
 
-        <!-- Desktop Progress Steps -->
-        <div class="hidden lg:flex items-center justify-between mb-16 max-w-5xl mx-auto">
-            <div class="flex flex-col items-center flex-1">
-                <div class="w-12 h-12 rounded-full bg-brandblue text-white flex items-center justify-center font-bold text-lg shadow-lg">1</div>
-                <div class="mt-3 text-center">
-                    <div class="font-semibold text-gray-900">Apply</div>
-                    <div class="text-sm text-gray-600">Fill out the form</div>
-                </div>
-            </div>
-            <div class="flex-1 h-1 bg-gray-300 -mt-10"></div>
-            <div class="flex flex-col items-center flex-1">
-                <div class="w-12 h-12 rounded-full bg-brandblue text-white flex items-center justify-center font-bold text-lg shadow-lg">2</div>
-                <div class="mt-3 text-center">
-                    <div class="font-semibold text-gray-900">Pay &amp; Submit</div>
-                    <div class="text-sm text-gray-600">Application fee + documents</div>
-                </div>
-            </div>
-            <div class="flex-1 h-1 bg-gray-300 -mt-10"></div>
-            <div class="flex flex-col items-center flex-1">
-                <div class="w-12 h-12 rounded-full bg-brandblue text-white flex items-center justify-center font-bold text-lg shadow-lg">3</div>
-                <div class="mt-3 text-center">
-                    <div class="font-semibold text-gray-900">Review</div>
-                    <div class="text-sm text-gray-600">We review your application</div>
-                </div>
-            </div>
-            <div class="flex-1 h-1 bg-gray-300 -mt-10"></div>
-            <div class="flex flex-col items-center flex-1">
-                <div class="w-12 h-12 rounded-full bg-brandblue text-white flex items-center justify-center font-bold text-lg shadow-lg">4</div>
-                <div class="mt-3 text-center">
-                    <div class="font-semibold text-gray-900">Start Learning</div>
-                    <div class="text-sm text-gray-600">Accept &amp; access your courses</div>
-                </div>
-            </div>
-        </div>
+        <ol class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <li class="reveal rounded-2xl border border-borderblue bg-white p-6 shadow-card">
+                <span class="flex size-10 items-center justify-center rounded-full bg-brandblue font-sora font-bold text-white" aria-hidden="true">1</span>
+                <h3 class="mt-4 font-sora text-lg font-semibold text-navy">Apply</h3>
+                <p class="mt-1 text-sm leading-relaxed text-slate-600 text-pretty">Choose a programme and fill out the application form.</p>
+            </li>
+            <li class="reveal rounded-2xl border border-borderblue bg-white p-6 shadow-card">
+                <span class="flex size-10 items-center justify-center rounded-full bg-brandblue font-sora font-bold text-white" aria-hidden="true">2</span>
+                <h3 class="mt-4 font-sora text-lg font-semibold text-navy">Pay and submit</h3>
+                <p class="mt-1 text-sm leading-relaxed text-slate-600 text-pretty">Pay the application fee securely online and upload your documents.</p>
+            </li>
+            <li class="reveal rounded-2xl border border-borderblue bg-white p-6 shadow-card">
+                <span class="flex size-10 items-center justify-center rounded-full bg-brandblue font-sora font-bold text-white" aria-hidden="true">3</span>
+                <h3 class="mt-4 font-sora text-lg font-semibold text-navy">Review</h3>
+                <p class="mt-1 text-sm leading-relaxed text-slate-600 text-pretty">Our admissions team reviews complete applications as they come in.</p>
+            </li>
+            <li class="reveal rounded-2xl border border-borderblue bg-white p-6 shadow-card">
+                <span class="flex size-10 items-center justify-center rounded-full bg-brandblue font-sora font-bold text-white" aria-hidden="true">4</span>
+                <h3 class="mt-4 font-sora text-lg font-semibold text-navy">Start learning</h3>
+                <p class="mt-1 text-sm leading-relaxed text-slate-600 text-pretty">Accept your offer in the student portal and open your courses.</p>
+            </li>
+        </ol>
 
-        <!-- Mobile Progress Steps -->
-        <div class="lg:hidden mb-12 max-w-md mx-auto">
-            <div class="space-y-4">
-                <div class="flex items-center gap-4 bg-ice p-4 rounded-lg border-l-4 border-brandblue">
-                    <div class="w-10 h-10 rounded-full bg-brandblue text-white flex items-center justify-center flex-shrink-0 font-bold">1</div>
-                    <div>
-                        <div class="font-semibold">1. Apply</div>
-                        <div class="text-sm text-gray-600">Fill out the form</div>
-                    </div>
-                </div>
-                <div class="flex items-center gap-4 bg-ice p-4 rounded-lg border-l-4 border-brandblue">
-                    <div class="w-10 h-10 rounded-full bg-brandblue text-white flex items-center justify-center flex-shrink-0 font-bold">2</div>
-                    <div>
-                        <div class="font-semibold">2. Pay &amp; Submit</div>
-                        <div class="text-sm text-gray-600">Application fee + documents</div>
-                    </div>
-                </div>
-                <div class="flex items-center gap-4 bg-ice p-4 rounded-lg border-l-4 border-brandblue">
-                    <div class="w-10 h-10 rounded-full bg-brandblue text-white flex items-center justify-center flex-shrink-0 font-bold">3</div>
-                    <div>
-                        <div class="font-semibold">3. Review</div>
-                        <div class="text-sm text-gray-600">We review your application</div>
-                    </div>
-                </div>
-                <div class="flex items-center gap-4 bg-ice p-4 rounded-lg border-l-4 border-brandblue">
-                    <div class="w-10 h-10 rounded-full bg-brandblue text-white flex items-center justify-center flex-shrink-0 font-bold">4</div>
-                    <div>
-                        <div class="font-semibold">4. Start Learning</div>
-                        <div class="text-sm text-gray-600">Accept &amp; access your courses</div>
-                    </div>
+        <div class="mt-8 grid gap-6 md:grid-cols-2">
+            <div class="flex items-start gap-4 rounded-2xl border border-borderblue bg-white p-6 shadow-card">
+                <span class="flex size-11 flex-shrink-0 items-center justify-center rounded-xl bg-ice text-brandblue">
+                    <i data-lucide="check-circle" class="w-6 h-6" aria-hidden="true"></i>
+                </span>
+                <div>
+                    <h3 class="font-sora text-lg font-semibold text-navy">If you're accepted</h3>
+                    <p class="mt-1 text-sm leading-relaxed text-slate-600 text-pretty">You'll get your decision by email and in the student portal. Accept the offer to unlock your programme's courses.</p>
                 </div>
             </div>
-        </div>
-
-        <!-- Timeline Details Grid -->
-        <div class="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            <div>
-                <h3 class="text-2xl font-bold mb-6 text-navy flex items-center gap-2 font-sora">
-                    <i data-lucide="calendar-days" class="w-6 h-6 text-brandblue" aria-hidden="true"></i>
-                    Application Timeline
-                </h3>
-                <div class="space-y-4">
-                    <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border-l-4 border-sky">
-                        <div class="text-sm text-brandblue font-semibold mb-2">Step 1</div>
-                        <h4 class="font-bold text-lg mb-2 font-sora">Apply Anytime</h4>
-                        <p class="text-gray-600 text-sm">Admissions are rolling — there's no fixed deadline. Submit your application whenever you're ready.</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border-l-4 border-brandblue">
-                        <div class="text-sm text-brandblue font-semibold mb-2">Step 2</div>
-                        <h4 class="font-bold text-lg mb-2 font-sora">Application Review</h4>
-                        <p class="text-gray-600 text-sm">Our admissions team reviews complete applications as they come in.</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border-l-4 border-green-500">
-                        <div class="text-sm text-brandblue font-semibold mb-2">Step 3</div>
-                        <h4 class="font-bold text-lg mb-2 font-sora">Admission Decision</h4>
-                        <p class="text-gray-600 text-sm">You'll receive your decision via email and the student portal.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div>
-                <h3 class="text-2xl font-bold mb-6 text-navy flex items-center gap-2 font-sora">
-                    <i data-lucide="mail-check" class="w-6 h-6 text-brandblue" aria-hidden="true"></i>
-                    After You Apply
-                </h3>
-                <div class="space-y-4 mb-6">
-                    <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow">
-                        <div class="flex items-start gap-4">
-                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                <i data-lucide="check-circle" class="w-6 h-6 text-green-600" aria-hidden="true"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-lg mb-1 font-sora">Accepted</h4>
-                                <p class="text-gray-600 text-sm">Accept your offer in the portal and get instant access to your program's courses — plus every other course in the catalog.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow">
-                        <div class="flex items-start gap-4">
-                            <div class="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                <i data-lucide="file-question" class="w-6 h-6 text-amber-600" aria-hidden="true"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-lg mb-1 font-sora">Needs More Info</h4>
-                                <p class="text-gray-600 text-sm">If something's missing from your application, we'll reach out by email to let you know what's needed.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-navy text-white rounded-xl p-6 shadow-brand">
-                    <h4 class="font-bold text-lg mb-2 flex items-center gap-2 font-sora">
-                        <i data-lucide="help-circle" class="w-5 h-5" aria-hidden="true"></i>
-                        Have Questions?
-                    </h4>
-                    <p class="mb-4 text-white/70 text-sm">Reach out to our admissions team anytime — see the contact options below.</p>
-                    <a href="#contact" class="inline-block w-full sm:w-auto bg-white text-navy px-5 py-3 rounded-lg hover:bg-ice transition-colors font-semibold text-sm text-center">
-                        Contact Admissions
-                    </a>
+            <div class="flex items-start gap-4 rounded-2xl border border-borderblue bg-white p-6 shadow-card">
+                <span class="flex size-11 flex-shrink-0 items-center justify-center rounded-xl bg-ice text-brandblue">
+                    <i data-lucide="file-question" class="w-6 h-6" aria-hidden="true"></i>
+                </span>
+                <div>
+                    <h3 class="font-sora text-lg font-semibold text-navy">If we need more information</h3>
+                    <p class="mt-1 text-sm leading-relaxed text-slate-600 text-pretty">We'll email you exactly what's missing so you can complete your application.</p>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- ================= ADMISSION REQUIREMENTS ================= -->
-<section class="py-20 bg-white">
+{# ── Entry requirements shared by every programme (from the backend), shown once ── #}
+{% if common_requirements %}
+<section class="{% cycle sectionbg %}{{ sectionbg }} py-16 lg:py-20" aria-labelledby="entry-heading">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl lg:text-4xl font-bold text-navy mb-4 font-sora">Admission Requirements</h2>
-            <p class="text-gray-600 max-w-2xl mx-auto">Meet these criteria to be eligible for admission to our programs</p>
-        </div>
-
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto mb-12">
-            <div class="bg-white border-2 border-borderblue hover:border-brandblue p-8 rounded-2xl shadow-md hover:shadow-xl transition-all">
-                <div class="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
-                    <i data-lucide="book-open" class="w-7 h-7 text-blue-600" aria-hidden="true"></i>
-                </div>
-                <h3 class="font-bold text-xl mb-4 text-navy font-sora">Who Can Apply</h3>
-                <ul class="space-y-3 text-gray-700">
-                    <li class="flex items-start gap-2">
-                        <i data-lucide="check" class="w-5 h-5 text-brandblue flex-shrink-0 mt-0.5" aria-hidden="true"></i>
-                        <span>High school diploma or equivalent</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i data-lucide="check" class="w-5 h-5 text-brandblue flex-shrink-0 mt-0.5" aria-hidden="true"></i>
-                        <span>No prior coding or technical experience required</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i data-lucide="check" class="w-5 h-5 text-brandblue flex-shrink-0 mt-0.5" aria-hidden="true"></i>
-                        <span>No entrance exam, GPA, or standardized test scores needed</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i data-lucide="check" class="w-5 h-5 text-brandblue flex-shrink-0 mt-0.5" aria-hidden="true"></i>
-                        <span>Career changers, students, and working professionals all welcome</span>
-                    </li>
-                </ul>
-                <p class="text-xs text-gray-400 mt-4">Some programs list additional recommended background on their program page.</p>
+        <div class="grid gap-10 lg:grid-cols-3 lg:gap-16">
+            <div>
+                <h2 id="entry-heading" class="font-sora text-3xl font-bold text-navy text-balance sm:text-4xl">Entry requirements</h2>
+                <p class="mt-3 text-slate-600 text-pretty">These apply to every programme. If a programme asks for more, you'll see it on its card below.</p>
             </div>
-
-            <div class="bg-white border-2 border-borderblue hover:border-brandblue p-8 rounded-2xl shadow-md hover:shadow-xl transition-all">
-                <div class="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center mb-4">
-                    <i data-lucide="laptop" class="w-7 h-7 text-green-600" aria-hidden="true"></i>
-                </div>
-                <h3 class="font-bold text-xl mb-4 text-navy font-sora">What You'll Need</h3>
-                <ul class="space-y-3 text-gray-700">
-                    <li class="flex items-start gap-2">
-                        <i data-lucide="check" class="w-5 h-5 text-brandblue flex-shrink-0 mt-0.5" aria-hidden="true"></i>
-                        <span>A computer (laptop or desktop)</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i data-lucide="check" class="w-5 h-5 text-brandblue flex-shrink-0 mt-0.5" aria-hidden="true"></i>
-                        <span>A reliable internet connection</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i data-lucide="check" class="w-5 h-5 text-brandblue flex-shrink-0 mt-0.5" aria-hidden="true"></i>
-                        <span>Time to commit to self-paced coursework</span>
-                    </li>
-                </ul>
-                <p class="text-xs text-gray-400 mt-4">We ask about your setup on the application form — it doesn't affect your admission decision.</p>
-            </div>
-
-            <div class="bg-white border-2 border-borderblue hover:border-brandblue p-8 rounded-2xl shadow-md hover:shadow-xl transition-all">
-                <div class="w-14 h-14 bg-ice rounded-xl flex items-center justify-center mb-4">
-                    <i data-lucide="file-text" class="w-7 h-7 text-brandblue" aria-hidden="true"></i>
-                </div>
-                <h3 class="font-bold text-xl mb-4 text-navy font-sora">Application Checklist</h3>
-                <div class="space-y-3">
-                    <label class="flex items-center gap-3 py-1.5 cursor-pointer group">
-                        <input type="checkbox" class="w-5 h-5 rounded border-gray-300 text-brandblue focus:ring-brandblue">
-                        <span class="text-gray-700 group-hover:text-navy transition-colors">Completed application form</span>
-                    </label>
-                    <label class="flex items-center gap-3 py-1.5 cursor-pointer group">
-                        <input type="checkbox" class="w-5 h-5 rounded border-gray-300 text-brandblue focus:ring-brandblue">
-                        <span class="text-gray-700 group-hover:text-navy transition-colors">A valid ID document</span>
-                    </label>
-                    <label class="flex items-center gap-3 py-1.5 cursor-pointer group">
-                        <input type="checkbox" class="w-5 h-5 rounded border-gray-300 text-brandblue focus:ring-brandblue">
-                        <span class="text-gray-700 group-hover:text-navy transition-colors">Certificate/transcript of your highest qualification</span>
-                    </label>
-                    <label class="flex items-center gap-3 py-1.5 cursor-pointer group">
-                        <input type="checkbox" class="w-5 h-5 rounded border-gray-300 text-brandblue focus:ring-brandblue">
-                        <span class="text-gray-700 group-hover:text-navy transition-colors">Personal statement (optional)</span>
-                    </label>
-                    <label class="flex items-center gap-3 py-1.5 cursor-pointer group">
-                        <input type="checkbox" class="w-5 h-5 rounded border-gray-300 text-brandblue focus:ring-brandblue">
-                        <span class="text-gray-700 group-hover:text-navy transition-colors">Resume/CV (optional)</span>
-                    </label>
-                    <label class="flex items-center gap-3 py-1.5 cursor-pointer group">
-                        <input type="checkbox" class="w-5 h-5 rounded border-gray-300 text-brandblue focus:ring-brandblue">
-                        <span class="text-gray-700 group-hover:text-navy transition-colors">Application fee payment</span>
-                    </label>
-                </div>
-            </div>
+            <ul class="space-y-4 lg:col-span-2">
+                {% for requirement in common_requirements %}
+                <li class="flex items-start gap-4 rounded-2xl border border-borderblue bg-white p-5 shadow-card">
+                    <span class="flex size-9 flex-shrink-0 items-center justify-center rounded-full bg-ice text-brandblue">
+                        <i data-lucide="check" class="h-5 w-5" aria-hidden="true"></i>
+                    </span>
+                    <p class="pt-1 leading-relaxed text-slate-700 text-pretty">{{ requirement }}</p>
+                </li>
+                {% endfor %}
+            </ul>
         </div>
     </div>
 </section>
+{% endif %}
 
-<!-- ================= PROGRAM FEES ================= -->
-<section class="py-20 bg-soft">
+{# ── Duration, fees and intakes per programme (from the backend) ── #}
+{% if programs %}
+<section id="programmes" class="{% cycle sectionbg %}{{ sectionbg }} py-16 lg:py-20 scroll-mt-24" aria-labelledby="programmes-heading">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl lg:text-4xl font-bold text-navy mb-4 font-sora">Program Fees</h2>
-            <p class="text-gray-600 max-w-2xl mx-auto">Simple, transparent pricing — one application fee to apply, one program fee to enroll. No hidden costs.</p>
+        <div class="mx-auto max-w-2xl text-center">
+            <h2 id="programmes-heading" class="font-sora text-3xl font-bold text-navy text-balance sm:text-4xl">Choose your programme</h2>
+            <p class="mt-3 text-slate-600 text-pretty">See how long each programme runs, what it costs and when the next intake opens.</p>
         </div>
 
-        {% if programs %}
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <div class="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {% for program in programs %}
-            <div class="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all p-6 border border-borderblue flex flex-col">
-                <p class="text-xs font-semibold text-brandblue uppercase tracking-wide mb-1">{{ program.department.faculty.name }}</p>
-                <h3 class="font-bold text-lg text-navy mb-4 font-sora">{{ program.name }}</h3>
-                <div class="space-y-2 text-sm mb-5">
-                    <div class="flex justify-between">
-                        <span class="text-gray-500">Application Fee</span>
-                        <span class="font-semibold text-gray-900">${{ program.application_fee|floatformat:0|intcomma }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-500">Program Fee</span>
-                        <span class="font-semibold text-gray-900">${{ program.tuition_fee|floatformat:0|intcomma }}</span>
-                    </div>
+            <article class="reveal flex h-full flex-col rounded-2xl border border-borderblue bg-white p-6 shadow-card">
+                <div class="flex items-start justify-between gap-3">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-brandblue">{{ program.department.faculty.name }}</p>
+                    {% if program.duration_years %}
+                    <p class="inline-flex flex-shrink-0 items-center gap-1.5 rounded-full bg-ice px-3 py-1 text-xs font-semibold text-navy tabular-nums">
+                        <i data-lucide="clock" class="h-3.5 w-3.5 text-brandblue" aria-hidden="true"></i>
+                        {% if program.duration_years < 1 %}{% widthratio program.duration_years 1 12 %} months{% else %}{{ program.duration_years|floatformat:"-1" }} year{{ program.duration_years|pluralize }}{% endif %}
+                    </p>
+                    {% endif %}
                 </div>
-                <a href="{% url 'eduweb:program_detail' program.slug %}"
-                   class="mt-auto block w-full text-center border-2 border-brandblue text-brandblue hover:bg-brandblue hover:text-white transition-colors px-4 py-2.5 rounded-lg font-semibold text-sm">
-                    View Program
-                </a>
-            </div>
+                <h3 class="mt-3 font-sora text-xl font-bold text-navy text-balance">{{ program.name }}</h3>
+                {% if program.tagline %}<p class="mt-2 text-sm leading-relaxed text-slate-600 text-pretty">{{ program.tagline }}</p>{% endif %}
+
+                {% if program.application_fee or program.tuition_fee %}
+                <dl class="mt-5 grid grid-cols-2 divide-x divide-borderblue rounded-xl border border-borderblue text-sm">
+                    {% if program.application_fee %}
+                    <div class="px-4 py-3">
+                        <dt class="text-xs text-slate-500">Application fee</dt>
+                        <dd class="mt-0.5 font-semibold text-navy tabular-nums">${{ program.application_fee|floatformat:0|intcomma }}</dd>
+                    </div>
+                    {% endif %}
+                    {% if program.tuition_fee %}
+                    <div class="px-4 py-3">
+                        <dt class="text-xs text-slate-500">Programme fee</dt>
+                        <dd class="mt-0.5 font-semibold text-navy tabular-nums">${{ program.tuition_fee|floatformat:0|intcomma }}</dd>
+                    </div>
+                    {% endif %}
+                </dl>
+                {% endif %}
+
+                {% with intake=program.open_intakes.0 %}
+                {% if intake %}
+                <p class="pill pill-cyan mt-4 self-start">
+                    <i data-lucide="calendar-check" class="w-3.5 h-3.5" aria-hidden="true"></i>
+                    {{ intake.get_intake_period_display }} {{ intake.year }} &middot; apply by {{ intake.application_deadline|date:"j M Y" }}
+                </p>
+                {% endif %}
+                {% endwith %}
+
+                {% if program.extra_requirements %}
+                <h4 class="mt-6 text-sm font-semibold text-navy">Also required for this programme</h4>
+                <ul class="mt-3 space-y-2.5">
+                    {% for requirement in program.extra_requirements %}
+                    <li class="flex items-start gap-2.5 text-sm leading-relaxed text-slate-700">
+                        <i data-lucide="check" class="mt-0.5 h-4 w-4 flex-shrink-0 text-brandblue" aria-hidden="true"></i>
+                        <span>{{ requirement }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+
+                <div class="mt-auto flex flex-wrap gap-3 pt-6">
+                    <a href="{% url 'eduweb:signup_page' %}?program={{ program.slug }}" class="btn-brand btn-brand-sm">
+                        Apply
+                        <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
+                    </a>
+                    <a href="{% url 'eduweb:program_detail' program.slug %}" class="btn-brand-outline btn-brand-sm text-navy">View programme</a>
+                </div>
+            </article>
             {% endfor %}
         </div>
-        {% endif %}
 
-        <p class="text-center text-sm text-gray-500 mt-10">
-            Payment is made securely online, once, as part of your application and enrollment.
-        </p>
+        <p class="mt-10 text-center text-sm text-slate-600">Payment is made securely online, as part of your application and enrollment.</p>
     </div>
 </section>
+{% endif %}
 
-<!-- ================= FAQ SECTION ================= -->
-<section class="py-20 bg-white">
+{# ── General requirements that apply to every programme ── #}
+<section class="{% cycle sectionbg %}{{ sectionbg }} py-16 lg:py-20" aria-labelledby="general-heading">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl lg:text-4xl font-bold text-navy mb-4 font-sora">Admission FAQs</h2>
-            <p class="text-gray-600 max-w-2xl mx-auto">Find answers to commonly asked questions about applying and getting started</p>
+        <div class="mx-auto max-w-2xl text-center">
+            <h2 id="general-heading" class="font-sora text-3xl font-bold text-navy text-balance sm:text-4xl">Before you apply</h2>
+            <p class="mt-3 text-slate-600 text-pretty">A few practical things to have ready before you start your application.</p>
         </div>
 
-        <div class="max-w-4xl mx-auto space-y-4">
-            <div class="bg-white border border-borderblue rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                <button class="faq-toggle w-full text-left p-6 hover:bg-soft transition-colors flex justify-between items-center gap-4" data-faq="faq1">
-                    <span class="font-semibold text-lg text-gray-900 pr-4">What is the application fee?</span>
-                    <i data-lucide="plus" class="w-6 h-6 text-brandblue flex-shrink-0 transition-transform" aria-hidden="true"></i>
-                </button>
-                <div id="faq1" class="faq-content overflow-hidden transition-all duration-300" style="max-height: 0;">
-                    <div class="p-6 pt-0 text-gray-700 leading-relaxed">
-                        The application fee varies by program — you'll see the exact amount on the program's page before you apply, and pay it securely online as part of your application.
-                    </div>
-                </div>
+        <div class="mt-12 grid gap-6 md:grid-cols-2">
+            <div class="rounded-2xl border border-borderblue bg-white p-6 shadow-card">
+                <span class="flex size-11 items-center justify-center rounded-xl bg-ice text-brandblue"><i data-lucide="laptop" class="w-6 h-6" aria-hidden="true"></i></span>
+                <h3 class="mt-4 font-sora text-lg font-semibold text-navy">Technical setup</h3>
+                <ul class="mt-4 space-y-3 text-sm text-slate-700">
+                    <li class="flex items-start gap-2.5"><i data-lucide="check" class="mt-0.5 h-4 w-4 flex-shrink-0 text-brandblue" aria-hidden="true"></i><span>A computer (laptop or desktop)</span></li>
+                    <li class="flex items-start gap-2.5"><i data-lucide="check" class="mt-0.5 h-4 w-4 flex-shrink-0 text-brandblue" aria-hidden="true"></i><span>A reliable internet connection</span></li>
+                    <li class="flex items-start gap-2.5"><i data-lucide="check" class="mt-0.5 h-4 w-4 flex-shrink-0 text-brandblue" aria-hidden="true"></i><span>Time to commit to self-paced coursework</span></li>
+                </ul>
+                <p class="mt-4 text-xs text-slate-500 text-pretty">We ask about your setup on the application form. It doesn't affect your admission decision.</p>
             </div>
-
-            <div class="bg-white border border-borderblue rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                <button class="faq-toggle w-full text-left p-6 hover:bg-soft transition-colors flex justify-between items-center gap-4" data-faq="faq2">
-                    <span class="font-semibold text-lg text-gray-900 pr-4">Can I apply to more than one program?</span>
-                    <i data-lucide="plus" class="w-6 h-6 text-brandblue flex-shrink-0 transition-transform" aria-hidden="true"></i>
-                </button>
-                <div id="faq2" class="faq-content overflow-hidden transition-all duration-300" style="max-height: 0;">
-                    <div class="p-6 pt-0 text-gray-700 leading-relaxed">
-                        Yes. Each program needs its own application and application fee, since each is reviewed separately.
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white border border-borderblue rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                <button class="faq-toggle w-full text-left p-6 hover:bg-soft transition-colors flex justify-between items-center gap-4" data-faq="faq3">
-                    <span class="font-semibold text-lg text-gray-900 pr-4">Is there an application deadline?</span>
-                    <i data-lucide="plus" class="w-6 h-6 text-brandblue flex-shrink-0 transition-transform" aria-hidden="true"></i>
-                </button>
-                <div id="faq3" class="faq-content overflow-hidden transition-all duration-300" style="max-height: 0;">
-                    <div class="p-6 pt-0 text-gray-700 leading-relaxed">
-                        No — admissions are rolling. You can apply at any time, and we review complete applications as they come in.
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white border border-borderblue rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                <button class="faq-toggle w-full text-left p-6 hover:bg-soft transition-colors flex justify-between items-center gap-4" data-faq="faq4">
-                    <span class="font-semibold text-lg text-gray-900 pr-4">What happens after I'm accepted?</span>
-                    <i data-lucide="plus" class="w-6 h-6 text-brandblue flex-shrink-0 transition-transform" aria-hidden="true"></i>
-                </button>
-                <div id="faq4" class="faq-content overflow-hidden transition-all duration-300" style="max-height: 0;">
-                    <div class="p-6 pt-0 text-gray-700 leading-relaxed">
-                        Accept your offer in the student portal and you'll get instant access to your program's core courses. From there, you can also browse the full course catalog and register for anything else that interests you — you're not limited to the program you applied for.
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white border border-borderblue rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                <button class="faq-toggle w-full text-left p-6 hover:bg-soft transition-colors flex justify-between items-center gap-4" data-faq="faq5">
-                    <span class="font-semibold text-lg text-gray-900 pr-4">Is coursework live or self-paced?</span>
-                    <i data-lucide="plus" class="w-6 h-6 text-brandblue flex-shrink-0 transition-transform" aria-hidden="true"></i>
-                </button>
-                <div id="faq5" class="faq-content overflow-hidden transition-all duration-300" style="max-height: 0;">
-                    <div class="p-6 pt-0 text-gray-700 leading-relaxed">
-                        Courses are self-paced — once you're enrolled, there's no term or semester limit on when you complete a course. Work through the material on your own schedule.
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white border border-borderblue rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                <button class="faq-toggle w-full text-left p-6 hover:bg-soft transition-colors flex justify-between items-center gap-4" data-faq="faq6">
-                    <span class="font-semibold text-lg text-gray-900 pr-4">Do I get a certificate when I finish?</span>
-                    <i data-lucide="plus" class="w-6 h-6 text-brandblue flex-shrink-0 transition-transform" aria-hidden="true"></i>
-                </button>
-                <div id="faq6" class="faq-content overflow-hidden transition-all duration-300" style="max-height: 0;">
-                    <div class="p-6 pt-0 text-gray-700 leading-relaxed">
-                        Yes — once you complete all of a program's core courses, a completion certificate is issued to your account.
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="text-center mt-12">
-            <p class="text-gray-600 mb-4 text-lg">Still have questions?</p>
-            <a href="#contact" class="inline-flex items-center gap-2 brand-gradient text-white px-8 py-3 rounded-lg font-semibold hover:opacity-95 shadow-brand transition-all">
-                <i data-lucide="mail" class="w-5 h-5" aria-hidden="true"></i>
-                Contact Admissions Office
-            </a>
-        </div>
-    </div>
-</section>
-
-<!-- ================= CONTACT SECTION ================= -->
-<section id="contact" class="py-20 bg-soft">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl lg:text-4xl font-bold text-navy mb-4 font-sora">Contact Admissions</h2>
-            <p class="text-gray-600 max-w-3xl mx-auto">Our admissions team is here to help you through every step of the application process</p>
-        </div>
-
-        <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <div class="bg-white p-8 rounded-2xl shadow-lg text-center hover:shadow-xl transition-shadow border border-borderblue">
-                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="phone" class="w-8 h-8 text-blue-600" aria-hidden="true"></i>
-                </div>
-                <h3 class="font-bold text-lg mb-3 text-gray-900 font-sora">Phone Support</h3>
-                <p class="text-brandblue font-semibold mb-2">
-                    <a href="tel:{{ site_config.phone_admissions|default:site_config.phone_primary }}" class="hover:text-navy transition-colors">{{ site_config.phone_admissions|default:site_config.phone_primary|default:"Contact us by email" }}</a>
-                </p>
-                <p class="text-sm text-gray-600">{{ site_config.office_hours_weekday|default:"Mon–Fri, business hours" }}</p>
-            </div>
-
-            <div class="bg-white p-8 rounded-2xl shadow-lg text-center hover:shadow-xl transition-shadow border border-borderblue">
-                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="mail" class="w-8 h-8 text-green-600" aria-hidden="true"></i>
-                </div>
-                <h3 class="font-bold text-lg mb-3 text-gray-900 font-sora">Email</h3>
-                <p class="text-brandblue font-semibold mb-2 break-words px-2">
-                    <a href="mailto:{{ site_config.email_admissions|default:"admissions@abraytech.com" }}" class="hover:text-navy transition-colors">{{ site_config.email_admissions|default:"admissions@abraytech.com" }}</a>
-                </p>
-                <p class="text-sm text-gray-600">Response within 24 hours</p>
-            </div>
-
-            <div class="bg-white p-8 rounded-2xl shadow-lg text-center hover:shadow-xl transition-shadow border border-borderblue">
-                <div class="w-16 h-16 bg-ice rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="message-circle" class="w-8 h-8 text-brandblue" aria-hidden="true"></i>
-                </div>
-                <h3 class="font-bold text-lg mb-3 text-gray-900 font-sora">Chat Assistant</h3>
-                <p class="text-brandblue font-semibold mb-2">Available on the website</p>
-                <p class="text-sm text-gray-600">Instant answers, anytime</p>
+            <div class="rounded-2xl border border-borderblue bg-white p-6 shadow-card">
+                <span class="flex size-11 items-center justify-center rounded-xl bg-ice text-brandblue"><i data-lucide="file-text" class="w-6 h-6" aria-hidden="true"></i></span>
+                <h3 class="mt-4 font-sora text-lg font-semibold text-navy">Documents to submit</h3>
+                <ul class="mt-4 space-y-3 text-sm text-slate-700">
+                    <li class="flex items-start gap-2.5"><i data-lucide="check" class="mt-0.5 h-4 w-4 flex-shrink-0 text-brandblue" aria-hidden="true"></i><span>Completed application form</span></li>
+                    <li class="flex items-start gap-2.5"><i data-lucide="check" class="mt-0.5 h-4 w-4 flex-shrink-0 text-brandblue" aria-hidden="true"></i><span>A valid ID document</span></li>
+                    <li class="flex items-start gap-2.5"><i data-lucide="check" class="mt-0.5 h-4 w-4 flex-shrink-0 text-brandblue" aria-hidden="true"></i><span>Certificate or transcript of your highest qualification</span></li>
+                    <li class="flex items-start gap-2.5"><i data-lucide="check" class="mt-0.5 h-4 w-4 flex-shrink-0 text-brandblue" aria-hidden="true"></i><span>Application fee payment</span></li>
+                    <li class="flex items-start gap-2.5 text-slate-500"><i data-lucide="plus" class="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden="true"></i><span>Optional: personal statement, resume or CV</span></li>
+                </ul>
             </div>
         </div>
     </div>
 </section>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    lucide.createIcons();
+{# ── Admissions FAQs (from the support FAQ table, category "Admissions") ── #}
+{% if faqs %}
+<section class="{% cycle sectionbg %}{{ sectionbg }} py-16 lg:py-20" aria-labelledby="faq-heading">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+            <h2 id="faq-heading" class="font-sora text-3xl font-bold text-navy text-balance sm:text-4xl">Admission FAQs</h2>
+            <p class="mt-3 text-slate-600 text-pretty">Quick answers about applying and getting started.</p>
+        </div>
 
-    const faqToggles = document.querySelectorAll('.faq-toggle');
-    faqToggles.forEach(toggle => {
-        toggle.addEventListener('click', function() {
-            const faqId = this.getAttribute('data-faq');
-            const content = document.getElementById(faqId);
-            const icon = this.querySelector('[data-lucide]');
-            const isOpen = content.style.maxHeight && content.style.maxHeight !== '0px';
+        <div class="mt-10 space-y-3">
+            {% for faq in faqs %}
+            <details class="curriculum-row group rounded-xl border border-borderblue bg-white shadow-card"{% if forloop.first %} open{% endif %}>
+                <summary class="flex min-h-11 items-center justify-between gap-4 px-5 py-4 font-semibold text-navy">
+                    <span class="text-pretty">{{ faq.question }}</span>
+                    <i data-lucide="chevron-down" class="chev h-5 w-5 flex-shrink-0 text-brandblue transition-transform duration-200" aria-hidden="true"></i>
+                </summary>
+                <div class="space-y-3 border-t border-borderblue px-5 py-4 text-sm leading-relaxed text-slate-700 text-pretty">
+                    {{ faq.answer|rich_text }}
+                </div>
+            </details>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
 
-            document.querySelectorAll('.faq-content').forEach(item => {
-                if (item !== content) item.style.maxHeight = '0';
-            });
-            document.querySelectorAll('.faq-toggle [data-lucide]').forEach(item => {
-                if (item !== icon) item.outerHTML = '<i data-lucide="plus" class="w-6 h-6 text-brandblue flex-shrink-0 transition-transform" aria-hidden="true"></i>';
-            });
+{# ── Contact: only the channels that are configured in the backend ── #}
+{% with phone=site_config.phone_admissions|default:site_config.phone_general|default:site_config.phone_primary email=site_config.email_admissions|default:site_config.email_info %}
+{% if phone or email or site_config.whatsapp %}
+<section id="contact" class="{% cycle sectionbg %}{{ sectionbg }} py-16 lg:py-20 scroll-mt-24" aria-labelledby="contact-heading">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-2xl text-center">
+            <h2 id="contact-heading" class="font-sora text-3xl font-bold text-navy text-balance sm:text-4xl">Talk to admissions</h2>
+            <p class="mt-3 text-slate-600 text-pretty">Our team can help with any question about applying.</p>
+        </div>
 
-            if (isOpen) {
-                content.style.maxHeight = '0';
-                icon.outerHTML = '<i data-lucide="plus" class="w-6 h-6 text-brandblue flex-shrink-0 transition-transform" aria-hidden="true"></i>';
-            } else {
-                content.style.maxHeight = content.scrollHeight + 'px';
-                icon.outerHTML = '<i data-lucide="minus" class="w-6 h-6 text-brandblue flex-shrink-0 transition-transform" aria-hidden="true"></i>';
-            }
-            lucide.createIcons();
-        });
-    });
-});
-</script>
+        <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {% if phone %}
+            <div class="rounded-2xl border border-borderblue bg-white p-6 text-center shadow-card">
+                <span class="mx-auto flex size-12 items-center justify-center rounded-full bg-ice text-brandblue"><i data-lucide="phone" class="w-6 h-6" aria-hidden="true"></i></span>
+                <h3 class="mt-4 font-sora text-lg font-semibold text-navy">Phone</h3>
+                <a href="tel:{{ phone }}" class="mt-2 block font-semibold text-brandblue hover:text-navy transition-colors">{{ phone }}</a>
+                {% if site_config.office_hours_weekday %}<p class="mt-1 text-sm text-slate-600">{{ site_config.office_hours_weekday }}</p>{% endif %}
+            </div>
+            {% endif %}
+            {% if email %}
+            <div class="rounded-2xl border border-borderblue bg-white p-6 text-center shadow-card">
+                <span class="mx-auto flex size-12 items-center justify-center rounded-full bg-ice text-brandblue"><i data-lucide="mail" class="w-6 h-6" aria-hidden="true"></i></span>
+                <h3 class="mt-4 font-sora text-lg font-semibold text-navy">Email</h3>
+                <a href="mailto:{{ email }}" class="mt-2 block break-words font-semibold text-brandblue hover:text-navy transition-colors">{{ email }}</a>
+            </div>
+            {% endif %}
+            {% if site_config.whatsapp %}
+            <div class="rounded-2xl border border-borderblue bg-white p-6 text-center shadow-card">
+                <span class="mx-auto flex size-12 items-center justify-center rounded-full bg-ice text-brandblue"><i data-lucide="message-circle" class="w-6 h-6" aria-hidden="true"></i></span>
+                <h3 class="mt-4 font-sora text-lg font-semibold text-navy">WhatsApp</h3>
+                <p class="mt-2 font-semibold text-brandblue">{{ site_config.whatsapp }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endwith %}
 
 {% endblock %}
