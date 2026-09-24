@@ -44,6 +44,7 @@ from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_GET, require_POST
 
 # ─── Local ───────────────────────────────────────────────────────────────────
+from . import antispam
 from .decorators import applicant_required, check_for_auth, smart_redirect_applicant
 from .emailservices import (
     send_admin_email,
@@ -1058,6 +1059,7 @@ def index(request):
         'stat_projects_count':   active_projects.count(),
         'stat_programs_count':  Program.objects.filter(is_active=True).count(),
         'captcha_question': captcha_question,
+        'contact_form_token': antispam.make_form_token(),
     })
 
 
@@ -1164,6 +1166,7 @@ def contact(request):
 
     return render(request, 'contact.html', {
         'captcha_question': captcha_question,
+        'contact_form_token': antispam.make_form_token(),
         'phones': phones,
         'emails': emails,
         'addresses': addresses,
@@ -1550,6 +1553,21 @@ def contact_submit(request):
         return redirect('eduweb:index')
 
     referer = request.POST.get('next') or request.META.get('HTTP_REFERER', '/')
+
+    # ── Bot checks (honeypot, fill time, rate limit, links) ───────────────────
+    verdict = antispam.check_contact_submission(request)
+    if verdict == antispam.BOT:
+        # Look like a normal success so bots don't learn to adapt.
+        logger.info("Contact form bot submission dropped from %s", request.META.get('REMOTE_ADDR'))
+        messages.success(request, 'Thank you for contacting us! We have received your message and will get back to you soon.')
+        return redirect(referer)
+    if verdict == antispam.RATE:
+        messages.error(request, 'Too many messages sent from your connection. Please try again later.')
+        return redirect(referer)
+    if verdict == antispam.TOO_MANY_LINKS:
+        messages.error(request, 'Your message contains too many links. Please remove some and try again.')
+        return redirect(referer)
+
     # ── CAPTCHA verification ──────────────────────────────────────────────────
     session_answer = request.session.get('contact_captcha_answer')
     user_answer    = request.POST.get('captcha', '').strip()

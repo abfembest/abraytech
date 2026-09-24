@@ -1,4 +1,5 @@
 import logging
+from django.utils.html import escape
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives, send_mail, get_connection
@@ -1025,11 +1026,11 @@ Submitted at: {contact_message.created_at.strftime('%Y-%m-%d %H:%M:%S')}
                         </h3>
                         <p>
                             <strong>Name:</strong>
-                            {contact_message.name}
+                            {escape(contact_message.name)}
                         </p>
                         <p>
                             <strong>Email:</strong>
-                            {contact_message.email}
+                            {escape(contact_message.email)}
                         </p>
                         <p>
                             <strong>Subject:</strong>
@@ -1043,7 +1044,7 @@ Submitted at: {contact_message.created_at.strftime('%Y-%m-%d %H:%M:%S')}
                                     padding: 15px; border-radius: 5px;
                                     border-left: 3px solid #0B5CFF;">
                             <p style="margin: 0; white-space: pre-wrap;">
-                                {contact_message.message}
+                                {escape(contact_message.message)}
                             </p>
                         </div>
 
@@ -1108,9 +1109,7 @@ Dear {contact_message.name},
 Thank you for contacting {site.school_name} ({site.school_short_name}).
 We have received your message and will respond within 1-2 business days.
 
-Your Message Details:
 Subject: {contact_message.get_subject_display()}
-Message: {contact_message.message}
 
 If you have any urgent questions, please call us at {phone}.
 
@@ -1134,7 +1133,7 @@ The {site.school_short_name} Admissions Team
                     <div style="background-color: white;
                                 padding: 30px; margin-top: 20px;">
                         <p style="font-size: 16px; margin-bottom: 20px;">
-                            Dear <strong>{contact_message.name}</strong>,
+                            Dear <strong>{escape(contact_message.name)}</strong>,
                         </p>
                         <p style="font-size: 16px; margin-bottom: 20px;">
                             Thank you for reaching out to {site.school_name}.

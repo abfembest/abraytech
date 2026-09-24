@@ -146,6 +146,12 @@
 
         <form id="contactForm" method="POST" action="{% url 'eduweb:contact_submit' %}" class="space-y-5" novalidate>
           {% csrf_token %}
+          <input type="hidden" name="form_token" value="{{ contact_form_token }}">
+          {# Honeypot: hidden from people, bots fill it in and get dropped #}
+          <div aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">
+            <label for="contactWebsite">Leave this field empty</label>
+            <input id="contactWebsite" name="website" type="text" tabindex="-1" autocomplete="off" value="">
+          </div>
 
           <div>
             <label for="contactName" class="block text-sm font-semibold text-slate-700 mb-2">
