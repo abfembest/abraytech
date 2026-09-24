@@ -12,6 +12,7 @@ logging import moved to module level; logger defined once.
 import json
 import logging
 import random
+import re
 from datetime import datetime
 from decimal import Decimal
 from functools import lru_cache
@@ -32,11 +33,12 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction, IntegrityError
 from django.db.models import Prefetch, Q
 from django.http import (
-    HttpResponse, HttpResponseForbidden, JsonResponse, Http404,
+    HttpResponse, HttpResponsePermanentRedirect, HttpResponseForbidden,
+    JsonResponse, Http404,
 )
 from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static as static_asset_url
-from django.urls import reverse
+from django.urls import Resolver404, resolve, reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_GET, require_POST
@@ -934,10 +936,43 @@ def reset_password(request, token):
 # ERROR HANDLERS
 # =============================================================================
 
+# Course and LMS-course slugs seeded before the "Month N:" prefix was dropped
+# from course titles contain a "-month-N" fragment (e.g.
+# psd101-month-1-python-programming-fundamentals). seed_courses regenerates
+# those slugs without it, so old bookmarks/shared links get redirected below.
+LEGACY_MONTH_SLUG_FRAGMENT = re.compile(r'-month-\d+(?=-)')
+
+
+def _legacy_month_slug_redirect(request):
+    """
+    301 to the same path with the old "-month-N" slug fragment removed, or
+    None when the path has no such fragment or the cleaned path isn't a real
+    route. Safe methods only: a POST would be turned into a GET.
+
+    The redirected request goes through the normal views, so if the cleaned
+    slug doesn't exist it 404s again, and the cleaned path has no fragment
+    left, so this can't loop.
+    """
+    if request.method not in ('GET', 'HEAD'):
+        return None
+    cleaned = LEGACY_MONTH_SLUG_FRAGMENT.sub('', request.path)
+    if cleaned == request.path:
+        return None
+    try:
+        resolve(cleaned)
+    except Resolver404:
+        return None
+    query = request.META.get('QUERY_STRING', '')
+    return HttpResponsePermanentRedirect(f'{cleaned}?{query}' if query else cleaned)
+
+
 def custom_404(request, exception=None):
     """
     handler404 — registered in config/urls.py, used for any request
     path that doesn't match a URL pattern.
+
+    Old course links carrying a "-month-N" slug fragment are redirected to
+    the current slug first (see _legacy_month_slug_redirect).
 
     A logged-in user hitting a stray/broken link (internal or external) is
     far more likely to want their own dashboard than the public 404 page —
@@ -946,6 +981,10 @@ def custom_404(request, exception=None):
     (management/base.html). Anonymous visitors still get the normal
     templates/404.html page.
     """
+    legacy_redirect = _legacy_month_slug_redirect(request)
+    if legacy_redirect is not None:
+        return legacy_redirect
+
     if request.user.is_authenticated:
         profile = getattr(request.user, 'profile', None)
         role = getattr(profile, 'role', None)
