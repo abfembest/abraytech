@@ -9,10 +9,16 @@ that scrapes the form can solve it. These checks sit alongside it:
               or with a missing/tampered/expired token is a bot
 - rate limit: at most RATE_LIMIT submissions per IP per RATE_PERIOD
 - links:      URLs in the name, or a message stuffed with links
+
+Cloudflare Turnstile replaces the math captcha when TURNSTILE_SITE_KEY and
+TURNSTILE_SECRET_KEY are set (see turnstile_enabled / verify_turnstile).
 """
+import logging
 import re
 import time
 
+import requests
+from django.conf import settings
 from django.core import signing
 from django.core.cache import cache
 
@@ -24,6 +30,11 @@ MAX_TOKEN_AGE    = 60 * 60 * 24   # a page left open for a day still submits
 RATE_LIMIT       = 5
 RATE_PERIOD      = 60 * 60
 MAX_LINKS        = 3
+
+logger = logging.getLogger(__name__)
+
+TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify'
+TURNSTILE_FIELD      = 'cf-turnstile-response'
 
 _URL_RE = re.compile(r'(https?://|www\.|\[url|<a\s)', re.IGNORECASE)
 
@@ -65,3 +76,32 @@ def check_contact_submission(request):
         return TOO_MANY_LINKS
 
     return None
+
+
+def turnstile_enabled():
+    return bool(settings.TURNSTILE_SITE_KEY and settings.TURNSTILE_SECRET_KEY)
+
+
+def turnstile_site_key():
+    """Site key for the template widget, or '' to show the math captcha."""
+    return settings.TURNSTILE_SITE_KEY if turnstile_enabled() else ''
+
+
+def verify_turnstile(request):
+    """Ask Cloudflare whether the widget token in the POST is valid."""
+    token = request.POST.get(TURNSTILE_FIELD, '')
+    if not token:
+        return False
+    try:
+        resp = requests.post(TURNSTILE_VERIFY_URL, data={
+            'secret':   settings.TURNSTILE_SECRET_KEY,
+            'response': token,
+            'remoteip': request.META.get('REMOTE_ADDR', ''),
+        }, timeout=5)
+        result = resp.json()
+    except (requests.RequestException, ValueError):
+        logger.warning("Turnstile verification request failed", exc_info=True)
+        return False
+    if not result.get('success'):
+        logger.info("Turnstile rejected token: %s", result.get('error-codes'))
+    return bool(result.get('success'))

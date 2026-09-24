@@ -1060,6 +1060,7 @@ def index(request):
         'stat_programs_count':  Program.objects.filter(is_active=True).count(),
         'captcha_question': captcha_question,
         'contact_form_token': antispam.make_form_token(),
+        'turnstile_site_key': antispam.turnstile_site_key(),
     })
 
 
@@ -1167,6 +1168,7 @@ def contact(request):
     return render(request, 'contact.html', {
         'captcha_question': captcha_question,
         'contact_form_token': antispam.make_form_token(),
+        'turnstile_site_key': antispam.turnstile_site_key(),
         'phones': phones,
         'emails': emails,
         'addresses': addresses,
@@ -1568,21 +1570,24 @@ def contact_submit(request):
         messages.error(request, 'Your message contains too many links. Please remove some and try again.')
         return redirect(referer)
 
-    # ── CAPTCHA verification ──────────────────────────────────────────────────
-    session_answer = request.session.get('contact_captcha_answer')
-    user_answer    = request.POST.get('captcha', '').strip()
-
+    # ── CAPTCHA verification (Turnstile when configured, else math) ──────────
     def _captcha_fail(msg):
         new_question, new_answer = generate_captcha()
         request.session['contact_captcha_answer'] = new_answer
         messages.error(request, msg)
         return redirect(referer)
 
-    try:
-        if int(user_answer) != int(session_answer):
-            return _captcha_fail('Incorrect answer. Please try the bot check again.')
-    except (ValueError, TypeError):
-        return _captcha_fail('Invalid answer. Please enter a number.')
+    if antispam.turnstile_enabled():
+        if not antispam.verify_turnstile(request):
+            return _captcha_fail('We could not verify you are human. Please try again.')
+    else:
+        session_answer = request.session.get('contact_captcha_answer')
+        user_answer    = request.POST.get('captcha', '').strip()
+        try:
+            if int(user_answer) != int(session_answer):
+                return _captcha_fail('Incorrect answer. Please try the bot check again.')
+        except (ValueError, TypeError):
+            return _captcha_fail('Invalid answer. Please enter a number.')
 
     # Clear used captcha
     request.session.pop('contact_captcha_answer', None)
