@@ -661,6 +661,13 @@ def course_catalog(request):
         courses = courses.filter(Q(title__icontains=search_query) | Q(code__icontains=search_query))
 
     courses = courses.select_related('academic_course', 'instructor').distinct()
+    # Programme, then month (course code), so a programme's courses list in
+    # curriculum order; LMS courses with no academic course sort last.
+    courses = courses.order_by(
+        F('academic_course__program__name').asc(nulls_last=True),
+        F('academic_course__code').asc(nulls_last=True),
+        'title',
+    )
 
     registered_academic_ids = set(
         CourseRegistration.objects
@@ -3116,7 +3123,7 @@ def academic_records(request):
             Course.objects
             .filter(program=program, is_active=True)
             .select_related('program')
-            .order_by('name')
+            .order_by('code')
         )
     core_courses     = [c for c in program_courses if c.course_type == 'core']
     elective_courses = [c for c in program_courses if c.course_type == 'elective']

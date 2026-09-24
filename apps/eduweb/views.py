@@ -1628,14 +1628,13 @@ def program_detail(request, slug):
         slug=slug,
         is_active=True,
     )
+    # One query; ordered by code (PSD101, PSD102, ...), not name: course
+    # titles carry no "Month N:" prefix, so code is what keeps months in order.
+    courses = list(program.courses.filter(is_active=True).order_by('code'))
     return render(request, 'program_detail.html', {
         'program':        program,
-        'courses': (
-            program.courses
-            .filter(is_active=True)
-            # .select_related('lecturer')
-            .order_by('name')
-        ),
+        'courses':        courses,
+        'core_courses':   [c for c in courses if c.course_type == 'core'],
         'department': program.department,
         'faculty':    program.department.faculty,
         'gallery_items': _build_gallery_items(program),

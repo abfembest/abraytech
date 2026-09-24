@@ -275,7 +275,7 @@
           </div>
           {% endif %}
 
-          {% if program.core_courses %}
+          {% if core_courses %}
           <div class="rounded-xl sm:rounded-2xl p-5 sm:p-6 bg-ice border border-borderblue">
             <div class="flex items-center gap-3 mb-3 sm:mb-4">
               <div class="w-8 h-8 sm:w-9 sm:h-9 bg-white rounded-lg sm:rounded-xl flex items-center justify-center shadow-sm flex-shrink-0" aria-hidden="true">
@@ -284,10 +284,10 @@
               <h3 class="font-sora font-bold text-navy text-sm sm:text-base">Core Courses</h3>
             </div>
             <ul class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2" role="list">
-              {% for course in program.core_courses %}
+              {% for course in core_courses %}
               <li class="flex items-center gap-2 text-xs sm:text-sm text-gray-700">
                 <span class="w-1.5 h-1.5 bg-brandblue rounded-full flex-shrink-0" aria-hidden="true"></span>
-                {{ course }}
+                {{ course.name }}
               </li>
               {% endfor %}
             </ul>
@@ -360,6 +360,7 @@
             <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-ice flex items-center justify-center flex-shrink-0" aria-hidden="true">
               <i data-lucide="check" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brandblue"></i>
             </div>
+            <span class="flex-shrink-0 whitespace-nowrap rounded-full bg-ice border border-borderblue text-brandblue text-xs font-semibold uppercase tracking-wider px-2 py-1">Month {{ forloop.counter }}</span>
             <div class="flex-1 min-w-0 font-semibold text-gray-800 text-sm sm:text-base truncate">{{ course.name }}</div>
             <i data-lucide="chevron-down" class="chev w-4 h-4 text-gray-400 flex-shrink-0 transition-transform"></i>
           </summary>
@@ -404,6 +405,7 @@
           <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-ice flex items-center justify-center flex-shrink-0" aria-hidden="true">
             <i data-lucide="check" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brandblue"></i>
           </div>
+          <span class="flex-shrink-0 whitespace-nowrap rounded-full bg-ice border border-borderblue text-brandblue text-xs font-semibold uppercase tracking-wider px-2 py-1">Month {{ forloop.counter }}</span>
           <div class="flex-1 min-w-0 font-semibold text-gray-800 text-sm sm:text-base truncate">{{ course.name }}</div>
         </div>
         {% endif %}

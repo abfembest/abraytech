@@ -4188,7 +4188,7 @@ class Program(models.Model):
 
     def get_active_courses(self):
         """Return all active courses under this program."""
-        return self.courses.filter(is_active=True).order_by('name')
+        return self.courses.filter(is_active=True).order_by('code')
 
     def get_total_credit_units(self):
         """Sum of credit units across all active courses."""

@@ -41,12 +41,28 @@ Programme to faculty/department mapping:
 Idempotent: safe to re-run. Faculties/Departments are matched by code,
 Programs by (department, code), and Courses by (program, code), then
 updated in place.
+
+A seventh programme, the AbrayTech Future Innovators Programme (18-month
+youth track for ages 10-16, from "AbrayTech Website Content Development
+update.docx"), is seeded under its own Faculty/Department (FIN) so it shows
+as a separate section, apart from the adult Professional Programmes.
+
+Course rows are ordered by code (PSD101, PSD102, ...), one per month, not by
+name: titles carry no "Month N:" prefix. Re-running this command heals rows
+seeded by the older version that did: it strips the prefix from Course and
+linked LMSCourse titles and slugs, in place, without recreating anything.
+
+ASCII only on purpose: production is MySQL and non-ASCII seed text has
+broken seeding there before.
 """
+
+import re
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.utils.text import slugify
 
-from apps.eduweb.models import Faculty, Department, Program, Course
+from apps.eduweb.models import Faculty, Department, Program, Course, LMSCourse
 
 
 # Faculty/Department rows this command needs to attach its 6 programmes to,
@@ -83,12 +99,24 @@ FACULTIES = {
             "learning fundamentals, and applied artificial intelligence."
         ),
     },
+    "FIN": {
+        "name": "Future Innovators",
+        "tagline": "Technology, creativity and responsible digital habits for young learners aged 10-16.",
+        "description": (
+            "AbrayTech's youth training track: an 18-month programme that "
+            "builds practical technology skills, creative confidence, "
+            "problem-solving abilities and responsible digital habits through "
+            "remote learning, collaborative projects, mentorship and "
+            "innovation competitions."
+        ),
+    },
 }
 
 DEPARTMENTS = {
     "SWD": {"faculty_code": "SWD", "name": "Software Development"},
     "CYB": {"faculty_code": "CYB", "name": "Cybersecurity"},
     "DAI": {"faculty_code": "DAI", "name": "Data & AI"},
+    "FIN": {"faculty_code": "FIN", "name": "Future Innovators"},
 }
 
 
@@ -178,7 +206,7 @@ PYTHON_SOFTWARE_DEV = {
     ],
     "months": [
         {
-            "title": "Month 1: Python & Programming Fundamentals",
+            "title": "Python & Programming Fundamentals",
             "objective": "Introduce learners to programming concepts and establish a strong Python foundation.",
             "modules": [
                 ("Module 1: Introduction to Programming", ["what is programming", "programming languages", "compilers vs interpreters", "algorithms and problem solving", "flowcharts", "pseudocode", "variables and data", "input to processing to output", "introduction to debugging"]),
@@ -192,7 +220,7 @@ PYTHON_SOFTWARE_DEV = {
             "capstone_desc": "A command-line application that records income and expenses, categorises them, and calculates total expenditure, remaining balance, and savings percentage, demonstrating syntax, variables, operators, conditions, loops, functions, and input validation.",
         },
         {
-            "title": "Month 2: Core Python Programming",
+            "title": "Core Python Programming",
             "objective": "Move from basic syntax to structured programming.",
             "modules": [
                 ("Module 1: Functions", ["defining functions", "parameters and arguments", "return values", "default parameters", "keyword arguments", "variable scope", "lambda functions", "docstrings"]),
@@ -206,7 +234,7 @@ PYTHON_SOFTWARE_DEV = {
             "capstone_desc": "A Python application allowing an administrator to add, update, delete, and search students, record courses and grades, calculate averages, generate reports, and save data to JSON/CSV.",
         },
         {
-            "title": "Month 3: Object-Oriented Programming, Git & Databases",
+            "title": "Object-Oriented Programming, Git & Databases",
             "objective": "Introduce professional programming practices and persistent data storage.",
             "modules": [
                 ("Module 1: Object-Oriented Programming", ["classes", "objects", "attributes", "methods", "constructors", "encapsulation", "inheritance", "polymorphism", "abstraction", "composition"]),
@@ -219,7 +247,7 @@ PYTHON_SOFTWARE_DEV = {
             "capstone_desc": "A CLI application managing products, categories, customers, and suppliers, with stock management, sales transactions with automatic stock updates, sales reports, and database persistence. Learners must use Git throughout development.",
         },
         {
-            "title": "Month 4: Web Development, APIs & Django",
+            "title": "Web Development, APIs & Django",
             "objective": "Teach learners how to transform Python knowledge into real web applications. This marks the beginning of the 4-month practical project phase.",
             "modules": [
                 ("Module 1: Web Fundamentals", ["how the internet works", "HTTP/HTTPS", "request/response", "URLs and domains", "web servers", "client/server architecture", "REST APIs"]),
@@ -232,7 +260,7 @@ PYTHON_SOFTWARE_DEV = {
             "capstone_desc": "A complete Django application for a small business: authentication (registration/login/logout/password reset), a dashboard (sales summary, products, customers, stock, recent transactions), product management (add/edit/delete/search/categories), sales (create sales, generate totals, update stock, sales history), reporting (daily/monthly sales, product performance), and a REST API exposing selected business data. Deliverable: a functioning, documented Django application stored in GitHub.",
         },
         {
-            "title": "Month 5: Advanced Django & Professional Web Applications",
+            "title": "Advanced Django & Professional Web Applications",
             "objective": "Move from basic Django applications to production-oriented systems.",
             "modules": [
                 ("Module 1: Advanced Django", ["class-based views", "custom user models", "model relationships", "query optimization", "advanced ORM", "signals", "middleware", "custom management commands"]),
@@ -245,7 +273,7 @@ PYTHON_SOFTWARE_DEV = {
             "capstone_desc": "A realistic healthcare application: patients (registration, profiles, search, records), appointments (booking, rescheduling, cancellation, history), healthcare staff (doctor/staff accounts, role-based permissions), a dashboard (appointments, patient statistics, operational summaries), and email appointment-reminder notifications, plus REST APIs for selected functionality. Advanced requirements: PostgreSQL, authentication, RBAC, automated tests, Git/GitHub, and API documentation.",
         },
         {
-            "title": "Month 6: Software Engineering, Security, DevOps & Deployment",
+            "title": "Software Engineering, Security, DevOps & Deployment",
             "objective": "Teach learners how professional software is secured, tested, deployed, and maintained.",
             "modules": [
                 ("Module 1: Secure Software Development", ["OWASP principles", "authentication security", "authorization", "password security", "input validation", "SQL injection", "XSS", "CSRF", "session security", "secure file uploads", "secrets management"]),
@@ -259,7 +287,7 @@ PYTHON_SOFTWARE_DEV = {
             "capstone_desc": "A production-style online marketplace with customer functionality (registration, login, product browsing/search/categories, shopping basket, checkout, order history), business functionality (product management, inventory, orders, customers, sales dashboard, reports), security (secure authentication, RBAC, CSRF protection, secure uploads, input validation, rate limiting, security headers), and DevOps (Docker, PostgreSQL, Nginx, Gunicorn, CI/CD, HTTPS). Final deliverable: a deployed application with a GitHub repository, README, documentation, automated tests, deployment instructions, and a security checklist.",
         },
         {
-            "title": "Month 7: Advanced Python, AI/Data & Professional Software Engineering",
+            "title": "Advanced Python, AI/Data & Professional Software Engineering",
             "objective": "Bring together the entire programme through a sophisticated final project while introducing modern Python applications in AI and data. This is the final graduation project.",
             "modules": [
                 ("Module 1: Advanced Python Architecture", ["design patterns", "SOLID principles", "dependency management", "application architecture", "service layers", "repository patterns", "modular systems"]),
@@ -323,7 +351,7 @@ CYBERSECURITY_ANALYST = {
     ],
     "months": [
         {
-            "title": "Month 1: Cybersecurity & IT Foundations",
+            "title": "Cybersecurity & IT Foundations",
             "objective": "Give learners a strong understanding of computers, networks, operating systems, cybersecurity principles, threats, and security terminology.",
             "modules": [
                 ("Module 1: Introduction to Cybersecurity", ["what is cybersecurity", "information security vs cybersecurity", "the CIA Triad (confidentiality, integrity, availability)", "authentication, authorization, accountability, non-repudiation", "security controls (physical, technical, administrative)", "cybersecurity career paths: Analyst, SOC Analyst, Security Engineer, Threat Intelligence Analyst, Incident Response Analyst, Vulnerability Analyst, Digital Forensics Analyst, Penetration Tester, Cloud Security Analyst, GRC Analyst"]),
@@ -336,7 +364,7 @@ CYBERSECURITY_ANALYST = {
             "capstone_desc": "Learners build their own isolated cybersecurity laboratory (Windows VM, Linux VM, security testing VM, virtual network, basic firewall configuration) and deliver a network diagram, security configuration, user accounts, firewall rules, security checklist, and lab documentation.",
         },
         {
-            "title": "Month 2: Security Operations Fundamentals",
+            "title": "Security Operations Fundamentals",
             "objective": "Move from understanding cybersecurity to actually monitoring and analysing security events.",
             "modules": [
                 ("Module 1: Security Monitoring", ["security events and logs: event, authentication, network, application, and system logs", "log collection", "log analysis"]),
@@ -350,7 +378,7 @@ CYBERSECURITY_ANALYST = {
             "capstone_desc": "Learners receive an intentionally vulnerable lab environment and must discover assets, identify and classify vulnerabilities, assess risk, recommend remediation, apply security hardening, re-test the environment, and produce a professional security report.",
         },
         {
-            "title": "Month 3: Threat Analysis, Malware & Threat Intelligence",
+            "title": "Threat Analysis, Malware & Threat Intelligence",
             "objective": "Teach learners how analysts identify, understand, investigate, and contextualise threats.",
             "modules": [
                 ("Module 1: Threat Intelligence", ["strategic, tactical, operational, and technical intelligence", "indicators of compromise and indicators of attack", "TTPs, threat actors, campaigns"]),
@@ -364,7 +392,7 @@ CYBERSECURITY_ANALYST = {
             "capstone_desc": "Learners receive a simulated threat campaign and must analyse indicators, investigate domains/IPs/hashes, identify TTPs, map activity to MITRE ATT&CK, create an intelligence report and IOCs, develop detection recommendations, and produce a threat intelligence briefing.",
         },
         {
-            "title": "Month 4: SOC Operations & Security Monitoring",
+            "title": "SOC Operations & Security Monitoring",
             "objective": "This is the first major professional practical project month. Teach learners how a Security Operations Centre operates and how analysts investigate alerts.",
             "modules": [
                 ("Module 1: SOC Fundamentals", ["SOC structure and roles: Tier 1, Tier 2, Tier 3 analyst", "SOC workflows: alert triage, escalation, case management", "security metrics"]),
@@ -376,7 +404,7 @@ CYBERSECURITY_ANALYST = {
             "capstone_desc": "Learners build a small SOC (endpoints, log collection, SIEM, detection rules, security alerts, analyst investigation, and incident response) and deliver SOC architecture, SIEM deployment, log sources, detection rules, an alert dashboard, incident tickets, investigation reports, MITRE ATT&CK mapping, and a SOC analyst report. Final scenario: detect, triage, investigate, classify, escalate, and document a series of simulated security alerts.",
         },
         {
-            "title": "Month 5: Incident Response & Digital Forensics",
+            "title": "Incident Response & Digital Forensics",
             "objective": "Teach learners how to investigate cybersecurity incidents and preserve evidence.",
             "modules": [
                 ("Module 1: Incident Response", ["the incident response lifecycle: preparation, detection, analysis, containment, eradication, recovery, lessons learned"]),
@@ -389,7 +417,7 @@ CYBERSECURITY_ANALYST = {
             "capstone_desc": "A company reports suspicious activity on several endpoints. Learners receive and triage the incident, identify affected systems, analyse logs, examine forensic artefacts, determine the attack timeline, identify IOCs, map activity to MITRE ATT&CK, contain the incident, recommend remediation, and produce a final incident report with an incident timeline, evidence register, IOC list, ATT&CK mapping, root-cause analysis, executive summary, and remediation plan.",
         },
         {
-            "title": "Month 6: Cloud Security, Identity & Security Engineering",
+            "title": "Cloud Security, Identity & Security Engineering",
             "objective": "Prepare learners to analyse security in modern cloud and enterprise environments.",
             "modules": [
                 ("Module 1: Cloud Fundamentals", ["cloud computing", "IaaS, PaaS, SaaS", "the shared responsibility model", "cloud identity, storage, networking"]),
@@ -403,7 +431,7 @@ CYBERSECURITY_ANALYST = {
             "capstone_desc": "Learners design a secure environment for a fictional organisation covering employees, servers, endpoints, cloud resources, applications, databases, and remote workers, including network architecture, IAM, MFA, firewall, EDR, SIEM, vulnerability management, backup, incident response, and security monitoring, plus a Python security automation tool that collects, analyses, enriches, alerts, and reports.",
         },
         {
-            "title": "Month 7: Advanced Cyber Defence & Threat Intelligence",
+            "title": "Advanced Cyber Defence & Threat Intelligence",
             "objective": "This becomes the final graduation project, bringing the entire programme together into a realistic enterprise cyber-defence operation.",
             "modules": [
                 ("Module 1: Advanced Threat Hunting", ["threat hunting methodology, hypothesis-driven hunting", "IOC, behavioural, endpoint, network, and identity hunting"]),
@@ -458,7 +486,7 @@ DATA_ANALYTICS = {
     ],
     "months": [
         {
-            "title": "Month 1: Introduction to Data Analytics & Excel",
+            "title": "Introduction to Data Analytics & Excel",
             "objective": "Build a strong understanding of data and teach learners how to use Excel to organise, analyse, and communicate information.",
             "modules": [
                 ("Module 1: Introduction to Data Analytics", ["what is data", "structured vs unstructured, qualitative vs quantitative, primary vs secondary data", "data analytics vs data science, data analyst vs data scientist vs BI analyst", "the analytics lifecycle: business problem to data collection to preparation to analysis to visualisation to insights to business decision"]),
@@ -472,7 +500,7 @@ DATA_ANALYTICS = {
             "capstone_desc": "Learners receive a raw financial dataset and must clean it, categorise transactions, calculate income and expenses, analyse spending patterns, identify major spending categories, calculate savings, build an Excel dashboard, and present three to five key insights.",
         },
         {
-            "title": "Month 2: Statistics, Data Preparation & Visualisation",
+            "title": "Statistics, Data Preparation & Visualisation",
             "objective": "Teach learners the statistical thinking required to interpret data correctly.",
             "modules": [
                 ("Module 1: Descriptive Statistics", ["mean, median, mode, range", "variance, standard deviation", "percentiles, quartiles, interquartile range"]),
@@ -487,7 +515,7 @@ DATA_ANALYTICS = {
             "capstone_desc": "Learners analyse a customer dataset (demographics, purchases, products, locations, order frequency, customer value) and identify customer trends, the most valuable customer segments, purchasing patterns, product preferences, geographic patterns, and potential business opportunities.",
         },
         {
-            "title": "Month 3: SQL & Database Analytics",
+            "title": "SQL & Database Analytics",
             "objective": "Teach learners to retrieve, transform, and analyse data directly from relational databases.",
             "modules": [
                 ("Module 1: Database Fundamentals", ["relational databases, tables, records, fields", "primary and foreign keys, relationships", "normalisation"]),
@@ -502,7 +530,7 @@ DATA_ANALYTICS = {
             "capstone_desc": "Learners query a relational database to answer business questions: total sales, top revenue products, highest-value customers, best-performing regions, monthly sales trends, declining products, average order value, and deliver a SQL script, query documentation, an analytical report, visualisations, and business recommendations.",
         },
         {
-            "title": "Month 4: Python for Data Analytics",
+            "title": "Python for Data Analytics",
             "objective": "Teach learners to use Python for data manipulation, analysis, and visualisation. This is the beginning of the four-month major practical project phase.",
             "modules": [
                 ("Module 1: Python Fundamentals for Analysts", ["variables, data types, lists, dictionaries", "functions, loops, conditions, modules", "exception handling"]),
@@ -516,7 +544,7 @@ DATA_ANALYTICS = {
             "capstone_desc": "Learners receive a multi-table business dataset (customers, products, orders, transactions, locations, marketing campaigns) and analyse sales/revenue/profit trends, customer segmentation/value/churn indicators, product performance, and regional performance, delivering a Jupyter Notebook, a clean dataset, SQL queries, an analytical report, visualisations, and an executive presentation.",
         },
         {
-            "title": "Month 5: Power BI & Business Intelligence",
+            "title": "Power BI & Business Intelligence",
             "objective": "Transform analytical results into professional, interactive business intelligence dashboards.",
             "modules": [
                 ("Module 1: Power BI Fundamentals", ["the Power BI ecosystem and Power BI Desktop", "data sources, importing data", "data modelling, reports, dashboards"]),
@@ -530,7 +558,7 @@ DATA_ANALYTICS = {
             "capstone_desc": "Learners build an interactive Power BI solution for a fictional organisation with Executive Overview, Sales Analysis, Customer Analysis, and Product Analysis pages, delivering a Power BI .pbix file, a data model, DAX measures, a dashboard, a data dictionary, and an executive report.",
         },
         {
-            "title": "Month 6: Advanced Analytics, Forecasting & Automation",
+            "title": "Advanced Analytics, Forecasting & Automation",
             "objective": "Move beyond descriptive analytics into predictive and automated analytics.",
             "modules": [
                 ("Module 1: Advanced Statistics", ["sampling, confidence intervals", "hypothesis testing, p-values, statistical significance", "A/B testing, regression fundamentals"]),
@@ -544,7 +572,7 @@ DATA_ANALYTICS = {
             "capstone_desc": "A retail company wants to understand future sales and identify factors associated with customer churn. Learners collect, clean, and explore historical data, analyse relationships, build and evaluate a predictive model, produce forecasts, visualise results, explain limitations, and present business insights, delivering a Python notebook, statistical analysis, a forecasting model, visualisations, a Power BI dashboard, and an executive presentation.",
         },
         {
-            "title": "Month 7: Enterprise Data Analytics & BI",
+            "title": "Enterprise Data Analytics & BI",
             "objective": "This is the final graduation project, bringing Excel, SQL, Python, statistics, Power BI, data engineering concepts, and business intelligence together into one enterprise-level analytics project.",
             "modules": [
                 ("Module 1: Enterprise Analytics", ["data analytics strategy", "data governance, data ownership, data quality", "data catalogues, data lineage"]),
@@ -612,7 +640,7 @@ MOBILE_APP_DEV = {
     ],
     "months": [
         {
-            "title": "Month 1: JavaScript Programming Fundamentals",
+            "title": "JavaScript Programming Fundamentals",
             "objective": "Introduction to software and mobile application development, and establish strong JavaScript foundations.",
             "modules": [
                 ("Module 1: JavaScript Syntax & Fundamentals", ["programming concepts and problem solving", "variables, constants, and data types", "operators and expressions", "conditional statements, loops and iteration", "functions", "arrays and objects", "string and number manipulation", "error handling"]),
@@ -623,7 +651,7 @@ MOBILE_APP_DEV = {
             "capstone_desc": "Learners build a command-line/browser-based productivity application that demonstrates JavaScript programming fundamentals.",
         },
         {
-            "title": "Month 2: React Fundamentals & Mobile Development",
+            "title": "React Fundamentals & Mobile Development",
             "objective": "Introduce React and React Native, and build the first mobile interfaces.",
             "modules": [
                 ("Module 1: Introduction to React", ["React architecture, components, JSX, props, state, events", "conditional rendering, lists and keys, forms and validation", "React Hooks: useState, useEffect, component lifecycle concepts, reusable components"]),
@@ -633,7 +661,7 @@ MOBILE_APP_DEV = {
             "capstone_desc": "A functional mobile task-management application with task creation, editing and deletion, categories, task completion, search/filter, a responsive UI, and local data storage.",
         },
         {
-            "title": "Month 3: React Native Application Development",
+            "title": "React Native Application Development",
             "objective": "Develop professional React Native applications with navigation, forms, and reusable components.",
             "modules": [
                 ("Module 1: Navigation & Screen Management", ["React Native project structure", "stack, tab, drawer, and nested navigation, navigation parameters"]),
@@ -644,7 +672,7 @@ MOBILE_APP_DEV = {
             "capstone_desc": "A mobile app with a user dashboard, income and expense categories, transaction history, search and filtering, monthly summaries with charts, local persistence, and a responsive mobile interface.",
         },
         {
-            "title": "Month 4: APIs, Backend Integration & Authentication",
+            "title": "APIs, Backend Integration & Authentication",
             "objective": "Connect React Native applications to backend systems and implement secure authentication.",
             "modules": [
                 ("Module 1: REST APIs", ["understanding REST APIs, HTTP and HTTPS", "GET, POST, PUT, PATCH, DELETE, JSON", "Fetch API, Axios, API service architecture"]),
@@ -655,7 +683,7 @@ MOBILE_APP_DEV = {
             "capstone_desc": "A mobile application connected to a backend API, with possible features including user registration, login, a dashboard, customer management, products/services, orders, sales, search, notifications, and profile management with API-based data storage.",
         },
         {
-            "title": "Month 5: Databases, Cloud Services & Advanced Mobile Features",
+            "title": "Databases, Cloud Services & Advanced Mobile Features",
             "objective": "Integrate cloud services, offline data, and device-level capabilities into mobile applications.",
             "modules": [
                 ("Module 1: Mobile Data Architecture", ["SQL and NoSQL concepts", "Firebase fundamentals, Cloud Firestore, authentication services, cloud storage"]),
@@ -666,7 +694,7 @@ MOBILE_APP_DEV = {
             "capstone_desc": "A service-booking application supporting customer accounts, service discovery, provider profiles, booking, a calendar, location, notifications, image uploads, booking status, and customer/provider dashboards.",
         },
         {
-            "title": "Month 6: Mobile Security, Testing & Performance",
+            "title": "Mobile Security, Testing & Performance",
             "objective": "Secure, test, and optimise a mobile application to production standard.",
             "modules": [
                 ("Module 1: Secure Mobile Application Development", ["OWASP Mobile Application Security", "secure authentication, token protection, secure API communication", "input validation, secure local storage, secrets management, data encryption concepts", "application permissions, authentication vulnerabilities, API security, secure file uploads, mobile threat modelling"]),
@@ -677,7 +705,7 @@ MOBILE_APP_DEV = {
             "capstone_desc": "Learners take an existing mobile application and perform a security assessment, authentication hardening, API security improvements, input validation, secure storage implementation, automated testing, performance optimisation, and error monitoring.",
         },
         {
-            "title": "Month 7: Advanced React Native & Production Architecture",
+            "title": "Advanced React Native & Production Architecture",
             "objective": "Apply advanced React patterns, state management, and real-time features at production scale.",
             "modules": [
                 ("Module 1: Advanced React Patterns", ["TypeScript with React Native: strong typing, interfaces and types, generic components", "state management: Context API, Redux Toolkit, advanced and custom hooks"]),
@@ -688,7 +716,7 @@ MOBILE_APP_DEV = {
             "capstone_desc": "A production-style application with authentication, user profiles, real-time communication, push notifications, API integration, search, file/image sharing, state management, offline support, analytics, and secure data handling.",
         },
         {
-            "title": "Month 8: App Deployment, DevOps & Final Professional Project",
+            "title": "App Deployment, DevOps & Final Professional Project",
             "objective": "Prepare, deploy, and maintain mobile applications in production, and complete the final capstone.",
             "modules": [
                 ("Module 1: Preparing for Production", ["Android and iOS application lifecycle", "Android APK/AAB, iOS builds, Expo Application Services (EAS)", "app signing, certificates, provisioning profiles", "application and environment configuration"]),
@@ -747,7 +775,7 @@ AI_MACHINE_LEARNING = {
     ],
     "months": [
         {
-            "title": "Month 1: Python Programming for AI",
+            "title": "Python Programming for AI",
             "objective": "Introduce Artificial Intelligence and Machine Learning, and establish a strong Python foundation for AI work.",
             "modules": [
                 ("Module 1: AI & ML Foundations", ["introduction to Artificial Intelligence and Machine Learning", "AI vs Machine Learning vs Deep Learning", "real-world applications of AI"]),
@@ -758,7 +786,7 @@ AI_MACHINE_LEARNING = {
             "capstone_desc": "Learners create a Python-based assistant capable of processing user input and performing predefined tasks such as calculations, information retrieval, and simple automation.",
         },
         {
-            "title": "Month 2: Mathematics, Statistics & Data Analysis for AI",
+            "title": "Mathematics, Statistics & Data Analysis for AI",
             "objective": "Build the mathematical and statistical foundations required for machine learning, and practise data analysis in Python.",
             "modules": [
                 ("Module 1: Mathematics for Machine Learning", ["variables and functions, linear algebra fundamentals", "vectors and matrices, matrix operations"]),
@@ -769,7 +797,7 @@ AI_MACHINE_LEARNING = {
             "capstone_desc": "Learners analyse a real-world dataset, clean the data, identify patterns and trends, create visualisations, and produce an analytical report explaining their findings.",
         },
         {
-            "title": "Month 3: Machine Learning Fundamentals",
+            "title": "Machine Learning Fundamentals",
             "objective": "Introduce supervised and unsupervised machine learning and the standard model training workflow.",
             "modules": [
                 ("Module 1: Introduction to Machine Learning", ["supervised, unsupervised, and semi-supervised learning", "reinforcement learning introduction", "features and target variables, training and testing datasets"]),
@@ -780,7 +808,7 @@ AI_MACHINE_LEARNING = {
             "capstone_desc": "Learners develop a machine learning system that predicts whether a customer is likely to leave a service, including data preprocessing, feature engineering, model training, model comparison, evaluation, prediction, visualisation, and business recommendations.",
         },
         {
-            "title": "Month 4: Advanced Machine Learning & Predictive Analytics",
+            "title": "Advanced Machine Learning & Predictive Analytics",
             "objective": "Apply advanced modelling techniques, tuning, and evaluation to real predictive business problems.",
             "modules": [
                 ("Module 1: Advanced Models", ["advanced regression and classification, Support Vector Machines", "Random Forest, Gradient Boosting, XGBoost fundamentals, ensemble learning"]),
@@ -791,7 +819,7 @@ AI_MACHINE_LEARNING = {
             "capstone_desc": "Learners build a predictive system forecasting or classifying a business problem such as sales prediction, customer churn, credit-risk classification, demand forecasting, fraud detection, or property price prediction, comparing multiple models and justifying the final model based on documented evaluation metrics.",
         },
         {
-            "title": "Month 5: Unsupervised Learning, Recommendation Systems & AI Applications",
+            "title": "Unsupervised Learning, Recommendation Systems & AI Applications",
             "objective": "Apply unsupervised learning and build recommendation and forecasting systems.",
             "modules": [
                 ("Module 1: Unsupervised Machine Learning", ["clustering: K-Means, hierarchical clustering, DBSCAN, cluster evaluation", "dimensionality reduction (PCA), anomaly detection, association rules"]),
@@ -802,7 +830,7 @@ AI_MACHINE_LEARNING = {
             "capstone_desc": "Learners build an AI system that analyses customer behaviour and generates personalised recommendations, with possible applications in product, food, course, property, or content recommendation, or customer segmentation.",
         },
         {
-            "title": "Month 6: Deep Learning with Python",
+            "title": "Deep Learning with Python",
             "objective": "Introduce neural networks and deep learning, and build a computer vision application.",
             "modules": [
                 ("Module 1: Neural Network Fundamentals", ["biological vs artificial neurons, perceptrons, neural network architecture", "activation functions, forward propagation, backpropagation, loss functions"]),
@@ -813,7 +841,7 @@ AI_MACHINE_LEARNING = {
             "capstone_desc": "Learners develop a deep-learning application capable of classifying images (e.g. medical images, animals, products, plant disease, documents, or general object recognition), including model training, validation, testing, and an application interface for making predictions.",
         },
         {
-            "title": "Month 7: Natural Language Processing, Generative AI & Large Language Models",
+            "title": "Natural Language Processing, Generative AI & Large Language Models",
             "objective": "Apply NLP and generative AI techniques, and build a retrieval-augmented AI assistant.",
             "modules": [
                 ("Module 1: NLP Fundamentals", ["text preprocessing: tokenisation, stop words, stemming and lemmatisation", "Bag-of-Words, TF-IDF, text classification, sentiment analysis, Named Entity Recognition"]),
@@ -824,7 +852,7 @@ AI_MACHINE_LEARNING = {
             "capstone_desc": "Learners develop an intelligent chatbot that answers questions from a defined knowledge base, demonstrating document ingestion, text processing, embeddings, vector search, retrieval, LLM integration, context-aware responses, conversation history, source/reference retrieval, and basic safety controls, for example a university, healthcare, business-support, cybersecurity, or customer-service assistant.",
         },
         {
-            "title": "Month 8: AI Engineering, Model Deployment & MLOps",
+            "title": "AI Engineering, Model Deployment & MLOps",
             "objective": "Deploy, monitor, and govern AI systems in production, and complete the final capstone.",
             "modules": [
                 ("Module 1: AI System Architecture", ["the machine learning project lifecycle, AI system architecture", "model packaging, model serialisation, REST APIs for AI models: FastAPI, Django AI integration"]),
@@ -892,7 +920,7 @@ CYBERSECURITY_GRC = {
     ],
     "months": [
         {
-            "title": "Month 1: Introduction to Cybersecurity GRC",
+            "title": "Introduction to Cybersecurity GRC",
             "objective": "Introduce governance, risk, and compliance within cybersecurity, and establish foundational GRC documentation.",
             "modules": [
                 ("Module 1: Governance & Structures", ["governance, risk, and compliance explained", "the role of GRC within cybersecurity, governance structures", "board and executive responsibilities, security leadership and accountability", "roles and responsibilities, security policies and procedures"]),
@@ -903,7 +931,7 @@ CYBERSECURITY_GRC = {
             "capstone_desc": "Learners design a basic governance structure for a fictional organisation, including a governance structure, security policies, roles and responsibilities, an asset inventory, a data classification scheme, and an initial risk register.",
         },
         {
-            "title": "Month 2: Cybersecurity Risk Management",
+            "title": "Cybersecurity Risk Management",
             "objective": "Apply risk management principles to identify, assess, treat, and report cybersecurity risk.",
             "modules": [
                 ("Module 1: Risk Principles", ["risk identification, assessment, analysis, evaluation, and treatment", "risk acceptance, avoidance, mitigation, transfer, and monitoring"]),
@@ -914,7 +942,7 @@ CYBERSECURITY_GRC = {
             "capstone_desc": "Learners conduct a complete cybersecurity risk assessment for a fictional organisation, delivering an asset register, threat register, vulnerability register, risk register, risk matrix, risk treatment plan, residual risk assessment, and executive risk report.",
         },
         {
-            "title": "Month 3: Security Frameworks, Controls & ISO 27001",
+            "title": "Security Frameworks, Controls & ISO 27001",
             "objective": "Apply ISO 27001/27002 and other security frameworks to build a control environment and identify gaps.",
             "modules": [
                 ("Module 1: ISO 27001 & ISMS", ["ISO/IEC 27001, ISO/IEC 27002, Information Security Management System (ISMS) principles", "context of the organisation, interested parties, leadership and commitment", "information security objectives, risk assessment and treatment, Statement of Applicability"]),
@@ -925,7 +953,7 @@ CYBERSECURITY_GRC = {
             "capstone_desc": "Learners assess a fictional organisation against an ISO 27001-based ISMS, identifying existing controls, missing controls, control gaps, risk implications, required evidence, remediation actions, and implementation priorities.",
         },
         {
-            "title": "Month 4: Cybersecurity Compliance & Privacy",
+            "title": "Cybersecurity Compliance & Privacy",
             "objective": "Apply data protection and privacy principles, and manage cybersecurity compliance obligations.",
             "modules": [
                 ("Module 1: Compliance Principles", ["cybersecurity compliance principles, regulatory vs contractual requirements", "data protection principles, GDPR fundamentals, UK data protection environment"]),
@@ -936,7 +964,7 @@ CYBERSECURITY_GRC = {
             "capstone_desc": "Learners assess an organisation's handling of personal data and develop a remediation programme covering data protection, security controls, privacy, documentation, data retention, third-party processing, and incident/breach response.",
         },
         {
-            "title": "Month 5: Internal Audit, Control Testing & Assurance",
+            "title": "Internal Audit, Control Testing & Assurance",
             "objective": "Plan and conduct an internal cybersecurity audit, from evidence collection through to reporting.",
             "modules": [
                 ("Module 1: Audit Planning", ["internal audit fundamentals, audit planning, scope, objectives, criteria, and programmes"]),
@@ -947,7 +975,7 @@ CYBERSECURITY_GRC = {
             "capstone_desc": "Learners conduct a simulated internal cybersecurity audit, delivering an audit charter, scope, and plan, an audit checklist, control test procedures, an evidence register, findings, root-cause analysis, a corrective action plan, a final audit report, and an executive presentation.",
         },
         {
-            "title": "Month 6: Third-Party Risk & Supply Chain Security",
+            "title": "Third-Party Risk & Supply Chain Security",
             "objective": "Assess and manage cybersecurity risk introduced by vendors and the supply chain.",
             "modules": [
                 ("Module 1: Vendor Risk Fundamentals", ["third-party cybersecurity risk, vendor risk management, supplier risk assessment, supply-chain cybersecurity", "vendor classification, critical suppliers, due diligence, security questionnaires, vendor security assessments"]),
@@ -958,7 +986,7 @@ CYBERSECURITY_GRC = {
             "capstone_desc": "Learners establish a complete vendor-risk management process for an organisation with multiple technology suppliers, delivering a vendor inventory, risk classification, a due-diligence questionnaire, a risk scoring model, contractual requirements, a remediation plan, a monitoring framework, and an executive vendor-risk report.",
         },
         {
-            "title": "Month 7: Business Continuity, Incident Governance & Enterprise Resilience",
+            "title": "Business Continuity, Incident Governance & Enterprise Resilience",
             "objective": "Develop business continuity, disaster recovery, and incident-governance capability for cyber resilience.",
             "modules": [
                 ("Module 1: Business Continuity", ["business continuity management, cyber resilience, Business Impact Analysis", "critical business processes, recovery objectives (RTO, RPO), disaster recovery"]),
@@ -969,7 +997,7 @@ CYBERSECURITY_GRC = {
             "capstone_desc": "Learners simulate a major cyber incident and develop a governance-led response covering incident, escalation, decision making, communication, recovery, and lessons learned, delivering an executive incident report and a resilience improvement plan.",
         },
         {
-            "title": "Month 8: Enterprise GRC Strategy, Automation & Final Project",
+            "title": "Enterprise GRC Strategy, Automation & Final Project",
             "objective": "Bring the entire programme together into a complete enterprise cybersecurity GRC programme for a realistic organisation. This is the final graduation project.",
             "modules": [
                 ("Module 1: Enterprise GRC Architecture", ["GRC operating models, GRC maturity models, security governance structures", "enterprise risk management, security strategy, security roadmaps, cybersecurity budgets"]),
@@ -983,6 +1011,282 @@ CYBERSECURITY_GRC = {
 }
 
 
+# =============================================================================
+# PROGRAMME 7: AbrayTech Future Innovators Programme (18 months, ages 10-16)
+# =============================================================================
+# Where the docx names a practical project but gives no description line, the
+# capstone description is derived from that month's own topics (marked
+# "derived") rather than invented content.
+
+def _stage_competition(name, criteria):
+    return ("Stage Competition", [f"{name} ({criteria})"])
+
+
+FUTURE_INNOVATORS_ENTRY_REQUIREMENTS = [
+    "Learners aged 10 to 16",
+    "Parent or guardian consent and involvement in the learner's registration",
+    "A computer or tablet and a reliable internet connection for remote learning",
+    "No previous coding or technology experience needed",
+]
+
+FUTURE_INNOVATORS_DESCRIPTION = """\
+Programme Mission
+To equip children and teenagers with practical technology skills, creative confidence, problem-solving abilities and responsible digital habits through accessible remote learning, collaborative projects, mentorship and innovation competitions.
+
+The programme runs for 18 months across six stages of three months each: Digital Foundations, AI Content Creation, Mobile Application Development, AI & Robotics, Cybersecurity, and Innovation & Final Project. Every month ends with a practical project, and each stage ends with a competition.
+
+Competition Programme
+Competitions take place approximately every three months:
+- Competition 1 - Digital Creativity Challenge: digital storytelling, design, presentation, responsible AI use
+- Competition 2 - AI Creative Media Challenge: short educational videos, digital campaigns, creativity, accuracy and originality
+- Competition 3 - Young App Developers Challenge: mobile app functionality, UI/UX, problem-solving, code quality
+- Competition 4 - AI & Robotics Innovation Challenge: design, functionality, innovation, teamwork, safety
+- Competition 5 - Young Cyber Defenders Challenge: cyber awareness, defensive thinking, risk identification, ethical behaviour
+- Competition 6 - Grand Innovation Showcase: final project, social impact, technical implementation, presentation, collaboration
+
+Competition Assessment
+- Problem Understanding: 15%
+- Creativity & Innovation: 20%
+- Technical Implementation: 25%
+- User Experience / Functionality: 15%
+- Security & Responsible Technology: 10%
+- Teamwork & Presentation: 15%
+The assessment criteria are adapted to the learners' age group and project type.
+
+Completion Requirements
+Learners complete:
+- Six major learning stages
+- At least six competition projects
+- Monthly practical exercises
+- A final integrated project
+- A digital portfolio
+- A final presentation or demonstration
+
+Completion Recognition
+- Certificate of Participation
+- Certificate of Completion
+- Project Achievement Awards
+- Innovation Awards
+- Teamwork Awards
+- Most Improved Learner Award
+- Best Presentation Award
+- Best Technical Project Award
+Certificates accurately describe the training completed and do not imply professional qualifications that the programme does not formally provide."""
+
+FUTURE_INNOVATORS = {
+    "dept_code": "FIN",
+    "code": "FIP",
+    "name": "AbrayTech Future Innovators Programme",
+    "tagline": "18-Month Technology Training for Children Aged 10-16",
+    "overview": (
+        "An 18-month remote technology programme for children aged 10 to 16. "
+        "Learners move through six stages: digital foundations, AI content "
+        "creation, mobile app development, AI and robotics, cybersecurity, and "
+        "an innovation and final project, with a practical project every month "
+        "and a competition at the end of each stage."
+    ),
+    "description": FUTURE_INNOVATORS_DESCRIPTION,
+    "career_paths": [],
+    "entry_requirements": FUTURE_INNOVATORS_ENTRY_REQUIREMENTS,
+    "learning_outcomes": [
+        "Digital Foundations: computers, the internet, online safety, computational thinking and block-based coding with Scratch",
+        "AI Content Creation: digital storytelling, graphic design, video and audio creation, and responsible use of AI tools",
+        "Mobile App Development: app design, JavaScript, React Native and Expo, and building interactive mobile applications",
+        "AI & Robotics: machine learning concepts, sensors, microcontrollers and simple robotics projects",
+        "Cybersecurity: online safety, ethical and defensive security, and incident awareness",
+        "Innovation: design thinking, teamwork, project planning, pitching and presenting a final integrated project",
+    ],
+    "months": [
+        # ---- STAGE 1: DIGITAL FOUNDATIONS (Months 1-3) ----
+        {
+            "title": "Digital Literacy & Technology Discovery",
+            "objective": "Stage 1, Digital Foundations: build confidence with computers, the internet and safe, responsible technology use.",
+            "modules": [
+                ("Module 1: Topics", ["introduction to computers and technology", "hardware and software", "internet fundamentals", "files, folders and cloud storage", "safe internet browsing", "passwords and account security", "digital citizenship", "responsible technology use", "introduction to programming", "problem-solving and computational thinking", "introduction to teamwork and presentations"]),
+            ],
+            "capstone_title": "My Digital World Portfolio",
+            "capstone_desc": "Learners create a digital portfolio containing an introduction, creative work, technology interests and a simple presentation.",
+        },
+        {
+            "title": "Introduction to Coding",
+            "objective": "Stage 1, Digital Foundations: learn the basics of programming through block-based coding.",
+            "modules": [
+                ("Module 1: Topics", ["algorithms and instructions", "logical thinking", "variables and simple data", "conditions and loops", "block-based programming using Scratch", "animations", "interactive stories", "simple games", "debugging and testing"]),
+            ],
+            "capstone_title": "Interactive Educational Game",
+            "capstone_desc": "Learners build an educational game covering a topic such as mathematics, science, geography or online safety.",
+        },
+        {
+            "title": "Introduction to AI & Responsible Technology",
+            "objective": "Stage 1, Digital Foundations: understand what artificial intelligence is, how it is used, and how to use it responsibly.",
+            "modules": [
+                ("Module 1: Topics", ["what is artificial intelligence?", "everyday applications of AI", "AI versus traditional software", "generative AI fundamentals", "AI limitations and errors", "bias and fairness", "privacy and personal information", "copyright and originality", "responsible prompting", "human creativity and AI assistance"]),
+                _stage_competition("Digital Creativity Challenge", "digital storytelling, design, presentation, responsible AI use"),
+            ],
+            "capstone_title": "AI-Assisted Learning Resource",
+            "capstone_desc": "Learners create an educational poster, story or presentation using approved, age-appropriate AI tools under supervision.",
+        },
+        # ---- STAGE 2: AI CONTENT CREATION (Months 4-6) ----
+        {
+            "title": "Digital Storytelling & Graphic Design",
+            "objective": "Stage 2, AI Content Creation: tell stories and build a visual identity with design principles and age-appropriate design tools.",
+            "modules": [
+                ("Module 1: Topics", ["story development", "creative writing", "storyboarding", "graphic design principles", "colour, typography and layout", "Canva or age-appropriate design tools", "image generation concepts", "copyright and attribution", "branding and visual identity"]),
+            ],
+            "capstone_title": "Young Creator Digital Brand",
+            # derived
+            "capstone_desc": "Learners design their own digital brand, applying storytelling, colour, typography, layout and visual identity.",
+        },
+        {
+            "title": "AI-Assisted Video & Audio Creation",
+            "objective": "Stage 2, AI Content Creation: plan, produce and present video and audio content responsibly.",
+            "modules": [
+                ("Module 1: Topics", ["video production fundamentals", "scriptwriting", "storyboards", "video editing", "voice recording", "audio and sound effects", "AI-assisted video concepts", "content verification", "deepfakes and synthetic media awareness", "responsible use of images and voices", "presentation skills"]),
+            ],
+            "capstone_title": "Educational Video Campaign",
+            "capstone_desc": "Learners create a short educational video about technology, the environment, health, education or community development.",
+        },
+        {
+            "title": "Content Strategy & Digital Publishing",
+            "objective": "Stage 2, AI Content Creation: plan and publish content for a real audience, with fact-checking and online reputation in mind.",
+            "modules": [
+                ("Module 1: Topics", ["audience identification", "content planning", "digital communication", "social media awareness", "content calendars", "visual storytelling", "search and information literacy", "online reputation", "misinformation and fact-checking", "responsible publication", "peer feedback"]),
+                _stage_competition("AI Creative Media Challenge", "short educational videos, digital campaigns, creativity, accuracy and originality"),
+            ],
+            "capstone_title": "30-Day Digital Awareness Campaign",
+            "capstone_desc": "Learners plan and produce a campaign promoting a positive social or educational message.",
+        },
+        # ---- STAGE 3: MOBILE APPLICATION DEVELOPMENT (Months 7-9) ----
+        {
+            "title": "Mobile App Design & Programming",
+            "objective": "Stage 3, Mobile Application Development: plan and design a mobile app and learn the JavaScript and React Native basics behind it.",
+            "modules": [
+                ("Module 1: Topics", ["introduction to mobile applications", "user interface and user experience", "mobile app planning", "wireframes", "navigation", "introduction to JavaScript", "variables, functions and conditions", "React and React Native concepts", "Expo introduction", "mobile components", "layouts and styling"]),
+            ],
+            "capstone_title": "Personal Profile Mobile App",
+            # derived
+            "capstone_desc": "Learners design and build a personal profile app using mobile components, layouts and styling.",
+        },
+        {
+            "title": "Interactive Mobile Applications",
+            "objective": "Stage 3, Mobile Application Development: make apps interactive with screens, forms, state and local data.",
+            "modules": [
+                ("Module 1: Topics", ["screens and navigation", "buttons and forms", "user input", "lists and cards", "images and icons", "state and interaction", "input validation", "local data storage", "debugging", "responsive design", "accessibility fundamentals"]),
+            ],
+            "capstone_title": "Student Task Management App",
+            # derived
+            "capstone_desc": "Learners build a task management app with screens, forms, lists, input validation and local data storage.",
+        },
+        {
+            "title": "Mobile App Development Project",
+            "objective": "Stage 3, Mobile Application Development: plan, build, test and present a complete mobile app that solves a community problem.",
+            "modules": [
+                ("Module 1: Topics", ["application planning", "reusable components", "API introduction", "data handling", "authentication concepts", "mobile application security", "testing", "user feedback", "app presentation", "project documentation"]),
+                ("Module 2: Possible Project Ideas", ["school timetable app", "study planner", "recycling app", "local transport information app", "homework organiser", "community event app"]),
+                _stage_competition("Young App Developers Challenge", "mobile app functionality, UI/UX, problem-solving, code quality"),
+            ],
+            "capstone_title": "Community Problem-Solving Mobile App",
+            # derived
+            "capstone_desc": "Learners build a mobile app that addresses a problem in their school or community, then document and present it.",
+        },
+        # ---- STAGE 4: AI & ROBOTICS (Months 10-12) ----
+        {
+            "title": "AI Fundamentals & Intelligent Systems",
+            "objective": "Stage 4, AI & Robotics: understand how machines learn from data, and where their limits are.",
+            "modules": [
+                ("Module 1: Topics", ["AI and machine learning concepts", "data and patterns", "classification", "training data and testing", "AI predictions", "computer vision introduction", "speech and language technologies", "AI ethics", "human oversight", "simple AI experiments using child-appropriate platforms"]),
+            ],
+            "capstone_title": "Image or Sound Classification Experiment",
+            "capstone_desc": "Learners train or use a supervised educational model and explain its inputs, outputs and limitations.",
+        },
+        {
+            "title": "Robotics & Physical Computing",
+            "objective": "Stage 4, AI & Robotics: build and program simple robots and circuits with sensors and actuators.",
+            "modules": [
+                ("Module 1: Topics", ["introduction to robotics", "robots and automation", "sensors and actuators", "inputs and outputs", "motors and movement", "basic electronics", "circuits and electrical safety", "microcontrollers", "block-based robotics programming", "robotics problem-solving"]),
+                ("Module 2: Suggested Tools", ["micro:bit", "LEGO-compatible educational robotics", "Arduino-based educational kits", "simulators where physical equipment is unavailable"]),
+            ],
+            "capstone_title": "Smart Room or Automatic Light Prototype",
+            # derived
+            "capstone_desc": "Learners build a prototype that uses sensors and simple programming to automate a room or a light.",
+        },
+        {
+            "title": "AI-Powered Robotics Challenge",
+            "objective": "Stage 4, AI & Robotics: design, test and demonstrate a team robotics project that makes simple decisions from sensor data.",
+            "modules": [
+                ("Module 1: Topics", ["robotics project design", "sensor data", "conditional logic", "automated movement", "obstacle detection", "simple decision-making", "testing and troubleshooting", "team roles", "project demonstrations", "safety in robotics"]),
+                _stage_competition("AI & Robotics Innovation Challenge", "design, functionality, innovation, teamwork, safety"),
+            ],
+            "capstone_title": "Smart Rescue, Smart Farm or Smart School Prototype",
+            # derived
+            "capstone_desc": "Learners choose one theme and build and demonstrate a team prototype that uses sensor data and simple decision-making.",
+        },
+        # ---- STAGE 5: CYBERSECURITY (Months 13-15) ----
+        {
+            "title": "Online Safety & Cybersecurity Fundamentals",
+            "objective": "Stage 5, Cybersecurity: learn to protect personal information and recognise online threats.",
+            "modules": [
+                ("Module 1: Topics", ["what is cybersecurity?", "personal information", "password security", "multi-factor authentication", "phishing awareness", "online scams", "social engineering", "privacy and digital footprints", "safe downloads", "device security", "cyberbullying and reporting", "responsible digital citizenship"]),
+            ],
+            "capstone_title": "Online Safety Awareness Campaign",
+            # derived
+            "capstone_desc": "Learners plan and produce an awareness campaign that teaches other young people how to stay safe online.",
+        },
+        {
+            "title": "Ethical Cybersecurity & Defensive Security",
+            "objective": "Stage 5, Cybersecurity: understand cybersecurity roles, threats and defences, always with permission and ethics first.",
+            "modules": [
+                ("Module 1: Topics", ["ethics and permission", "cybersecurity roles", "networks and the internet", "threats and vulnerabilities", "malware awareness", "authentication", "encryption concepts", "secure coding introduction", "security monitoring concepts", "cybersecurity lab safety", "defensive security exercises"]),
+                ("Module 2: Safety Rule", ["All technical activities must use authorised educational environments, simulations or deliberately vulnerable practice systems."]),
+            ],
+            "capstone_title": "Cybersecurity Home-Lab Report",
+            "capstone_desc": "Learners document security risks and recommended protections in a controlled learning environment.",
+        },
+        {
+            "title": "Cyber Defence & Incident Awareness",
+            "objective": "Stage 5, Cybersecurity: recognise and report security incidents and recommend practical protections.",
+            "modules": [
+                ("Module 1: Topics", ["incident identification", "reporting security concerns", "basic incident response", "digital evidence awareness", "security checklists", "risk assessment fundamentals", "data protection", "safe AI use", "cybersecurity teamwork", "presenting security recommendations"]),
+                _stage_competition("Young Cyber Defenders Challenge", "cyber awareness, defensive thinking, risk identification, ethical behaviour"),
+            ],
+            "capstone_title": "School Cyber Defence Plan",
+            "capstone_desc": "Learners develop a simple defensive security plan for a fictional school or youth organisation.",
+        },
+        # ---- STAGE 6: INNOVATION & FINAL PROJECT (Months 16-18) ----
+        {
+            "title": "Innovation, Entrepreneurship & Project Planning",
+            "objective": "Stage 6, Innovation & Final Project: identify a real-world problem and plan a responsible solution as a team.",
+            "modules": [
+                ("Module 1: Topics", ["identifying real-world problems", "design thinking", "user research with appropriate safeguards", "problem definition", "brainstorming", "prototyping", "team formation", "project planning", "responsible innovation", "introduction to entrepreneurship", "project budgeting concepts", "presentation and pitching"]),
+            ],
+            "capstone_title": "Innovation Proposal",
+            # derived
+            "capstone_desc": "Learners present an innovation proposal that defines a real-world problem, a planned solution, a team and a project plan.",
+        },
+        {
+            "title": "Integrated Technology Project",
+            "objective": "Stage 6, Innovation & Final Project: combine at least two programme areas to develop a solution.",
+            "modules": [
+                ("Module 1: Possible Projects", ["AI-powered educational mobile app", "smart agriculture and plant monitoring system", "cybersecurity learning game", "AI-assisted community information platform", "smart school attendance prototype", "educational robotics application", "AI content creation and learning platform"]),
+                ("Module 2: Topics", ["development", "testing", "security", "user feedback", "documentation", "team collaboration", "project improvement"]),
+            ],
+            "capstone_title": "Integrated Technology Project",
+            "capstone_desc": "Learners combine at least two programme areas to develop a solution.",
+        },
+        {
+            "title": "Final Project, Showcase & Competition",
+            "objective": "Stage 6, Innovation & Final Project: complete, present and showcase the final team project.",
+            "modules": [
+                ("Module 1: Activities", ["final project completion", "quality assurance", "demonstration preparation", "presentation skills", "project documentation", "peer review", "expert review", "innovation pitching", "exhibition", "awards ceremony", "learner portfolio development"]),
+                _stage_competition("Grand Innovation Showcase", "final project, social impact, technical implementation, presentation, collaboration"),
+            ],
+            "capstone_title": "Young Technology Innovators Showcase",
+            "capstone_desc": "Each team presents a working prototype, project explanation, social or educational value, responsible technology considerations and future improvements.",
+        },
+    ],
+}
+
+
 PROGRAMMES = [
     PYTHON_SOFTWARE_DEV,
     CYBERSECURITY_ANALYST,
@@ -990,13 +1294,29 @@ PROGRAMMES = [
     MOBILE_APP_DEV,
     AI_MACHINE_LEARNING,
     CYBERSECURITY_GRC,
+    FUTURE_INNOVATORS,
 ]
+
+# Rows seeded by the older version of this command carry a "Month N: " title
+# prefix (and a matching "month-N" slug fragment). Matched here to heal them.
+OLD_MONTH_PREFIX = re.compile(r"^Month\s+\d+\s*[:\-]\s*", re.IGNORECASE)
+OLD_MONTH_SLUG = re.compile(r"(^|-)month-\d+(-|$)")
+
+
+def _unique_slug(model, base, exclude_pk):
+    """slugify-safe unique slug for `model`, ignoring the row being healed."""
+    base = base[:190] or "course"
+    slug, counter = base, 2
+    while model.objects.filter(slug=slug).exclude(pk=exclude_pk).exists():
+        slug = f"{base}-{counter}"
+        counter += 1
+    return slug
 
 
 class Command(BaseCommand):
     help = (
         "Seed the AbrayTech Academy Faculty/Department/Program/Course backend data "
-        "for the 6 real training programmes described in the Website Content "
+        "for the 7 training programmes described in the Website Content "
         "Development document."
     )
 
@@ -1010,6 +1330,7 @@ class Command(BaseCommand):
         department = get_or_create_department(data["dept_code"])
         months = data["months"]
         duration_years = round(len(months) / 12, 1)
+        healed_lms = 0
 
         program, created = Program.objects.get_or_create(
             department=department, code=data["code"],
@@ -1022,7 +1343,7 @@ class Command(BaseCommand):
         program.tagline = data["tagline"]
         program.overview = data["overview"]
         program.description = data["description"]
-        program.entry_requirements = ENTRY_REQUIREMENTS
+        program.entry_requirements = data.get("entry_requirements", ENTRY_REQUIREMENTS)
         program.core_courses = [month["title"] for month in months]
         program.learning_outcomes = data["learning_outcomes"]
         program.career_paths = data["career_paths"]
@@ -1042,9 +1363,40 @@ class Command(BaseCommand):
             course.name = month["title"]
             course.description = description
             course.is_active = True
+            # Heal a slug seeded with the old "Month N:" prefix. Slugs that
+            # are already clean are left alone so existing URLs keep working.
+            if OLD_MONTH_SLUG.search(course.slug or ""):
+                course.slug = _unique_slug(
+                    Course, slugify(f"{course.code}-{course.name}"), course.pk,
+                )
             course.save()
+            healed_lms += self._heal_lms_course(course)
 
         verb = "Created" if created else "Updated"
         self.stdout.write(
             f"{verb} Program {data['code']} ({data['name']}) with {len(months)} Course rows."
         )
+        if healed_lms:
+            self.stdout.write(f"  Healed {healed_lms} LMS course title(s) that still had a 'Month N:' prefix.")
+
+    @staticmethod
+    def _heal_lms_course(course):
+        """
+        seed_lms copies Course.name into LMSCourse.title (and a slug built
+        from it) once, at creation, so LMS rows created before the prefix was
+        dropped keep "Month N: ..." after a reseed. Fix only those rows: a
+        title staff have since edited by hand (no prefix) is left alone.
+        Returns the number of LMSCourse rows changed.
+        """
+        changed = 0
+        for lms in LMSCourse.objects.filter(academic_course=course):
+            if not OLD_MONTH_PREFIX.match(lms.title or ""):
+                continue
+            lms.title = course.name
+            if OLD_MONTH_SLUG.search(lms.slug or ""):
+                lms.slug = _unique_slug(
+                    LMSCourse, slugify(f"{course.program.name} {course.name}"), lms.pk,
+                )
+            lms.save(update_fields=["title", "slug"])
+            changed += 1
+        return changed
