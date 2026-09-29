@@ -195,17 +195,11 @@ def get_application_secure(application_id, user):
 
 
 def application_status_context(request):
-    """Context processor — adds has_pending_application to every template."""
-    has_pending = False
-    if request.user.is_authenticated:
-        has_pending = CourseApplication.objects.filter(
-            user=request.user,
-            status__in=[
-                'draft', 'pending_payment', 'payment_complete',
-                'documents_uploaded', 'under_review',
-            ],
-        ).exists()
-    return {'has_pending_application': has_pending}
+    """Context processor, still registered in settings. It used to set
+    has_pending_application, but apps.eduweb.context.navigation_data runs
+    after it and always sets that same key, so its query was wasted on
+    every signed-in page. Kept as a no-op so the settings entry stays valid."""
+    return {}
 
 
 def generate_captcha():
@@ -2121,9 +2115,12 @@ def application_status(request):
     # applications with no linked account — matching any application by
     # email would let someone who sets their account email to another
     # applicant's see that applicant's application.
+    # documents are prefetched: the template reads them ~25 times.
     application = (
         CourseApplication.objects
         .filter(Q(user=request.user) | Q(user__isnull=True, email__iexact=request.user.email))
+        .select_related('program')
+        .prefetch_related('documents')
         .order_by('-created_at')
         .first()
     )
