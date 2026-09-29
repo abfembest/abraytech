@@ -128,9 +128,19 @@ def organization_jsonld(request):
     }
 
     return {
-        'organization_jsonld': json.dumps(organization),
-        'website_jsonld': json.dumps(website),
+        'organization_jsonld': _script_safe_json(organization),
+        'website_jsonld': _script_safe_json(website),
     }
+
+
+def _script_safe_json(data):
+    """JSON for a <script> tag rendered with |safe. json.dumps leaves '<' as
+    is, so a site-config value containing '</script>' could end the tag and
+    inject HTML; the \\u escapes keep the JSON identical when parsed."""
+    return (
+        json.dumps(data)
+        .replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
+    )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
