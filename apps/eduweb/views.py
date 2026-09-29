@@ -422,7 +422,12 @@ def auth_page(request):
             return redirect_response
 
     # ── CAPTCHA setup ─────────────────────────────────────────────────────────
-    if request.method == 'GET':
+    # Cloudflare Turnstile replaces the math captcha when its keys are set;
+    # then nothing is stored in the session for it.
+    use_turnstile = antispam.turnstile_enabled()
+    if use_turnstile:
+        captcha_question = None
+    elif request.method == 'GET':
         captcha_question, captcha_answer = generate_captcha()
         request.session['signin_captcha_answer'] = captcha_answer
     else:
@@ -455,13 +460,12 @@ def auth_page(request):
         captcha           = request.POST.get('captcha', '').strip()
 
         def _fresh_captcha_error(field, msg):
-            q, a = generate_captcha()
-            request.session['signin_captcha_answer'] = a
-            return JsonResponse({
-                'success': False,
-                'errors': {field: [msg]},
-                'captcha_question': q,
-            }, status=400)
+            payload = {'success': False, 'errors': {field: [msg]}}
+            if not use_turnstile:
+                q, a = generate_captcha()
+                request.session['signin_captcha_answer'] = a
+                payload['captcha_question'] = q
+            return JsonResponse(payload, status=400)
 
         if not username_or_email or not password:
             return _fresh_captcha_error('username', 'Username/email and password required.')
@@ -480,12 +484,16 @@ def auth_page(request):
             return response
 
         # Verify captcha
-        session_answer = request.session.get('signin_captcha_answer')
-        try:
-            if int(captcha) != int(session_answer):
-                return _fresh_captcha_error('captcha', 'Incorrect answer. Try again.')
-        except (ValueError, TypeError):
-            return _fresh_captcha_error('captcha', 'Invalid answer. Enter a number.')
+        if use_turnstile:
+            if not antispam.verify_turnstile(request):
+                return _fresh_captcha_error('captcha', 'We could not verify you are human. Please try again.')
+        else:
+            session_answer = request.session.get('signin_captcha_answer')
+            try:
+                if int(captcha) != int(session_answer):
+                    return _fresh_captcha_error('captcha', 'Incorrect answer. Try again.')
+            except (ValueError, TypeError):
+                return _fresh_captcha_error('captcha', 'Invalid answer. Enter a number.')
 
         # Allow login by email. filter().first(), not get(): two accounts
         # sharing an email must not turn sign-in into a server error.
@@ -574,8 +582,9 @@ def auth_page(request):
 
     # ── GET — render page ─────────────────────────────────────────────────────
     return render(request, 'auth.html', {
-        'login_form':       LoginForm(),
-        'captcha_question': captcha_question,
+        'login_form':         LoginForm(),
+        'captcha_question':   captcha_question,
+        'turnstile_site_key': antispam.turnstile_site_key(),
     })
 
 
@@ -639,7 +648,10 @@ def signup_page(request):
     # ── CAPTCHA setup — same convention as auth_page, own session key so a
     #    sign-in tab and a sign-up tab open at once never stomp each other's
     #    displayed number. ────────────────────────────────────────────────
-    if request.method == 'GET':
+    use_turnstile = antispam.turnstile_enabled()
+    if use_turnstile:
+        captcha_question = None
+    elif request.method == 'GET':
         captcha_question, captcha_answer = generate_captcha()
         request.session['signup_captcha_answer'] = captcha_answer
     else:
@@ -668,6 +680,7 @@ def signup_page(request):
         signup_form = SignUpForm(
             request.POST,
             captcha_answer=request.session.get('signup_captcha_answer'),
+            turnstile_passed=antispam.verify_turnstile(request) if use_turnstile else None,
         )
         if signup_form.is_valid():
             request.session.pop('signup_captcha_answer', None)
@@ -700,20 +713,23 @@ def signup_page(request):
                 'redirect_url': reverse('eduweb:auth_page'),
             })
         else:
-            new_question, new_answer = generate_captcha()
-            request.session['signup_captcha_answer'] = new_answer
-            return JsonResponse({
+            payload = {
                 'success': False,
                 'errors': {f: [str(e) for e in errs]
                            for f, errs in signup_form.errors.items()},
-                'captcha_question': new_question,
-            }, status=400)
+            }
+            if not use_turnstile:
+                new_question, new_answer = generate_captcha()
+                request.session['signup_captcha_answer'] = new_answer
+                payload['captcha_question'] = new_question
+            return JsonResponse(payload, status=400)
 
     # ── GET, eligible ─────────────────────────────────────────────────────────
     return render(request, 'signup.html', {
-        'program':          program,
-        'signup_form':      SignUpForm(),
-        'captcha_question': captcha_question,
+        'program':            program,
+        'signup_form':        SignUpForm(),
+        'captcha_question':   captcha_question,
+        'turnstile_site_key': antispam.turnstile_site_key(),
     })
 
 from django.http import JsonResponse as jsonresponse

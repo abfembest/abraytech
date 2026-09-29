@@ -48,11 +48,20 @@ class SignUpForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         self.captcha_answer = kwargs.pop('captcha_answer', None)
+        # True/False when Cloudflare Turnstile replaces the math captcha
+        # (the view has already asked Cloudflare); None = math captcha.
+        self.turnstile_passed = kwargs.pop('turnstile_passed', None)
         super().__init__(*args, **kwargs)
+        if self.turnstile_passed is not None:
+            self.fields['captcha'].required = False
         self.fields['password1'].widget.attrs.update({'class': _INPUT, 'placeholder': 'Create a strong password', 'autocomplete': 'new-password'})
         self.fields['password2'].widget.attrs.update({'class': _INPUT, 'placeholder': 'Confirm your password', 'autocomplete': 'new-password'})
 
     def clean_captcha(self):
+        if self.turnstile_passed is not None:
+            if not self.turnstile_passed:
+                raise ValidationError('We could not verify you are human. Please try again.')
+            return None
         captcha = self.cleaned_data.get('captcha')
         if self.captcha_answer is None:
             raise ValidationError('Captcha session expired. Please refresh the page.')
