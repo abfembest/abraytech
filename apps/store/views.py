@@ -16,10 +16,13 @@ from django.db.models import F, Q
 from django.db.models.functions import Greatest
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.core.validators import validate_email
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+from apps.eduweb import antispam
 from apps.eduweb.models import AuditLog, UserProfile
 from apps.eduweb.views import generate_captcha
 
@@ -38,6 +41,15 @@ logger = logging.getLogger(__name__)
 
 SIGNUP_CAPTCHA_SESSION_KEY = 'store_signup_captcha_answer'
 LOGIN_CAPTCHA_SESSION_KEY = 'store_login_captcha_answer'
+
+# Store sign-in / sign-up / reset limits (apps.eduweb.antispam throttles).
+LOGIN_FAILS_PER_ACCOUNT = 5
+LOGIN_FAILS_PER_IP      = 20
+LOGIN_WINDOW            = 15 * 60
+SIGNUPS_PER_IP          = 5
+RESET_REQUESTS_PER_IP   = 5
+RESET_EMAILS_PER_ADDRESS = 3
+HOUR                    = 60 * 60
 
 
 def _stash_login_captcha(request):
@@ -62,7 +74,8 @@ def store_list(request):
     products = (
         Product.objects.filter(is_active=True)
         .select_related('category')
-        .prefetch_related('images__asset')
+        # variants: the grid checks product.variants.exists for each card
+        .prefetch_related('images__asset', 'variants')
     )
     if category_slug:
         products = products.filter(category__slug=category_slug)
@@ -100,7 +113,7 @@ def store_list(request):
 def product_detail(request, slug):
     product = get_object_or_404(Product, slug=slug, is_active=True)
 
-    others = Product.objects.filter(is_active=True).exclude(pk=product.pk)
+    others = Product.objects.filter(is_active=True).exclude(pk=product.pk).prefetch_related('images__asset')
     others = others.filter(category=product.category) if product.category_id else others
 
     return render(request, 'product_detail.html', {
@@ -138,8 +151,10 @@ def cart_add(request):
     # Any product that defines options (size, color, ...) must have one
     # picked before it can be added — never silently add a "no option"
     # line for a product that needs one.
-    if product.variants.exists():
-        if not variant_id or not product.variants.filter(id=variant_id).exists():
+    if not product.variants.exists():
+        variant_id = None  # ignore a stray variant id on a product without options
+    else:
+        if not (variant_id and str(variant_id).isdigit() and product.variants.filter(id=variant_id).exists()):
             return JsonResponse(
                 {'success': False, 'error': 'Please select an option before adding to cart.'},
                 status=400,
@@ -171,17 +186,18 @@ def cart_view(request):
             cart.remove_from_cart(request.session, key)
 
         if is_htmx:
-            return render(request, 'cart_drawer.html', {
-                'items': cart.get_cart_items(request.session),
-                'total': cart.get_cart_total(request.session),
-            })
+            items = cart.get_cart_items(request.session)
+            return render(request, 'cart_drawer.html', {'items': items, 'total': _items_total(items)})
         return redirect('store:cart_view')
 
     template = 'cart_drawer.html' if is_htmx else 'cart.html'
-    return render(request, template, {
-        'items': cart.get_cart_items(request.session),
-        'total': cart.get_cart_total(request.session),
-    })
+    items = cart.get_cart_items(request.session)
+    return render(request, template, {'items': items, 'total': _items_total(items)})
+
+
+def _items_total(items):
+    """Same as cart.get_cart_total, from items already loaded."""
+    return sum((item['line_total'] for item in items), 0)
 
 
 # =============================================================================
@@ -257,7 +273,7 @@ def checkout_view(request):
     if not items:
         messages.warning(request, 'Your cart is empty.')
         return redirect('store:cart_view')
-    total = cart.get_cart_total(request.session)
+    total = _items_total(items)
 
     is_customer = _is_store_customer(request.user)
 
@@ -321,6 +337,11 @@ def checkout_view(request):
         if not name or not email or not password:
             return _signup_error('Name, email, and password are all required.')
 
+        try:
+            validate_email(email)
+        except ValidationError:
+            return _signup_error('Please enter a valid email address.')
+
         if _delivery_missing():
             return _signup_error('Please fill in your delivery phone, address, city, and state.')
 
@@ -333,6 +354,15 @@ def checkout_view(request):
 
         if User.objects.filter(email__iexact=email).exists():
             return _signup_error('An account with this email already exists — please log in instead.')
+
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            return _signup_error(' '.join(e.messages))
+
+        ip = antispam.client_ip(request)
+        if antispam.throttled('store_signup_ip', ip, SIGNUPS_PER_IP):
+            return _signup_error('Too many accounts have been created from your connection. Please try again in an hour.')
 
         with transaction.atomic():
             username = f"{email.split('@')[0][:20]}_{uuid.uuid4().hex[:8]}"
@@ -347,6 +377,7 @@ def checkout_view(request):
             user.profile.email_verified = True
             user.profile.save(update_fields=['role', 'email_verified'])
 
+        antispam.record_hit('store_signup_ip', ip, HOUR)
         login(request, user)
         request.session.pop(SIGNUP_CAPTCHA_SESSION_KEY, None)
 
@@ -373,9 +404,22 @@ def store_login(request):
     email = request.POST.get('email', '').strip()
     password = request.POST.get('password', '')
     next_url = request.POST.get('next') or 'store:checkout_view'
+    # `next` is a store URL name ('store:my_orders') or a path on this site;
+    # anything else (e.g. https://other-site) falls back to checkout.
+    if not next_url.startswith('store:') and not url_has_allowed_host_and_scheme(
+        next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure(),
+    ):
+        next_url = 'store:checkout_view'
 
     def _redirect_next():
-        return redirect(next_url) if next_url.startswith('/') else redirect(next_url)
+        return redirect(next_url)
+
+    ip = antispam.client_ip(request)
+    account = email.lower()
+    if (antispam.throttled('store_login_account', account, LOGIN_FAILS_PER_ACCOUNT)
+            or antispam.throttled('store_login_ip', ip, LOGIN_FAILS_PER_IP)):
+        messages.error(request, 'Too many failed sign-in attempts. Please wait 15 minutes, or reset your password.')
+        return _redirect_next()
 
     session_answer = request.session.pop(LOGIN_CAPTCHA_SESSION_KEY, None)
     try:
@@ -386,17 +430,16 @@ def store_login(request):
         messages.error(request, 'Invalid captcha answer. Enter a number.')
         return _redirect_next()
 
-    username = None
-    try:
-        username = User.objects.get(email__iexact=email).username
-    except User.DoesNotExist:
-        pass
-
-    user = authenticate(request, username=username, password=password) if username else None
+    match = User.objects.filter(email__iexact=email).order_by('pk').first() if email else None
+    user = authenticate(request, username=match.username, password=password) if match else None
 
     if user is None:
+        antispam.record_hit('store_login_account', account, LOGIN_WINDOW)
+        antispam.record_hit('store_login_ip', ip, LOGIN_WINDOW)
         messages.error(request, 'Invalid email or password.')
         return _redirect_next()
+
+    antispam.clear_hits('store_login_account', account)
 
     if not hasattr(user, 'profile') or user.profile.role != 'customer':
         messages.error(
@@ -420,10 +463,19 @@ def store_login(request):
 def forgot_password(request):
     """Display forgot-password form and dispatch the reset-link email."""
     if request.method == 'POST':
+        ip = antispam.client_ip(request)
+        if antispam.throttled('store_reset_ip', ip, RESET_REQUESTS_PER_IP):
+            messages.error(request, 'Too many reset requests from your connection. Please try again in an hour.')
+            return render(request, 'store_forgot_password.html')
+        antispam.record_hit('store_reset_ip', ip, HOUR)
+
         email = request.POST.get('email', '').strip()
         user = User.objects.filter(email__iexact=email, profile__role='customer', is_active=True).first()
 
-        if user:
+        # The per-address cap is silent, like the unknown-email case, so the
+        # page never reveals whether a store account exists.
+        if user and not antispam.throttled('store_reset_email', email, RESET_EMAILS_PER_ADDRESS):
+            antispam.record_hit('store_reset_email', email, HOUR)
             if not send_store_password_reset_email(request, user):
                 logger.error("Store password reset email failed silently for %s", email)
 
@@ -566,7 +618,9 @@ def checkout_callback(request):
         order = _confirm_paid_order(order, data['data'])
         if order.status == 'paid':
             cart.clear_cart(request.session)
-    elif order.status != 'paid':
+    elif order.status != 'paid' and not data.get('unreachable'):
+        # Only when Paystack actually answered "not paid". If it couldn't be
+        # reached the order stays pending, and the webhook confirms it later.
         order.status = 'failed'
         order.save(update_fields=['status'])
 
@@ -619,7 +673,7 @@ def my_orders(request):
 
     orders = (
         Order.objects.filter(user=request.user)
-        .prefetch_related('items__product__images__asset')
+        .prefetch_related('items__product__images__asset', 'items__return_items__return_request')
         .order_by('-created_at')
     )
 

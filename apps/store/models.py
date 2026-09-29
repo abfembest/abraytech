@@ -107,7 +107,11 @@ class Product(models.Model):
 
     @property
     def primary_image(self):
-        return self.images.filter(is_primary=True).first() or self.images.first()
+        # Picked from images.all() (ordered sort_order, id) rather than
+        # .filter().first(), so a prefetch_related('images...') is used
+        # instead of two queries per product on every list page.
+        images = list(self.images.all())
+        return next((image for image in images if image.is_primary), images[0] if images else None)
 
 
 class ProductSpecification(models.Model):
@@ -322,6 +326,10 @@ class OrderItem(models.Model):
         'active' meaning not rejected, so a previously-rejected return
         doesn't block a fresh request. None if this line has never had a
         return requested (or its only ones were rejected)."""
+        if 'return_items' in getattr(self, '_prefetched_objects_cache', {}):
+            # prefetched (e.g. My Orders): pick in Python, no query per line
+            active = [item for item in self.return_items.all() if item.status != 'rejected']
+            return max(active, key=lambda item: item.return_request.requested_at, default=None)
         return self.return_items.exclude(status='rejected').order_by('-return_request__requested_at').first()
 
     def __str__(self):

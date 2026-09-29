@@ -10,6 +10,7 @@ separate lines)."""
 from .models import Product, ProductVariant
 
 CART_SESSION_KEY = 'cart'
+MAX_LINE_QUANTITY = 99   # per cart line; stops absurd quantities reaching checkout
 
 
 def cart_key(product_id, variant_id=None):
@@ -23,16 +24,18 @@ def _get_cart(session):
 def add_to_cart(session, product_id, quantity=1, variant_id=None):
     cart = _get_cart(session)
     key = cart_key(product_id, variant_id)
-    cart[key] = cart.get(key, 0) + quantity
+    cart[key] = min(cart.get(key, 0) + quantity, MAX_LINE_QUANTITY)
     session.modified = True
 
 
 def set_quantity(session, key, quantity):
     cart = _get_cart(session)
+    if key not in cart:
+        return  # only lines already in the cart can be changed
     if quantity <= 0:
         cart.pop(key, None)
     else:
-        cart[key] = quantity
+        cart[key] = min(quantity, MAX_LINE_QUANTITY)
     session.modified = True
 
 
@@ -66,11 +69,14 @@ def get_cart_items(session):
 
     parsed = []
     for key, quantity in cart.items():
-        if quantity <= 0:
-            continue
         try:
             pid_str, vid_str = key.split(':', 1)
-        except ValueError:
+            quantity = min(int(quantity), MAX_LINE_QUANTITY)
+        except (ValueError, TypeError):
+            continue
+        # Skip malformed keys: a non-numeric id would make the queries below
+        # raise and break the cart and checkout pages for this visitor.
+        if not (pid_str.isdigit() and vid_str.isdigit()) or quantity <= 0:
             continue
         parsed.append((key, pid_str, vid_str, quantity))
 
