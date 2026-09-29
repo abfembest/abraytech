@@ -153,8 +153,8 @@ urlpatterns = [
 
 ]
 
-# Serve media files during development
+# Media is served by config/urls.py (serve_media), which access-checks
+# application documents; a second media route here would bypass that.
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

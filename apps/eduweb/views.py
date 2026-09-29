@@ -9,10 +9,15 @@ logging import moved to module level; logger defined once.
 """
 
 # ─── Standard library ────────────────────────────────────────────────────────
+import hmac
 import json
 import logging
+import os
+import posixpath
 import random
 import re
+import secrets
+import uuid
 from datetime import datetime
 from decimal import Decimal
 from functools import lru_cache
@@ -40,6 +45,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static as static_asset_url
 from django.urls import Resolver404, resolve, reverse
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_GET, require_POST
 
@@ -112,13 +118,37 @@ logger = logging.getLogger(__name__)
 
 
 def _get_client_ip(request):
-    """Extract real client IP from request, respecting a reverse proxy's
-    X-Forwarded-For header when present. Used for security-critical audit
-    log entries (login/logout/password changes)."""
-    x_forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded:
-        return x_forwarded.split(',')[0].strip()
-    return request.META.get('REMOTE_ADDR', '')
+    """Client IP for audit log entries (login/logout/password changes).
+    Uses antispam.client_ip, which only trusts forwarding headers set by a
+    known proxy, so the logged IP can't be faked with a request header."""
+    return antispam.client_ip(request)
+
+
+# Sign-in / OTP / sign-up / password-reset limits (antispam throttles).
+LOGIN_FAILS_PER_ACCOUNT = 5     # per 15 minutes, then wait or reset password
+LOGIN_FAILS_PER_IP      = 20    # per 15 minutes
+LOGIN_WINDOW            = 15 * 60
+OTP_RESENDS_PER_USER    = 3     # per 10 minutes
+OTP_RESEND_WINDOW       = 10 * 60
+SIGNUPS_PER_IP          = 5     # accounts created per hour
+RESET_REQUESTS_PER_IP   = 5     # per hour
+RESET_EMAILS_PER_ADDRESS = 3    # per hour
+HOUR                    = 60 * 60
+
+
+def _new_otp():
+    """Six-digit one-time code from the OS's secure random source."""
+    return str(secrets.randbelow(900000) + 100000)
+
+
+def _safe_redirect_target(request, url, fallback='/'):
+    """`url` if it points back to this site, else `fallback` (blocks open
+    redirects through a posted `next` field or a forged Referer)."""
+    if url and url_has_allowed_host_and_scheme(
+        url, allowed_hosts={request.get_host()}, require_https=request.is_secure(),
+    ):
+        return url
+    return fallback
 
 
 
@@ -442,6 +472,19 @@ def auth_page(request):
         if not username_or_email or not password:
             return _fresh_captcha_error('username', 'Username/email and password required.')
 
+        # Brute-force guard: failed attempts are counted per account and per IP.
+        ip      = antispam.client_ip(request)
+        account = username_or_email.lower()
+        if (antispam.throttled('login_account', account, LOGIN_FAILS_PER_ACCOUNT)
+                or antispam.throttled('login_ip', ip, LOGIN_FAILS_PER_IP)):
+            response = _fresh_captcha_error(
+                'username',
+                'Too many failed sign-in attempts. Please wait 15 minutes and try again, '
+                'or reset your password.',
+            )
+            response.status_code = 429
+            return response
+
         # Verify captcha
         session_answer = request.session.get('signin_captcha_answer')
         try:
@@ -450,19 +493,21 @@ def auth_page(request):
         except (ValueError, TypeError):
             return _fresh_captcha_error('captcha', 'Invalid answer. Enter a number.')
 
-        # Allow login by email
+        # Allow login by email. filter().first(), not get(): two accounts
+        # sharing an email must not turn sign-in into a server error.
         if '@' in username_or_email:
-            try:
-                username_or_email = User.objects.get(
-                    email=username_or_email
-                ).username
-            except User.DoesNotExist:
-                pass
+            by_email = User.objects.filter(email=username_or_email).order_by('pk').first()
+            if by_email:
+                username_or_email = by_email.username
 
         user = authenticate(request, username=username_or_email, password=password)
 
         if user is None:
+            antispam.record_hit('login_account', account, LOGIN_WINDOW)
+            antispam.record_hit('login_ip', ip, LOGIN_WINDOW)
             return _fresh_captcha_error('username', 'Invalid username/email or password.')
+
+        antispam.clear_hits('login_account', account)
 
         if not user.is_active:
             return _fresh_captcha_error(
@@ -498,7 +543,7 @@ def auth_page(request):
                 profile.save(update_fields=['is_logged_in', 'active_session_key'])
 
         # ── OTP: generate, email, then hold login until verified ──────────
-        otp = str(random.randint(100000, 999999))
+        otp = _new_otp()
         profile.otp_code       = otp      # encrypted via setter
         profile.otp_created_at = timezone.now()
         profile.otp_attempts   = 0
@@ -618,6 +663,14 @@ def signup_page(request):
 
     if request.method == 'POST' and request.POST.get('action') == 'signup':
         is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        ip = antispam.client_ip(request)
+        if antispam.throttled('signup_ip', ip, SIGNUPS_PER_IP):
+            return JsonResponse({
+                'success': False,
+                'errors': {'__all__': [
+                    'Too many accounts have been created from your connection. Please try again in an hour.'
+                ]},
+            }, status=429)
         signup_form = SignUpForm(
             request.POST,
             captcha_answer=request.session.get('signup_captcha_answer'),
@@ -627,6 +680,7 @@ def signup_page(request):
             user = signup_form.save(commit=False)
             user.is_active = False
             user.save()
+            antispam.record_hit('signup_ip', ip, HOUR)
             AuditLog.objects.create(
                 user=user,
                 action='create',
@@ -686,7 +740,16 @@ def otp_verify(request):
 
     # ── resend (GET ?resend=1) ────────────────────────────────────────────────
     if request.method == 'GET' and request.GET.get('resend') == '1':
-        otp = str(random.randint(100000, 999999))
+        # Each resend gives a fresh code and a fresh 5 attempts, so resends
+        # are capped to keep code-guessing impractical.
+        if antispam.throttled('otp_resend', user.pk, OTP_RESENDS_PER_USER):
+            return JsonResponse({
+                'success': False,
+                'message': 'Too many new codes requested. Please wait 10 minutes and try again.',
+            }, status=429)
+        antispam.record_hit('otp_resend', user.pk, OTP_RESEND_WINDOW)
+
+        otp = _new_otp()
         profile = user.profile
         previous_code, previous_created_at = profile.otp_code, profile.otp_created_at
         profile.otp_code       = otp      # encrypted via setter
@@ -739,8 +802,9 @@ def otp_verify(request):
                 'redirect_login': True,
             }, status=400)
 
-        # wrong code  (profile.otp_code decrypts automatically)
-        if entered_otp != profile.otp_code:
+        # wrong code  (profile.otp_code decrypts automatically; compared in
+        # constant time so response timing doesn't leak matching digits)
+        if not hmac.compare_digest(entered_otp.encode(), (profile.otp_code or '').encode()):
             profile.otp_attempts += 1
             profile.save(update_fields=['otp_attempts'])
 
@@ -882,15 +946,23 @@ def forgot_password(request):
         return redirect('eduweb:index')
 
     if request.method == 'POST':
+        ip = antispam.client_ip(request)
+        if antispam.throttled('reset_ip', ip, RESET_REQUESTS_PER_IP):
+            messages.error(request, 'Too many reset requests from your connection. Please try again in an hour.')
+            return render(request, 'forgot_password.html', {'form': PasswordResetRequestForm()})
+        antispam.record_hit('reset_ip', ip, HOUR)
+
         form = PasswordResetRequestForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data['email']
-            try:
-                user = User.objects.get(email=email, is_active=True)
-                if not send_password_reset_email(request, user):
+            # A per-address cap stops the form being used to flood someone's
+            # inbox. It is silent, like the not-found case, so the response
+            # never reveals whether the account exists.
+            if not antispam.throttled('reset_email', email, RESET_EMAILS_PER_ADDRESS):
+                antispam.record_hit('reset_email', email, HOUR)
+                user = User.objects.filter(email=email, is_active=True).order_by('pk').first()
+                if user and not send_password_reset_email(request, user):
                     logger.error("Password reset email failed silently for %s", email)
-            except User.DoesNotExist:
-                pass  # Silent — do not reveal whether the account exists
 
             # Always show the same success screen to prevent email enumeration
             return render(request, 'forgot_password.html', {
@@ -924,6 +996,19 @@ def reset_password(request, token):
             user.set_password(form.cleaned_data['password1'])
             user.save()
             profile.clear_reset_token()
+
+            # End the old login (someone else may hold it) and clear the
+            # single-device flag and sign-in lockout, so the owner can sign
+            # straight in with the new password.
+            old_session_key = profile.active_session_key
+            profile.is_logged_in = False
+            profile.active_session_key = ''
+            profile.save(update_fields=['is_logged_in', 'active_session_key'])
+            if old_session_key:
+                Session.objects.filter(session_key=old_session_key).delete()
+            for account in {user.username.lower(), (user.email or '').lower()} - {''}:
+                antispam.clear_hits('login_account', account)
+
             AuditLog.objects.create(
                 user=user,
                 action='update',
@@ -943,6 +1028,37 @@ def reset_password(request, token):
     return render(request, 'reset_password.html', {
         'form': SetNewPasswordForm(), 'token': token,
     })
+
+
+# =============================================================================
+# MEDIA FILES
+# =============================================================================
+
+PRIVATE_MEDIA_PREFIX = 'applications/'
+
+
+def serve_media(request, path):
+    """Serve /media/ files. Application documents (IDs, passports, CVs) only
+    go to the applicant who uploaded them and to admissions staff; every
+    other media file is public as before."""
+    from django.views.static import serve
+    from apps.management.views import is_admin
+
+    normalized = posixpath.normpath(path).lstrip('/').lower()
+    if normalized.startswith(PRIVATE_MEDIA_PREFIX):
+        user = request.user
+        allowed = user.is_authenticated and (
+            is_admin(user)
+            or ApplicationDocument.objects.filter(
+                file=posixpath.normpath(path).lstrip('/'), application__user=user,
+            ).exists()
+        )
+        if not allowed:
+            raise Http404
+    response = serve(request, path, document_root=settings.MEDIA_ROOT)
+    if normalized.startswith(PRIVATE_MEDIA_PREFIX):
+        response['Cache-Control'] = 'private, no-store'
+    return response
 
 
 # =============================================================================
@@ -1585,7 +1701,9 @@ def contact_submit(request):
     if request.method != 'POST':
         return redirect('eduweb:index')
 
-    referer = request.POST.get('next') or request.META.get('HTTP_REFERER', '/')
+    referer = _safe_redirect_target(
+        request, request.POST.get('next') or request.META.get('HTTP_REFERER'),
+    )
 
     # ── Bot checks (honeypot, fill time, rate limit, links) ───────────────────
     verdict = antispam.check_contact_submission(request)
@@ -1664,8 +1782,21 @@ def newsletter_subscribe(request):
     """AJAX-only endpoint backing the footer newsletter signup form."""
     from .models import NewsletterSubscriber
 
+    from django.core.exceptions import ValidationError
+    from django.core.validators import validate_email
+
+    ip = antispam.client_ip(request)
+    if antispam.throttled('newsletter_ip', ip, 10):
+        return JsonResponse(
+            {'success': False, 'message': 'Too many sign-ups from your connection. Please try again later.'},
+            status=429,
+        )
+    antispam.record_hit('newsletter_ip', ip, HOUR)
+
     email = request.POST.get('email', '').strip().lower()
-    if not email or '@' not in email or '.' not in email.split('@')[-1]:
+    try:
+        validate_email(email)
+    except ValidationError:
         return JsonResponse({'success': False, 'message': 'Please enter a valid email address.'}, status=400)
 
     subscriber, created = NewsletterSubscriber.objects.get_or_create(email=email)
@@ -1986,9 +2117,13 @@ def apply(request):
 @login_required(login_url='eduweb:auth_page')
 def application_status(request):
     """Show the most recent application for the logged-in user."""
+    # Owned by this account. The email match is only a fallback for older
+    # applications with no linked account — matching any application by
+    # email would let someone who sets their account email to another
+    # applicant's see that applicant's application.
     application = (
         CourseApplication.objects
-        .filter(Q(email=request.user.email) | Q(user=request.user))  # fallback if email drifted
+        .filter(Q(user=request.user) | Q(user__isnull=True, email__iexact=request.user.email))
         .order_by('-created_at')
         .first()
     )
@@ -2007,7 +2142,12 @@ def admission_letter(request, application_id):
     application = get_object_or_404(CourseApplication, application_id=application_id)
 
     user     = request.user
-    is_owner = application.user == user or application.email == user.email
+    # Email only counts for older applications with no linked account (see
+    # application_status).
+    is_owner = application.user_id == user.pk or (
+        application.user_id is None and bool(user.email)
+        and (application.email or '').lower() == user.email.lower()
+    )
     is_admin = user.is_staff or user.is_superuser
 
     if not (is_owner or is_admin):
@@ -2303,20 +2443,35 @@ def upload_application_file(request, application_id):
             'error':   f'File size exceeds 5 MB limit. Your file is {file.size / 1024 / 1024:.2f} MB.',
         })
 
-    # Extension check
-    allowed = ['.pdf', '.jpg', '.jpeg', '.png']
-    if not any(file.name.lower().endswith(ext) for ext in allowed):
+    if file_type not in dict(ApplicationDocument.FILE_TYPE_CHOICES):
+        return JsonResponse({'success': False, 'error': 'Please choose a valid document type.'})
+
+    # Extension check, then the file's first bytes must match that type — a
+    # renamed file (e.g. HTML saved as .pdf) is rejected.
+    signatures = {
+        '.pdf': (b'%PDF-',), '.jpg': (b'\xff\xd8\xff',), '.jpeg': (b'\xff\xd8\xff',),
+        '.png': (b'\x89PNG\r\n\x1a\n',),
+    }
+    ext = os.path.splitext(file.name.lower())[1]
+    head = file.read(8)
+    file.seek(0)
+    if ext not in signatures or not head.startswith(signatures[ext]):
         return JsonResponse({
             'success': False,
             'error':   'Invalid file type. Only PDF, JPG, and PNG files are allowed.',
         })
+
+    original_filename = os.path.basename(file.name)[:255]
+    # Stored under a random name so documents in /media can't be found by
+    # guessing a filename like passport.pdf.
+    file.name = f'{uuid.uuid4().hex}{ext}'
 
     try:
         document = ApplicationDocument.objects.create(
             application=application,
             file_type=file_type,
             file=file,
-            original_filename=file.name,
+            original_filename=original_filename,
             file_size=file.size,
         )
 
@@ -2338,9 +2493,9 @@ def upload_application_file(request, application_id):
             'file_size':   document.get_file_size_display(),
         })
 
-    except Exception as e:
+    except Exception:
         logger.exception("upload_application_file failed")
-        return JsonResponse({'success': False, 'error': f'Upload failed: {e}'})
+        return JsonResponse({'success': False, 'error': 'Upload failed. Please try again.'})
 
 
 # =============================================================================

@@ -226,6 +226,18 @@ class ProfileUpdateForm(forms.ModelForm):
             }),
         }
     
+    def clean_email(self):
+        """An email can belong to one account only: sign-in by email and
+        password reset look accounts up by it."""
+        email = self.cleaned_data['email'].strip()
+        owner = getattr(self.instance, 'user', None)
+        taken = User.objects.filter(email__iexact=email)
+        if owner is not None:
+            taken = taken.exclude(pk=owner.pk)
+        if taken.exists():
+            raise ValidationError('This email address is already used by another account.')
+        return email
+
     def clean_avatar(self):
         """Validate avatar upload"""
         avatar = self.cleaned_data.get('avatar')

@@ -128,6 +128,42 @@ def check_contact_submission(request):
     return None
 
 
+# ── Throttles for sign-in, OTP, sign-up and password reset ───────────────────
+# Counters live in the cache under throttle:<scope>:<ident>. If the cache is
+# down they fail open (log and allow) so an outage can't lock everyone out.
+
+def _throttle_key(scope, ident):
+    return f"throttle:{scope}:{str(ident).strip().lower()}"
+
+
+def throttled(scope, ident, limit):
+    """True if `ident` has already used up `limit` hits in `scope`."""
+    try:
+        return (cache.get(_throttle_key(scope, ident)) or 0) >= limit
+    except Exception:
+        logger.exception("Throttle check failed for %s", scope)
+        return False
+
+
+def record_hit(scope, ident, period):
+    """Count one hit for `ident`; the window starts at the first hit."""
+    key = _throttle_key(scope, ident)
+    try:
+        if not cache.add(key, 1, period):
+            cache.incr(key)
+    except ValueError:  # expired between add() and incr()
+        cache.set(key, 1, period)
+    except Exception:
+        logger.exception("Throttle update failed for %s", scope)
+
+
+def clear_hits(scope, ident):
+    try:
+        cache.delete(_throttle_key(scope, ident))
+    except Exception:
+        logger.exception("Throttle reset failed for %s", scope)
+
+
 def turnstile_enabled():
     return bool(settings.TURNSTILE_SITE_KEY and settings.TURNSTILE_SECRET_KEY)
 

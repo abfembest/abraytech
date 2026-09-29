@@ -233,7 +233,9 @@ def dashboard(request):
         # ── Admission / application history ───────────────────────────────────
         admission_history = (
             CourseApplication.objects
-            .filter(Q(user=user) | Q(email=user.email))
+            # Email only matches applications with no linked account; see
+            # eduweb.views.application_status.
+            .filter(Q(user=user) | Q(user__isnull=True, email__iexact=user.email))
             .select_related('program', 'program__department__faculty')
             .order_by('-created_at')[:5]
         )
