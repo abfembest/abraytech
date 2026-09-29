@@ -2110,13 +2110,15 @@ def quiz_attempt_detail(request, course_slug, lesson_slug, quiz_slug, attempt_id
             # a stale provisional score once grading is done.
             all_responses = list(attempt.responses.select_related('question'))
             attempt.score = sum((r.points_earned for r in all_responses), Decimal('0.00'))
-            attempt.max_score = sum((r.question.points for r in all_responses), Decimal('0.00'))
+            # max_score stays as quiz_submit stored it: the quiz's full total,
+            # including questions the student left unanswered (summing only
+            # the responses would inflate the percentage).
             attempt.percentage = (
                 (attempt.score / attempt.max_score * 100) if attempt.max_score > 0 else Decimal('0.00')
             )
             attempt.passed = attempt.percentage >= quiz.passing_score
             attempt.pending_manual_grading = any(r.needs_grading for r in all_responses)
-            attempt.save(update_fields=['score', 'max_score', 'percentage', 'passed', 'pending_manual_grading'])
+            attempt.save(update_fields=['score', 'percentage', 'passed', 'pending_manual_grading'])
 
         # This attempt's percentage feeds the quiz component of the
         # student's unified CourseGrade — recompute now so a just-graded

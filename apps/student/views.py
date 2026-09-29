@@ -32,6 +32,10 @@ from .forms import AssignmentSubmissionForm, ReplyCreateForm, ThreadCreateForm, 
 
 logger = logging.getLogger(__name__)
 
+# Extra time allowed past a quiz's time limit before a submission is refused
+# (the quiz page's timer submits at zero; this absorbs slow connections).
+QUIZ_TIME_GRACE = timedelta(minutes=2)
+
 
 def _registrable_course_ids(profile):
     """
@@ -1731,19 +1735,43 @@ def quiz_submit(request, attempt_id):
                 messages.warning(request, 'Quiz already submitted.')
                 return redirect('students:quiz_result', attempt_id=attempt_id)
 
+            quiz = attempt.quiz
+
+            # Attempt limit, re-checked here: quiz_take only checks when the
+            # page opens, so several tabs opened at once could each be
+            # submitted past max_attempts.
+            completed_attempts = QuizAttempt.objects.filter(
+                quiz=quiz, student=request.user, is_completed=True,
+            ).count()
+            if quiz.max_attempts > 0 and completed_attempts >= quiz.max_attempts:
+                messages.error(request, 'Maximum attempts reached.')
+                return redirect(
+                    'students:quiz_detail', course_slug=quiz.lesson.course.slug,
+                    lesson_slug=quiz.lesson.slug, quiz_slug=quiz.slug,
+                )
+
+            # Every active question counts toward the maximum, answered or
+            # not; previously only submitted questions did, so answering a
+            # single question correctly and skipping the rest scored 100%.
+            questions = {q.id: q for q in quiz.questions.filter(is_active=True)}
+            max_score = sum((q.points for q in questions.values()), Decimal('0.00'))
+
+            # Time limit, enforced here. A submission later than the limit
+            # plus QUIZ_TIME_GRACE closes the attempt without scoring answers.
+            time_expired = bool(
+                quiz.time_limit_minutes
+                and timezone.now() - attempt.started_at
+                > timedelta(minutes=quiz.time_limit_minutes) + QUIZ_TIME_GRACE
+            )
+
             has_pending_manual_grading = False
 
-            for key, value in request.POST.items():
+            for key, value in ([] if time_expired else request.POST.items()):
                 if key.startswith('question_'):
                     try:
-                        question_id = int(key.split('_')[1])
-                        question = attempt.quiz.questions.get(
-                            id=question_id
-                        )
-                    except (QuizQuestion.DoesNotExist, ValueError):
+                        question = questions[int(key.split('_')[1])]
+                    except (KeyError, ValueError):
                         continue
-
-                    max_score += question.points
 
                     if question.question_type in ('short_answer', 'essay'):
                         # No automatic "correct answer" concept for free text —
@@ -1829,6 +1857,12 @@ def quiz_submit(request, attempt_id):
         messages.warning(request, 'Quiz already submitted.')
         return redirect('students:quiz_result', attempt_id=attempt_id)
 
+    if time_expired:
+        messages.error(
+            request,
+            'The time limit for this quiz had passed, so this attempt was closed without a score.',
+        )
+
     # This attempt's percentage feeds the quiz component of the student's
     # unified CourseGrade (CourseGrade.recompute_for_student_course) — the
     # other three trigger points (lesson completion, exam auto-grading,
@@ -1854,7 +1888,8 @@ def quiz_submit(request, attempt_id):
         message=f'You scored {attempt.percentage:.1f}% on "{attempt.quiz.title}" — {passed_label}.',
         link=f'/student/quizzes/attempt/{attempt_id}/result/',
     )
-    messages.success(request, 'Quiz submitted successfully!')
+    if not time_expired:
+        messages.success(request, 'Quiz submitted successfully!')
     return redirect('students:quiz_result', attempt_id=attempt_id)
 
 
