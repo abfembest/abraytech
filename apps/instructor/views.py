@@ -171,6 +171,8 @@ def course_list(request):
 
     courses = LMSCourse.objects.filter(
         instructor=request.user
+    ).select_related(
+        'academic_course__program'  # shown on each course card
     ).annotate(
         enrollment_count=Count('enrollments')
     ).order_by('-created_at')
@@ -231,20 +233,31 @@ def course_manage(request, slug=None):
     # ── TAB: overview ─────────────────────────────────────────────────────
     course_form = CourseForm(instance=course)
  
+    # One query each for the enrollment and lesson counts used across tabs.
+    enrollment_totals = course.enrollments.aggregate(
+        total=Count('id'),
+        active=Count('id', filter=Q(status='active')),
+        completed=Count('id', filter=Q(status='completed')),
+    )
+    lesson_totals = course.lessons.aggregate(
+        total=Count('id'),
+        video=Count('id', filter=Q(lesson_type='video')),
+        quiz=Count('id', filter=Q(lesson_type='quiz')),
+    )
     stats = {
-        'total_students': course.enrollments.count(),
-        'total_lessons':  course.lessons.count(),
+        'total_students': enrollment_totals['total'],
+        'total_lessons':  lesson_totals['total'],
         'total_sections': course.sections.count(),
     }
- 
+
     # ── TAB: content ──────────────────────────────────────────────────────
     sections = course.sections.prefetch_related(
         'lessons'
     ).order_by('display_order')
- 
+
     all_lessons  = course.lessons.all()
-    video_count  = all_lessons.filter(lesson_type='video').count()
-    quiz_count   = all_lessons.filter(lesson_type='quiz').count()
+    video_count  = lesson_totals['video']
+    quiz_count   = lesson_totals['quiz']
  
     # Inline lesson / section forms for modals
     lesson_form  = LessonForm(course=course)
@@ -286,9 +299,9 @@ def course_manage(request, slug=None):
         'student'
     ).order_by('-enrolled_at')
  
-    enrollments_count           = enrollments.count()
-    active_enrollments_count    = enrollments.filter(status='active').count()
-    completed_enrollments_count = enrollments.filter(status='completed').count()
+    enrollments_count           = enrollment_totals['total']
+    active_enrollments_count    = enrollment_totals['active']
+    completed_enrollments_count = enrollment_totals['completed']
     pending_submissions_count   = AssignmentSubmission.objects.filter(
         assignment__lesson__course=course,
         status='submitted'
@@ -1304,9 +1317,12 @@ def students_list(request, course_slug):
     )
     
     enrollments = course.enrollments.all().select_related(
-        'student'
+        'student__profile'  # the template shows each student's avatar
     ).order_by('-enrolled_at')
-    
+    # Load the rows once: the template calls enrollments.count several
+    # times, and a loaded queryset answers count() without a new query.
+    len(enrollments)
+
     return render(request, 'instructor/students.html', {
         'course': course,
         'enrollments': enrollments,

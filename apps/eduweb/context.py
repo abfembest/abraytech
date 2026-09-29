@@ -297,9 +297,13 @@ def student_counts(request):
             is_read=False,
         ).order_by('-created_at')
 
+        unread_count = unread_notifs_qs.count()
+        nav_notifications = list(unread_notifs_qs[:5])
+        # Reused by instructor_counts (it runs next) instead of re-querying.
+        request.unread_notifications = (unread_count, nav_notifications)
         result = {
-            'unread_notifications_count': unread_notifs_qs.count(),
-            'nav_notifications': list(unread_notifs_qs[:5]),
+            'unread_notifications_count': unread_count,
+            'nav_notifications': nav_notifications,
             'unread_messages_count': 0,
         }
 
@@ -374,9 +378,11 @@ def instructor_counts(request):
             pending_manual_count__gt=0,
         ).count()
 
+        cached = getattr(request, 'unread_notifications', None)
+        unread_count, nav_notifications = cached or (unread_notifs_qs.count(), list(unread_notifs_qs[:5]))
         return {
-            'instructor_unread_notifications_count': unread_notifs_qs.count(),
-            'instructor_nav_notifications': list(unread_notifs_qs[:5]),
+            'instructor_unread_notifications_count': unread_count,
+            'instructor_nav_notifications': nav_notifications,
             'instructor_pending_exam_count': pending_exam_count,
         }
     except Exception:
