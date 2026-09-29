@@ -1066,6 +1066,7 @@ def reset_password(request, token):
 PRIVATE_MEDIA_PREFIX = 'applications/'
 LIBRARY_MEDIA_PREFIX = 'library/'
 LIBRARY_COVERS_PREFIX = 'library/covers/'
+SUBMISSION_MEDIA_PATTERN = re.compile(r'^courses/[^/]+/submissions/')
 
 
 def _library_file_access(request, stored_name):
@@ -1090,6 +1091,7 @@ def serve_media(request, path):
     library files follow their item's access setting; every other media file
     (including library covers) is public as before."""
     from django.views.static import serve
+    from apps.eduweb.models import AssignmentSubmission
     from apps.management.views import is_admin
 
     stored_name = posixpath.normpath(path).lstrip('/')
@@ -1102,6 +1104,19 @@ def serve_media(request, path):
             is_admin(user)
             or ApplicationDocument.objects.filter(
                 file=stored_name, application__user=user,
+            ).exists()
+        )
+        if not allowed:
+            raise Http404
+        private = True
+    elif SUBMISSION_MEDIA_PATTERN.match(normalized):
+        # Assignment submissions (student work): the student, the course's
+        # instructor, and admin staff only.
+        user = request.user
+        allowed = user.is_authenticated and (
+            is_admin(user)
+            or AssignmentSubmission.objects.filter(attachment=stored_name).filter(
+                Q(student=user) | Q(assignment__lesson__course__instructor=user)
             ).exists()
         )
         if not allowed:

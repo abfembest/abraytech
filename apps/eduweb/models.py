@@ -112,25 +112,30 @@ def validate_file_size(file, max_size_mb=10):
     if file.size > max_size_mb * 1024 * 1024:
         raise ValidationError(f'File size cannot exceed {max_size_mb}MB')
 
+# Course upload paths use the course's numeric id, not its slug: most course
+# slugs are 60-100 characters, which pushed these paths past FileField's
+# 100-character limit and made the uploads fail (Django raises
+# SuspiciousFileOperation). Files already stored keep their old paths.
+
+def _upload_ext(filename):
+    return os.path.splitext(filename)[1].lower()[:10]
+
 def get_video_upload_path(instance, filename):
     """Generate upload path for course videos"""
-    course_slug = instance.lesson.course.slug if hasattr(instance, 'lesson') else 'misc'
-    ext = filename.split('.')[-1]
-    filename = f"{uuid.uuid4().hex}.{ext}"
-    return f'courses/{course_slug}/videos/{filename}'
+    course_id = instance.lesson.course_id if hasattr(instance, 'lesson') else 'misc'
+    return f'courses/{course_id}/videos/{uuid.uuid4().hex}{_upload_ext(filename)}'
 
 def get_document_upload_path(instance, filename):
-    """Generate upload path for course documents"""
-    course_slug = instance.lesson.course.slug if hasattr(instance, 'lesson') else instance.course.slug
-    ext = filename.split('.')[-1]
-    safe_filename = f"{slugify(os.path.splitext(filename)[0])}.{ext}"
-    return f'courses/{course_slug}/documents/{safe_filename}'
+    """Generate upload path for course documents (keeps a short readable name)"""
+    course_id = instance.lesson.course_id if hasattr(instance, 'lesson') else instance.course_id
+    name = slugify(os.path.splitext(filename)[0])[:40] or 'document'
+    return f'courses/{course_id}/documents/{name}-{uuid.uuid4().hex[:8]}{_upload_ext(filename)}'
 
 def get_assignment_upload_path(instance, filename):
-    """Generate upload path for assignment submissions"""
-    ext = filename.split('.')[-1]
-    safe_filename = f"{instance.student.username}_{uuid.uuid4().hex[:8]}.{ext}"
-    return f'courses/{instance.assignment.lesson.course.slug}/submissions/{safe_filename}'
+    """Generate upload path for assignment submissions (random name: no
+    username in the file path of a student's work)"""
+    course_id = instance.assignment.lesson.course_id
+    return f'courses/{course_id}/submissions/{uuid.uuid4().hex}{_upload_ext(filename)}'
 
 def get_certificate_upload_path(instance, filename):
     """Generate upload path for certificates"""
