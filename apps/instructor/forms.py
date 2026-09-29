@@ -146,6 +146,15 @@ class CourseForm(forms.ModelForm):
                 'This course is already linked to an academic course and cannot be relinked. '
                 'Contact an administrator if this needs to change.'
             )
+        # One LMS course per academic course: student registration picks
+        # LMSCourse.objects.filter(academic_course=...).first(), so a second
+        # link could silently send registered students (and their grades)
+        # to the wrong course.
+        if new_value and LMSCourse.objects.filter(academic_course=new_value).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError(
+                'Another online course is already linked to this academic course. '
+                'Contact an administrator if this needs to change.'
+            )
         return new_value
 
     def clean(self):
