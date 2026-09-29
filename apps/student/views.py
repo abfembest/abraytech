@@ -1996,9 +1996,13 @@ def thread_detail(request, thread_id):
     ).order_by('created_at')
     
     # Handle new reply with form
+    if request.method == 'POST' and thread.is_locked:
+        messages.error(request, 'This discussion is locked, so no new replies can be posted.')
+        return redirect('students:thread_detail', thread_id=thread.id)
+
     if request.method == 'POST':
         form = ReplyCreateForm(request.POST)
-        
+
         if form.is_valid():
             reply = form.save(commit=False)
             reply.discussion = thread
@@ -2140,7 +2144,13 @@ def study_group_detail(request, group_id):
         user=request.user,
         is_active=True
     ).exists()
-    
+
+    # Private groups are invitation-only (see StudyGroupForm): their page,
+    # members and messages are for members and the creator only.
+    if not group.is_public and not is_member and group.created_by_id != request.user.id and not request.user.is_superuser:
+        messages.error(request, 'This study group is private.')
+        return redirect('students:study_groups')
+
     # Get members
     members = group.members.filter(
         is_active=True
@@ -2227,6 +2237,12 @@ def join_study_group(request, group_id):
             'students:study_group_detail',
             group_id=group_id
         )
+
+    # Invitation-only: a private group can't be joined from its id alone
+    # (a former member may rejoin).
+    if not group.is_public and existing is None and group.created_by_id != request.user.id:
+        messages.error(request, 'This study group is private and invitation-only.')
+        return redirect('students:study_groups')
     
     # Check if group is full
     current_count = group.members.filter(is_active=True).count()
