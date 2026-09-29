@@ -574,6 +574,11 @@ def paystack_webhook(request):
         logger.warning("Paystack webhook: could not parse payload (eduweb)")
         return HttpResponse(status=400)
 
+    from .paystack_routing import forward_if_foreign
+    forwarded = forward_if_foreign(request, 'eduweb', (event.get('data') or {}).get('reference'))
+    if forwarded is not None:
+        return forwarded
+
     if event.get('event') != 'charge.success':
         return HttpResponse(status=200)
 

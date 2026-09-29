@@ -16,6 +16,7 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+from apps.eduweb import antispam, paystack_routing
 from apps.eduweb.decorators import check_for_auth
 from apps.eduweb.models import Notification, Service
 from apps.eduweb.views import generate_captcha
@@ -31,6 +32,11 @@ logger = logging.getLogger(__name__)
 # Candidate start times are offered every 30 minutes within a free gap —
 # fine-grained enough to be useful, coarse enough to keep the picker short.
 TIME_STEP_MINUTES = 30
+
+# Bookings (free or paid) per visitor IP per hour: free consultations use
+# real calendar time, so a script must not be able to book them all out.
+BOOKINGS_PER_IP = 3
+BOOKING_WINDOW = 60 * 60
 
 
 class _SlotUnavailable(Exception):
@@ -146,6 +152,11 @@ def book_consultation(request):
 
         request.session.pop('consultation_captcha_answer', None)
 
+        ip = antispam.client_ip(request)
+        if antispam.throttled('consultation_booking_ip', ip, BOOKINGS_PER_IP):
+            messages.error(request, 'Too many bookings from your connection. Please try again in an hour, or contact us directly.')
+            return redirect('consultation:book_consultation')
+
         name = request.POST.get('name', '').strip()
         email = request.POST.get('email', '').strip()
         phone = request.POST.get('phone', '').strip()
@@ -249,6 +260,8 @@ def book_consultation(request):
             messages.error(request, "We're a little busy right now — please try booking again in a moment.")
             return redirect('consultation:book_consultation')
 
+        antispam.record_hit('consultation_booking_ip', ip, BOOKING_WINDOW)
+
         if is_free:
             _confirm_booking(booking)
             messages.success(
@@ -348,6 +361,14 @@ def booking_callback(request):
             )
         else:
             messages.error(request, "We couldn't confirm that payment. If you were charged, please contact us.")
+    elif data.get('unreachable'):
+        # Paystack couldn't be asked; the booking keeps its hold and the
+        # webhook confirms it if the payment went through.
+        messages.error(
+            request,
+            "We couldn't confirm your payment just yet. If you were charged, your booking will be "
+            "confirmed by email shortly; otherwise please try again.",
+        )
     else:
         if booking.status != 'paid':
             booking.status = 'payment_failed'
@@ -376,6 +397,10 @@ def paystack_webhook(request):
     except (ValueError, TypeError):
         logger.warning('Consultation Paystack webhook: could not parse payload')
         return HttpResponse(status=200)
+
+    forwarded = paystack_routing.forward_if_foreign(request, 'consultation', (event.get('data') or {}).get('reference'))
+    if forwarded is not None:
+        return forwarded
 
     if event.get('event') == 'charge.success':
         reference = (event.get('data', {}).get('reference') or '').strip()

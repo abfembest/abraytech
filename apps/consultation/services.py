@@ -3,6 +3,9 @@ apps/store/services.py's shape exactly (key resolution via eduweb's shared
 PaymentGateway config, falling back to settings.PAYSTACK_*), just keyed to
 a ConsultationBooking instead of a store Order."""
 
+import logging
+from urllib.parse import quote
+
 import requests
 from django.conf import settings
 from django.urls import reverse
@@ -10,6 +13,29 @@ from django.urls import reverse
 from apps.eduweb.models import PaymentGateway, decrypt_secret
 
 PAYSTACK_BASE_URL = 'https://api.paystack.co'
+
+logger = logging.getLogger(__name__)
+
+
+def _call_paystack(method, path, **kwargs):
+    """One Paystack API call. A network error, timeout or non-JSON reply
+    comes back as a failed result (status False, unreachable True) instead
+    of an exception, so booking and the payment callback show a message
+    rather than a server error."""
+    try:
+        response = requests.request(
+            method, f'{PAYSTACK_BASE_URL}{path}',
+            headers={'Authorization': f'Bearer {get_paystack_secret_key()}'},
+            timeout=15, **kwargs,
+        )
+        return response.json()
+    except (requests.RequestException, ValueError):
+        logger.warning('Paystack %s %s failed', method, path, exc_info=True)
+        return {
+            'status': False,
+            'unreachable': True,
+            'message': 'Could not reach Paystack. Please try again shortly.',
+        }
 
 
 def _active_paystack_gateway() -> "PaymentGateway | None":
@@ -31,9 +57,8 @@ def initialize_transaction(booking, request):
     """Kick off a Paystack Standard checkout for `booking`. Returns the
     parsed JSON response — caller checks data.get('status') and reads
     data['data']['authorization_url']."""
-    response = requests.post(
-        f'{PAYSTACK_BASE_URL}/transaction/initialize',
-        headers={'Authorization': f'Bearer {get_paystack_secret_key()}'},
+    return _call_paystack(
+        'POST', '/transaction/initialize',
         json={
             'email': booking.email,
             'amount': int(booking.amount * 100),
@@ -45,18 +70,11 @@ def initialize_transaction(booking, request):
                 'topic': booking.topic.title,
             },
         },
-        timeout=15,
     )
-    return response.json()
 
 
 def verify_transaction(reference):
     """Verify a Paystack transaction by reference. Returns the parsed JSON
     response — caller checks data.get('status') and
     data['data']['status'] == 'success'."""
-    response = requests.get(
-        f'{PAYSTACK_BASE_URL}/transaction/verify/{reference}',
-        headers={'Authorization': f'Bearer {get_paystack_secret_key()}'},
-        timeout=15,
-    )
-    return response.json()
+    return _call_paystack('GET', f'/transaction/verify/{quote(str(reference), safe="")}')

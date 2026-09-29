@@ -22,7 +22,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from apps.eduweb import antispam
+from apps.eduweb import antispam, paystack_routing
 from apps.eduweb.models import AuditLog, UserProfile
 from apps.eduweb.views import generate_captcha
 
@@ -643,6 +643,10 @@ def paystack_webhook(request):
     except (ValueError, TypeError):
         logger.warning('Paystack webhook: could not parse payload')
         return HttpResponse(status=200)
+
+    forwarded = paystack_routing.forward_if_foreign(request, 'store', (event.get('data') or {}).get('reference'))
+    if forwarded is not None:
+        return forwarded
 
     if event.get('event') == 'charge.success':
         reference = event.get('data', {}).get('reference')
