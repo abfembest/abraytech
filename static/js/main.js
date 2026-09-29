@@ -2,6 +2,10 @@
 function initLucide() {
     if (window.lucide) {
         lucide.createIcons();
+        // Lucide marks every icon aria-hidden; password toggles are buttons.
+        document.querySelectorAll('.password-toggle[aria-hidden]').forEach(function (el) {
+            el.removeAttribute('aria-hidden');
+        });
     }
 }
 
@@ -28,7 +32,17 @@ document.addEventListener('click', function (e) {
     const isPassword = input.type === 'password';
     input.type = isPassword ? 'text' : 'password';
     toggle.setAttribute('data-lucide', isPassword ? 'eye-off' : 'eye');
+    toggle.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
     initLucide();
+});
+
+// Keyboard: Enter/Space on a focused toggle acts like a click. Skipped when a
+// page's own handler already dealt with the key (auth.html / signup.html).
+document.addEventListener('keydown', function (e) {
+    if (e.defaultPrevented || (e.key !== 'Enter' && e.key !== ' ')) return;
+    if (!(e.target.classList && e.target.classList.contains('password-toggle'))) return;
+    e.preventDefault();
+    e.target.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 });
 
 // ─── SweetAlert2 Toast — deferred until window.load so Swal is ready ────────
