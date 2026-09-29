@@ -7,14 +7,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification" content="EX_ZEHEQyHCHodam0VO30CgoaRXBR3zGYB1NFzgojwI" />
 
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HCGTF9QCHQ"></script>
+    <!-- Google tag (gtag.js): loaded only after the visitor accepts cookies in
+         the banner (opt-in, as Nigeria's NDPA 2023 and GDPR expect). main.js
+         calls loadAnalytics() on Accept; a returning visitor who accepted
+         before gets it straight away. Declined/undecided = never loaded. -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      gtag('config', 'G-HCGTF9QCHQ');
+      window.loadAnalytics = function () {
+        if (window.analyticsLoaded) return;
+        window.analyticsLoaded = true;
+        var tag = document.createElement('script');
+        tag.async = true;
+        tag.src = 'https://www.googletagmanager.com/gtag/js?id=G-HCGTF9QCHQ';
+        document.head.appendChild(tag);
+        gtag('js', new Date());
+        gtag('config', 'G-HCGTF9QCHQ');
+      };
+      try {
+        if (localStorage.getItem('abraytech_cookie_choice') === 'accepted') window.loadAnalytics();
+      } catch (e) { /* storage unavailable: no consent recorded */ }
     </script>
 
     <!-- Dynamic Meta Tags - Allow child templates to override. Description/

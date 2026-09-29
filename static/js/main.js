@@ -254,7 +254,10 @@ document.addEventListener('DOMContentLoaded', function () {
             try { localStorage.setItem('abraytech_cookie_choice', choice); } catch (e) {}
             cookieConsent.classList.add('hidden');
         }
-        cookieAccept && cookieAccept.addEventListener('click', () => setCookieChoice('accepted'));
+        cookieAccept && cookieAccept.addEventListener('click', () => {
+            setCookieChoice('accepted');
+            if (window.loadAnalytics) window.loadAnalytics();  // defined in base.html <head>
+        });
         cookieDecline && cookieDecline.addEventListener('click', () => setCookieChoice('declined'));
     }
 });
