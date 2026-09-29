@@ -1116,7 +1116,23 @@ def serve_media(request, path):
     response = serve(request, path, document_root=settings.MEDIA_ROOT)
     if private:
         response['Cache-Control'] = 'private, no-store'
+    # This site's own pages embed media (the library PDF viewer iframe);
+    # the default DENY made browsers refuse to show it. Other sites still can't.
+    response['X-Frame-Options'] = 'SAMEORIGIN'
     return response
+
+
+@csrf_exempt
+@require_POST
+def csp_report(request):
+    """Browsers post Content-Security-Policy violation reports here (see
+    security_middleware). They are logged so the allow-list can be checked
+    before the policy is enforced; throttled per IP to keep logs sane."""
+    ip = antispam.client_ip(request)
+    if not antispam.throttled('csp_report_ip', ip, 60):
+        antispam.record_hit('csp_report_ip', ip, HOUR)
+        logger.warning('CSP violation: %s', request.body[:2000].decode('utf-8', 'replace'))
+    return HttpResponse(status=204)
 
 
 # =============================================================================

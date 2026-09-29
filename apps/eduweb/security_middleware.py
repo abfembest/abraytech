@@ -306,3 +306,60 @@ class SessionSecurityMiddleware(MiddlewareMixin):
             or request.headers.get('Accept') == 'application/json'
             or request.content_type == 'application/json'
         )
+
+
+# ── Content-Security-Policy ────────────────────────────────────────────────────
+#
+# Two layers:
+#   - CSP_BASELINE is always enforced. It can't break a page: no plugins, no
+#     <base> hijacking, and no framing by other sites (media files may be
+#     framed by this site - the library PDF viewer - pages by nobody).
+#   - CSP_POLICY is the full allow-list of third parties the site uses. It is
+#     sent as Content-Security-Policy-Report-Only (browsers report, nothing is
+#     blocked) until DJANGO_CSP_REPORT_ONLY=False in .env makes it enforced.
+#     Reports are logged by eduweb.views.csp_report.
+#
+# 'unsafe-inline' is needed while templates use inline <script>/<style> and
+# onclick handlers; everything else is limited to the hosts listed here.
+
+CSP_BASELINE = "object-src 'none'; base-uri 'self'; frame-ancestors {frame}"
+
+CSP_POLICY = "; ".join([
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://challenges.cloudflare.com "
+    "https://js.stripe.com https://js.paystack.co https://www.instagram.com https://platform.twitter.com "
+    "https://connect.facebook.net https://www.tiktok.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://paystack.com",
+    "font-src 'self' data: https://fonts.gstatic.com",
+    "img-src 'self' data: blob: https:",
+    "media-src 'self' blob: https:",
+    "connect-src 'self' https://www.googletagmanager.com https://*.google-analytics.com "
+    "https://*.analytics.google.com https://challenges.cloudflare.com https://api.stripe.com "
+    "https://api.paystack.co",
+    "frame-src 'self' https://challenges.cloudflare.com https://js.stripe.com https://hooks.stripe.com "
+    "https://checkout.paystack.com https://www.youtube.com https://www.youtube-nocookie.com "
+    "https://www.google.com https://maps.google.com https://www.instagram.com https://www.facebook.com "
+    "https://platform.twitter.com https://www.tiktok.com https://www.linkedin.com",
+    "worker-src 'self' blob:",
+    "form-action 'self'",
+    CSP_BASELINE,
+])
+
+
+class ContentSecurityPolicyMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        # Must sit above XFrameOptionsMiddleware in settings.MIDDLEWARE so the
+        # final X-Frame-Options is already set when this runs.
+        frame = "'self'" if response.get('X-Frame-Options', '').upper() == 'SAMEORIGIN' else "'none'"
+        from django.urls import reverse
+        policy = CSP_POLICY.format(frame=frame) + f"; report-uri {reverse('eduweb:csp_report')}"
+        if getattr(settings, 'CSP_REPORT_ONLY', True):
+            response.setdefault('Content-Security-Policy', CSP_BASELINE.format(frame=frame))
+            response.setdefault('Content-Security-Policy-Report-Only', policy)
+        else:
+            response.setdefault('Content-Security-Policy', policy)
+        return response
