@@ -43,9 +43,7 @@ urlpatterns = [
     path('program/<slug:slug>/', views.program_detail, name='program_detail'),
 
     # Additional Pages
-    path('research/', views.research, name='research'),
     path('all-programs/', views.all_programs, name='all_programs'),
-    path('campus-life/', views.campus_life, name='campus_life'),
     path('blog/', views.blog, name='blog'),
     path('blog/<slug:slug>/', views.blog_detail, name='blog_detail'),
     path('blog/category/<slug:slug>/', views.blog_category, name='blog_category'),

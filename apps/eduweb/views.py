@@ -1451,16 +1451,6 @@ def account_settings(request):
 
 
 @check_for_auth
-def research(request):
-    return render(request, 'research.html')
-
-
-@check_for_auth
-def campus_life(request):
-    return render(request, 'campus_life.html')
-
-
-@check_for_auth
 def admission_requirement(request):
     from apps.support.models import FAQ
     from .models import CourseIntake
