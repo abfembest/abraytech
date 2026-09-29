@@ -3,14 +3,15 @@ Cache for data the public pages and the site-wide nav read on every request
 (SiteConfig, nav dropdowns, homepage sections).
 
 Every key includes a "public content version". Saving or deleting any model
-in PUBLIC_MODELS bumps that version, so an admin edit shows up on the next
-request instead of after a timeout.
+in PUBLIC_MODELS bumps that version, so an admin edit shows up within a few
+seconds (VERSION_TTL) instead of after the full timeout.
 
 Every function falls back to the database if the cache backend fails (for
 example, the DatabaseCache table has not been created yet), so a cache
 problem can slow a page down but never break it.
 """
 import logging
+import time
 
 from django.core.cache import cache
 from django.db.models.signals import post_delete, post_save
@@ -36,11 +37,29 @@ PUBLIC_MODELS = [
 ]
 
 
+# The version is re-read from the cache at most every VERSION_TTL seconds per
+# process, not once per cached item (with the database cache each read is a
+# query). Edits in this process update it at once; others within seconds.
+VERSION_TTL = 5
+# Values already fetched in this process for the current version, so pages
+# don't re-read the cache table for data they just used. Emptied whenever
+# the version changes.
+_local = {'version': None, 'read_at': 0.0, 'items': {}}
+
+
 def _version():
+    now = time.monotonic()
+    if _local['version'] is not None and now - _local['read_at'] < VERSION_TTL:
+        return _local['version']
     version = cache.get(VERSION_KEY)
     if version is None:
-        version = 1
-        cache.add(VERSION_KEY, version, None)
+        # Start from the clock, not 1: if the key was evicted, restarting at
+        # an old number could bring back entries cached under it.
+        cache.add(VERSION_KEY, int(time.time()), None)
+        version = cache.get(VERSION_KEY) or int(time.time())
+    if version != _local['version']:
+        _local['items'] = {}
+    _local.update(version=version, read_at=now)
     return version
 
 
@@ -50,6 +69,8 @@ def get_or_set(name, compute):
     unevaluated QuerySet."""
     try:
         key = f'public:{_version()}:{name}'
+        if key in _local['items']:
+            return _local['items'][key]
         value = cache.get(key)
     except Exception:
         logger.exception('public_cache: cache unavailable for %s, using the database', name)
@@ -61,16 +82,21 @@ def get_or_set(name, compute):
             cache.set(key, value, TIMEOUT)
         except Exception:
             logger.exception('public_cache: could not store %s', name)
+    _local['items'][key] = value
     return value
 
 
 def bump_version(**kwargs):
     try:
-        cache.incr(VERSION_KEY)
-    except ValueError:
-        cache.set(VERSION_KEY, 2, None)
+        version = cache.incr(VERSION_KEY)
+    except ValueError:  # key missing (evicted): start a fresh, higher number
+        version = int(time.time())
+        cache.set(VERSION_KEY, version, None)
     except Exception:
         logger.exception('public_cache: could not bump the content version')
+        _local.update(version=None, items={})
+        return
+    _local.update(version=version, read_at=time.monotonic(), items={})
 
 
 def connect_signals():
