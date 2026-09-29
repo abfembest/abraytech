@@ -168,7 +168,7 @@
                         </div>
                     </div>
                     <div class="ml-4 flex-1">
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">
+                        <h2 class="text-xl font-bold text-gray-900 mb-2">
                             {% if application.status == 'approved' %}
                                 <span class="text-green-700">Admission Approved</span>
                             {% elif application.status == 'rejected' %}
@@ -176,7 +176,7 @@
                             {% else %}
                                 Current Status: {{ application.get_status_display }}
                             {% endif %}
-                        </h3>
+                        </h2>
                         <p class="text-gray-700 leading-relaxed">
                             {% if application.status == 'approved' %}
                                 {% if application.admission_accepted %}
@@ -720,7 +720,7 @@
                                 <div class="w-0.5 h-full bg-gray-200 mt-2"></div>
                             </div>
                             <div class="flex-1 pb-6">
-                                <h4 class="font-bold text-gray-900 mb-1">Application Draft Created</h4>
+                                <h3 class="font-bold text-gray-900 mb-1">Application Draft Created</h3>
                                 <p class="text-sm text-gray-600 mb-2">{{ application.created_at|date:"M d, Y" }} at {{ application.created_at|time:"g:i A" }}</p>
                                 <p class="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-200">Application form saved successfully</p>
                             </div>
@@ -735,7 +735,7 @@
                                 <div class="w-0.5 h-full bg-gray-200 mt-2"></div>
                             </div>
                             <div class="flex-1 pb-6">
-                                <h4 class="font-bold text-gray-900 mb-1">Payment Completed</h4>
+                                <h3 class="font-bold text-gray-900 mb-1">Payment Completed</h3>
                                 <p class="text-sm text-gray-600 mb-2">
                                     {% if application.payment.paid_at %}
                                         {{ application.payment.paid_at|date:"M d, Y" }} at {{ application.payment.paid_at|time:"g:i A" }}
@@ -761,7 +761,7 @@
                                 {% endif %}
                             </div>
                             <div class="flex-1 pb-6">
-                                <h4 class="font-bold text-gray-900 mb-1">Documents Uploaded</h4>
+                                <h3 class="font-bold text-gray-900 mb-1">Documents Uploaded</h3>
                                 <p class="text-sm text-gray-600 mb-2">{{ application.documents.first.uploaded_at|date:"M d, Y" }} at {{ application.documents.first.uploaded_at|time:"g:i A" }}</p>
                                 <div class="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-200">
                                     <p class="font-semibold mb-2">{{ application.documents.count }} document{{ application.documents.count|pluralize }} uploaded:</p>
@@ -789,7 +789,7 @@
                                 {% endif %}
                             </div>
                             <div class="flex-1 pb-6">
-                                <h4 class="font-bold text-gray-900 mb-1">Application Submitted</h4>
+                                <h3 class="font-bold text-gray-900 mb-1">Application Submitted</h3>
                                 <p class="text-sm text-gray-600 mb-2">{{ application.submitted_at|date:"M d, Y" }} at {{ application.submitted_at|time:"g:i A" }}</p>
                                 <p class="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-200">
                                     Application submitted for review
@@ -806,7 +806,7 @@
                                 </div>
                             </div>
                             <div class="flex-1 pb-6">
-                                <h4 class="font-bold text-gray-900 mb-1">Decision Made</h4>
+                                <h3 class="font-bold text-gray-900 mb-1">Decision Made</h3>
                                 <p class="text-sm text-gray-600 mb-2">{{ application.reviewed_at|date:"M d, Y" }} at {{ application.reviewed_at|time:"g:i A" }}</p>
                                 <p class="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-200">
                                     {% if application.status == 'approved' %}
