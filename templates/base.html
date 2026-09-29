@@ -135,11 +135,10 @@
                      the LMS/company homepage, so the logo (like the nav's
                      Home link) points at the store for them instead. -->
                 <a href="{% if user.profile.role == 'customer' %}{% url 'store:store_list' %}{% else %}{% url 'eduweb:index' %}{% endif %}"
-                   class="flex items-center gap-2.5 shrink-0 focus:outline-none focus:ring-2 focus:ring-brandblue focus:ring-offset-2 rounded-lg"
-                   aria-label="{{ site_config.school_name|default:'AbrayTech' }} Home">
+                   class="flex items-center gap-2.5 shrink-0 focus:outline-none focus:ring-2 focus:ring-brandblue focus:ring-offset-2 rounded-lg">
                     {% if site_config.logo %}
                     <img src="{{ site_config.logo.url }}"
-                         alt="{{ site_config.school_short_name|default:'AbrayTech' }} Logo"
+                         alt="{{ site_config.school_short_name|default:'AbrayTech' }} home"
                          class="h-10 lg:h-12 w-auto max-w-logo object-contain"
                          loading="lazy">
                     {% else %}
@@ -414,9 +413,9 @@
 
                 <!-- Brand -->
                 <div class="lg:col-span-2">
-                    <a href="{% url 'eduweb:index' %}" class="flex items-center gap-2" aria-label="{{ site_config.school_name|default:'AbrayTech' }} Home">
+                    <a href="{% url 'eduweb:index' %}" class="flex items-center gap-2">
                         {% if site_config.logo %}
-                        <img src="{{ site_config.logo.url }}" alt="{{ site_config.school_short_name|default:'AbrayTech' }} Logo" class="h-10 w-auto max-w-logo object-contain">
+                        <img src="{{ site_config.logo.url }}" alt="{{ site_config.school_short_name|default:'AbrayTech' }} home" class="h-10 w-auto max-w-logo object-contain">
                         {% else %}
                         <span class="w-9 h-9 rounded-lg brand-gradient flex items-center justify-center text-white font-sora font-bold text-xs tracking-tight">AT</span>
                         <span class="font-sora font-bold text-xl text-white">{{ site_config.school_short_name|default:"AbrayTech" }}</span>
@@ -484,7 +483,7 @@
 
                 <!-- Services -->
                 <div>
-                    <h4 class="text-white font-semibold text-sm">Services</h4>
+                    <h2 class="text-white font-semibold text-sm">Services</h2>
                     <ul class="mt-4 space-y-2 text-sm">
                         {% for service in nav_services|slice:":5" %}
                         <li><a href="{% url 'eduweb:service_detail' service.slug %}" class="hover:text-white transition-colors">{{ service.title }}</a></li>
@@ -496,7 +495,7 @@
 
                 <!-- Ecosystem -->
                 <div>
-                    <h4 class="text-white font-semibold text-sm">Ecosystem</h4>
+                    <h2 class="text-white font-semibold text-sm">Ecosystem</h2>
                     <ul class="mt-4 space-y-2 text-sm">
                         {% comment %}Industries footer link — commented out, see the desktop dropdown above for why.
                         <li><a href="{% url 'eduweb:industries_list' %}" class="hover:text-white transition-colors">Industries</a></li>
@@ -512,7 +511,7 @@
 
                 <!-- Company -->
                 <div>
-                    <h4 class="text-white font-semibold text-sm">Company</h4>
+                    <h2 class="text-white font-semibold text-sm">Company</h2>
                     <ul class="mt-4 space-y-2 text-sm">
                         <li><a href="{% url 'eduweb:about' %}" class="hover:text-white transition-colors">About</a></li>
                         <li><a href="{% url 'eduweb:team' %}" class="hover:text-white transition-colors">Team</a></li>
@@ -523,7 +522,7 @@
 
                 <!-- Resources -->
                 <div>
-                    <h4 class="text-white font-semibold text-sm">Resources</h4>
+                    <h2 class="text-white font-semibold text-sm">Resources</h2>
                     <ul class="mt-4 space-y-2 text-sm">
                         <li><a href="{% url 'eduweb:blog' %}" class="hover:text-white transition-colors">Blog</a></li>
                         <li><a href="{% url 'eduweb:faq' %}" class="hover:text-white transition-colors">FAQ</a></li>

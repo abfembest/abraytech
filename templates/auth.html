@@ -119,6 +119,11 @@
 function safeLucideIcons() {
     try {
         if (window.lucide) lucide.createIcons();
+        // Lucide marks every icon aria-hidden; the password toggles are
+        // buttons, so they must stay visible to screen readers.
+        document.querySelectorAll('.password-toggle[aria-hidden]').forEach(function (el) {
+            el.removeAttribute('aria-hidden');
+        });
     } catch (e) {
         console.warn('lucide icon render failed:', e);
     }
@@ -159,7 +164,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const toggle = e.target.classList.contains('password-toggle') ? e.target : null;
         if (toggle) {
             e.preventDefault();
-            toggle.click();
+            // Lucide swaps the <i> for an <svg>, which has no .click()
+            toggle.dispatchEvent(new MouseEvent('click', { bubbles: true }));
         }
     });
 

@@ -593,9 +593,8 @@
                     {{ program.description|truncatewords:18|default:"A world-class program designed to prepare you for global success." }}
                 </p>
                 <a href="{% url 'eduweb:program_detail' program.slug %}"
-                   class="text-brandblue font-semibold hover:text-electric transition-colors inline-flex items-center group/link focus:outline-none focus:ring-2 focus:ring-brandblue rounded"
-                   aria-label="Learn more about {{ program.name }}">
-                    Learn More
+                   class="text-brandblue font-semibold hover:text-electric transition-colors inline-flex items-center group/link focus:outline-none focus:ring-2 focus:ring-brandblue rounded">
+                    Learn More<span class="sr-only"> about {{ program.name }}</span>
                     <i data-lucide="arrow-right" class="w-4 h-4 ml-2 group-hover/link:translate-x-1 transition-transform" aria-hidden="true"></i>
                 </a>
             </article>
@@ -690,7 +689,7 @@
                     <li class="flex items-start gap-3">
                         <div class="w-9 h-9 flex-shrink-0 brand-gradient text-white rounded-lg flex items-center justify-center font-bold text-sm">{{ forloop.counter }}</div>
                         <div>
-                            <h4 class="font-semibold text-white text-sm mb-1">{{ step.title }}</h4>
+                            <h3 class="font-semibold text-white text-sm mb-1">{{ step.title }}</h3>
                             <p class="text-white/60 text-xs leading-relaxed">{{ step.description }}</p>
                         </div>
                     </li>
@@ -703,7 +702,7 @@
                     <li class="flex items-start gap-3">
                         <div class="w-9 h-9 flex-shrink-0 brand-gradient text-white rounded-lg flex items-center justify-center font-bold text-sm">{{ forloop.counter|add:2 }}</div>
                         <div>
-                            <h4 class="font-semibold text-white text-sm mb-1">{{ step.title }}</h4>
+                            <h3 class="font-semibold text-white text-sm mb-1">{{ step.title }}</h3>
                             <p class="text-white/60 text-xs leading-relaxed">{{ step.description }}</p>
                         </div>
                     </li>
@@ -716,14 +715,14 @@
                     <li class="flex items-start gap-3">
                         <div class="w-9 h-9 flex-shrink-0 brand-gradient text-white rounded-lg flex items-center justify-center font-bold text-sm">1</div>
                         <div>
-                            <h4 class="font-semibold text-white text-sm mb-1">Submit Application</h4>
+                            <h3 class="font-semibold text-white text-sm mb-1">Submit Application</h3>
                             <p class="text-white/60 text-xs leading-relaxed">Complete our online form with your background and goals.</p>
                         </div>
                     </li>
                     <li class="flex items-start gap-3">
                         <div class="w-9 h-9 flex-shrink-0 brand-gradient text-white rounded-lg flex items-center justify-center font-bold text-sm">2</div>
                         <div>
-                            <h4 class="font-semibold text-white text-sm mb-1">Application Review</h4>
+                            <h3 class="font-semibold text-white text-sm mb-1">Application Review</h3>
                             <p class="text-white/60 text-xs leading-relaxed">Our team reviews your application within 2–3 weeks.</p>
                         </div>
                     </li>
@@ -734,14 +733,14 @@
                     <li class="flex items-start gap-3">
                         <div class="w-9 h-9 flex-shrink-0 brand-gradient text-white rounded-lg flex items-center justify-center font-bold text-sm">3</div>
                         <div>
-                            <h4 class="font-semibold text-white text-sm mb-1">Interview Stage</h4>
+                            <h3 class="font-semibold text-white text-sm mb-1">Interview Stage</h3>
                             <p class="text-white/60 text-xs leading-relaxed">Virtual or in-person interview for select programs.</p>
                         </div>
                     </li>
                     <li class="flex items-start gap-3">
                         <div class="w-9 h-9 flex-shrink-0 brand-gradient text-white rounded-lg flex items-center justify-center font-bold text-sm">4</div>
                         <div>
-                            <h4 class="font-semibold text-white text-sm mb-1">Decision &amp; Enrollment</h4>
+                            <h3 class="font-semibold text-white text-sm mb-1">Decision &amp; Enrollment</h3>
                             <p class="text-white/60 text-xs leading-relaxed">Receive your decision and begin the enrollment process.</p>
                         </div>
                     </li>
