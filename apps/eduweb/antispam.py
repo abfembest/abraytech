@@ -116,11 +116,10 @@ def check_contact_submission(request):
     if _URL_RE.search(post.get('name', '')):
         return BOT
 
-    cache_key = f"contact_submit_{client_ip(request)}"
-    count = cache.get(cache_key, 0)
-    if count >= RATE_LIMIT:
+    ip = client_ip(request)
+    if throttled('contact_submit', ip, RATE_LIMIT):
         return RATE
-    cache.set(cache_key, count + 1, RATE_PERIOD)
+    record_hit('contact_submit', ip, RATE_PERIOD)
 
     if len(_URL_RE.findall(post.get('message', ''))) > MAX_LINKS:
         return TOO_MANY_LINKS
