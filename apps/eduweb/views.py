@@ -882,7 +882,26 @@ def otp_verify(request):
         'masked_email': masked,
     })
 
+def _is_cross_site(request):
+    """True when the request was started from another website. Uses the
+    browser's Sec-Fetch-Site header, or the Referer for older browsers; a
+    request with neither (typed URL, bookmark) counts as same-site."""
+    fetch_site = request.headers.get('Sec-Fetch-Site')
+    if fetch_site:
+        return fetch_site == 'cross-site'
+    referer = request.headers.get('Referer')
+    if referer:
+        return not url_has_allowed_host_and_scheme(referer, allowed_hosts={request.get_host()})
+    return False
+
+
 def user_logout(request):
+    # Sign-out links are plain GET links all over the site. A GET started
+    # from another website gets a confirmation page (POST + CSRF) instead,
+    # so a third-party page can't sign visitors out behind their backs.
+    if request.method == 'GET' and request.user.is_authenticated and _is_cross_site(request):
+        return render(request, 'logout_confirm.html')
+
     user = request.user
     # Store customers land back on the store, not the school's sign-in page
     # — the store is their "home" (see base.html's nav gating on

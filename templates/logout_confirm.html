@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Sign Out - {{ site_config.school_short_name|default:"Abraytech" }}{% endblock %}
+{% block meta_tags %}
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
+{% block content %}
+{# Shown only when a sign-out link was followed from another website, so a third-party page can't sign people out without asking. #}
+<section class="section-light section-py">
+    <div class="max-w-md mx-auto px-4 sm:px-6">
+        <div class="light-card p-8 text-center">
+            <h1 class="text-h3-brand text-navy mb-3">Sign out?</h1>
+            <p class="text-slate-600 mb-8">You followed a sign-out link from another website. Do you want to sign out of your account?</p>
+            <form method="post" action="{% url 'eduweb:logout' %}" class="flex flex-col sm:flex-row gap-3 justify-center">
+                {% csrf_token %}
+                <button type="submit" class="btn-brand">Sign out</button>
+                <a href="{% url 'eduweb:index' %}" class="btn-brand-outline">Stay signed in</a>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}
