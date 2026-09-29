@@ -1029,28 +1029,57 @@ def reset_password(request, token):
 # =============================================================================
 
 PRIVATE_MEDIA_PREFIX = 'applications/'
+LIBRARY_MEDIA_PREFIX = 'library/'
+LIBRARY_COVERS_PREFIX = 'library/covers/'
+
+
+def _library_file_access(request, stored_name):
+    """(allowed, public) for a library file, following its item's rules:
+    public items for everyone, members-only items for signed-in users,
+    inactive or unknown files for staff only."""
+    from apps.eduweb.models import LibraryItem
+
+    item = LibraryItem.objects.filter(file=stored_name).only('is_active', 'access').first()
+    public = item is not None and item.is_active and item.access == 'public'
+    user = request.user
+    if public:
+        return True, True
+    if user.is_authenticated and (user.is_staff or user.is_superuser):
+        return True, False
+    return (item is not None and item.is_active and user.is_authenticated), False
 
 
 def serve_media(request, path):
     """Serve /media/ files. Application documents (IDs, passports, CVs) only
-    go to the applicant who uploaded them and to admissions staff; every
-    other media file is public as before."""
+    go to the applicant who uploaded them and to admissions staff, and
+    library files follow their item's access setting; every other media file
+    (including library covers) is public as before."""
     from django.views.static import serve
     from apps.management.views import is_admin
 
-    normalized = posixpath.normpath(path).lstrip('/').lower()
+    stored_name = posixpath.normpath(path).lstrip('/')
+    normalized = stored_name.lower()
+    private = False
+
     if normalized.startswith(PRIVATE_MEDIA_PREFIX):
         user = request.user
         allowed = user.is_authenticated and (
             is_admin(user)
             or ApplicationDocument.objects.filter(
-                file=posixpath.normpath(path).lstrip('/'), application__user=user,
+                file=stored_name, application__user=user,
             ).exists()
         )
         if not allowed:
             raise Http404
+        private = True
+    elif normalized.startswith(LIBRARY_MEDIA_PREFIX) and not normalized.startswith(LIBRARY_COVERS_PREFIX):
+        allowed, public = _library_file_access(request, stored_name)
+        if not allowed:
+            raise Http404
+        private = not public
+
     response = serve(request, path, document_root=settings.MEDIA_ROOT)
-    if normalized.startswith(PRIVATE_MEDIA_PREFIX):
+    if private:
         response['Cache-Control'] = 'private, no-store'
     return response
 
