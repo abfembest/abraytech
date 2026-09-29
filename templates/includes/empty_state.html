@@ -32,7 +32,7 @@ Params: icon (Lucide name, default 'inbox'), title, message, action_url + action
             <span class="absolute inset-x-12 bottom-0 h-4 rounded-full bg-navy/10 blur-sm transition-transform duration-300 ease-out group-hover:scale-90 motion-reduce:transition-none"></span>
         </div>
 
-        <h3 class="mt-10 font-sora text-2xl font-bold text-navy text-balance sm:text-3xl">{{ title }}</h3>
+        <h2 class="mt-10 font-sora text-2xl font-bold text-navy text-balance sm:text-3xl">{{ title }}</h2>
         <p class="mt-4 max-w-lg text-base leading-relaxed text-slate-600 text-pretty sm:text-lg">{{ message }}</p>
         {% if action_url %}
         <a href="{{ action_url }}" class="btn-brand btn-brand-lg mt-8">

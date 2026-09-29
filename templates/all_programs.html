@@ -131,9 +131,9 @@
 <div id="mob-overlay" aria-hidden="true" role="presentation"></div>
 <nav id="mob-panel" aria-label="Faculty navigation">
   <div class="flex items-center justify-between mb-5">
-    <span class="text-xs font-black uppercase tracking-widest text-gray-400">Faculties</span>
+    <span class="text-xs font-black uppercase tracking-widest text-gray-500">Faculties</span>
     <button id="mob-close-btn"
-            class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300"
+            class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300"
             aria-label="Close navigation">
       <i data-lucide="x" class="w-4 h-4" aria-hidden="true"></i>
     </button>
@@ -172,7 +172,7 @@
          aria-label="Faculty navigation">
     <div class="sticky top-34 max-h-sidebar-sticky overflow-y-auto sb-hide flex flex-col w-full">
 
-    <p class="text-xs font-black uppercase tracking-widest text-gray-400 px-3 mb-2">Faculties</p>
+    <p class="text-xs font-black uppercase tracking-widest text-gray-500 px-3 mb-2">Faculties</p>
 
     <nav id="deskFacultyNav" aria-label="Jump to faculty">
       {% for faculty in faculties %}
@@ -187,7 +187,7 @@
 
     <!-- Stats + actions -->
     <div class="mt-5 rounded-xl border border-gray-200 bg-white p-4">
-      <p class="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">Stats</p>
+      <p class="text-xs font-black uppercase tracking-widest text-gray-500 mb-3">Stats</p>
       <dl class="space-y-2 mb-4">
         <div class="flex justify-between">
           <dt class="text-xs text-gray-500">Faculties</dt>
@@ -221,7 +221,7 @@
         <i data-lucide="search-x" class="w-7 h-7 text-gray-300" aria-hidden="true"></i>
       </div>
       <h2 class="text-base font-bold text-gray-500 mb-1 font-sora">No programs found</h2>
-      <p class="text-sm text-gray-400 mb-4">Try different keywords or remove a filter.</p>
+      <p class="text-sm text-gray-500 mb-4">Try different keywords or remove a filter.</p>
       <button onclick="resetSearch()"
               class="text-sm font-semibold text-brandblue hover:underline focus:outline-none focus:underline">
         Clear all filters
@@ -277,7 +277,7 @@
 
       <!-- Collapsible body — closed by default; JS opens exactly one at a
            time via the .open class (see accordion script below). -->
-      <div id="faculty-body-{{ faculty.slug }}" class="fac-body-wrap" aria-hidden="true">
+      <div id="faculty-body-{{ faculty.slug }}" class="fac-body-wrap" aria-hidden="true" inert>
       <div class="fac-body-inner">
       <div class="rounded-b-xl border border-t-0 border-gray-200 bg-white overflow-hidden divide-y divide-gray-100">
 
@@ -291,12 +291,12 @@
             <div class="dept-dot w-1.5 h-1.5 rounded-full flex-shrink-0" aria-hidden="true"></div>
             <h3 class="font-sora font-bold text-gray-800 text-sm">{{ department.name }}</h3>
             {% if department.code %}
-            <span class="font-mono text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded tracking-widest uppercase">
+            <span class="font-mono text-xs text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded tracking-widest uppercase">
               {{ department.code }}
             </span>
             {% endif %}
             <div class="flex-1 h-px bg-gray-100" aria-hidden="true"></div>
-            <span class="text-xs text-gray-400 flex-shrink-0 tabular-nums">
+            <span class="text-xs text-gray-500 flex-shrink-0 tabular-nums">
               {{ department.programs.all|length }} prog{% if department.programs.all|length != 1 %}s{% endif %}
             </span>
           </div>
@@ -340,13 +340,13 @@
                 <div class="flex flex-wrap items-center gap-2 mt-0.5">
                   {% comment %}<span class="cbadge">{{ program.get_degree_level_display }}</span>{% endcomment %}
                   {% if program.duration_years %}
-                  <span class="inline-flex items-center gap-1 text-xs text-gray-400">
+                  <span class="inline-flex items-center gap-1 text-xs text-gray-500">
                     <i data-lucide="clock" class="w-3 h-3" aria-hidden="true"></i>
                     {{ program.duration_years }} yr{% if program.duration_years != 1 %}s{% endif %}
                   </span>
                   {% endif %}
                   {% if program.credits_required %}
-                  <span class="inline-flex items-center gap-1 text-xs text-gray-400">
+                  <span class="inline-flex items-center gap-1 text-xs text-gray-500">
                     <i data-lucide="book" class="w-3 h-3" aria-hidden="true"></i>
                     {{ program.credits_required }} cr
                   </span>
@@ -357,7 +357,7 @@
               <!-- Right side (hidden in card mode) -->
               <div class="row-right flex items-center gap-2 flex-shrink-0">
                 {% if program.code %}
-                <span class="hidden sm:block font-mono text-xs text-gray-400 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded">
+                <span class="hidden sm:block font-mono text-xs text-gray-600 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded">
                   {{ program.code }}
                 </span>
                 {% endif %}
@@ -369,7 +369,7 @@
             </a>
             {% endif %}
             {% empty %}
-            <p class="text-xs text-gray-400 italic py-2 pl-1">No active programs in this department yet.</p>
+            <p class="text-xs text-gray-500 italic py-2 pl-1">No active programs in this department yet.</p>
             {% endfor %}
           </div>
 
@@ -378,7 +378,7 @@
         {% empty %}
         <div class="px-6 py-10 text-center">
           <i data-lucide="folder-open" class="w-8 h-8 text-gray-300 mx-auto mb-2" aria-hidden="true"></i>
-          <p class="text-sm text-gray-400">No departments found for this faculty.</p>
+          <p class="text-sm text-gray-500">No departments found for this faculty.</p>
         </div>
         {% endfor %}
 
@@ -390,7 +390,7 @@
     {% empty %}
     <div class="text-center py-20 bg-white rounded-2xl border border-gray-100">
       <i data-lucide="building" class="w-12 h-12 text-gray-300 mx-auto mb-4" aria-hidden="true"></i>
-      <h2 class="text-lg font-bold text-gray-400 font-sora">No faculties available yet.</h2>
+      <h2 class="text-lg font-bold text-gray-500 font-sora">No faculties available yet.</h2>
     </div>
     {% endfor %}
 
@@ -586,14 +586,14 @@ function openFacultyBody(section, exclusive){
   const header = section.querySelector('.faculty-toggle');
   const body   = section.querySelector('.fac-body-wrap');
   if(header) header.setAttribute('aria-expanded','true');
-  if(body){ body.classList.add('open'); body.setAttribute('aria-hidden','false'); }
+  if(body){ body.classList.add('open'); body.setAttribute('aria-hidden','false'); body.inert = false; }
 }
 function closeFacultyBody(section){
   if(!section) return;
   const header = section.querySelector('.faculty-toggle');
   const body   = section.querySelector('.fac-body-wrap');
   if(header) header.setAttribute('aria-expanded','false');
-  if(body){ body.classList.remove('open'); body.setAttribute('aria-hidden','true'); }
+  if(body){ body.classList.remove('open'); body.setAttribute('aria-hidden','true'); body.inert = true; }
 }
 function toggleFaculty(section){
   const isOpen = section.querySelector('.fac-body-wrap')?.classList.contains('open');

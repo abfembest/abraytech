@@ -72,8 +72,6 @@ _STATIC_URLS = [
     ("eduweb:about", "monthly", "0.8"),
     ("eduweb:all_programs", "weekly", "0.8"),
     ("eduweb:admission_requirement", "monthly", "0.6"),
-    ("eduweb:research", "monthly", "0.5"),
-    ("eduweb:campus_life", "monthly", "0.5"),
     ("eduweb:blog", "daily", "0.7"),
     ("eduweb:services_list", "monthly", "0.8"),
     ("eduweb:industries_list", "monthly", "0.6"),
