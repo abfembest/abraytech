@@ -5113,6 +5113,13 @@ class SiteConfig(models.Model):
         """
         return cls.objects.first() or cls.objects.create()
 
+    @classmethod
+    def get_cached(cls):
+        """Read-only copy for rendering pages (cleared on every save). Code
+        that edits and saves the config must use get() instead."""
+        from .public_cache import get_or_set
+        return get_or_set('site_config', cls.get)
+
 class SiteHistoryMilestone(models.Model):
     """
     One entry in the About page 'Our History' timeline.

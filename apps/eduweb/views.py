@@ -197,6 +197,18 @@ def generate_captcha():
     return f"{num1} {op} {num2}", answer
 
 
+def _contact_captcha(request):
+    """Math captcha question for the contact forms, or None when Turnstile
+    replaces it. Only the math captcha needs its answer in the session, so
+    visitors don't get a session (and a database write) just for viewing a
+    page with the form on it."""
+    if antispam.turnstile_enabled():
+        return None
+    question, answer = generate_captcha()
+    request.session['contact_captcha_answer'] = answer
+    return question
+
+
 # =============================================================================
 # AUTHENTICATION
 # =============================================================================
@@ -1014,82 +1026,115 @@ def custom_404(request, exception=None):
 THEOLOGY_SCHOOL_HOST = 'theology.miuedu.com'
 
 
-@check_for_auth
-def index(request):
+def _index_sections():
+    """Homepage content, the same for every visitor, cached in public_cache."""
     from .models import Testimonial, Service, Industry, Project, SocialPost
     from apps.store.models import Product
-    captcha_question, captcha_answer = generate_captcha()
-    request.session['contact_captcha_answer'] = captcha_answer
-    current_host = request.get_host().split(':')[0].lower()
 
-    active_projects = Project.objects.filter(is_active=True).prefetch_related('gallery_images')
-    featured_projects = active_projects.filter(is_featured=True)[:3]
-    if not featured_projects:
-        featured_projects = active_projects.order_by('-created_at')[:3]
+    active_projects = list(Project.objects.filter(is_active=True).prefetch_related('gallery_images'))
+    featured_projects = [p for p in active_projects if p.is_featured][:3] or sorted(
+        active_projects, key=lambda p: p.created_at, reverse=True,
+    )[:3]
 
-    active_programs = Program.objects.filter(is_active=True).select_related('department__faculty')
-    featured_programs = active_programs.filter(is_featured=True).order_by('name')[:6]
-    if not featured_programs:
-        featured_programs = active_programs.order_by('-created_at')[:6]
+    active_programs = list(
+        Program.objects.filter(is_active=True).select_related('department__faculty').order_by('name')
+    )
+    featured_programs = [p for p in active_programs if p.is_featured][:6] or sorted(
+        active_programs, key=lambda p: p.created_at, reverse=True,
+    )[:6]
 
-    return render(request, 'index.html', {
-        'show_theology_ad': current_host != THEOLOGY_SCHOOL_HOST,
+    services = list(Service.objects.filter(is_active=True))
+    industries = list(Industry.objects.filter(is_active=True).order_by('order', 'title'))
+
+    return {
         'featured_programs': featured_programs,
-        'faculties': (
+        'faculties': list(
             Faculty.objects
             .filter(is_active=True)
             .prefetch_related('departments')
             .order_by('name')[:6]
         ),
-        'services': Service.objects.filter(is_active=True),
-        'social_posts': SocialPost.objects.filter(is_active=True),
-        'industries': Industry.objects.filter(is_active=True).order_by('order', 'title'),
+        'services': services,
+        'social_posts': list(SocialPost.objects.filter(is_active=True)),
+        'industries': industries,
         'featured_projects': featured_projects,
-        'store_products': Product.objects.filter(is_active=True)[:6],
-        'testimonials': Testimonial.objects.filter(is_active=True).order_by('author_name'),
-        'recent_posts': (
+        'store_products': list(Product.objects.filter(is_active=True)[:6]),
+        'testimonials': list(Testimonial.objects.filter(is_active=True).order_by('author_name')),
+        'recent_posts': list(
             BlogPost.objects
             .filter(status='published')
             .order_by('-publish_date')[:6]
         ),
         # Real, dynamically-computed counts for the stats strip — never
         # hardcoded/fabricated numbers.
-        'stat_services_count':   Service.objects.filter(is_active=True).count(),
-        'stat_industries_count': Industry.objects.filter(is_active=True).count(),
-        'stat_projects_count':   active_projects.count(),
-        'stat_programs_count':  Program.objects.filter(is_active=True).count(),
-        'captcha_question': captcha_question,
+        'stat_services_count':   len(services),
+        'stat_industries_count': len(industries),
+        'stat_projects_count':   len(active_projects),
+        'stat_programs_count':   len(active_programs),
+    }
+
+
+@check_for_auth
+def index(request):
+    from .public_cache import get_or_set
+
+    current_host = request.get_host().split(':')[0].lower()
+    return render(request, 'index.html', {
+        **get_or_set('index_sections', _index_sections),
+        'show_theology_ad': current_host != THEOLOGY_SCHOOL_HOST,
+        'captcha_question': _contact_captcha(request),
         'contact_form_token': antispam.make_form_token(),
         'turnstile_site_key': antispam.turnstile_site_key(),
     })
 
 
+def _about_sections():
+    """About-page content, the same for every visitor, cached in public_cache.
+    One query each for members and partners, grouped here in Python."""
+    from .models import InstitutionMember, SiteHistoryMilestone, InstitutionPartner
+
+    members = list(InstitutionMember.objects.filter(is_active=True).order_by('name'))
+
+    def by_type(member_type):
+        return [m for m in members if m.member_type == member_type]
+
+    admin_board_members = by_type('admin_board')
+    academic_board_members = by_type('academic_board')
+    advisorate_board_members = by_type('advisorate_board')
+    staff_members = by_type('staff')
+    who_we_are_member = (
+        next((m for m in members if m.is_who_we_are), None)
+        or (admin_board_members[0] if admin_board_members else None)
+    )
+
+    partners = list(InstitutionPartner.objects.filter(is_active=True))
+
+    def by_category(category):
+        return [p for p in partners if p.category == category]
+
+    return {
+        'faculties': list(Faculty.objects.filter(is_active=True).order_by('name')),
+        'admin_board_members': admin_board_members,
+        'who_we_are_member': who_we_are_member,
+        'academic_board_members': academic_board_members,
+        'advisorate_board_members': advisorate_board_members,
+        'staff_members': staff_members,
+        # Single unified "Our Team" grid — no more per-board grouping/labels.
+        'team_members': admin_board_members + academic_board_members + advisorate_board_members + staff_members,
+        'history_milestones': list(
+            SiteHistoryMilestone.objects.filter(is_active=True)
+            .order_by('year')
+        ),
+        'partners_list':       by_category('partner'),
+        'affiliations_list':   by_category('affiliation'),
+        'accreditations_list': by_category('accreditation'),
+    }
+
+
 @check_for_auth
 def about(request):
-    from .models import InstitutionMember, SiteConfig, SiteHistoryMilestone, InstitutionPartner
-    partners_qs = InstitutionPartner.objects.filter(is_active=True)
-    admin_board_members = (
-        InstitutionMember.objects.filter(member_type='admin_board', is_active=True)
-        .order_by('name')
-    )
-    academic_board_members = (
-        InstitutionMember.objects.filter(member_type='academic_board', is_active=True)
-        .order_by('name')
-    )
-    advisorate_board_members = (
-        InstitutionMember.objects.filter(member_type='advisorate_board', is_active=True)
-        .order_by('name')
-    )
-    staff_members = (
-        InstitutionMember.objects.filter(member_type='staff', is_active=True)
-        .order_by('name')
-    )
-    who_we_are_member = (
-        InstitutionMember.objects.filter(is_who_we_are=True, is_active=True).first()
-        or admin_board_members.first()
-    )
-    # Single unified "Our Team" grid — no more per-board grouping/labels.
-    team_members = list(admin_board_members) + list(academic_board_members) + list(advisorate_board_members) + list(staff_members)
+    from .public_cache import get_or_set
+
     return render(request, 'about.html', {
         'default_core_values': [
             'Technical Excellence',
@@ -1098,20 +1143,7 @@ def about(request):
             'Continuous Learning',
             'Innovation with Purpose',
         ],
-        'faculties': Faculty.objects.filter(is_active=True).order_by('name'),
-        'admin_board_members': admin_board_members,
-        'who_we_are_member': who_we_are_member,
-        'academic_board_members': academic_board_members,
-        'advisorate_board_members': advisorate_board_members,
-        'staff_members': staff_members,
-        'team_members': team_members,
-        'history_milestones': (
-            SiteHistoryMilestone.objects.filter(is_active=True)
-            .order_by('year')
-        ),
-        'partners_list':      partners_qs.filter(category='partner'),
-        'affiliations_list':  partners_qs.filter(category='affiliation'),
-        'accreditations_list': partners_qs.filter(category='accreditation'),
+        **get_or_set('about_sections', _about_sections),
     })
 
 @check_for_auth
@@ -1139,9 +1171,8 @@ def all_programs(request):
 def contact(request):
     from .models import Service, SiteConfig
 
-    site_config = SiteConfig.get()
-    captcha_question, captcha_answer = generate_captcha()
-    request.session['contact_captcha_answer'] = captcha_answer
+    site_config = SiteConfig.get_cached()
+    captcha_question = _contact_captcha(request)
 
     def filled(*pairs):
         """(label, value) for each SiteConfig field in `pairs` that has a value."""

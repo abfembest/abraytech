@@ -45,7 +45,7 @@ def site_config_context(request):
     so templates never crash on {{ site_config.field|default:"..." }}.
     """
     try:
-        site = SiteConfig.get()
+        site = SiteConfig.get_cached()
     except Exception:
         site = None
 
@@ -72,7 +72,7 @@ def site_config_context(request):
 # ─────────────────────────────────────────────────────────────────────────────
 def organization_jsonld(request):
     try:
-        site = SiteConfig.get()
+        site = SiteConfig.get_cached()
     except Exception:
         site = None
 
@@ -152,8 +152,9 @@ def organization_jsonld(request):
 #      Either add an `icon` field to Program in models.py, or replace those
 #      lines in base.html with a static fallback icon e.g. data-lucide="book".
 # ─────────────────────────────────────────────────────────────────────────────
-def navigation_data(request):
-    """Inject navigation data into every template via base.html."""
+def _nav_lists():
+    """The nav dropdown lists. Identical for every visitor, so they are
+    cached (see public_cache) instead of costing four queries per page."""
 
     # Full model instances — no .only() so all attribute access is safe
     try:
@@ -179,17 +180,6 @@ def navigation_data(request):
         logger.exception('navigation_data: failed to fetch programs')
         courses = []
 
-    # Pending application check — only for authenticated students
-    has_pending_application = False
-    try:
-        if request.user.is_authenticated and hasattr(request.user, 'profile'):
-            if request.user.profile.role == 'student':
-                has_pending_application = CourseApplication.objects.filter(
-                    user=request.user
-                ).exists()
-    except Exception:
-        logger.exception('navigation_data: failed to check pending application')
-
     # Services nav dropdown
     try:
         nav_services = list(
@@ -211,6 +201,29 @@ def navigation_data(request):
     except Exception:
         logger.exception('navigation_data: failed to fetch industries')
         nav_industries = []
+
+    return {
+        'all_faculties': faculties,
+        'all_courses': courses,
+        'nav_services': nav_services,
+        'nav_industries': nav_industries,
+    }
+
+
+def navigation_data(request):
+    """Inject navigation data into every template via base.html."""
+    from .public_cache import get_or_set
+
+    # Pending application check — only for authenticated students
+    has_pending_application = False
+    try:
+        if request.user.is_authenticated and hasattr(request.user, 'profile'):
+            if request.user.profile.role == 'student':
+                has_pending_application = CourseApplication.objects.filter(
+                    user=request.user
+                ).exists()
+    except Exception:
+        logger.exception('navigation_data: failed to check pending application')
 
     # Which top-level public nav item (if any) matches the current page —
     # drives the "active" highlight in base.html's desktop nav, mobile
@@ -248,11 +261,8 @@ def navigation_data(request):
         logger.exception('navigation_data: failed to resolve active nav item')
 
     return {
-        'all_faculties': faculties,
-        'all_courses': courses,
+        **get_or_set('nav_lists', _nav_lists),
         'has_pending_application': has_pending_application,
-        'nav_services': nav_services,
-        'nav_industries': nav_industries,
         'nav_active': nav_active,
     }
 

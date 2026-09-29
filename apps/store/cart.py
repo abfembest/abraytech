@@ -58,7 +58,9 @@ def get_cart_items(session):
     is silently dropped from its line (the product itself stays, just
     without a variant label) rather than erroring the whole cart.
     """
-    cart = _get_cart(session)
+    # Read-only: setdefault() would store an empty cart and create a session
+    # (plus a database write) for every visitor on every page.
+    cart = session.get(CART_SESSION_KEY)
     if not cart:
         return []
 
