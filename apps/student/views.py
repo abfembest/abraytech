@@ -10,6 +10,7 @@ from django.core.paginator import Paginator
 from functools import wraps
 from datetime import timedelta
 from decimal import Decimal
+from django.core import signing
 from django.db import models, transaction, IntegrityError
 from django.core.exceptions import ValidationError
 import json
@@ -2240,6 +2241,10 @@ def study_group_detail(request, group_id):
         'page_title': group.name,
         'group': group,
         'is_member': is_member,
+        'invite_url': (
+            request.build_absolute_uri(reverse('students:study_group_invite', args=[_study_group_invite_token(group)]))
+            if group.created_by_id == request.user.id else None
+        ),
         'members': members,
         'member_count': member_count,
         'available_slots': group.max_members - member_count,
@@ -2248,6 +2253,68 @@ def study_group_detail(request, group_id):
     }
     
     return render(request, 'students/study_group_detail.html', context)
+
+
+# ── Study group invite links ────────────────────────────────────────────────
+# A signed token holding the group id (no database field): it can't be forged
+# or edited, and expires after STUDY_GROUP_INVITE_MAX_AGE. Only the group's
+# creator is shown the link; opening it joins the group - private groups
+# included - for a signed-in student, within the group's size limit.
+STUDY_GROUP_INVITE_SALT = 'students.study_group.invite'
+STUDY_GROUP_INVITE_MAX_AGE = 14 * 24 * 60 * 60   # 14 days
+
+
+def _study_group_invite_token(group):
+    return signing.dumps(group.pk, salt=STUDY_GROUP_INVITE_SALT)
+
+
+def study_group_invite(request, token):
+    if not request.user.is_authenticated:
+        messages.info(request, 'Sign in to your student account, then open the invite link again to join the group.')
+        return redirect('eduweb:auth_page')
+    return _accept_study_group_invite(request, token)
+
+
+@student_required
+def _accept_study_group_invite(request, token):
+    try:
+        group_id = signing.loads(token, salt=STUDY_GROUP_INVITE_SALT, max_age=STUDY_GROUP_INVITE_MAX_AGE)
+    except signing.SignatureExpired:
+        messages.error(request, "This invite link has expired. Ask the group's creator for a new one.")
+        return redirect('students:study_groups')
+    except signing.BadSignature:
+        messages.error(request, "This invite link isn't valid.")
+        return redirect('students:study_groups')
+
+    group = StudyGroup.objects.filter(pk=group_id, is_active=True).first()
+    if group is None:
+        messages.error(request, 'This study group is no longer available.')
+        return redirect('students:study_groups')
+
+    with transaction.atomic():
+        StudyGroup.objects.select_for_update().filter(pk=group.pk).first()
+        membership = StudyGroupMember.objects.filter(study_group=group, user=request.user).first()
+        if membership and membership.is_active:
+            messages.info(request, 'You are already a member of this group.')
+            return redirect('students:study_group_detail', group_id=group.pk)
+        if group.members.filter(is_active=True).count() >= group.max_members:
+            messages.error(request, 'This study group is full.')
+            return redirect('students:study_groups')
+        if membership:
+            membership.is_active = True
+            membership.save(update_fields=['is_active'])
+        else:
+            StudyGroupMember.objects.create(study_group=group, user=request.user, role='member')
+
+    messages.success(request, f'You joined {group.name}!')
+    _notify(
+        user=request.user,
+        notification_type='system',
+        title=f'Joined Study Group: {group.name}',
+        message=f'You joined "{group.name}" through an invite link.',
+        link=f'/student/study-groups/{group.pk}/',
+    )
+    return redirect('students:study_group_detail', group_id=group.pk)
 
 
 @login_required

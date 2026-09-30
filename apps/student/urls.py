@@ -63,6 +63,7 @@ urlpatterns = [
     path('study-groups/create/', views.create_study_group, name='create_study_group'),  # NEW
     path('study-groups/<int:group_id>/', views.study_group_detail, name='study_group_detail'),
     path('study-groups/<int:group_id>/join/', views.join_study_group, name='join_study_group'),
+    path('study-groups/invite/<str:token>/', views.study_group_invite, name='study_group_invite'),
 
     # ── Achievements ─────────────────────────────────────────────────────────
     path('achievements/', views.achievements, name='achievements'),

@@ -163,6 +163,26 @@
             </div>
             {% endif %}
 
+            {% if invite_url %}
+            <!-- Invite link (creator only) -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 md:p-6">
+                <h3 class="font-semibold text-gray-900 text-sm sm:text-base mb-2">Invite link</h3>
+                <p class="text-xs sm:text-sm text-gray-600 mb-3">
+                    Share this link with classmates. They join by opening it while signed in to their student account.
+                    It works for private groups and expires in 14 days; copy it again any time for a fresh one.
+                </p>
+                <label for="studyGroupInviteUrl" class="sr-only">Invite link</label>
+                <div class="flex gap-2">
+                    <input id="studyGroupInviteUrl" type="text" readonly value="{{ invite_url }}"
+                           class="flex-1 min-w-0 px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg bg-gray-50 text-gray-700">
+                    <button type="button" id="copyStudyGroupInvite"
+                            class="shrink-0 px-3 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-primary-600 text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        Copy
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Group Stats -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 md:p-6">
                 <h3 class="font-semibold text-gray-900 text-sm sm:text-base mb-3 sm:mb-4">Group Stats</h3>
@@ -300,4 +320,28 @@ document.addEventListener('DOMContentLoaded', function () {
     if (feed) feed.scrollTop = feed.scrollHeight;
 });
 </script>
+{% endblock %}
+
+{% block extra_js %}
+{% if invite_url %}
+<script>
+$(function () {
+    $('#copyStudyGroupInvite').on('click', function () {
+        const $button = $(this);
+        const link = $('#studyGroupInviteUrl').val();
+        const done = function () {
+            $button.text('Copied');
+            setTimeout(function () { $button.text('Copy'); }, 2000);
+        };
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(link).then(done);
+        } else {
+            $('#studyGroupInviteUrl').trigger('select');
+            document.execCommand('copy');
+            done();
+        }
+    });
+});
+</script>
+{% endif %}
 {% endblock %}
