@@ -17,8 +17,8 @@ from apps.eduweb.models import LibraryItem
 CATEGORY_META = {
     'Books': {
         'description': (
-            'A growing collection of theological, biblical, and Christian living books '
-            'freely available for study and edification.'
+            'Practical books on software development, cybersecurity, data and AI, '
+            'cloud, and the business of technology.'
         ),
         'gradient': 'from-gospel-50/60 to-gospel-100/40',
         'icon_svg': (
@@ -32,8 +32,8 @@ CATEGORY_META = {
     },
     'Periodicals': {
         'description': (
-            'Academic and evangelical journals spanning biblical studies, theology, '
-            'church history, and missiology.'
+            'Journals, magazines and research papers on software, security, '
+            'data science and emerging technology.'
         ),
         'gradient': 'from-gold-100/60 to-gold-50/40',
         'icon_svg': (
@@ -45,8 +45,8 @@ CATEGORY_META = {
     },
     'References': {
         'description': (
-            'Commentaries, Bible notes, dictionaries, and theology references '
-            'for in-depth biblical research.'
+            'Documentation, cheat sheets, standards and study guides to keep '
+            'beside you while you build and learn.'
         ),
         'gradient': 'from-blue-50/60 to-blue-100/40',
         'icon_svg': (

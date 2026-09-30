@@ -2,11 +2,11 @@
 {% load static %}
 
 {% block title %}Library – {{ site_config.school_name }}{% endblock %}
-{% block meta_description %}Explore the {{ site_config.school_name }} digital library — theological books, periodicals, Bible commentaries and scholarly references.{% endblock %}
+{% block meta_description %}Explore the {{ site_config.school_name }} digital library: technology books, journals and references for {{ site_config.school_short_name|default:'AbrayTech' }} learners.{% endblock %}
 {% block og_title %}Digital Library – {{ site_config.school_name }}{% endblock %}
-{% block og_description %}Explore our curated collection of theological books, periodicals, Bible commentaries, and scholarly references.{% endblock %}
+{% block og_description %}Explore our digital library: technology books, journals and references for {{ site_config.school_short_name|default:'AbrayTech' }} learners.{% endblock %}
 {% block twitter_title %}Digital Library – {{ site_config.school_name }}{% endblock %}
-{% block twitter_description %}Explore our curated collection of theological books, periodicals, Bible commentaries, and scholarly references.{% endblock %}
+{% block twitter_description %}Explore our digital library: technology books, journals and references for {{ site_config.school_short_name|default:'AbrayTech' }} learners.{% endblock %}
 
 {% block structured_data %}
 <script type="application/ld+json">
@@ -15,7 +15,7 @@
   "@type": "CollectionPage",
   "name": "Digital Library",
   "url": "{{ request.build_absolute_uri }}",
-  "description": "Digital library of theological books, periodicals, and references at {{ site_config.school_name|escapejs }}."
+  "description": "Digital library of technology books, journals and references at {{ site_config.school_name|escapejs }}."
 }
 </script>
 <script type="application/ld+json">
@@ -48,7 +48,7 @@
         Digital <span class="text-gospel-300">Library</span>
       </h1>
       <p class="mb-font-body text-neutral-300 text-lg md:text-xl leading-relaxed mb-8">
-        Explore our curated collection of theological books, periodicals, Bible commentaries, and scholarly references — freely available to students and the global church.
+        Books, journals and references on software, cybersecurity, data and AI, and cloud, chosen for AbrayTech learners.
       </p>
 
       {# Search bar #}
