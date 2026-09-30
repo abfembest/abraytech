@@ -1378,29 +1378,26 @@ def enroll_student(request, course_slug):
         try:
             student = User.objects.get(id=student_id, profile__role='student', is_active=True)
             
-            # Check if already enrolled
-            if Enrollment.objects.filter(
+            # get_or_create (Enrollment is unique on student+course): a double
+            # submit used to pass an exists() check twice and crash on the second insert.
+            # Create enrollment
+            parsed_date = None
+            if enrollment_date:
+                try:
+                    parsed_date = datetime.strptime(enrollment_date, '%Y-%m-%d')
+                except (ValueError, TypeError):
+                    parsed_date = None
+            enrollment, created = Enrollment.objects.get_or_create(
                 course=course,
-                student=student
-            ).exists():
+                student=student,
+                defaults={'enrolled_at': parsed_date or timezone.now(), 'status': 'active'},
+            )
+            if not created:
                 messages.warning(
                     request,
                     f'{student.get_full_name()} is already enrolled in this course.'
                 )
             else:
-                # Create enrollment
-                parsed_date = None
-                if enrollment_date:
-                    try:
-                        parsed_date = datetime.strptime(enrollment_date, '%Y-%m-%d')
-                    except (ValueError, TypeError):
-                        parsed_date = None
-                enrollment = Enrollment.objects.create(
-                    course=course,
-                    student=student,
-                    enrolled_at=parsed_date or timezone.now(),
-                    status='active'
-                )
                 
                 # Send welcome email if requested
                 if send_welcome:

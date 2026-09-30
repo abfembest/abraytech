@@ -824,6 +824,13 @@ def return_request_new(request, order_number):
             reasons[item.id] = (reason, request.POST.get(f'details_{item.id}', '').strip())
 
         with transaction.atomic():
+            # Lock the order and re-check each item: two submits at once
+            # could otherwise both create a return for the same item (and
+            # risk it being refunded twice).
+            Order.objects.select_for_update().filter(pk=order.pk).first()
+            if any(item.active_return_item is not None for item in selected_items):
+                messages.info(request, f'A return for one of these items is already in progress for {order.order_number}.')
+                return redirect('store:my_orders')
             return_request = ReturnRequest.objects.create(
                 order=order, user=request.user, condition_confirmed=True,
             )

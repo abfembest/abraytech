@@ -1112,22 +1112,30 @@ def mark_lesson_complete(request, course_slug, lesson_slug):
                         )
                     else:
                         # Standalone LMS course — issue individual certificate
-                        if lms_course.has_certificate:
-                            cert, created = Certificate.objects.get_or_create(
-                                student=request.user,
-                                course=lms_course,
-                                certificate_type='lms_course',
-                                defaults={
-                                    'completion_date': timezone.now().date(),
-                                    'payment_status': 'unpaid' if lms_course.certificate_fee > 0 else 'paid',
-                                }
-                            )
+                        # has_certificate/certificate_fee are commented out on LMSCourse
+                        # (standalone-course certificates switched off); read them
+                        # defensively so this branch can't raise.
+                        if getattr(lms_course, 'has_certificate', False):
+                            # No unique constraint on (student, course, type): two lessons finished
+                            # at once could each create a certificate. Locking the enrollment row
+                            # makes the second request wait and find the first one's certificate.
+                            with transaction.atomic():
+                                Enrollment.objects.select_for_update().filter(pk=enrollment.pk).first()
+                                cert, created = Certificate.objects.get_or_create(
+                                    student=request.user,
+                                    course=lms_course,
+                                    certificate_type='lms_course',
+                                    defaults={
+                                        'completion_date': timezone.now().date(),
+                                        'payment_status': 'unpaid' if getattr(lms_course, 'certificate_fee', 0) > 0 else 'paid',
+                                    }
+                                )
                             _notify(
                                 user=request.user,
                                 notification_type='enrollment',
                                 title=f'Course Completed: {lms_course.title}',
                                 message=f'Congratulations! You have completed \"{lms_course.title}\". '
-                                        + ('Pay your certificate fee to download your certificate.' if lms_course.certificate_fee > 0 else 'Your certificate is ready to download.'),
+                                        + ('Pay your certificate fee to download your certificate.' if getattr(lms_course, 'certificate_fee', 0) > 0 else 'Your certificate is ready to download.'),
                                 link='/student/certificates/',
                             )
 
@@ -2280,21 +2288,25 @@ def join_study_group(request, group_id):
         return redirect('students:study_groups')
     
     # Check if group is full
-    current_count = group.members.filter(is_active=True).count()
-    if current_count >= group.max_members:
-        messages.error(request, 'This study group is full.')
-        return redirect('students:study_groups')
-    
-    # Join group
-    if existing:
-        existing.is_active = True
-        existing.save()
-    else:
-        StudyGroupMember.objects.create(
-            study_group=group,
-            user=request.user,
-            role='member'
-        )
+    # Lock the group row so two students joining the last seat can't both
+    # pass the capacity check.
+    with transaction.atomic():
+        StudyGroup.objects.select_for_update().filter(pk=group.pk).first()
+        current_count = group.members.filter(is_active=True).count()
+        if current_count >= group.max_members:
+            messages.error(request, 'This study group is full.')
+            return redirect('students:study_groups')
+
+        # Join group
+        if existing:
+            existing.is_active = True
+            existing.save()
+        else:
+            StudyGroupMember.objects.get_or_create(
+                study_group=group,
+                user=request.user,
+                defaults={'role': 'member'},
+            )
     
     messages.success(
         request,
@@ -3148,10 +3160,13 @@ def academic_records(request):
         application_qs = CourseApplication.objects.filter(user=user, status='approved')
         if application_qs.exists():
             app = application_qs.order_by('-created_at').first()
-            if not app.transcript_requested:
-                app.transcript_requested = True
-                app.transcript_snapshot = CourseGrade.build_transcript_snapshot(user)
-                app.save(update_fields=['transcript_requested', 'transcript_snapshot'])
+            # One conditional UPDATE claims the request, so a double click
+            # can't freeze the snapshot twice.
+            claimed = CourseApplication.objects.filter(pk=app.pk, transcript_requested=False).update(
+                transcript_requested=True,
+                transcript_snapshot=CourseGrade.build_transcript_snapshot(user),
+            )
+            if claimed:
                 messages.success(request, 'Your transcript request has been submitted successfully.')
             else:
                 messages.info(request, 'You have already requested your transcript.')
@@ -3594,11 +3609,20 @@ def submit_exam(request, slug):
     if request.method != 'POST':
         return JsonResponse({'error': 'POST required'}, status=405)
 
-    response = get_object_or_404(StudentExamResponse, exam__slug=slug, student=request.user)
+    # Row lock for the whole grading: two submits at once (double click, the
+    # timer's auto-submit racing a manual one) would otherwise both pass the
+    # status check and grade twice.
+    with transaction.atomic():
+        response = get_object_or_404(
+            StudentExamResponse.objects.select_for_update(), exam__slug=slug, student=request.user,
+        )
+        if response.status in (StudentExamResponse.SUBMITTED, StudentExamResponse.GRADED):
+            return JsonResponse({'status': 'already_submitted'})
+        return _grade_exam_submission(request, response)
 
-    if response.status in (StudentExamResponse.SUBMITTED, StudentExamResponse.GRADED):
-        return JsonResponse({'status': 'already_submitted'})
 
+def _grade_exam_submission(request, response):
+    """Grade a locked, not-yet-submitted exam response (see submit_exam)."""
     exam = response.exam
     now  = timezone.now()
 
