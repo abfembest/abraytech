@@ -1067,6 +1067,7 @@ PRIVATE_MEDIA_PREFIX = 'applications/'
 LIBRARY_MEDIA_PREFIX = 'library/'
 LIBRARY_COVERS_PREFIX = 'library/covers/'
 SUBMISSION_MEDIA_PATTERN = re.compile(r'^courses/[^/]+/submissions/')
+CERTIFICATE_MEDIA_PREFIX = 'certificates/'
 
 
 def _library_file_access(request, stored_name):
@@ -1105,6 +1106,17 @@ def serve_media(request, path):
             or ApplicationDocument.objects.filter(
                 file=stored_name, application__user=user,
             ).exists()
+        )
+        if not allowed:
+            raise Http404
+        private = True
+    elif normalized.startswith(CERTIFICATE_MEDIA_PREFIX):
+        # Certificate files: the owning student once the certificate is paid
+        # for (the same rule as students:certificate_print), and admin staff.
+        user = request.user
+        allowed = user.is_authenticated and (
+            is_admin(user)
+            or Certificate.objects.filter(certificate_file=stored_name, student=user, payment_status='paid').exists()
         )
         if not allowed:
             raise Http404
