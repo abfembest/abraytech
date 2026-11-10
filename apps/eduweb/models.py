@@ -18,6 +18,7 @@ import os
 import base64
 import hashlib
 import secrets
+from datetime import date as _date
 from decimal import Decimal, ROUND_HALF_UP
 
 
@@ -3302,24 +3303,82 @@ class InstitutionalSubscription(models.Model):
     for (software licenses, hosting, tools, etc.) — unrelated to the
     student-facing SubscriptionPlan/Subscription pair above. Superuser-only.
     """
+    BILLING_CYCLE_CHOICES = [
+        ('monthly', 'Monthly'),
+        ('quarterly', 'Quarterly'),
+        ('annual', 'Annual'),
+        ('one_time', 'One-time'),
+    ]
+
+    ALERT_DAYS_CHOICES = [
+        (0, 'No alert'),
+        (7, '7 days before'),
+        (14, '14 days before'),
+        (30, '30 days before'),
+        (60, '60 days before'),
+        (90, '90 days before'),
+    ]
+
     purpose = models.CharField(max_length=255)
+    provider = models.CharField(max_length=200, blank=True)
+    url = models.URLField(blank=True, help_text='Management or login URL')
     amount = models.DecimalField(max_digits=12, decimal_places=2)
+    currency = models.CharField(max_length=5, default='USD')
+    billing_cycle = models.CharField(
+        max_length=20, choices=BILLING_CYCLE_CHOICES, default='monthly',
+    )
     start_date = models.DateField()
-    expiry_date = models.DateField()
+    expiry_date = models.DateField(db_index=True)
+    contact_email = models.EmailField(blank=True, help_text='Who gets the expiry alert')
+    alert_days_before = models.IntegerField(
+        choices=ALERT_DAYS_CHOICES, default=30,
+    )
+    alert_sent_date = models.DateField(blank=True, null=True)
+    notes = models.TextField(blank=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-start_date']
+        ordering = ['expiry_date']
         verbose_name = 'Institutional Subscription'
         verbose_name_plural = 'Institutional Subscriptions'
 
     def __str__(self):
-        return self.purpose
+        return f'{self.purpose} ({self.provider})' if self.provider else self.purpose
 
     @property
     def is_active(self):
         return self.expiry_date >= timezone.now().date()
+
+    @property
+    def days_until_expiry(self):
+        return (self.expiry_date - _date.today()).days
+
+    @property
+    def status(self):
+        days = self.days_until_expiry
+        if days <= 0:
+            return 'expired'
+        if self.alert_days_before > 0 and days <= self.alert_days_before:
+            return 'expiring_soon'
+        return 'active'
+
+    @property
+    def status_label(self):
+        return {
+            'active': 'Active',
+            'expiring_soon': 'Expiring Soon',
+            'expired': 'Expired',
+        }[self.status]
+
+    @property
+    def monthly_cost(self):
+        divisors = {'monthly': 1, 'quarterly': 3, 'annual': 12, 'one_time': 0}
+        d = divisors.get(self.billing_cycle, 1)
+        if d == 0:
+            return Decimal('0.00')
+        return (self.amount / d).quantize(Decimal('0.01'))
 
 class Invoice(models.Model):
     """Invoices for course payments"""

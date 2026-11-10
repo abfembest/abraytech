@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subscription Expiry Alert</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f3f4f6;padding:40px 20px;">
+<tr><td align="center">
+<table role="presentation" width="600" cellspacing="0" cellpadding="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,0.07);">
+
+    <!-- Header -->
+    <tr>
+        <td style="background:linear-gradient(135deg,#7c3aed,#4338ca);padding:32px 40px;text-align:center;">
+            <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:700;">{{ site_name }}</h1>
+            <p style="color:rgba(255,255,255,0.85);margin:8px 0 0;font-size:13px;">Subscription Expiry Alert</p>
+        </td>
+    </tr>
+
+    <!-- Body -->
+    <tr>
+        <td style="padding:32px 40px;">
+            <p style="color:#374151;font-size:15px;line-height:1.6;margin:0 0 20px;">
+                A subscription is expiring soon and needs your attention:
+            </p>
+
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;margin-bottom:24px;">
+                <tr>
+                    <td style="padding:20px;">
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td style="padding:6px 0;color:#6b7280;font-size:13px;width:120px;">Service</td>
+                                <td style="padding:6px 0;color:#111827;font-size:14px;font-weight:600;">{{ subscription.purpose }}</td>
+                            </tr>
+                            {% if subscription.provider %}
+                            <tr>
+                                <td style="padding:6px 0;color:#6b7280;font-size:13px;">Provider</td>
+                                <td style="padding:6px 0;color:#111827;font-size:14px;">{{ subscription.provider }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <td style="padding:6px 0;color:#6b7280;font-size:13px;">Amount</td>
+                                <td style="padding:6px 0;color:#111827;font-size:14px;">{{ subscription.currency|upper }} {{ subscription.amount|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:6px 0;color:#6b7280;font-size:13px;">Expiry Date</td>
+                                <td style="padding:6px 0;color:#111827;font-size:14px;font-weight:600;">{{ subscription.expiry_date|date:"F j, Y" }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:6px 0;color:#6b7280;font-size:13px;">Days Left</td>
+                                <td style="padding:6px 0;">
+                                    <span style="display:inline-block;background-color:{% if days_left <= 7 %}#fef2f2;color:#dc2626{% else %}#fffbeb;color:#d97706{% endif %};padding:3px 10px;border-radius:12px;font-size:13px;font-weight:600;">
+                                        {{ days_left }} day{{ days_left|pluralize }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+
+            <p style="color:#6b7280;font-size:13px;line-height:1.6;margin:0;">
+                Please review this subscription and take action before it expires.
+            </p>
+        </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+        <td style="background-color:#f9fafb;padding:20px 40px;border-top:1px solid #e5e7eb;text-align:center;">
+            <p style="color:#9ca3af;font-size:12px;margin:0;">
+                This is an automated alert from {{ site_name }}.
+            </p>
+        </td>
+    </tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>

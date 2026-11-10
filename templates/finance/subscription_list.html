@@ -162,68 +162,106 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th scope="col"
-                                class="px-6 py-4 text-left text-xs
+                                class="px-4 py-4 text-left text-xs
                                        font-medium text-gray-500
                                        uppercase tracking-wider">
                                 Purpose
                             </th>
                             <th scope="col"
-                                class="px-6 py-4 text-left text-xs
+                                class="px-4 py-4 text-left text-xs
+                                       font-medium text-gray-500
+                                       uppercase tracking-wider">
+                                Provider
+                            </th>
+                            <th scope="col"
+                                class="px-4 py-4 text-left text-xs
                                        font-medium text-gray-500
                                        uppercase tracking-wider">
                                 Amount
                             </th>
                             <th scope="col"
-                                class="px-6 py-4 text-left text-xs
+                                class="px-4 py-4 text-left text-xs
                                        font-medium text-gray-500
                                        uppercase tracking-wider">
-                                Start Date
+                                Cycle
                             </th>
                             <th scope="col"
-                                class="px-6 py-4 text-left text-xs
+                                class="px-4 py-4 text-left text-xs
                                        font-medium text-gray-500
                                        uppercase tracking-wider">
-                                Expiry Date
+                                Start
                             </th>
                             <th scope="col"
-                                class="px-6 py-4 text-left text-xs
+                                class="px-4 py-4 text-left text-xs
+                                       font-medium text-gray-500
+                                       uppercase tracking-wider">
+                                Expiry
+                            </th>
+                            <th scope="col"
+                                class="px-4 py-4 text-left text-xs
+                                       font-medium text-gray-500
+                                       uppercase tracking-wider">
+                                Days Left
+                            </th>
+                            <th scope="col"
+                                class="px-4 py-4 text-left text-xs
                                        font-medium text-gray-500
                                        uppercase tracking-wider">
                                 Status
                             </th>
                             <th scope="col"
-                                class="px-6 py-4 text-left text-xs
+                                class="px-4 py-4 text-right text-xs
                                        font-medium text-gray-500
                                        uppercase tracking-wider">
-                                Date Added
+                                Actions
                             </th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        {% for subscription in subscriptions %}
+                        {% for sub in subscriptions %}
                         <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-4 py-4 whitespace-nowrap">
                                 <div class="text-sm font-medium text-gray-900">
-                                    {{ subscription.purpose }}
+                                    {{ sub.purpose }}
+                                </div>
+                                {% if sub.url %}
+                                <p class="text-xs text-gray-400 truncate max-w-[180px]">{{ sub.url }}</p>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-600">
+                                    {{ sub.provider|default:"—" }}
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-4 py-4 whitespace-nowrap">
                                 <div class="text-sm font-semibold text-gray-900">
-                                    ${{ subscription.amount|floatformat:2 }}
+                                    {{ sub.currency|upper }} {{ sub.amount|floatformat:2 }}
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-600">
+                                    {{ sub.get_billing_cycle_display }}
+                                </div>
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-600">
+                                    {{ sub.start_date|date:"M d, Y" }}
+                                </div>
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap">
                                 <div class="text-sm text-gray-900">
-                                    {{ subscription.start_date|date:"M d, Y" }}
+                                    {{ sub.expiry_date|date:"M d, Y" }}
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">
-                                    {{ subscription.expiry_date|date:"M d, Y" }}
-                                </div>
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                {% if sub.days_until_expiry > 0 %}
+                                <span class="text-sm font-medium text-gray-700">{{ sub.days_until_expiry }}d</span>
+                                {% else %}
+                                <span class="text-sm font-semibold text-red-600">Overdue</span>
+                                {% endif %}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                {% if subscription.is_active %}
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                {% if sub.status == 'active' %}
                                 <span class="px-3 py-1 inline-flex text-xs
                                              leading-5 font-semibold
                                              rounded-full bg-green-100
@@ -231,6 +269,15 @@
                                     <i class="fas fa-check-circle mr-1"
                                        aria-hidden="true"></i>
                                     Active
+                                </span>
+                                {% elif sub.status == 'expiring_soon' %}
+                                <span class="px-3 py-1 inline-flex text-xs
+                                             leading-5 font-semibold
+                                             rounded-full bg-amber-100
+                                             text-amber-800">
+                                    <i class="fas fa-exclamation-triangle mr-1"
+                                       aria-hidden="true"></i>
+                                    Expiring Soon
                                 </span>
                                 {% else %}
                                 <span class="px-3 py-1 inline-flex text-xs
@@ -243,15 +290,20 @@
                                 </span>
                                 {% endif %}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-500">
-                                    {{ subscription.created_at|date:"M d, Y" }}
-                                </div>
+                            <td class="px-4 py-4 whitespace-nowrap text-right">
+                                <a href="{% url 'finance:subscription_edit' sub.pk %}"
+                                   class="inline-flex items-center gap-1 px-3 py-1.5
+                                          text-xs font-medium text-primary-700
+                                          bg-primary-50 hover:bg-primary-100
+                                          rounded-lg transition">
+                                    <i class="fas fa-pen fa-xs" aria-hidden="true"></i>
+                                    Edit
+                                </a>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="6" class="px-6 py-12 text-center">
+                            <td colspan="9" class="px-6 py-12 text-center">
                                 <div class="text-gray-400">
                                     <i class="fas fa-inbox text-4xl mb-3 block"
                                        aria-hidden="true"></i>
@@ -273,7 +325,7 @@
     </main>
 </div>
 
-{# ══════════════════════════════ ADD SUBSCRIPTION MODAL ══════════════════════════════ #}
+{# ══════════════════════════════ ADD / EDIT SUBSCRIPTION MODAL ══════════════════════════════ #}
 <div id="sub-modal"
      role="dialog" aria-modal="true" aria-labelledby="sub-modal-title"
      class="fixed inset-0 z-50 {% if not show_add_modal %}hidden{% endif %}">
@@ -283,12 +335,12 @@
 
     <div class="absolute inset-0 flex items-center justify-center p-4 sm:p-6
                 pointer-events-none">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl
                     max-h-[90vh] overflow-y-auto pointer-events-auto">
 
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <h2 id="sub-modal-title" class="text-lg font-bold font-heading text-gray-800">
-                    Add Subscription
+                    {% if editing %}Edit Subscription{% else %}Add Subscription{% endif %}
                 </h2>
                 <button type="button" onclick="SubModal.close()"
                         class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100
@@ -298,7 +350,8 @@
                 </button>
             </div>
 
-            <form method="post" action="{% url 'finance:subscription_create' %}"
+            <form method="post"
+                  action="{% if editing %}{% url 'finance:subscription_edit' editing.pk %}{% else %}{% url 'finance:subscription_create' %}{% endif %}"
                   class="p-6 space-y-5">
                 {% csrf_token %}
 
@@ -310,31 +363,79 @@
                     </div>
                 {% endif %}
 
+                <!-- Purpose & Provider -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.purpose.id_for_label }}"
+                               class="block text-xs font-semibold text-gray-600
+                                      uppercase tracking-wide mb-1.5">
+                            Purpose <span class="text-red-500" aria-hidden="true">*</span>
+                        </label>
+                        {{ form.purpose }}
+                        {% if form.purpose.errors %}
+                            <p class="mt-1 text-xs text-red-600" role="alert">{{ form.purpose.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.provider.id_for_label }}"
+                               class="block text-xs font-semibold text-gray-600
+                                      uppercase tracking-wide mb-1.5">
+                            Provider
+                        </label>
+                        {{ form.provider }}
+                        {% if form.provider.errors %}
+                            <p class="mt-1 text-xs text-red-600" role="alert">{{ form.provider.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- URL -->
                 <div>
-                    <label for="{{ form.purpose.id_for_label }}"
+                    <label for="{{ form.url.id_for_label }}"
                            class="block text-xs font-semibold text-gray-600
                                   uppercase tracking-wide mb-1.5">
-                        Purpose <span class="text-red-500" aria-hidden="true">*</span>
+                        Management URL
                     </label>
-                    {{ form.purpose }}
-                    {% if form.purpose.errors %}
-                        <p class="mt-1 text-xs text-red-600" role="alert">{{ form.purpose.errors.0 }}</p>
+                    {{ form.url }}
+                    <p class="mt-1 text-xs text-gray-400">Link to the service dashboard or login page.</p>
+                    {% if form.url.errors %}
+                        <p class="mt-1 text-xs text-red-600" role="alert">{{ form.url.errors.0 }}</p>
                     {% endif %}
                 </div>
 
-                <div>
-                    <label for="{{ form.amount.id_for_label }}"
-                           class="block text-xs font-semibold text-gray-600
-                                  uppercase tracking-wide mb-1.5">
-                        Amount <span class="text-red-500" aria-hidden="true">*</span>
-                    </label>
-                    {{ form.amount }}
-                    {% if form.amount.errors %}
-                        <p class="mt-1 text-xs text-red-600" role="alert">{{ form.amount.errors.0 }}</p>
-                    {% endif %}
+                <!-- Amount, Currency, Billing Cycle -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label for="{{ form.amount.id_for_label }}"
+                               class="block text-xs font-semibold text-gray-600
+                                      uppercase tracking-wide mb-1.5">
+                            Amount <span class="text-red-500" aria-hidden="true">*</span>
+                        </label>
+                        {{ form.amount }}
+                        {% if form.amount.errors %}
+                            <p class="mt-1 text-xs text-red-600" role="alert">{{ form.amount.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.currency.id_for_label }}"
+                               class="block text-xs font-semibold text-gray-600
+                                      uppercase tracking-wide mb-1.5">
+                            Currency
+                        </label>
+                        {{ form.currency }}
+                    </div>
+                    <div>
+                        <label for="{{ form.billing_cycle.id_for_label }}"
+                               class="block text-xs font-semibold text-gray-600
+                                      uppercase tracking-wide mb-1.5">
+                            Billing Cycle
+                        </label>
+                        {{ form.billing_cycle }}
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <!-- Dates -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label for="{{ form.start_date.id_for_label }}"
                                class="block text-xs font-semibold text-gray-600
@@ -359,13 +460,47 @@
                     </div>
                 </div>
 
+                <!-- Alert Email & Alert Before -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.contact_email.id_for_label }}"
+                               class="block text-xs font-semibold text-gray-600
+                                      uppercase tracking-wide mb-1.5">
+                            Alert Email
+                        </label>
+                        {{ form.contact_email }}
+                        <p class="mt-1 text-xs text-gray-400">Who gets notified before expiry.</p>
+                        {% if form.contact_email.errors %}
+                            <p class="mt-1 text-xs text-red-600" role="alert">{{ form.contact_email.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.alert_days_before.id_for_label }}"
+                               class="block text-xs font-semibold text-gray-600
+                                      uppercase tracking-wide mb-1.5">
+                            Alert Before
+                        </label>
+                        {{ form.alert_days_before }}
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div>
+                    <label for="{{ form.notes.id_for_label }}"
+                           class="block text-xs font-semibold text-gray-600
+                                  uppercase tracking-wide mb-1.5">
+                        Notes
+                    </label>
+                    {{ form.notes }}
+                </div>
+
                 <div class="flex gap-3 pt-1 border-t border-gray-100">
                     <button type="submit"
                             class="flex-1 px-4 py-2.5 bg-primary-600 hover:bg-primary-700
                                    text-white text-sm font-semibold rounded-lg transition
                                    focus:outline-none focus:ring-2 focus:ring-offset-2
                                    focus:ring-primary-500">
-                        Save Subscription
+                        {% if editing %}Save Changes{% else %}Save Subscription{% endif %}
                     </button>
                     <button type="button" onclick="SubModal.close()"
                             class="px-4 py-2.5 border border-gray-300 rounded-lg text-sm
@@ -401,5 +536,23 @@ var SubModal = (function () {
 
     return { open: open, close: close };
 }());
+</script>
+
+<script>
+$(document).ready(function () {
+    if ($.fn.DataTable && $('#subscriptionsTable tbody tr').length > 0
+        && !$('#subscriptionsTable tbody tr td[colspan]').length) {
+        $('#subscriptionsTable').DataTable({
+            order: [[6, 'asc']],
+            pageLength: 25,
+            language: {
+                emptyTable: 'No subscriptions found',
+                search: '',
+                searchPlaceholder: 'Search subscriptions...',
+            },
+            dom: '<"flex flex-wrap items-center justify-between gap-4 mb-4"lf>t<"flex flex-wrap items-center justify-between gap-4 mt-4"ip>',
+        });
+    }
+});
 </script>
 {% endblock %}

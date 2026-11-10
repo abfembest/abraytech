@@ -325,6 +325,33 @@ def subscription_create(request):
     return render(request, 'finance/subscription_list.html', context)
 
 
+@login_required
+@user_passes_test(_is_superuser)
+def subscription_edit(request, pk):
+    """Edit an existing institutional subscription."""
+    subscription = get_object_or_404(InstitutionalSubscription, pk=pk)
+    if request.method == 'POST':
+        form = InstitutionalSubscriptionForm(request.POST, instance=subscription)
+        if form.is_valid():
+            form.save()
+            AuditLog.objects.create(
+                user=request.user,
+                action='update',
+                model_name='InstitutionalSubscription',
+                object_id=str(subscription.pk),
+                description=f'Updated subscription "{subscription.purpose}".',
+            )
+            messages.success(request, f'Subscription "{subscription.purpose}" updated.')
+            return redirect('finance:subscription_list')
+        messages.error(request, 'Please correct the errors below.')
+    else:
+        form = InstitutionalSubscriptionForm(instance=subscription)
+    context = _subscription_list_context(form=form)
+    context['editing'] = subscription
+    context['show_add_modal'] = True
+    return render(request, 'finance/subscription_list.html', context)
+
+
 # ==================== PAYROLL ====================
 
 @login_required

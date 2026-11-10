@@ -20,11 +20,15 @@ MAX_ATTACHMENT_SIZE_BYTES = 10 * 1024 * 1024  # 10MB
 # ==================== SUBSCRIPTION FORMS ====================
 
 class InstitutionalSubscriptionForm(forms.ModelForm):
-    """Add form for the institution's own paid subscriptions (superuser-only)."""
+    """Add/edit form for the institution's own paid subscriptions (superuser-only)."""
 
     class Meta:
         model = InstitutionalSubscription
-        fields = ['purpose', 'amount', 'start_date', 'expiry_date']
+        fields = [
+            'purpose', 'provider', 'url', 'amount', 'currency',
+            'billing_cycle', 'start_date', 'expiry_date',
+            'contact_email', 'alert_days_before', 'notes',
+        ]
         widgets = {
             'purpose': forms.TextInput(attrs={
                 'class': (
@@ -32,7 +36,23 @@ class InstitutionalSubscriptionForm(forms.ModelForm):
                     'rounded-lg focus:ring-2 focus:ring-primary-500 '
                     'focus:border-primary-500'
                 ),
-                'placeholder': 'e.g. Zoom Pro, Canva, AWS hosting'
+                'placeholder': 'e.g. Zoom Pro, Canva, AWS hosting',
+            }),
+            'provider': forms.TextInput(attrs={
+                'class': (
+                    'w-full px-4 py-2.5 border border-gray-300 '
+                    'rounded-lg focus:ring-2 focus:ring-primary-500 '
+                    'focus:border-primary-500'
+                ),
+                'placeholder': 'e.g. AWS, Google, Zoom',
+            }),
+            'url': forms.TextInput(attrs={
+                'class': (
+                    'w-full px-4 py-2.5 border border-gray-300 '
+                    'rounded-lg focus:ring-2 focus:ring-primary-500 '
+                    'focus:border-primary-500'
+                ),
+                'placeholder': 'https://...',
             }),
             'amount': forms.NumberInput(attrs={
                 'class': (
@@ -42,6 +62,21 @@ class InstitutionalSubscriptionForm(forms.ModelForm):
                 ),
                 'step': '0.01',
                 'min': '0',
+            }),
+            'currency': forms.TextInput(attrs={
+                'class': (
+                    'w-full px-4 py-2.5 border border-gray-300 '
+                    'rounded-lg focus:ring-2 focus:ring-primary-500 '
+                    'focus:border-primary-500'
+                ),
+                'placeholder': 'USD',
+            }),
+            'billing_cycle': forms.Select(attrs={
+                'class': (
+                    'w-full px-4 py-2.5 border border-gray-300 '
+                    'rounded-lg focus:ring-2 focus:ring-primary-500 '
+                    'focus:border-primary-500 bg-white'
+                ),
             }),
             'start_date': forms.DateInput(attrs={
                 'class': (
@@ -58,6 +93,30 @@ class InstitutionalSubscriptionForm(forms.ModelForm):
                     'focus:border-primary-500'
                 ),
                 'type': 'date',
+            }),
+            'contact_email': forms.EmailInput(attrs={
+                'class': (
+                    'w-full px-4 py-2.5 border border-gray-300 '
+                    'rounded-lg focus:ring-2 focus:ring-primary-500 '
+                    'focus:border-primary-500'
+                ),
+                'placeholder': 'alerts@example.com',
+            }),
+            'alert_days_before': forms.Select(attrs={
+                'class': (
+                    'w-full px-4 py-2.5 border border-gray-300 '
+                    'rounded-lg focus:ring-2 focus:ring-primary-500 '
+                    'focus:border-primary-500 bg-white'
+                ),
+            }),
+            'notes': forms.Textarea(attrs={
+                'class': (
+                    'w-full px-4 py-2.5 border border-gray-300 '
+                    'rounded-lg focus:ring-2 focus:ring-primary-500 '
+                    'focus:border-primary-500'
+                ),
+                'rows': 3,
+                'placeholder': 'Additional notes...',
             }),
         }
 

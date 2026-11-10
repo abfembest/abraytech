@@ -23,6 +23,11 @@ urlpatterns = [
         views.subscription_create,
         name='subscription_create',
     ),
+    path(
+        'subscriptions/<int:pk>/edit/',
+        views.subscription_edit,
+        name='subscription_edit',
+    ),
 
     # Payroll
     path('payroll/', views.payroll_management, name='payroll_management'),
