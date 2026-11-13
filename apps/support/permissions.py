@@ -68,8 +68,6 @@ def support_admin_required(view_func):
 
 
 def get_client_ip(request):
-    """Extract real client IP from request."""
-    x_forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded:
-        return x_forwarded.split(',')[0].strip()
-    return request.META.get('REMOTE_ADDR', '')
+    """Extract real client IP, Cloudflare-aware via antispam.client_ip."""
+    from apps.eduweb.antispam import client_ip
+    return client_ip(request)

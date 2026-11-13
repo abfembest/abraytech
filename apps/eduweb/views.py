@@ -1800,7 +1800,7 @@ def contact_submit(request):
     verdict = antispam.check_contact_submission(request)
     if verdict == antispam.BOT:
         # Look like a normal success so bots don't learn to adapt.
-        logger.info("Contact form bot submission dropped from %s", request.META.get('REMOTE_ADDR'))
+        logger.info("Contact form bot submission dropped from %s", antispam.client_ip(request))
         messages.success(request, 'Thank you for contacting us! We have received your message and will get back to you soon.')
         return redirect(referer)
     if verdict == antispam.RATE:

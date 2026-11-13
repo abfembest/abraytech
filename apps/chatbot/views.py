@@ -46,7 +46,8 @@ def generate_captcha():
 def rate_limit(key_prefix, limit=10, period=60):
     def decorator(view):
         def wrapped(request, *args, **kwargs):
-            ip = request.META.get('REMOTE_ADDR')
+            from apps.eduweb.antispam import client_ip
+            ip = client_ip(request)
             cache_key = f"{key_prefix}_{ip}"
             count = cache.get(cache_key, 0)
             if count >= limit:
