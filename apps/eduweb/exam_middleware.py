@@ -50,6 +50,10 @@ class ExamLockMiddleware(MiddlewareMixin):
         if request.user.is_staff or request.user.is_superuser:
             return None
 
+        profile = getattr(request.user, 'profile', None)
+        if profile and getattr(profile, 'role', None) != 'student':
+            return None
+
         if _is_allowed(request.path_info):
             return None
 

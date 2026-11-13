@@ -54,11 +54,16 @@ def _is_passthrough(path: str) -> bool:
 
 # ── Permission Service ─────────────────────────────────────────────────────────
 
+_PERMS_CACHE_TTL = 60
+
 def _load_permissions(user) -> dict:
     """
     Build the permissions dict for internal staff users.
     Returns {} for students, instructors, and unauthenticated users.
     Superusers get full access across all modules.
+
+    Results are cached per user for _PERMS_CACHE_TTL seconds so the two
+    StaffPermissionsMatrix queries don't hit the DB on every single request.
     """
     if not user.is_authenticated:
         return {}
@@ -70,6 +75,13 @@ def _load_permissions(user) -> dict:
     # is_superuser grants access independent of role.
     if not user.is_superuser and not user.is_staff and role not in STAFF_ROLES:
         return {}
+
+    from django.core.cache import cache as _cache
+
+    cache_key = f'staff_perms:{user.pk}'
+    cached = _cache.get(cache_key)
+    if cached is not None:
+        return cached
 
     # Import here to avoid circular import at module load
     from apps.eduweb.models import StaffPermissionsMatrix
@@ -86,7 +98,9 @@ def _load_permissions(user) -> dict:
     # (e.g. a fresh database with no rows seeded yet).
     if user.is_superuser:
         modules = [m[0] for m in StaffPermissionsMatrix.MODULE_CHOICES]
-        return {m: full.copy() for m in modules}
+        result = {m: full.copy() for m in modules}
+        _cache.set(cache_key, result, _PERMS_CACHE_TTL)
+        return result
 
     # Initialize all known modules with False permissions
     # so templates never fall through "or not permissions"
@@ -145,6 +159,7 @@ def _load_permissions(user) -> dict:
             'can_export':  row.can_export,
         }
 
+    _cache.set(cache_key, permissions, _PERMS_CACHE_TTL)
     return permissions
 
 

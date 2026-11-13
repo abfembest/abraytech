@@ -2141,6 +2141,7 @@ def apply(request):
                 application.status = 'draft'
                 application.intake = application.program.get_current_intake() if application.program_id else None
                 application.save()
+                request.session.pop('_has_pending_app', None)
 
                 # Was backgrounded via a daemon Thread — matches the same
                 # failure mode already hit in production for other emails on

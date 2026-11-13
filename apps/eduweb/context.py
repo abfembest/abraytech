@@ -224,14 +224,20 @@ def navigation_data(request):
     """Inject navigation data into every template via base.html."""
     from .public_cache import get_or_set
 
-    # Pending application check — only for authenticated students
+    # Pending application check — only for authenticated students.
+    # Stored in the session so we don't query on every page load.
     has_pending_application = False
     try:
         if request.user.is_authenticated and hasattr(request.user, 'profile'):
             if request.user.profile.role == 'student':
-                has_pending_application = CourseApplication.objects.filter(
-                    user=request.user
-                ).exists()
+                cached_val = request.session.get('_has_pending_app')
+                if cached_val is not None:
+                    has_pending_application = cached_val
+                else:
+                    has_pending_application = CourseApplication.objects.filter(
+                        user=request.user
+                    ).exists()
+                    request.session['_has_pending_app'] = has_pending_application
     except Exception:
         logger.exception('navigation_data: failed to check pending application')
 
@@ -281,25 +287,41 @@ def navigation_data(request):
 # 3. STUDENT BADGE COUNTS
 #    Unread messages + notifications for the student nav bar badges.
 # ─────────────────────────────────────────────────────────────────────────────
+_NOTIF_COUNTS_TTL = 15
+
 def student_counts(request):
     """
     Inject unread notification count and nav bell notifications for ALL
     authenticated roles. Also injects unread_messages_count for students.
+
+    Notification counts are cached per-user for _NOTIF_COUNTS_TTL seconds.
+    Student academic identity (matric, profile, department) uses a longer
+    session-based cache since it almost never changes mid-session.
     """
     if not request.user.is_authenticated:
         return {}
     if not hasattr(request.user, 'profile'):
         return {}
 
-    try:
-        unread_notifs_qs = Notification.objects.filter(
-            user=request.user,
-            is_read=False,
-        ).order_by('-created_at')
+    from django.core.cache import cache as _cache
 
-        unread_count = unread_notifs_qs.count()
-        nav_notifications = list(unread_notifs_qs[:5])
-        # Reused by instructor_counts (it runs next) instead of re-querying.
+    try:
+        uid = request.user.pk
+        notif_key = f'notif_counts:{uid}'
+        cached_notifs = _cache.get(notif_key)
+
+        if cached_notifs is not None:
+            unread_count, nav_notifications = cached_notifs
+        else:
+            unread_notifs_qs = Notification.objects.filter(
+                user=request.user,
+                is_read=False,
+            ).order_by('-created_at')
+
+            unread_count = unread_notifs_qs.count()
+            nav_notifications = list(unread_notifs_qs[:5])
+            _cache.set(notif_key, (unread_count, nav_notifications), _NOTIF_COUNTS_TTL)
+
         request.unread_notifications = (unread_count, nav_notifications)
         result = {
             'unread_notifications_count': unread_count,
@@ -307,16 +329,20 @@ def student_counts(request):
             'unread_messages_count': 0,
         }
 
-        # Unread messages only meaningful for students (inbox feature)
         if request.user.profile.role == 'student':
-            result['unread_messages_count'] = Message.objects.filter(
-                recipient=request.user,
-                is_read=False,
-                parent__isnull=True,
-            ).count()
+            msg_key = f'msg_count:{uid}'
+            cached_msg = _cache.get(msg_key)
+            if cached_msg is not None:
+                result['unread_messages_count'] = cached_msg
+            else:
+                msg_count = Message.objects.filter(
+                    recipient=request.user,
+                    is_read=False,
+                    parent__isnull=True,
+                ).count()
+                _cache.set(msg_key, msg_count, _NOTIF_COUNTS_TTL)
+                result['unread_messages_count'] = msg_count
 
-            # Student academic identity — profile, department, faculty
-            # Available globally so views don't need to re-fetch them.
             profile    = request.user.profile
             department = getattr(profile.program, 'department', None) if getattr(profile, 'program', None) else None
             faculty    = getattr(department, 'faculty', None) if department else None
@@ -324,18 +350,18 @@ def student_counts(request):
             result['student_department']  = department
             result['student_faculty']     = faculty
 
-            # Matric number — derived property on CourseApplication (see
-            # CourseApplication.matric_number for the actual format/logic).
-            accepted_application = (
-                request.user.applications
-                .filter(admission_number__isnull=False)
-                .select_related('program__department')
-                .order_by('-admission_accepted_at')
-                .first()
-            )
-            result['matric_number'] = (
-                accepted_application.matric_number if accepted_application else None
-            )
+            matric = request.session.get('_matric_number', '__unset__')
+            if matric == '__unset__':
+                accepted_application = (
+                    request.user.applications
+                    .filter(admission_number__isnull=False)
+                    .select_related('program__department')
+                    .order_by('-admission_accepted_at')
+                    .first()
+                )
+                matric = accepted_application.matric_number if accepted_application else None
+                request.session['_matric_number'] = matric
+            result['matric_number'] = matric
 
         return result
 
@@ -398,8 +424,12 @@ def instructor_counts(request):
 # 5. ADMIN BADGE COUNTS
 #    Open tickets + unread contact messages for the admin nav bar.
 # ─────────────────────────────────────────────────────────────────────────────
+_ADMIN_COUNTS_TTL = 30
+
 def admin_counts(request):
-    """Inject admin badge counts into every template."""
+    """Inject admin badge counts into every template.
+    Cached for _ADMIN_COUNTS_TTL seconds — 6 COUNT queries are expensive
+    to run on every single page load for admin users."""
     if not request.user.is_authenticated:
         return {}
     if not hasattr(request.user, 'profile'):
@@ -407,11 +437,17 @@ def admin_counts(request):
     if request.user.profile.role not in ('admin',) and not request.user.is_staff:
         return {}
 
+    from django.core.cache import cache as _cache
     from django.db.models import F, Q
     from apps.store.models import Order, Product, ReturnItem
 
+    cache_key = 'admin_badge_counts'
+    cached = _cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     try:
-        return {
+        result = {
             'open_tickets_count': SupportTicket.objects.filter(
                 status__in=['open', 'in_progress']
             ).count(),
@@ -434,6 +470,8 @@ def admin_counts(request):
                 | Q(low_stock_threshold__isnull=True, stock_quantity__lte=10)
             ).count(),
         }
+        _cache.set(cache_key, result, _ADMIN_COUNTS_TTL)
+        return result
     except Exception:
         logger.exception('admin_counts: failed to fetch counts')
         return {
